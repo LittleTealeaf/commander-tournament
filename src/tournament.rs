@@ -46,16 +46,24 @@ impl Tournament {
             return self.players.get(&player).unwrap();
         }
 
+        self.register_player(player.clone());
+
+        self.players.get(&player).unwrap()
+    }
+
+    pub fn register_player(&mut self, player: String) -> bool {
+        if self.players.contains_key(&player) {
+            return false;
+        }
         self.players.insert(
-            player.clone(),
+            player,
             PlayerStats {
                 elo: self.starting_score,
                 games: 0,
                 wins: 0,
             },
         );
-
-        self.players.get(&player).unwrap()
+        true
     }
 
     pub fn create_game(&mut self, players: [&str; 4]) -> Game {
@@ -89,14 +97,40 @@ impl Tournament {
         }
     }
 
-    pub fn submit_game(&mut self, game: Game, winner: String) -> bool {
+    pub fn reload_games(&mut self) {
+        let games = self.games.clone();
+        let players = self.players.keys().clone().cloned().collect::<Vec<_>>();
+        self.games.clear();
+        self.players.clear();
+        for player in players {
+            self.register_player(player.clone());
+        }
+        for (game, winner) in games {
+            let _ = self.submit_game(game, winner);
+        }
+    }
+
+    pub fn set_starting_elo(&mut self, elo: f64) {
+        self.starting_score = elo;
+        self.reload_games();
+    }
+
+    pub fn set_game_points(&mut self, points: f64) {
+        self.game_points = points;
+        self.reload_games();
+    }
+
+    pub fn submit_game(&mut self, game: Game, winner: String) -> Result<(), GameError> {
         if !game.players.contains(&winner) {
-            return false;
+            return Err(GameError::PlayerNotTracked);
         }
 
         for i in 0..4 {
             let player = &game.players[i];
-            let stats = self.players.get_mut(player).unwrap();
+            let stats = self
+                .players
+                .get_mut(player)
+                .ok_or(GameError::PlayerNotInTournament)?;
             let expected = game.expected[i];
             stats.games += 1;
             if player.eq(&winner) {
@@ -106,7 +140,11 @@ impl Tournament {
                 stats.elo -= self.game_points * (expected / 0.75);
             }
         }
-
-        true
+        Ok(())
     }
+}
+
+pub enum GameError {
+    PlayerNotTracked,
+    PlayerNotInTournament,
 }
