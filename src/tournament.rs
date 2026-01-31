@@ -88,4 +88,25 @@ impl Tournament {
             ],
         }
     }
+
+    pub fn submit_game(&mut self, game: Game, winner: String) -> bool {
+        if !game.players.contains(&winner) {
+            return false;
+        }
+
+        for i in 0..4 {
+            let player = &game.players[i];
+            let stats = self.players.get_mut(player).unwrap();
+            let expected = game.expected[i];
+            stats.games += 1;
+            if player.eq(&winner) {
+                stats.wins += 1;
+                stats.elo += self.game_points * (1.0 - expected) / 0.75
+            } else {
+                stats.elo -= self.game_points * (expected / 0.75);
+            }
+        }
+
+        true
+    }
 }
