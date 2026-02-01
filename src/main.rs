@@ -1,25 +1,43 @@
-use crate::tnm::Tournament;
+use crate::tournament::{ScoreConfig, Tournament, TournamentError};
+use anyhow::Result;
 
-mod tnm;
 mod tournament;
 
-fn main() {
+fn main() -> Result<()> {
     let mut t = Tournament::new();
+    let config = ScoreConfig {
+        starting_elo: 3000.0,
+        ..*t.get_score_config()
+    };
 
-    // load data.tsv (tab separated) where the first 4 columns are the players and the last is the winner
-    let data = std::fs::read_to_string("data.tsv").expect("Unable to read data.tsv");
+    ingest_tsv(&mut t)?;
+    dbg!(&t);
+
+    t.set_score_config(config)?;
+
+    dbg!(&t);
+
+    // let game = t.create_game(["Tifa", "Aurelia", "Rocksanne", "Anim"]);
+    // dbg!(&game);
+    // t.submit_game(game, "Tifa")?;
+    // dbg!(t);
+
+    Ok(())
+}
+
+fn ingest_tsv(tournament: &mut Tournament) -> Result<(), TournamentError> {
+    let data = std::fs::read_to_string("data.tsv").unwrap();
     for line in data.lines() {
-        let parts: Vec<&str> = line.split('\t').collect();
+        let parts = line.split('\t').collect::<Vec<_>>();
         if parts.len() < 5 {
             continue;
         }
 
         let players = [parts[0], parts[1], parts[2], parts[3]];
         let winner = parts[4].to_string();
-
-        let game = t.create_game(players);
-        let _ = t.submit_game(game, winner);
+        let game = tournament.create_game(players);
+        tournament.submit_game(game, winner)?;
     }
 
-    dbg!(t);
+    Ok(())
 }
