@@ -1,15 +1,33 @@
-use crate::{tournament::ScoreConfig, ui::TournamentApp};
+use std::{
+    fs::{self, File},
+    path::Path,
+};
+
+use iced::widget::sensor::Key;
+use ron::ser::PrettyConfig;
+
+use crate::{
+    tournament::{GameMatch, ScoreConfig, Tournament},
+    ui::TournamentApp,
+};
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    NewPlayerSubmit,
-    NewPlayerSetName(Option<String>),
+    Ingest,
+    SetChangePlayerName(Option<(Option<String>, String)>),
+    ChangePlayerSubmit,
+    ShowConfig(bool),
     SelectPlayer(usize, Option<String>),
     SelectWinner(String),
     SelectMatchPlayer(String),
+    DeletePlayer(String),
     SubmitGame,
+    Reload,
     SetScoreConfig(ScoreConfig),
     CloseError,
+    Load(String),
+    Save(String),
+    New,
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -20,15 +38,47 @@ enum AppError {
 
 pub fn update(app: &mut TournamentApp, message: Message) -> anyhow::Result<()> {
     match message {
-        Message::NewPlayerSubmit => {
-            if let Some(name) = &app.new_player_name {
-                app.tournament.register_player(name.clone());
-                return update(app, Message::NewPlayerSetName(None));
+        Message::Reload => {
+            app.tournament.reload()?;
+        }
+        Message::New => {
+            app.tournament = Tournament::new();
+        }
+        Message::Ingest => {
+            let data = std::fs::read_to_string("data.tsv")?;
+            for line in data.lines() {
+                let parts = line.split('\t').collect::<Vec<_>>();
+                if parts.len() < 5 {
+                    continue;
+                }
+
+                let players = [parts[0], parts[1], parts[2], parts[3]];
+                let winner = parts[4].to_string();
+                let game = app.tournament.create_game(players);
+                app.tournament.submit_game(game, winner)?;
             }
         }
-        Message::NewPlayerSetName(name) => app.new_player_name = name,
+        Message::ShowConfig(val) => app.show_config = val,
+        Message::ChangePlayerSubmit => {
+            if let Some((prev, name)) = &app.change_player_name {
+                if let Some(prev) = prev {
+                    if !prev.eq(name) {
+                        app.tournament
+                            .rename_player(prev.to_string(), name.to_string())?;
+                    }
+                } else {
+                    app.tournament.register_player(name.to_string());
+                }
+                app.change_player_name = None;
+            }
+        }
+        Message::SetChangePlayerName(value) => app.change_player_name = value,
         Message::CloseError => {
             app.error = None;
+        }
+        Message::DeletePlayer(player) => {
+            app.tournament.remove_player(player)?;
+            app.change_player_name = None;
         }
         Message::SelectPlayer(index, value) => {
             if index < 4 {
@@ -59,6 +109,20 @@ pub fn update(app: &mut TournamentApp, message: Message) -> anyhow::Result<()> {
         }
         Message::SetScoreConfig(config) => {
             app.tournament.set_score_config(config)?;
+        }
+        Message::Load(path) => {
+            let file = File::open(path)?;
+            app.tournament = ron::de::from_reader(file)?;
+            app.tournament.reload()?;
+            app.selected_match = Default::default();
+            app.selected_winner = Default::default();
+            app.selected_players = Default::default();
+        }
+        Message::Save(path) => {
+            fs::write(
+                path,
+                ron::ser::to_string_pretty(&app.tournament, PrettyConfig::default())?,
+            )?;
         }
     }
     Ok(())

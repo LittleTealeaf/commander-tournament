@@ -24,7 +24,7 @@ struct TournamentApp {
     selected_match: Option<GameMatch>,
     selected_winner: Option<String>,
     match_player: Option<String>,
-    new_player_name: Option<String>,
+    change_player_name: Option<(Option<String>, String)>,
     show_config: bool,
     error: Option<String>,
 }

@@ -53,13 +53,13 @@ impl PlayerStats {
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct GamePlayer {
-    name: String,
-    stats: PlayerStats,
-    expected: f64,
+    pub name: String,
+    pub stats: PlayerStats,
+    pub expected: f64,
 }
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
-pub struct GameMatch([GamePlayer; PLAYER_COUNT]);
+pub struct GameMatch(pub [GamePlayer; PLAYER_COUNT]);
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct GameRecord {
@@ -102,7 +102,7 @@ impl Tournament {
             return Err(TournamentError::PlayerAlreadyRegistered(to));
         }
 
-        let replace_name = |name: String| if name.eq(&from) { from.clone() } else { name };
+        let replace_name = |name: String| if name.eq(&from) { to.clone() } else { name };
 
         let games = self
             .games
@@ -149,7 +149,7 @@ impl Tournament {
         let players = self
             .players
             .keys()
-            .filter(|p| p.eq(&&player))
+            .filter(|p| !p.eq(&&player))
             .cloned()
             .collect::<Vec<_>>();
 

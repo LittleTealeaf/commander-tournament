@@ -1,0 +1,1033 @@
+(
+    players: {
+        "Anim Pakal, Thousandth Moon": (
+            elo: 1561.99270201954,
+            games: 40,
+            wins: 16,
+        ),
+        "Balan, Wandering Knight": (
+            elo: 1529.0305125433879,
+            games: 35,
+            wins: 12,
+        ),
+        "Neerdiv, Devious Diver": (
+            elo: 1489.1979196796733,
+            games: 12,
+            wins: 2,
+        ),
+        "Narset, Enlightened Master": (
+            elo: 1547.09946920398,
+            games: 43,
+            wins: 13,
+        ),
+        "Aloy, Machine Master": (
+            elo: 1542.3183144599489,
+            games: 49,
+            wins: 15,
+        ),
+        "Explorers of the Deep (Precon)": (
+            elo: 1490.822005136712,
+            games: 39,
+            wins: 8,
+        ),
+        "Bruna, Light of Alabaster": (
+            elo: 1590.4599249646872,
+            games: 13,
+            wins: 7,
+        ),
+        "Kemba, Kha Regent": (
+            elo: 1471.631883447918,
+            games: 44,
+            wins: 8,
+        ),
+        "Blight Curse (Precon)": (
+            elo: 1454.693494791714,
+            games: 11,
+            wins: 1,
+        ),
+        "The Devil Strahd": (
+            elo: 1541.3767758618098,
+            games: 17,
+            wins: 6,
+        ),
+        "Bre of Clan Stoutarm": (
+            elo: 1441.8488995726893,
+            games: 28,
+            wins: 3,
+        ),
+        "Lae\'zel, Master Chef": (
+            elo: 1377.5644328056749,
+            games: 35,
+            wins: 8,
+        ),
+        "Jeskai Striker (Precon)": (
+            elo: 1444.308990421415,
+            games: 27,
+            wins: 2,
+        ),
+        "Massacre Girl": (
+            elo: 1445.4897250409526,
+            games: 47,
+            wins: 11,
+        ),
+        "Hakbal of the Surging Soul": (
+            elo: 1436.2911506101964,
+            games: 27,
+            wins: 4,
+        ),
+        "Veryan, Voice of Duality": (
+            elo: 1532.8109801133328,
+            games: 31,
+            wins: 6,
+        ),
+        "Lazav, the Multifarious": (
+            elo: 1417.3551230206779,
+            games: 33,
+            wins: 4,
+        ),
+        "Fae Dominion (Precon)": (
+            elo: 1402.6915886075067,
+            games: 27,
+            wins: 3,
+        ),
+        "Vampiric Bloodline (Precon)": (
+            elo: 1487.1289864043126,
+            games: 3,
+            wins: 0,
+        ),
+        "Tifa Lockhart": (
+            elo: 1681.5145739590662,
+            games: 43,
+            wins: 18,
+        ),
+        "Emmara, Soul of the Accord": (
+            elo: 1482.9034121582079,
+            games: 47,
+            wins: 13,
+        ),
+        "Rocksanne, Starfall Savant": (
+            elo: 1635.9271897003055,
+            games: 39,
+            wins: 16,
+        ),
+        "Pantlaza, Sun-Favored": (
+            elo: 1510.7133413152624,
+            games: 48,
+            wins: 12,
+        ),
+        "Aphelia, Viper Whisperer": (
+            elo: 1360.7440014306708,
+            games: 26,
+            wins: 2,
+        ),
+        "Veloci-Ramp-Tor (Precon)": (
+            elo: 1478.9716430514054,
+            games: 23,
+            wins: 2,
+        ),
+        "Aerith Gainsborough": (
+            elo: 1440.8713562299058,
+            games: 43,
+            wins: 9,
+        ),
+        "Aurelia, the Warleader": (
+            elo: 1704.2416034490475,
+            games: 54,
+            wins: 20,
+        ),
+    },
+    games: [
+        (
+            players: ("Aerith Gainsborough", "Aloy, Machine Master", "Aurelia, the Warleader", "Emmara, Soul of the Accord"),
+            winner: "Emmara, Soul of the Accord",
+        ),
+        (
+            players: ("Kemba, Kha Regent", "Lae\'zel, Master Chef", "Massacre Girl", "Lazav, the Multifarious"),
+            winner: "Lae\'zel, Master Chef",
+        ),
+        (
+            players: ("Narset, Enlightened Master", "Pantlaza, Sun-Favored", "Rocksanne, Starfall Savant", "Tifa Lockhart"),
+            winner: "Rocksanne, Starfall Savant",
+        ),
+        (
+            players: ("Aerith Gainsborough", "Emmara, Soul of the Accord", "Lazav, the Multifarious", "Pantlaza, Sun-Favored"),
+            winner: "Aerith Gainsborough",
+        ),
+        (
+            players: ("Aloy, Machine Master", "Kemba, Kha Regent", "Massacre Girl", "Rocksanne, Starfall Savant"),
+            winner: "Aloy, Machine Master",
+        ),
+        (
+            players: ("Aurelia, the Warleader", "Lae\'zel, Master Chef", "Narset, Enlightened Master", "Tifa Lockhart"),
+            winner: "Narset, Enlightened Master",
+        ),
+        (
+            players: ("Aerith Gainsborough", "Lae\'zel, Master Chef", "Pantlaza, Sun-Favored", "Massacre Girl"),
+            winner: "Lae\'zel, Master Chef",
+        ),
+        (
+            players: ("Aloy, Machine Master", "Narset, Enlightened Master", "Lazav, the Multifarious", "Tifa Lockhart"),
+            winner: "Tifa Lockhart",
+        ),
+        (
+            players: ("Rocksanne, Starfall Savant", "Emmara, Soul of the Accord", "Aurelia, the Warleader", "Kemba, Kha Regent"),
+            winner: "Emmara, Soul of the Accord",
+        ),
+        (
+            players: ("Pantlaza, Sun-Favored", "Massacre Girl", "Tifa Lockhart", "Aerith Gainsborough"),
+            winner: "Pantlaza, Sun-Favored",
+        ),
+        (
+            players: ("Aurelia, the Warleader", "Narset, Enlightened Master", "Lae\'zel, Master Chef", "Kemba, Kha Regent"),
+            winner: "Lae\'zel, Master Chef",
+        ),
+        (
+            players: ("Aloy, Machine Master", "Emmara, Soul of the Accord", "Lazav, the Multifarious", "Rocksanne, Starfall Savant"),
+            winner: "Aloy, Machine Master",
+        ),
+        (
+            players: ("Explorers of the Deep (Precon)", "Kemba, Kha Regent", "Massacre Girl", "Aurelia, the Warleader"),
+            winner: "Massacre Girl",
+        ),
+        (
+            players: ("Lae\'zel, Master Chef", "Explorers of the Deep (Precon)", "Narset, Enlightened Master", "Aerith Gainsborough"),
+            winner: "Lae\'zel, Master Chef",
+        ),
+        (
+            players: ("Tifa Lockhart", "Pantlaza, Sun-Favored", "Explorers of the Deep (Precon)", "Rocksanne, Starfall Savant"),
+            winner: "Tifa Lockhart",
+        ),
+        (
+            players: ("Aloy, Machine Master", "Emmara, Soul of the Accord", "Lazav, the Multifarious", "Explorers of the Deep (Precon)"),
+            winner: "Aloy, Machine Master",
+        ),
+        (
+            players: ("Aerith Gainsborough", "Massacre Girl", "Rocksanne, Starfall Savant", "Explorers of the Deep (Precon)"),
+            winner: "Rocksanne, Starfall Savant",
+        ),
+        (
+            players: ("Aphelia, Viper Whisperer", "Aloy, Machine Master", "Explorers of the Deep (Precon)", "Pantlaza, Sun-Favored"),
+            winner: "Aphelia, Viper Whisperer",
+        ),
+        (
+            players: ("Aphelia, Viper Whisperer", "Lae\'zel, Master Chef", "Aloy, Machine Master", "Emmara, Soul of the Accord"),
+            winner: "Emmara, Soul of the Accord",
+        ),
+        (
+            players: ("Aerith Gainsborough", "Narset, Enlightened Master", "Tifa Lockhart", "Rocksanne, Starfall Savant"),
+            winner: "Narset, Enlightened Master",
+        ),
+        (
+            players: ("Tifa Lockhart", "Massacre Girl", "Kemba, Kha Regent", "Aerith Gainsborough"),
+            winner: "Tifa Lockhart",
+        ),
+        (
+            players: ("Aphelia, Viper Whisperer", "Aurelia, the Warleader", "Lazav, the Multifarious", "Explorers of the Deep (Precon)"),
+            winner: "Explorers of the Deep (Precon)",
+        ),
+        (
+            players: ("Aphelia, Viper Whisperer", "Kemba, Kha Regent", "Aurelia, the Warleader", "Lazav, the Multifarious"),
+            winner: "Aurelia, the Warleader",
+        ),
+        (
+            players: ("Narset, Enlightened Master", "Emmara, Soul of the Accord", "Lae\'zel, Master Chef", "Explorers of the Deep (Precon)"),
+            winner: "Narset, Enlightened Master",
+        ),
+        (
+            players: ("Aerith Gainsborough", "Rocksanne, Starfall Savant", "Aloy, Machine Master", "Tifa Lockhart"),
+            winner: "Rocksanne, Starfall Savant",
+        ),
+        (
+            players: ("Kemba, Kha Regent", "Aurelia, the Warleader", "Lazav, the Multifarious", "Explorers of the Deep (Precon)"),
+            winner: "Kemba, Kha Regent",
+        ),
+        (
+            players: ("Pantlaza, Sun-Favored", "Aerith Gainsborough", "Tifa Lockhart", "Narset, Enlightened Master"),
+            winner: "Aerith Gainsborough",
+        ),
+        (
+            players: ("Lae\'zel, Master Chef", "Emmara, Soul of the Accord", "Rocksanne, Starfall Savant", "Aphelia, Viper Whisperer"),
+            winner: "Lae\'zel, Master Chef",
+        ),
+        (
+            players: ("Aphelia, Viper Whisperer", "Lae\'zel, Master Chef", "Aloy, Machine Master", "Narset, Enlightened Master"),
+            winner: "Aloy, Machine Master",
+        ),
+        (
+            players: ("Massacre Girl", "Emmara, Soul of the Accord", "Kemba, Kha Regent", "Pantlaza, Sun-Favored"),
+            winner: "Massacre Girl",
+        ),
+        (
+            players: ("Lae\'zel, Master Chef", "Aloy, Machine Master", "Massacre Girl", "Tifa Lockhart"),
+            winner: "Massacre Girl",
+        ),
+        (
+            players: ("Jeskai Striker (Precon)", "Explorers of the Deep (Precon)", "Aloy, Machine Master", "Kemba, Kha Regent"),
+            winner: "Aloy, Machine Master",
+        ),
+        (
+            players: ("Tifa Lockhart", "Emmara, Soul of the Accord", "Jeskai Striker (Precon)", "Aphelia, Viper Whisperer"),
+            winner: "Tifa Lockhart",
+        ),
+        (
+            players: ("Tifa Lockhart", "Aurelia, the Warleader", "Lazav, the Multifarious", "Emmara, Soul of the Accord"),
+            winner: "Emmara, Soul of the Accord",
+        ),
+        (
+            players: ("Jeskai Striker (Precon)", "Pantlaza, Sun-Favored", "Aurelia, the Warleader", "Massacre Girl"),
+            winner: "Massacre Girl",
+        ),
+        (
+            players: ("Lae\'zel, Master Chef", "Veloci-Ramp-Tor (Precon)", "Pantlaza, Sun-Favored", "Aurelia, the Warleader"),
+            winner: "Pantlaza, Sun-Favored",
+        ),
+        (
+            players: ("Rocksanne, Starfall Savant", "Veloci-Ramp-Tor (Precon)", "Jeskai Striker (Precon)", "Aurelia, the Warleader"),
+            winner: "Rocksanne, Starfall Savant",
+        ),
+        (
+            players: ("Rocksanne, Starfall Savant", "Aloy, Machine Master", "Tifa Lockhart", "Narset, Enlightened Master"),
+            winner: "Rocksanne, Starfall Savant",
+        ),
+        (
+            players: ("Rocksanne, Starfall Savant", "Tifa Lockhart", "Narset, Enlightened Master", "Massacre Girl"),
+            winner: "Narset, Enlightened Master",
+        ),
+        (
+            players: ("Jeskai Striker (Precon)", "Aerith Gainsborough", "Lazav, the Multifarious", "Narset, Enlightened Master"),
+            winner: "Narset, Enlightened Master",
+        ),
+        (
+            players: ("Jeskai Striker (Precon)", "Aerith Gainsborough", "Rocksanne, Starfall Savant", "Aloy, Machine Master"),
+            winner: "Rocksanne, Starfall Savant",
+        ),
+        (
+            players: ("Aerith Gainsborough", "Aphelia, Viper Whisperer", "Veloci-Ramp-Tor (Precon)", "Aurelia, the Warleader"),
+            winner: "Aurelia, the Warleader",
+        ),
+        (
+            players: ("Explorers of the Deep (Precon)", "Veloci-Ramp-Tor (Precon)", "Jeskai Striker (Precon)", "Tifa Lockhart"),
+            winner: "Tifa Lockhart",
+        ),
+        (
+            players: ("Rocksanne, Starfall Savant", "Lae\'zel, Master Chef", "Aphelia, Viper Whisperer", "Veloci-Ramp-Tor (Precon)"),
+            winner: "Lae\'zel, Master Chef",
+        ),
+        (
+            players: ("Explorers of the Deep (Precon)", "Veloci-Ramp-Tor (Precon)", "Jeskai Striker (Precon)", "Aerith Gainsborough"),
+            winner: "Explorers of the Deep (Precon)",
+        ),
+        (
+            players: ("Aloy, Machine Master", "Veloci-Ramp-Tor (Precon)", "Pantlaza, Sun-Favored", "Aurelia, the Warleader"),
+            winner: "Pantlaza, Sun-Favored",
+        ),
+        (
+            players: ("Aloy, Machine Master", "Massacre Girl", "Pantlaza, Sun-Favored", "Tifa Lockhart"),
+            winner: "Massacre Girl",
+        ),
+        (
+            players: ("Fae Dominion (Precon)", "Tifa Lockhart", "Aphelia, Viper Whisperer", "Pantlaza, Sun-Favored"),
+            winner: "Tifa Lockhart",
+        ),
+        (
+            players: ("Fae Dominion (Precon)", "Explorers of the Deep (Precon)", "Aerith Gainsborough", "Aurelia, the Warleader"),
+            winner: "Aerith Gainsborough",
+        ),
+        (
+            players: ("Fae Dominion (Precon)", "Kemba, Kha Regent", "Aphelia, Viper Whisperer", "Aerith Gainsborough"),
+            winner: "Fae Dominion (Precon)",
+        ),
+        (
+            players: ("Aloy, Machine Master", "Fae Dominion (Precon)", "Pantlaza, Sun-Favored", "Massacre Girl"),
+            winner: "Aloy, Machine Master",
+        ),
+        (
+            players: ("Fae Dominion (Precon)", "Explorers of the Deep (Precon)", "Pantlaza, Sun-Favored", "Aurelia, the Warleader"),
+            winner: "Pantlaza, Sun-Favored",
+        ),
+        (
+            players: ("Pantlaza, Sun-Favored", "Emmara, Soul of the Accord", "Tifa Lockhart", "Narset, Enlightened Master"),
+            winner: "Emmara, Soul of the Accord",
+        ),
+        (
+            players: ("Emmara, Soul of the Accord", "Massacre Girl", "Aerith Gainsborough", "Fae Dominion (Precon)"),
+            winner: "Aerith Gainsborough",
+        ),
+        (
+            players: ("Lazav, the Multifarious", "Jeskai Striker (Precon)", "Veloci-Ramp-Tor (Precon)", "Aphelia, Viper Whisperer"),
+            winner: "Lazav, the Multifarious",
+        ),
+        (
+            players: ("Lazav, the Multifarious", "Fae Dominion (Precon)", "Explorers of the Deep (Precon)", "Aerith Gainsborough"),
+            winner: "Lazav, the Multifarious",
+        ),
+        (
+            players: ("Lazav, the Multifarious", "Pantlaza, Sun-Favored", "Tifa Lockhart", "Lae\'zel, Master Chef"),
+            winner: "Tifa Lockhart",
+        ),
+        (
+            players: ("Tifa Lockhart", "Fae Dominion (Precon)", "Aurelia, the Warleader", "Kemba, Kha Regent"),
+            winner: "Tifa Lockhart",
+        ),
+        (
+            players: ("Jeskai Striker (Precon)", "Kemba, Kha Regent", "Pantlaza, Sun-Favored", "Fae Dominion (Precon)"),
+            winner: "Pantlaza, Sun-Favored",
+        ),
+        (
+            players: ("Pantlaza, Sun-Favored", "Aphelia, Viper Whisperer", "Lazav, the Multifarious", "Emmara, Soul of the Accord"),
+            winner: "Emmara, Soul of the Accord",
+        ),
+        (
+            players: ("Emmara, Soul of the Accord", "Fae Dominion (Precon)", "Massacre Girl", "Explorers of the Deep (Precon)"),
+            winner: "Massacre Girl",
+        ),
+        (
+            players: ("Massacre Girl", "Narset, Enlightened Master", "Aphelia, Viper Whisperer", "Lazav, the Multifarious"),
+            winner: "Lazav, the Multifarious",
+        ),
+        (
+            players: ("Lazav, the Multifarious", "Rocksanne, Starfall Savant", "Pantlaza, Sun-Favored", "Lae\'zel, Master Chef"),
+            winner: "Lae\'zel, Master Chef",
+        ),
+        (
+            players: ("Jeskai Striker (Precon)", "Fae Dominion (Precon)", "Kemba, Kha Regent", "Massacre Girl"),
+            winner: "Jeskai Striker (Precon)",
+        ),
+        (
+            players: ("Aurelia, the Warleader", "Massacre Girl", "Jeskai Striker (Precon)", "Narset, Enlightened Master"),
+            winner: "Narset, Enlightened Master",
+        ),
+        (
+            players: ("Aurelia, the Warleader", "Fae Dominion (Precon)", "Jeskai Striker (Precon)", "Rocksanne, Starfall Savant"),
+            winner: "Aurelia, the Warleader",
+        ),
+        (
+            players: ("Aurelia, the Warleader", "Aloy, Machine Master", "Massacre Girl", "Tifa Lockhart"),
+            winner: "Aurelia, the Warleader",
+        ),
+        (
+            players: ("Aurelia, the Warleader", "Narset, Enlightened Master", "Aphelia, Viper Whisperer", "Emmara, Soul of the Accord"),
+            winner: "Aurelia, the Warleader",
+        ),
+        (
+            players: ("Aurelia, the Warleader", "Lazav, the Multifarious", "Lae\'zel, Master Chef", "Massacre Girl"),
+            winner: "Aurelia, the Warleader",
+        ),
+        (
+            players: ("Aurelia, the Warleader", "Tifa Lockhart", "Emmara, Soul of the Accord", "Narset, Enlightened Master"),
+            winner: "Aurelia, the Warleader",
+        ),
+        (
+            players: ("Aurelia, the Warleader", "Pantlaza, Sun-Favored", "Explorers of the Deep (Precon)", "Kemba, Kha Regent"),
+            winner: "Kemba, Kha Regent",
+        ),
+        (
+            players: ("Aurelia, the Warleader", "Aloy, Machine Master", "Rocksanne, Starfall Savant", "Aerith Gainsborough"),
+            winner: "Aerith Gainsborough",
+        ),
+        (
+            players: ("Aurelia, the Warleader", "Aloy, Machine Master", "Rocksanne, Starfall Savant", "Aerith Gainsborough"),
+            winner: "Aurelia, the Warleader",
+        ),
+        (
+            players: ("Anim Pakal, Thousandth Moon", "Massacre Girl", "Aerith Gainsborough", "Pantlaza, Sun-Favored"),
+            winner: "Anim Pakal, Thousandth Moon",
+        ),
+        (
+            players: ("Anim Pakal, Thousandth Moon", "Lae\'zel, Master Chef", "Emmara, Soul of the Accord", "Rocksanne, Starfall Savant"),
+            winner: "Rocksanne, Starfall Savant",
+        ),
+        (
+            players: ("Anim Pakal, Thousandth Moon", "Narset, Enlightened Master", "Tifa Lockhart", "Aurelia, the Warleader"),
+            winner: "Anim Pakal, Thousandth Moon",
+        ),
+        (
+            players: ("Anim Pakal, Thousandth Moon", "Lae\'zel, Master Chef", "Rocksanne, Starfall Savant", "Aloy, Machine Master"),
+            winner: "Rocksanne, Starfall Savant",
+        ),
+        (
+            players: ("Anim Pakal, Thousandth Moon", "Emmara, Soul of the Accord", "Lae\'zel, Master Chef", "Rocksanne, Starfall Savant"),
+            winner: "Anim Pakal, Thousandth Moon",
+        ),
+        (
+            players: ("Anim Pakal, Thousandth Moon", "Aloy, Machine Master", "Aphelia, Viper Whisperer", "Rocksanne, Starfall Savant"),
+            winner: "Aloy, Machine Master",
+        ),
+        (
+            players: ("Aphelia, Viper Whisperer", "Kemba, Kha Regent", "Lazav, the Multifarious", "Massacre Girl"),
+            winner: "Massacre Girl",
+        ),
+        (
+            players: ("Aphelia, Viper Whisperer", "Lazav, the Multifarious", "Kemba, Kha Regent", "Jeskai Striker (Precon)"),
+            winner: "Aphelia, Viper Whisperer",
+        ),
+        (
+            players: ("Jeskai Striker (Precon)", "Explorers of the Deep (Precon)", "Pantlaza, Sun-Favored", "Lazav, the Multifarious"),
+            winner: "Pantlaza, Sun-Favored",
+        ),
+        (
+            players: ("Pantlaza, Sun-Favored", "Aphelia, Viper Whisperer", "Anim Pakal, Thousandth Moon", "Narset, Enlightened Master"),
+            winner: "Anim Pakal, Thousandth Moon",
+        ),
+        (
+            players: ("Anim Pakal, Thousandth Moon", "Lazav, the Multifarious", "Kemba, Kha Regent", "Veloci-Ramp-Tor (Precon)"),
+            winner: "Anim Pakal, Thousandth Moon",
+        ),
+        (
+            players: ("Lazav, the Multifarious", "Tifa Lockhart", "Aloy, Machine Master", "Anim Pakal, Thousandth Moon"),
+            winner: "Anim Pakal, Thousandth Moon",
+        ),
+        (
+            players: ("Lazav, the Multifarious", "Fae Dominion (Precon)", "Veloci-Ramp-Tor (Precon)", "Jeskai Striker (Precon)"),
+            winner: "Fae Dominion (Precon)",
+        ),
+        (
+            players: ("Aphelia, Viper Whisperer", "Aerith Gainsborough", "Fae Dominion (Precon)", "Massacre Girl"),
+            winner: "Aerith Gainsborough",
+        ),
+        (
+            players: ("Anim Pakal, Thousandth Moon", "Fae Dominion (Precon)", "Emmara, Soul of the Accord", "Aerith Gainsborough"),
+            winner: "Anim Pakal, Thousandth Moon",
+        ),
+        (
+            players: ("Anim Pakal, Thousandth Moon", "Aurelia, the Warleader", "Explorers of the Deep (Precon)", "Massacre Girl"),
+            winner: "Aurelia, the Warleader",
+        ),
+        (
+            players: ("Anim Pakal, Thousandth Moon", "Aurelia, the Warleader", "Explorers of the Deep (Precon)", "Fae Dominion (Precon)"),
+            winner: "Fae Dominion (Precon)",
+        ),
+        (
+            players: ("Aurelia, the Warleader", "Lae\'zel, Master Chef", "Pantlaza, Sun-Favored", "Aerith Gainsborough"),
+            winner: "Aurelia, the Warleader",
+        ),
+        (
+            players: ("Anim Pakal, Thousandth Moon", "Jeskai Striker (Precon)", "Kemba, Kha Regent", "Veloci-Ramp-Tor (Precon)"),
+            winner: "Anim Pakal, Thousandth Moon",
+        ),
+        (
+            players: ("Anim Pakal, Thousandth Moon", "Jeskai Striker (Precon)", "Massacre Girl", "Narset, Enlightened Master"),
+            winner: "Anim Pakal, Thousandth Moon",
+        ),
+        (
+            players: ("Hakbal of the Surging Soul", "Aerith Gainsborough", "Massacre Girl", "Pantlaza, Sun-Favored"),
+            winner: "Massacre Girl",
+        ),
+        (
+            players: ("Hakbal of the Surging Soul", "Fae Dominion (Precon)", "Emmara, Soul of the Accord", "Narset, Enlightened Master"),
+            winner: "Emmara, Soul of the Accord",
+        ),
+        (
+            players: ("Hakbal of the Surging Soul", "Lazav, the Multifarious", "Kemba, Kha Regent", "Aloy, Machine Master"),
+            winner: "Kemba, Kha Regent",
+        ),
+        (
+            players: ("Anim Pakal, Thousandth Moon", "Hakbal of the Surging Soul", "Explorers of the Deep (Precon)", "Aurelia, the Warleader"),
+            winner: "Aurelia, the Warleader",
+        ),
+        (
+            players: ("Hakbal of the Surging Soul", "Fae Dominion (Precon)", "Veloci-Ramp-Tor (Precon)", "Pantlaza, Sun-Favored"),
+            winner: "Pantlaza, Sun-Favored",
+        ),
+        (
+            players: ("Anim Pakal, Thousandth Moon", "Hakbal of the Surging Soul", "Lae\'zel, Master Chef", "Aphelia, Viper Whisperer"),
+            winner: "Hakbal of the Surging Soul",
+        ),
+        (
+            players: ("Anim Pakal, Thousandth Moon", "Hakbal of the Surging Soul", "Tifa Lockhart", "Aurelia, the Warleader"),
+            winner: "Hakbal of the Surging Soul",
+        ),
+        (
+            players: ("Anim Pakal, Thousandth Moon", "Fae Dominion (Precon)", "Aurelia, the Warleader", "Hakbal of the Surging Soul"),
+            winner: "Aurelia, the Warleader",
+        ),
+        (
+            players: ("Aurelia, the Warleader", "Veloci-Ramp-Tor (Precon)", "Jeskai Striker (Precon)", "Emmara, Soul of the Accord"),
+            winner: "Aurelia, the Warleader",
+        ),
+        (
+            players: ("Hakbal of the Surging Soul", "Aerith Gainsborough", "Narset, Enlightened Master", "Massacre Girl"),
+            winner: "Hakbal of the Surging Soul",
+        ),
+        (
+            players: ("Veryan, Voice of Duality", "Narset, Enlightened Master", "Aerith Gainsborough", "Pantlaza, Sun-Favored"),
+            winner: "Narset, Enlightened Master",
+        ),
+        (
+            players: ("Aerith Gainsborough", "Kemba, Kha Regent", "Veryan, Voice of Duality", "Hakbal of the Surging Soul"),
+            winner: "Aerith Gainsborough",
+        ),
+        (
+            players: ("Aloy, Machine Master", "Hakbal of the Surging Soul", "Veryan, Voice of Duality", "Veloci-Ramp-Tor (Precon)"),
+            winner: "Aloy, Machine Master",
+        ),
+        (
+            players: ("Anim Pakal, Thousandth Moon", "Veryan, Voice of Duality", "Aloy, Machine Master", "Hakbal of the Surging Soul"),
+            winner: "Anim Pakal, Thousandth Moon",
+        ),
+        (
+            players: ("Aphelia, Viper Whisperer", "Fae Dominion (Precon)", "Veloci-Ramp-Tor (Precon)", "Explorers of the Deep (Precon)"),
+            winner: "Explorers of the Deep (Precon)",
+        ),
+        (
+            players: ("Aurelia, the Warleader", "Veryan, Voice of Duality", "Rocksanne, Starfall Savant", "Hakbal of the Surging Soul"),
+            winner: "Rocksanne, Starfall Savant",
+        ),
+        (
+            players: ("Emmara, Soul of the Accord", "Veryan, Voice of Duality", "Massacre Girl", "Hakbal of the Surging Soul"),
+            winner: "Emmara, Soul of the Accord",
+        ),
+        (
+            players: ("Explorers of the Deep (Precon)", "Veryan, Voice of Duality", "Lae\'zel, Master Chef", "Hakbal of the Surging Soul"),
+            winner: "Explorers of the Deep (Precon)",
+        ),
+        (
+            players: ("Fae Dominion (Precon)", "Veryan, Voice of Duality", "Lazav, the Multifarious", "Jeskai Striker (Precon)"),
+            winner: "Lazav, the Multifarious",
+        ),
+        (
+            players: ("Hakbal of the Surging Soul", "Pantlaza, Sun-Favored", "Lazav, the Multifarious", "Kemba, Kha Regent"),
+            winner: "Kemba, Kha Regent",
+        ),
+        (
+            players: ("Kemba, Kha Regent", "Lae\'zel, Master Chef", "Narset, Enlightened Master", "Aerith Gainsborough"),
+            winner: "Kemba, Kha Regent",
+        ),
+        (
+            players: ("Lae\'zel, Master Chef", "Hakbal of the Surging Soul", "Veryan, Voice of Duality", "Aloy, Machine Master"),
+            winner: "Veryan, Voice of Duality",
+        ),
+        (
+            players: ("Lazav, the Multifarious", "Hakbal of the Surging Soul", "Lae\'zel, Master Chef", "Explorers of the Deep (Precon)"),
+            winner: "Lae\'zel, Master Chef",
+        ),
+        (
+            players: ("Massacre Girl", "Narset, Enlightened Master", "Rocksanne, Starfall Savant", "Veryan, Voice of Duality"),
+            winner: "Narset, Enlightened Master",
+        ),
+        (
+            players: ("Narset, Enlightened Master", "Kemba, Kha Regent", "Aloy, Machine Master", "Hakbal of the Surging Soul"),
+            winner: "Narset, Enlightened Master",
+        ),
+        (
+            players: ("Aurelia, the Warleader", "Veryan, Voice of Duality", "Narset, Enlightened Master", "Lae\'zel, Master Chef"),
+            winner: "Aurelia, the Warleader",
+        ),
+        (
+            players: ("Bre of Clan Stoutarm", "Lae\'zel, Master Chef", "Pantlaza, Sun-Favored", "Kemba, Kha Regent"),
+            winner: "Kemba, Kha Regent",
+        ),
+        (
+            players: ("Bre of Clan Stoutarm", "Aerith Gainsborough", "Veryan, Voice of Duality", "Aloy, Machine Master"),
+            winner: "Aerith Gainsborough",
+        ),
+        (
+            players: ("Bre of Clan Stoutarm", "Massacre Girl", "Explorers of the Deep (Precon)", "Lae\'zel, Master Chef"),
+            winner: "Massacre Girl",
+        ),
+        (
+            players: ("Bre of Clan Stoutarm", "Hakbal of the Surging Soul", "Pantlaza, Sun-Favored", "Lazav, the Multifarious"),
+            winner: "Bre of Clan Stoutarm",
+        ),
+        (
+            players: ("Bre of Clan Stoutarm", "Tifa Lockhart", "Aerith Gainsborough", "Emmara, Soul of the Accord"),
+            winner: "Tifa Lockhart",
+        ),
+        (
+            players: ("Bre of Clan Stoutarm", "Aloy, Machine Master", "Massacre Girl", "Aerith Gainsborough"),
+            winner: "Aloy, Machine Master",
+        ),
+        (
+            players: ("Aloy, Machine Master", "Emmara, Soul of the Accord", "Narset, Enlightened Master", "Bre of Clan Stoutarm"),
+            winner: "Aloy, Machine Master",
+        ),
+        (
+            players: ("Aloy, Machine Master", "Tifa Lockhart", "Pantlaza, Sun-Favored", "Anim Pakal, Thousandth Moon"),
+            winner: "Aloy, Machine Master",
+        ),
+        (
+            players: ("Aphelia, Viper Whisperer", "Fae Dominion (Precon)", "Veloci-Ramp-Tor (Precon)", "Hakbal of the Surging Soul"),
+            winner: "Veloci-Ramp-Tor (Precon)",
+        ),
+        (
+            players: ("Veloci-Ramp-Tor (Precon)", "Lazav, the Multifarious", "Lae\'zel, Master Chef", "Veryan, Voice of Duality"),
+            winner: "Veryan, Voice of Duality",
+        ),
+        (
+            players: ("Veryan, Voice of Duality", "Bre of Clan Stoutarm", "Pantlaza, Sun-Favored", "Massacre Girl"),
+            winner: "Massacre Girl",
+        ),
+        (
+            players: ("Massacre Girl", "Rocksanne, Starfall Savant", "Narset, Enlightened Master", "Anim Pakal, Thousandth Moon"),
+            winner: "Anim Pakal, Thousandth Moon",
+        ),
+        (
+            players: ("Anim Pakal, Thousandth Moon", "Bre of Clan Stoutarm", "Explorers of the Deep (Precon)", "Veryan, Voice of Duality"),
+            winner: "Anim Pakal, Thousandth Moon",
+        ),
+        (
+            players: ("Anim Pakal, Thousandth Moon", "Bre of Clan Stoutarm", "Tifa Lockhart", "Emmara, Soul of the Accord"),
+            winner: "Tifa Lockhart",
+        ),
+        (
+            players: ("Tifa Lockhart", "Veryan, Voice of Duality", "Massacre Girl", "Narset, Enlightened Master"),
+            winner: "Tifa Lockhart",
+        ),
+        (
+            players: ("Tifa Lockhart", "Anim Pakal, Thousandth Moon", "Aloy, Machine Master", "Veryan, Voice of Duality"),
+            winner: "Tifa Lockhart",
+        ),
+        (
+            players: ("Tifa Lockhart", "Aurelia, the Warleader", "Hakbal of the Surging Soul", "Rocksanne, Starfall Savant"),
+            winner: "Tifa Lockhart",
+        ),
+        (
+            players: ("Tifa Lockhart", "Aurelia, the Warleader", "Anim Pakal, Thousandth Moon", "Narset, Enlightened Master"),
+            winner: "Tifa Lockhart",
+        ),
+        (
+            players: ("Tifa Lockhart", "Aloy, Machine Master", "Veloci-Ramp-Tor (Precon)", "Aurelia, the Warleader"),
+            winner: "Tifa Lockhart",
+        ),
+        (
+            players: ("Tifa Lockhart", "Lae\'zel, Master Chef", "Kemba, Kha Regent", "Massacre Girl"),
+            winner: "Kemba, Kha Regent",
+        ),
+        (
+            players: ("Anim Pakal, Thousandth Moon", "Bre of Clan Stoutarm", "Aurelia, the Warleader", "Kemba, Kha Regent"),
+            winner: "Aurelia, the Warleader",
+        ),
+        (
+            players: ("Aurelia, the Warleader", "Aloy, Machine Master", "Veryan, Voice of Duality", "Kemba, Kha Regent"),
+            winner: "Veryan, Voice of Duality",
+        ),
+        (
+            players: ("Veryan, Voice of Duality", "Emmara, Soul of the Accord", "Pantlaza, Sun-Favored", "Massacre Girl"),
+            winner: "Pantlaza, Sun-Favored",
+        ),
+        (
+            players: ("Pantlaza, Sun-Favored", "Bre of Clan Stoutarm", "Veryan, Voice of Duality", "Narset, Enlightened Master"),
+            winner: "Pantlaza, Sun-Favored",
+        ),
+        (
+            players: ("Pantlaza, Sun-Favored", "Rocksanne, Starfall Savant", "Emmara, Soul of the Accord", "Aerith Gainsborough"),
+            winner: "Rocksanne, Starfall Savant",
+        ),
+        (
+            players: ("Rocksanne, Starfall Savant", "Kemba, Kha Regent", "Fae Dominion (Precon)", "Bre of Clan Stoutarm"),
+            winner: "Bre of Clan Stoutarm",
+        ),
+        (
+            players: ("Aurelia, the Warleader", "Veryan, Voice of Duality", "Rocksanne, Starfall Savant", "Pantlaza, Sun-Favored"),
+            winner: "Rocksanne, Starfall Savant",
+        ),
+        (
+            players: ("Aurelia, the Warleader", "Veryan, Voice of Duality", "Bre of Clan Stoutarm", "Kemba, Kha Regent"),
+            winner: "Aurelia, the Warleader",
+        ),
+        (
+            players: ("Aurelia, the Warleader", "Pantlaza, Sun-Favored", "Veryan, Voice of Duality", "Aloy, Machine Master"),
+            winner: "Aloy, Machine Master",
+        ),
+        (
+            players: ("Aurelia, the Warleader", "Aloy, Machine Master", "Rocksanne, Starfall Savant", "Tifa Lockhart"),
+            winner: "Aurelia, the Warleader",
+        ),
+        (
+            players: ("Balan, Wandering Knight", "Emmara, Soul of the Accord", "Massacre Girl", "Aerith Gainsborough"),
+            winner: "Emmara, Soul of the Accord",
+        ),
+        (
+            players: ("Balan, Wandering Knight", "Pantlaza, Sun-Favored", "Bre of Clan Stoutarm", "Narset, Enlightened Master"),
+            winner: "Balan, Wandering Knight",
+        ),
+        (
+            players: ("Balan, Wandering Knight", "Kemba, Kha Regent", "Aloy, Machine Master", "Massacre Girl"),
+            winner: "Balan, Wandering Knight",
+        ),
+        (
+            players: ("Balan, Wandering Knight", "Rocksanne, Starfall Savant", "Anim Pakal, Thousandth Moon", "Veryan, Voice of Duality"),
+            winner: "Rocksanne, Starfall Savant",
+        ),
+        (
+            players: ("Balan, Wandering Knight", "Lae\'zel, Master Chef", "Anim Pakal, Thousandth Moon", "Explorers of the Deep (Precon)"),
+            winner: "Explorers of the Deep (Precon)",
+        ),
+        (
+            players: ("Balan, Wandering Knight", "Emmara, Soul of the Accord", "Veloci-Ramp-Tor (Precon)", "Aerith Gainsborough"),
+            winner: "Emmara, Soul of the Accord",
+        ),
+        (
+            players: ("Balan, Wandering Knight", "Explorers of the Deep (Precon)", "Hakbal of the Surging Soul", "Lazav, the Multifarious"),
+            winner: "Balan, Wandering Knight",
+        ),
+        (
+            players: ("Balan, Wandering Knight", "Anim Pakal, Thousandth Moon", "Fae Dominion (Precon)", "Jeskai Striker (Precon)"),
+            winner: "Anim Pakal, Thousandth Moon",
+        ),
+        (
+            players: ("Balan, Wandering Knight", "Veryan, Voice of Duality", "Lae\'zel, Master Chef", "Aphelia, Viper Whisperer"),
+            winner: "Balan, Wandering Knight",
+        ),
+        (
+            players: ("Balan, Wandering Knight", "Rocksanne, Starfall Savant", "Tifa Lockhart", "Veloci-Ramp-Tor (Precon)"),
+            winner: "Balan, Wandering Knight",
+        ),
+        (
+            players: ("Balan, Wandering Knight", "Aurelia, the Warleader", "Anim Pakal, Thousandth Moon", "Aloy, Machine Master"),
+            winner: "Balan, Wandering Knight",
+        ),
+        (
+            players: ("Balan, Wandering Knight", "Tifa Lockhart", "Anim Pakal, Thousandth Moon", "Aerith Gainsborough"),
+            winner: "Balan, Wandering Knight",
+        ),
+        (
+            players: ("Balan, Wandering Knight", "Aurelia, the Warleader", "Fae Dominion (Precon)", "Jeskai Striker (Precon)"),
+            winner: "Jeskai Striker (Precon)",
+        ),
+        (
+            players: ("Balan, Wandering Knight", "Rocksanne, Starfall Savant", "Aurelia, the Warleader", "Kemba, Kha Regent"),
+            winner: "Rocksanne, Starfall Savant",
+        ),
+        (
+            players: ("Balan, Wandering Knight", "Emmara, Soul of the Accord", "Kemba, Kha Regent", "Aurelia, the Warleader"),
+            winner: "Aurelia, the Warleader",
+        ),
+        (
+            players: ("Balan, Wandering Knight", "Emmara, Soul of the Accord", "Massacre Girl", "Aurelia, the Warleader"),
+            winner: "Balan, Wandering Knight",
+        ),
+        (
+            players: ("Balan, Wandering Knight", "Narset, Enlightened Master", "Jeskai Striker (Precon)", "Kemba, Kha Regent"),
+            winner: "Narset, Enlightened Master",
+        ),
+        (
+            players: ("Balan, Wandering Knight", "Pantlaza, Sun-Favored", "Narset, Enlightened Master", "Fae Dominion (Precon)"),
+            winner: "Balan, Wandering Knight",
+        ),
+        (
+            players: ("Balan, Wandering Knight", "Rocksanne, Starfall Savant", "Explorers of the Deep (Precon)", "Bre of Clan Stoutarm"),
+            winner: "Rocksanne, Starfall Savant",
+        ),
+        (
+            players: ("Balan, Wandering Knight", "Bre of Clan Stoutarm", "Jeskai Striker (Precon)", "Anim Pakal, Thousandth Moon"),
+            winner: "Anim Pakal, Thousandth Moon",
+        ),
+        (
+            players: ("Balan, Wandering Knight", "Kemba, Kha Regent", "Explorers of the Deep (Precon)", "Aerith Gainsborough"),
+            winner: "Explorers of the Deep (Precon)",
+        ),
+        (
+            players: ("Balan, Wandering Knight", "Rocksanne, Starfall Savant", "Bre of Clan Stoutarm", "Emmara, Soul of the Accord"),
+            winner: "Rocksanne, Starfall Savant",
+        ),
+        (
+            players: ("Balan, Wandering Knight", "Emmara, Soul of the Accord", "Kemba, Kha Regent", "Aerith Gainsborough"),
+            winner: "Emmara, Soul of the Accord",
+        ),
+        (
+            players: ("Emmara, Soul of the Accord", "Explorers of the Deep (Precon)", "Anim Pakal, Thousandth Moon", "Bre of Clan Stoutarm"),
+            winner: "Explorers of the Deep (Precon)",
+        ),
+        (
+            players: ("Explorers of the Deep (Precon)", "Narset, Enlightened Master", "Aloy, Machine Master", "Massacre Girl"),
+            winner: "Narset, Enlightened Master",
+        ),
+        (
+            players: ("Narset, Enlightened Master", "Balan, Wandering Knight", "Bre of Clan Stoutarm", "Emmara, Soul of the Accord"),
+            winner: "Balan, Wandering Knight",
+        ),
+        (
+            players: ("Balan, Wandering Knight", "Jeskai Striker (Precon)", "Veryan, Voice of Duality", "Explorers of the Deep (Precon)"),
+            winner: "Veryan, Voice of Duality",
+        ),
+        (
+            players: ("Blight Curse (Precon)", "Explorers of the Deep (Precon)", "Veryan, Voice of Duality", "Kemba, Kha Regent"),
+            winner: "Explorers of the Deep (Precon)",
+        ),
+        (
+            players: ("Blight Curse (Precon)", "Massacre Girl", "Pantlaza, Sun-Favored", "Emmara, Soul of the Accord"),
+            winner: "Blight Curse (Precon)",
+        ),
+        (
+            players: ("Neerdiv, Devious Diver", "Emmara, Soul of the Accord", "Blight Curse (Precon)", "Veryan, Voice of Duality"),
+            winner: "Veryan, Voice of Duality",
+        ),
+        (
+            players: ("Neerdiv, Devious Diver", "Kemba, Kha Regent", "Massacre Girl", "Pantlaza, Sun-Favored"),
+            winner: "Pantlaza, Sun-Favored",
+        ),
+        (
+            players: ("Neerdiv, Devious Diver", "Aerith Gainsborough", "Bre of Clan Stoutarm", "Lae\'zel, Master Chef"),
+            winner: "Aerith Gainsborough",
+        ),
+        (
+            players: ("Neerdiv, Devious Diver", "Explorers of the Deep (Precon)", "Kemba, Kha Regent", "Veloci-Ramp-Tor (Precon)"),
+            winner: "Neerdiv, Devious Diver",
+        ),
+        (
+            players: ("Neerdiv, Devious Diver", "Narset, Enlightened Master", "Blight Curse (Precon)", "Emmara, Soul of the Accord"),
+            winner: "Neerdiv, Devious Diver",
+        ),
+        (
+            players: ("Neerdiv, Devious Diver", "Aloy, Machine Master", "Balan, Wandering Knight", "Anim Pakal, Thousandth Moon"),
+            winner: "Anim Pakal, Thousandth Moon",
+        ),
+        (
+            players: ("Neerdiv, Devious Diver", "Aloy, Machine Master", "Balan, Wandering Knight", "Jeskai Striker (Precon)"),
+            winner: "Aloy, Machine Master",
+        ),
+        (
+            players: ("Bruna, Light of Alabaster", "Veryan, Voice of Duality", "Blight Curse (Precon)", "Emmara, Soul of the Accord"),
+            winner: "Bruna, Light of Alabaster",
+        ),
+        (
+            players: ("Bruna, Light of Alabaster", "Narset, Enlightened Master", "Neerdiv, Devious Diver", "Explorers of the Deep (Precon)"),
+            winner: "Narset, Enlightened Master",
+        ),
+        (
+            players: ("Bruna, Light of Alabaster", "Pantlaza, Sun-Favored", "Balan, Wandering Knight", "Neerdiv, Devious Diver"),
+            winner: "Balan, Wandering Knight",
+        ),
+        (
+            players: ("Bruna, Light of Alabaster", "Aerith Gainsborough", "Explorers of the Deep (Precon)", "Aloy, Machine Master"),
+            winner: "Bruna, Light of Alabaster",
+        ),
+        (
+            players: ("Bruna, Light of Alabaster", "Massacre Girl", "Kemba, Kha Regent", "Bre of Clan Stoutarm"),
+            winner: "Bruna, Light of Alabaster",
+        ),
+        (
+            players: ("Aphelia, Viper Whisperer", "Fae Dominion (Precon)", "Bre of Clan Stoutarm", "Hakbal of the Surging Soul"),
+            winner: "Hakbal of the Surging Soul",
+        ),
+        (
+            players: ("Rocksanne, Starfall Savant", "Bruna, Light of Alabaster", "Neerdiv, Devious Diver", "Blight Curse (Precon)"),
+            winner: "Bruna, Light of Alabaster",
+        ),
+        (
+            players: ("Bruna, Light of Alabaster", "Anim Pakal, Thousandth Moon", "Tifa Lockhart", "Balan, Wandering Knight"),
+            winner: "Anim Pakal, Thousandth Moon",
+        ),
+        (
+            players: ("Anim Pakal, Thousandth Moon", "Bruna, Light of Alabaster", "Blight Curse (Precon)", "Aurelia, the Warleader"),
+            winner: "Bruna, Light of Alabaster",
+        ),
+        (
+            players: ("Bruna, Light of Alabaster", "Tifa Lockhart", "Narset, Enlightened Master", "Balan, Wandering Knight"),
+            winner: "Tifa Lockhart",
+        ),
+        (
+            players: ("Lazav, the Multifarious", "Bre of Clan Stoutarm", "Kemba, Kha Regent", "Blight Curse (Precon)"),
+            winner: "Kemba, Kha Regent",
+        ),
+        (
+            players: ("Lae\'zel, Master Chef", "Veryan, Voice of Duality", "Kemba, Kha Regent", "Bre of Clan Stoutarm"),
+            winner: "Veryan, Voice of Duality",
+        ),
+        (
+            players: ("Veloci-Ramp-Tor (Precon)", "Bre of Clan Stoutarm", "Lae\'zel, Master Chef", "Lazav, the Multifarious"),
+            winner: "Veloci-Ramp-Tor (Precon)",
+        ),
+        (
+            players: ("Jeskai Striker (Precon)", "Bre of Clan Stoutarm", "Lazav, the Multifarious", "Aphelia, Viper Whisperer"),
+            winner: "Bre of Clan Stoutarm",
+        ),
+        (
+            players: ("Emmara, Soul of the Accord", "Pantlaza, Sun-Favored", "Explorers of the Deep (Precon)", "Aerith Gainsborough"),
+            winner: "Emmara, Soul of the Accord",
+        ),
+        (
+            players: ("Aloy, Machine Master", "Balan, Wandering Knight", "Blight Curse (Precon)", "Narset, Enlightened Master"),
+            winner: "Balan, Wandering Knight",
+        ),
+        (
+            players: ("Massacre Girl", "Aerith Gainsborough", "Blight Curse (Precon)", "Hakbal of the Surging Soul"),
+            winner: "Massacre Girl",
+        ),
+        (
+            players: ("The Devil Strahd", "Neerdiv, Devious Diver", "Explorers of the Deep (Precon)", "Veryan, Voice of Duality"),
+            winner: "The Devil Strahd",
+        ),
+        (
+            players: ("The Devil Strahd", "Narset, Enlightened Master", "Aloy, Machine Master", "Emmara, Soul of the Accord"),
+            winner: "Narset, Enlightened Master",
+        ),
+        (
+            players: ("The Devil Strahd", "Massacre Girl", "Emmara, Soul of the Accord", "Pantlaza, Sun-Favored"),
+            winner: "Pantlaza, Sun-Favored",
+        ),
+        (
+            players: ("The Devil Strahd", "Emmara, Soul of the Accord", "Aloy, Machine Master", "Kemba, Kha Regent"),
+            winner: "Emmara, Soul of the Accord",
+        ),
+        (
+            players: ("The Devil Strahd", "Pantlaza, Sun-Favored", "Aerith Gainsborough", "Massacre Girl"),
+            winner: "Pantlaza, Sun-Favored",
+        ),
+        (
+            players: ("The Devil Strahd", "Blight Curse (Precon)", "Massacre Girl", "Hakbal of the Surging Soul"),
+            winner: "The Devil Strahd",
+        ),
+        (
+            players: ("The Devil Strahd", "Aloy, Machine Master", "Emmara, Soul of the Accord", "Balan, Wandering Knight"),
+            winner: "Aloy, Machine Master",
+        ),
+        (
+            players: ("The Devil Strahd", "Emmara, Soul of the Accord", "Aloy, Machine Master", "Vampiric Bloodline (Precon)"),
+            winner: "The Devil Strahd",
+        ),
+        (
+            players: ("The Devil Strahd", "Balan, Wandering Knight", "Narset, Enlightened Master", "Bruna, Light of Alabaster"),
+            winner: "The Devil Strahd",
+        ),
+        (
+            players: ("The Devil Strahd", "Anim Pakal, Thousandth Moon", "Rocksanne, Starfall Savant", "Aloy, Machine Master"),
+            winner: "Aloy, Machine Master",
+        ),
+        (
+            players: ("The Devil Strahd", "Anim Pakal, Thousandth Moon", "Rocksanne, Starfall Savant", "Aurelia, the Warleader"),
+            winner: "Aurelia, the Warleader",
+        ),
+        (
+            players: ("The Devil Strahd", "Pantlaza, Sun-Favored", "Aloy, Machine Master", "Anim Pakal, Thousandth Moon"),
+            winner: "The Devil Strahd",
+        ),
+        (
+            players: ("The Devil Strahd", "Tifa Lockhart", "Rocksanne, Starfall Savant", "Emmara, Soul of the Accord"),
+            winner: "Rocksanne, Starfall Savant",
+        ),
+        (
+            players: ("The Devil Strahd", "Veloci-Ramp-Tor (Precon)", "Bre of Clan Stoutarm", "Lae\'zel, Master Chef"),
+            winner: "The Devil Strahd",
+        ),
+        (
+            players: ("The Devil Strahd", "Tifa Lockhart", "Aurelia, the Warleader", "Bruna, Light of Alabaster"),
+            winner: "Bruna, Light of Alabaster",
+        ),
+        (
+            players: ("Bruna, Light of Alabaster", "Pantlaza, Sun-Favored", "Vampiric Bloodline (Precon)", "Anim Pakal, Thousandth Moon"),
+            winner: "Bruna, Light of Alabaster",
+        ),
+        (
+            players: ("Bruna, Light of Alabaster", "The Devil Strahd", "Tifa Lockhart", "Hakbal of the Surging Soul"),
+            winner: "Tifa Lockhart",
+        ),
+        (
+            players: ("Tifa Lockhart", "Neerdiv, Devious Diver", "Vampiric Bloodline (Precon)", "Balan, Wandering Knight"),
+            winner: "Tifa Lockhart",
+        ),
+        (
+            players: ("The Devil Strahd", "Kemba, Kha Regent", "Balan, Wandering Knight", "Aurelia, the Warleader"),
+            winner: "Aurelia, the Warleader",
+        ),
+    ],
+    score_config: (
+        starting_elo: 1500.0,
+        game_points: 25.0,
+        elo_pow: 6.0,
+        wr_pow: 1.0,
+        elo_weight: 65.0,
+        wr_weight: 100.0,
+    ),
+)

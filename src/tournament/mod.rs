@@ -33,7 +33,7 @@ impl Tournament {
         self.players.contains_key(player)
     }
 
-    pub fn players(&self) -> impl Iterator<Item = (&String, &PlayerStats)> {
-        self.players.iter()
+    pub fn players(&self) -> &HashMap<String, PlayerStats> {
+        &self.players
     }
 }
