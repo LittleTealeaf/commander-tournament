@@ -63,8 +63,8 @@ pub struct GameMatch(pub [GamePlayer; PLAYER_COUNT]);
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct GameRecord {
-    players: [String; 4],
-    winner: String,
+    pub players: [String; 4],
+    pub winner: String,
 }
 
 impl Tournament {

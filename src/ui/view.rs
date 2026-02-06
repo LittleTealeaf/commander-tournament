@@ -155,3 +155,17 @@ fn game_input(app: &TournamentApp) -> Element<'_, Message> {
     ]])
     .into()
 }
+
+
+fn matches(app: &TournamentApp) -> Element<'_, Message> {
+
+
+    container(
+        column![
+
+        
+
+
+        ]
+    ).into()
+}
