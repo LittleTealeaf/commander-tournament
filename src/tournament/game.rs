@@ -94,6 +94,39 @@ impl Tournament {
         Ok(())
     }
 
+    pub fn remove_player(&mut self, player: String) -> Result<(), TournamentError> {
+        if !self.players.contains_key(&player) {
+            return Err(TournamentError::PlayerNotRegistered(player));
+        }
+
+        let games = self
+            .games
+            .iter()
+            .filter(|game| !game.players.contains(&player))
+            .cloned()
+            .collect::<Vec<_>>();
+
+        let players = self
+            .players
+            .keys()
+            .filter(|p| p.eq(&&player))
+            .cloned()
+            .collect::<Vec<_>>();
+
+        self.players.clear();
+        self.games.clear();
+
+        for player in players {
+            self.register_player(player);
+        }
+
+        for game in games {
+            self.process_game_record(game)?;
+        }
+
+        Ok(())
+    }
+
     pub fn register_player(&mut self, player: String) {
         self.players
             .insert(player, self.score_config.new_player_stats());

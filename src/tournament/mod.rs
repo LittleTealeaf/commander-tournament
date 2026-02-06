@@ -23,4 +23,8 @@ impl Tournament {
             score_config: ScoreConfig::new(),
         }
     }
+
+    pub fn players(&self) -> impl Iterator<Item = (&String, &PlayerStats)> {
+        self.players.iter()
+    }
 }

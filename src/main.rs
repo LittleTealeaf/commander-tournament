@@ -1,26 +1,13 @@
-use crate::tournament::{ScoreConfig, Tournament, TournamentError};
+use crate::tournament::{Tournament, TournamentError};
 use anyhow::Result;
 
 mod tournament;
 
 fn main() -> Result<()> {
     let mut t = Tournament::new();
-    let config = ScoreConfig {
-        starting_elo: 3000.0,
-        ..*t.get_score_config()
-    };
-
     ingest_tsv(&mut t)?;
-    dbg!(&t);
 
-    t.set_score_config(config)?;
-
-    dbg!(&t);
-
-    // let game = t.create_game(["Tifa", "Aurelia", "Rocksanne", "Anim"]);
-    // dbg!(&game);
-    // t.submit_game(game, "Tifa")?;
-    // dbg!(t);
+    dbg!(t.players().collect::<Vec<_>>());
 
     Ok(())
 }
