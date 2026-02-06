@@ -1,15 +1,21 @@
-use crate::tournament::{Tournament, TournamentError};
+use crate::{
+    tournament::{Tournament, TournamentError},
+    ui::launch,
+};
 use anyhow::Result;
 
 mod tournament;
+mod ui;
 
-fn main() -> Result<()> {
-    let mut t = Tournament::new();
-    ingest_tsv(&mut t)?;
+fn main() -> iced::Result {
+    launch()
 
-    dbg!(t.players().collect::<Vec<_>>());
-
-    Ok(())
+    // let mut t = Tournament::new();
+    // ingest_tsv(&mut t)?;
+    //
+    // dbg!(t.players().collect::<Vec<_>>());
+    //
+    // Ok(())
 }
 
 fn ingest_tsv(tournament: &mut Tournament) -> Result<(), TournamentError> {

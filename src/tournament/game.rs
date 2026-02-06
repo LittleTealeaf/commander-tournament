@@ -3,7 +3,7 @@ use crate::tournament::{Tournament, TournamentError};
 const PLAYER_COUNT: usize = 4;
 const BASE_EXPECTED: f64 = 0.25;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct ScoreConfig {
     pub starting_elo: f64,
     pub game_points: f64,
@@ -34,7 +34,7 @@ impl ScoreConfig {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct PlayerStats {
     pub elo: f64,
     pub games: u32,
@@ -51,17 +51,17 @@ impl PlayerStats {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct GamePlayer {
     name: String,
     stats: PlayerStats,
     expected: f64,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct GameMatch([GamePlayer; PLAYER_COUNT]);
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct GameRecord {
     players: [String; 4],
     winner: String,
@@ -83,6 +83,46 @@ impl Tournament {
         self.games.clear();
         let players = self.players.keys().cloned().collect::<Vec<_>>();
         self.players.clear();
+        for player in players {
+            self.register_player(player);
+        }
+
+        for game in games {
+            self.process_game_record(game)?;
+        }
+
+        Ok(())
+    }
+
+    pub fn rename_player(&mut self, from: String, to: String) -> Result<(), TournamentError> {
+        if !self.has_registered_player(&from) {
+            return Err(TournamentError::PlayerNotRegistered(from));
+        }
+        if self.has_registered_player(&to) {
+            return Err(TournamentError::PlayerAlreadyRegistered(to));
+        }
+
+        let replace_name = |name: String| if name.eq(&from) { from.clone() } else { name };
+
+        let games = self
+            .games
+            .iter()
+            .map(|game| GameRecord {
+                players: game.players.clone().map(replace_name),
+                winner: replace_name(game.winner.clone()),
+            })
+            .collect::<Vec<_>>();
+
+        let players = self
+            .players
+            .keys()
+            .cloned()
+            .map(replace_name)
+            .collect::<Vec<_>>();
+
+        self.players.clear();
+        self.games.clear();
+
         for player in players {
             self.register_player(player);
         }
