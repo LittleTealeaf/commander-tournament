@@ -16,6 +16,7 @@ pub fn game_matchups(app: &TournamentApp) -> Element<'_, Message> {
             MatchupType::Nemesis => app.tournament.rank_nemesis(&p).ok()?.collect(),
             MatchupType::WinrateNeighbors => app.tournament.rank_wr_neighbors(&p).ok()?.collect(),
             MatchupType::Neighbors => app.tournament.rank_neighbors(&p).ok()?.collect(),
+            MatchupType::LossWith => app.tournament.rank_loss_with(&p).ok()?.collect(),
         };
 
         let filtered: Vec<String> = players
@@ -33,49 +34,72 @@ pub fn game_matchups(app: &TournamentApp) -> Element<'_, Message> {
 
     let game_vec: Vec<_> = game.as_ref().map(|g| g.to_vec()).unwrap_or_default();
 
+    // Build a 3-card display showing top 3 match recommendations
     let player_display: Element<Message> = if game_vec.is_empty() {
         text("No recommendation").into()
     } else {
-        column(
-            game_vec
-                .iter()
-                .enumerate()
-                .map(|(i, p)| {
-                    let label = match i {
-                        0 => "P1:",
-                        1 => "P2:",
-                        2 => "P3:",
-                        3 => "P4:",
-                        _ => "P?",
-                    };
-                    {
-                        let stats_opt = app.tournament.players().get(p);
-                        if let Some(stats) = stats_opt {
-                            let wr_text = stats
-                                .wr()
-                                .map(|w| format!("{:.1}%", w * 100.0))
-                                .unwrap_or_else(|| "-".to_string());
-                            row![
-                                text(label).width(30),
-                                text(p.clone()),
-                                space().width(8),
-                                text(format!("{:.0} / {}", stats.elo(), wr_text)),
-                            ]
-                        } else {
-                            row![text(label).width(30), text(p.clone())]
-                        }
-                    }
-                    .spacing(10)
-                    .into()
-                })
-                .collect::<Vec<_>>()
-        )
-        .spacing(6)
-        .into()
+        // Build cards for top 3 opponents (indices 1..3 in game_vec)
+        let card_items: Vec<(usize, String)> = (1..4)
+            .filter_map(|i| game_vec.get(i).map(|name| (i, name.clone())))
+            .collect();
+
+        // helper to build a card element: left (name/elo) | middle (score/rivalry) | right (button)
+        let make_card = |_idx: usize, name: String| {
+            let stats_opt = app.tournament.players().get(&name);
+            let elo_text = stats_opt.map(|s| format!("Elo: {:.0}", s.elo())).unwrap_or_default();
+
+            // Left column: name and elo
+            let left_col = column![
+                text(name.clone()).size(22),
+                text(elo_text).size(12),
+            ]
+            .spacing(4)
+            .width(Length::Fill);
+
+            // Middle column: score / rivalry score
+            let middle_col = column![
+                text("Score: -").size(12),
+                text("Rivalry Score: -").size(12),
+            ]
+            .spacing(4)
+            .width(Length::Shrink);
+
+            // Right column: add to game button
+            let add_button = button("Add to Game")
+                .on_press(Message::AddPlayerToNextSlot(name.clone()))
+                .width(Length::Fixed(120.0));
+
+            // Create the inner card content
+            let card_content = row![
+                left_col,
+                space().width(16),
+                middle_col,
+                space().width(16),
+                add_button,
+            ]
+            .align_y(iced::Alignment::Center)
+            .spacing(8)
+            .width(Length::Fill);
+
+            // Wrap in a container with padding to create card distinction
+            container(container(card_content).padding(14).width(Length::Fill))
+                .padding(2)
+                .width(Length::Fill)
+                .into()
+        };
+
+        // Render as a vertical column of wide cards for better resizing
+        let cards: Vec<_> = card_items
+            .iter()
+            .enumerate()
+            .map(|(i, (_rank, name))| make_card(i, name.clone()))
+            .collect();
+        column(cards).spacing(6).width(Length::Fill).into()
     };
 
     let inner = column![
         text("Matchup Recommendation:").size(14),
+
         pick_list(
             app.tournament
                 .players()
@@ -87,7 +111,7 @@ pub fn game_matchups(app: &TournamentApp) -> Element<'_, Message> {
             Message::SelectMatchPlayer
         )
         .width(Length::Fill),
-        space().height(8),
+        space().height(3),
         text("Algorithm:").size(12),
         pick_list(
             MatchupType::all().to_vec(),
@@ -96,14 +120,14 @@ pub fn game_matchups(app: &TournamentApp) -> Element<'_, Message> {
         )
         .width(Length::Fill)
         .text_size(12),
-        space().height(8),
+        space().height(6),
         player_display,
-        space().height(10),
-        button("Load Matchup")
+        space().height(8),
+        button("Load Top 3 Matches into Game Input")
             .on_press_maybe(game.map(Message::SelectPlayers))
             .width(Length::Fill),
     ]
-    .spacing(8)
+    .spacing(4)
     .width(Length::Fill);
 
     container(inner)

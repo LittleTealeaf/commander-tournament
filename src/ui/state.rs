@@ -1,5 +1,6 @@
 use crate::tournament::{GameMatch, Tournament};
 use std::fmt;
+use std::fs::File;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum MatchupType {
@@ -8,6 +9,7 @@ pub enum MatchupType {
     Nemesis,
     WinrateNeighbors,
     Neighbors,
+    LossWith,
 }
 
 impl fmt::Display for MatchupType {
@@ -24,6 +26,7 @@ impl MatchupType {
             MatchupType::Nemesis => "Rematch",
             MatchupType::WinrateNeighbors => "WR Neighbors",
             MatchupType::Neighbors => "Neighbors",
+            MatchupType::LossWith => "Loss With",
         }
     }
 
@@ -34,6 +37,7 @@ impl MatchupType {
             MatchupType::Nemesis,
             MatchupType::WinrateNeighbors,
             MatchupType::Neighbors,
+            MatchupType::LossWith,
         ]
     }
 }
@@ -44,7 +48,9 @@ impl Default for MatchupType {
     }
 }
 
-#[derive(Default)]
+
+
+#[derive()]
 pub struct TournamentApp {
     pub tournament: Tournament,
     pub selected_players: [Option<String>; 4],
@@ -67,4 +73,68 @@ pub struct TournamentApp {
     pub match_weight_lost_with: String,
     pub error: Option<String>,
     pub matchup_type: MatchupType,
+    pub show_ingest: bool,
+    pub ingest_text: String,
+}
+
+impl Default for TournamentApp {
+    fn default() -> Self {
+        // Try to load game.ron if it exists
+        if std::path::Path::new("game.ron").exists() {
+            if let Ok(file) = File::open("game.ron") {
+                if let Ok(tournament) = ron::de::from_reader(file) {
+                    return TournamentApp {
+                        tournament,
+                        selected_players: Default::default(),
+                        selected_match: None,
+                        selected_winner: Default::default(),
+                        match_player: None,
+                        change_player_name: None,
+                        show_config: false,
+                        score_starting_elo: Default::default(),
+                        score_game_points: Default::default(),
+                        score_elo_pow: Default::default(),
+                        score_wr_pow: Default::default(),
+                        score_elo_weight: Default::default(),
+                        score_wr_weight: Default::default(),
+                        match_weight_least_played: Default::default(),
+                        match_weight_nemesis: Default::default(),
+                        match_weight_neighbor: Default::default(),
+                        match_weight_wr_neighbor: Default::default(),
+                        match_weight_lost_with: Default::default(),
+                        error: None,
+                        matchup_type: MatchupType::default(),
+                        show_ingest: false,
+                        ingest_text: String::new(),
+                    };
+                }
+            }
+        }
+
+        // Fall back to default empty app
+        TournamentApp {
+            tournament: Tournament::default(),
+            selected_players: Default::default(),
+            selected_match: None,
+            selected_winner: Default::default(),
+            match_player: None,
+            change_player_name: None,
+            show_config: false,
+            score_starting_elo: Default::default(),
+            score_game_points: Default::default(),
+            score_elo_pow: Default::default(),
+            score_wr_pow: Default::default(),
+            score_elo_weight: Default::default(),
+            score_wr_weight: Default::default(),
+            match_weight_least_played: Default::default(),
+            match_weight_nemesis: Default::default(),
+            match_weight_neighbor: Default::default(),
+            match_weight_wr_neighbor: Default::default(),
+            match_weight_lost_with: Default::default(),
+            error: None,
+            matchup_type: MatchupType::default(),
+            show_ingest: false,
+            ingest_text: String::new(),
+        }
+    }
 }

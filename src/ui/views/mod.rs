@@ -17,6 +17,10 @@ pub fn view(app: &TournamentApp) -> Element<'_, Message> {
         return modal::error_modal(app);
     }
 
+    if app.show_ingest {
+        return modal::ingest_modal(app);
+    }
+
     if app.show_config {
         return modal::config_modal(app);
     }

@@ -1,6 +1,6 @@
 use iced::{
     Alignment, Element, Length, Padding,
-    widget::{button, column, container, row, space, text, text_input},
+    widget::{button, column, container, row, space, text, text_input, scrollable},
 };
 
 use crate::ui::{Message, TournamentApp};
@@ -135,6 +135,50 @@ pub fn config_modal(app: &TournamentApp) -> Element<'_, Message> {
             container(content)
                 .padding(Padding::new(20f32))
                 .width(Length::Fixed(640.0))
+        )
+        .align_y(Alignment::Center)
+        .align_x(Alignment::Center)
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .into();
+    }
+    container(text("")).into()
+}
+
+pub fn ingest_modal(app: &TournamentApp) -> Element<'_, Message> {
+    if app.show_ingest {
+        let content = column![
+            text("Import Game Data").size(18),
+            space().height(10),
+            text("Paste tab-separated values (Player1\\tPlayer2\\tPlayer3\\tPlayer4\\tWinner):").size(11),
+            space().height(8),
+            scrollable(
+                text_input("Player1\tPlayer2\tPlayer3\tPlayer4\tWinner\n...", &app.ingest_text)
+                    .on_input(Message::UpdateIngest)
+                    .padding(10)
+                    .width(Length::Fill)
+            )
+            .height(Length::Fixed(300.0))
+            .width(Length::Fill),
+            space().height(15),
+            row![
+                button("Import")
+                    .on_press(Message::SubmitIngest)
+                    .width(Length::Fill),
+                space().width(10),
+                button("Cancel")
+                    .on_press(Message::ShowIngest(false))
+                    .width(Length::Fill),
+            ]
+            .spacing(5)
+        ]
+        .spacing(5)
+        .width(Length::Fixed(700.0));
+
+        return container(
+            container(content)
+                .padding(Padding::new(20f32))
+                .width(Length::Fixed(700.0))
         )
         .align_y(Alignment::Center)
         .align_x(Alignment::Center)

@@ -38,20 +38,17 @@ pub fn launch() -> iced::Result {
 
 pub fn update(app: &mut TournamentApp, message: Message) -> anyhow::Result<()> {
     match message {
-        Message::Reload => {
-            app.tournament.reload()?;
-        }
-        Message::SelectPlayers(players) => {
-            for (i, player) in players.into_iter().enumerate() {
-                update(app, Message::SelectPlayer(i, Some(player)))?;
+        Message::ShowIngest(val) => {
+            app.show_ingest = val;
+            if !val {
+                app.ingest_text.clear();
             }
         }
-        Message::New => {
-            app.tournament = Tournament::new();
+        Message::UpdateIngest(text) => {
+            app.ingest_text = text;
         }
-        Message::Ingest => {
-            let data = std::fs::read_to_string("data.tsv")?;
-            for line in data.lines() {
+        Message::SubmitIngest => {
+            for line in app.ingest_text.lines() {
                 let parts = line.split('\t').collect::<Vec<_>>();
                 if parts.len() < 5 {
                     continue;
@@ -62,6 +59,25 @@ pub fn update(app: &mut TournamentApp, message: Message) -> anyhow::Result<()> {
                 let game = app.tournament.create_game(players);
                 app.tournament.submit_game(game, winner)?;
             }
+            app.show_ingest = false;
+            app.ingest_text.clear();
+        }
+        Message::Reload => {
+            app.tournament.reload()?;
+        }
+        Message::SelectPlayers(players) => {
+            for (i, player) in players.into_iter().enumerate() {
+                update(app, Message::SelectPlayer(i, Some(player)))?;
+            }
+        }
+        Message::AddPlayerToNextSlot(player) => {
+            // Find the first empty slot and add the player there
+            if let Some(empty_index) = app.selected_players.iter().position(|p| p.is_none()) {
+                update(app, Message::SelectPlayer(empty_index, Some(player)))?;
+            }
+        }
+        Message::New => {
+            app.tournament = Tournament::new();
         }
         Message::ShowConfig(val) => {
             app.show_config = val;
@@ -181,8 +197,10 @@ pub fn update(app: &mut TournamentApp, message: Message) -> anyhow::Result<()> {
                 app.match_player = None;
             }
         }
-        Message::SetScoreConfig(config) => {
-            app.tournament.set_score_config(config)?;
+        Message::ClearGame => {
+            app.selected_players = Default::default();
+            app.selected_winner = Default::default();
+            app.selected_match = None;
         }
         Message::SetMatchupType(matchup_type) => {
             app.matchup_type = matchup_type;

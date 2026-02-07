@@ -7,46 +7,78 @@ use itertools::Itertools;
 use crate::ui::{Message, TournamentApp};
 
 pub fn game_input(app: &TournamentApp) -> Element<'_, Message> {
-    let player_inputs = column((0..4).map(|i| {
-        let mut player_row = row!(
+    // Build a two-by-two grid of player selectors (Player 1..4)
+    let player_choices = app
+        .tournament
+        .players()
+        .keys()
+        .cloned()
+        .sorted()
+        .collect::<Vec<_>>();
+
+    let make_player_card = |i: usize| {
+        let percent = app
+            .selected_match
+            .as_ref()
+            .map(|gm| format!("{:.1}%", gm.0[i].expected() * 100.0))
+            .unwrap_or_default();
+
+        let stats_line = app
+            .selected_match
+            .as_ref()
+            .map(|gm| {
+                let elo = format!("{:.0}", gm.0[i].stats().elo());
+                let wr_text = gm.0[i]
+                    .stats()
+                    .wr()
+                    .map(|w| format!("{:.1}%", w * 100.0))
+                    .unwrap_or_else(|| "-".to_string());
+                format!("{} ({})", elo, wr_text)
+            })
+            .unwrap_or_default();
+
+        column![
+            row![
+                text(format!("Player {}", i + 1)).size(12),
+                space().width(Length::Fill),
+                text(percent).size(12),
+            ]
+            .align_y(iced::Alignment::Center)
+            .width(Length::Fill),
+
             pick_list(
-                app.tournament
-                    .players()
-                    .keys()
-                    .cloned()
-                    .sorted()
-                    .collect::<Vec<_>>(),
+                player_choices.clone(),
                 app.selected_players[i].clone(),
                 move |choice| Message::SelectPlayer(i, Some(choice)),
             )
             .width(Length::Fill),
-        );
-        if let Some(gm) = &app.selected_match {
-            let percent = format!("{:.1}%", gm.0[i].expected() * 100.0);
-            let elo = format!("{:.0}", gm.0[i].stats().elo());
-            let wr_text = gm.0[i]
-                .stats()
-                .wr()
-                .map(|w| format!("{:.1}%", w * 100.0))
-                .unwrap_or_else(|| "-".to_string());
 
-            player_row = player_row
-                .push(space().width(10))
-                .push(
-                    column![
-                        text(percent).size(12),
-                        text(format!("{} / {}", elo, wr_text)).size(12),
-                    ]
-                    .spacing(2)
-                    .width(Length::Fixed(120.0)),
-                );
-        }
-        player_row.spacing(10).into()
-    }))
-    .spacing(8);
+            text(stats_line).size(12).width(Length::Fill),
+        ]
+        .spacing(6)
+        .width(Length::Fill)
+        .into()
+    };
+
+    let left_col = column([
+        make_player_card(0),
+        space().height(8).into(),
+        make_player_card(2),
+    ])
+    .spacing(12);
+
+    let right_col = column([
+        make_player_card(1),
+        space().height(8).into(),
+        make_player_card(3),
+    ])
+    .spacing(12);
+
+    let player_inputs = row![left_col.width(Length::Fill), space().width(10), right_col.width(Length::Fill)]
+        .spacing(10)
+        .width(Length::Fill);
 
     let winner_row = row![
-        text("Winner:").width(60),
         pick_list(
             app.selected_players
                 .iter()
@@ -57,24 +89,29 @@ pub fn game_input(app: &TournamentApp) -> Element<'_, Message> {
             Message::SelectWinner
         )
         .width(Length::Fill),
-    ]
-    .spacing(10)
-    .align_y(iced::Alignment::Center);
 
-    let submit_button = button("Submit Game").on_press_maybe(
-        (app.selected_match.is_some() && app.selected_winner.is_some())
-            .then_some(Message::SubmitGame)
-    );
+        space().width(8),
+
+        button("Submit Result").on_press_maybe(
+            (app.selected_match.is_some() && app.selected_winner.is_some()).then_some(Message::SubmitGame)
+        ).width(Length::Fixed(140.0)),
+
+        space().width(8),
+
+        button("Clear").on_press(Message::ClearGame).width(Length::Fixed(80.0)),
+    ]
+    .spacing(8)
+    .align_y(iced::Alignment::Center)
+    .width(Length::Fill);
 
     let inner = column![
-        text("Players:").size(14),
+        row![text("Record Game").size(16), space().width(8)],
+        space().height(6),
         player_inputs,
-        space().height(10),
+        space().height(12),
         winner_row,
-        space().height(10),
-        submit_button.width(Length::Fill),
     ]
-    .spacing(5)
+    .spacing(8)
     .width(Length::Fill);
 
     container(inner)

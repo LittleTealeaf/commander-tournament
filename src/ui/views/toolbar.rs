@@ -15,7 +15,7 @@ pub fn toolbar() -> iced::widget::Container<'static, Message> {
     .spacing(10);
 
     let right_buttons = row![
-        button(" 📥 Ingest").on_press(Message::Ingest),
+        button(" 📥 Ingest").on_press(Message::ShowIngest(true)),
         button(" ✨ New").on_press(Message::New),
         button(" 📂 Load").on_press(Message::Load(String::from("game.ron"))),
         button(" 💾 Save").on_press(Message::Save(String::from("game.ron"))),

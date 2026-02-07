@@ -1,9 +1,10 @@
-use crate::tournament::ScoreConfig;
 use crate::ui::state::MatchupType;
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    Ingest,
+    ShowIngest(bool),
+    UpdateIngest(String),
+    SubmitIngest,
     SetChangePlayerName(Option<(Option<String>, String)>),
     ChangePlayerSubmit,
     ShowConfig(bool),
@@ -22,12 +23,13 @@ pub enum Message {
     SaveConfig,
     SelectPlayer(usize, Option<String>),
     SelectPlayers([String; 4]),
+    AddPlayerToNextSlot(String),
     SelectWinner(String),
     SelectMatchPlayer(String),
     DeletePlayer(String),
     SubmitGame,
+    ClearGame,
     Reload,
-    SetScoreConfig(ScoreConfig),
     CloseError,
     Load(String),
     Save(String),
