@@ -1,6 +1,5 @@
 use iced::{
     Alignment, Element, Length, Padding,
-    application::IntoBoot,
     widget::{
         button, column, container, pick_list, row, rule, scrollable, space, table, text, text_input,
     },
@@ -9,7 +8,7 @@ use itertools::Itertools;
 
 use crate::{
     tournament::PlayerStats,
-    ui::{TournamentApp, message::Message},
+    ui::{Message, TournamentApp},
 };
 
 pub fn view(app: &TournamentApp) -> Element<'_, Message> {
@@ -82,18 +81,16 @@ fn leaderboard(app: &TournamentApp) -> Element<'_, Message> {
     scrollable(table(
         [
             table::column("Deck", |p: Player<'_>| text(p.name)),
-            table::column("Elo", |p: Player<'_>| text(format!("{:.0}", p.stats.elo))),
-            table::column("Games", |p: Player<'_>| text(p.stats.games)),
-            table::column("Wins", |p: Player<'_>| text(p.stats.wins)),
+            table::column("Elo", |p: Player<'_>| text(format!("{:.0}", p.stats.elo()))),
+            table::column("Games", |p: Player<'_>| text(p.stats.games())),
+            table::column("Wins", |p: Player<'_>| text(p.stats.wins())),
             table::column("Winrate", |p: Player<'_>| {
-                text({
-                    if p.stats.games == 0 {
-                        String::new()
-                    } else {
-                        let wr = (p.stats.wins as f32) / (p.stats.games as f32);
-                        format!("{:.1}%", wr * 100.0)
-                    }
-                })
+                text(
+                    p.stats
+                        .wr()
+                        .map(|wr| format!("{:.1}%", wr))
+                        .unwrap_or_default(),
+                )
             }),
             table::column("Options", |p: Player<'_>| {
                 row![
@@ -108,7 +105,7 @@ fn leaderboard(app: &TournamentApp) -> Element<'_, Message> {
             .players()
             .iter()
             .map(|(name, stats)| Player { name, stats })
-            .sorted_by(|a, b| a.stats.elo.total_cmp(&b.stats.elo))
+            .sorted_by(|a, b| a.stats.elo().total_cmp(&b.stats.elo()))
             .rev(),
     ))
     .into()
@@ -131,7 +128,7 @@ fn game_input(app: &TournamentApp) -> Element<'_, Message> {
             if let Some(gm) = &app.selected_match {
                 row = row
                     .push(space().width(5))
-                    .push(text(format!("{:.1}%", gm.0[i].expected * 100.0)));
+                    .push(text(format!("{:.1}%", gm.0[i].expected() * 100.0)));
             }
 
             row.into()
@@ -156,16 +153,34 @@ fn game_input(app: &TournamentApp) -> Element<'_, Message> {
     .into()
 }
 
+fn game_matchups(app: &TournamentApp) -> Element<'_, Message> {
+    let player = app.match_player.clone();
+    let game = player.and_then(|p| {
+        let mut iter = app.tournament.rank_combined(&p).ok()?;
+        let p2 = iter.next()?;
+        let p3 = iter.next()?;
+        let p4 = iter.next()?;
+        drop(iter);
 
-fn matches(app: &TournamentApp) -> Element<'_, Message> {
+        Some([p, p2, p3, p4])
+    });
 
-
-    container(
-        column![
-
-        
-
-
+    container(column![
+        pick_list(
+            app.tournament
+                .players()
+                .keys()
+                .cloned()
+                .sorted()
+                .collect::<Vec<_>>(),
+            app.match_player.clone(),
+            Message::SelectMatchPlayer
+        ),
+        row![
+            text("Combined"),
+            row(game.iter().flatten().map(|p| text(p).into())),
+            button("Load").on_press_maybe(game.map(Message::SelectPlayers))
         ]
-    ).into()
+    ])
+    .into()
 }

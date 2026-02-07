@@ -7,11 +7,14 @@ use std::collections::HashMap;
 pub use errors::*;
 pub use game::*;
 
+use crate::tournament::matchmaking::MatchmakerConfig;
+
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Tournament {
     players: HashMap<String, PlayerStats>,
     games: Vec<GameRecord>,
     score_config: ScoreConfig,
+    match_config: MatchmakerConfig,
 }
 
 impl Default for Tournament {
@@ -26,6 +29,7 @@ impl Tournament {
             players: HashMap::new(),
             games: Vec::new(),
             score_config: ScoreConfig::new(),
+            match_config: MatchmakerConfig::default(),
         }
     }
 

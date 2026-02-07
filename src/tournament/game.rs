@@ -36,26 +36,48 @@ impl ScoreConfig {
 
 #[derive(Debug, Clone, Copy, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct PlayerStats {
-    pub elo: f64,
-    pub games: u32,
-    pub wins: u32,
+    elo: f64,
+    games: u32,
+    wins: u32,
 }
 
 impl PlayerStats {
-    pub fn new(starting_elo: f64) -> Self {
-        Self {
-            elo: starting_elo,
-            games: 0,
-            wins: 0,
-        }
+    pub fn elo(&self) -> f64 {
+        self.elo
+    }
+
+    pub fn games(&self) -> u32 {
+        self.games
+    }
+
+    pub fn wins(&self) -> u32 {
+        self.wins
+    }
+
+    pub fn wr(&self) -> Option<f64> {
+        (self.games > 0).then(|| (self.wins as f64) / (self.games as f64))
     }
 }
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct GamePlayer {
-    pub name: String,
-    pub stats: PlayerStats,
-    pub expected: f64,
+    name: String,
+    stats: PlayerStats,
+    expected: f64,
+}
+
+impl GamePlayer {
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn stats(&self) -> &PlayerStats {
+        &self.stats
+    }
+
+    pub fn expected(&self) -> f64 {
+        self.expected
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -257,7 +279,7 @@ impl Tournament {
         // Check if winner is one of the players
         let winner_is_player = players.iter().any(|p| p.name.eq(&winner));
         if !winner_is_player {
-            return Err(TournamentError::PlayerNotInMatch(winner));
+            return Err(TournamentError::WinnerNotInMatch(winner));
         }
 
         for player in players.iter_mut() {
