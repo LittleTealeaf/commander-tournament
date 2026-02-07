@@ -8,6 +8,8 @@ pub enum TournamentError {
     PlayerNotRegistered(String),
     #[error("Player already registered: {0}")]
     PlayerAlreadyRegistered(String),
+    #[error("Game not found at index: {0}")]
+    GameNotFound(usize),
     #[error("Not enough players. Need at least 4 to create game")]
     #[allow(dead_code)]
     NotEnoughPlayers,

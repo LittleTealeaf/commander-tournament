@@ -220,6 +220,27 @@ pub fn update(app: &mut TournamentApp, message: Message) -> anyhow::Result<()> {
                 ron::ser::to_string_pretty(&app.tournament, PrettyConfig::default())?,
             )?;
         }
+        Message::ShowGames(val) => {
+            app.show_games = val;
+            if !val {
+                app.selected_game_index = None;
+            }
+        }
+        Message::OpenChangeWinnerModal(index) => {
+            if index == usize::MAX {
+                app.selected_game_index = None;
+            } else {
+                app.selected_game_index = Some(index);
+            }
+        }
+        Message::ChangeGameWinner(index, winner) => {
+            app.tournament.set_game_winner(index, winner)?;
+            app.selected_game_index = None;
+        }
+        Message::DeleteGame(index) => {
+            app.tournament.delete_game(index)?;
+            app.selected_game_index = None;
+        }
     }
     Ok(())
 }

@@ -2,6 +2,7 @@ pub mod game_input;
 pub mod game_matchups;
 pub mod leaderboard;
 pub mod modal;
+pub mod games_table;
 pub mod toolbar;
 
 use iced::{
@@ -27,6 +28,14 @@ pub fn view(app: &TournamentApp) -> Element<'_, Message> {
 
     if app.change_player_name.is_some() {
         return modal::player_name_modal(app);
+    }
+
+    if app.selected_game_index.is_some() {
+        return modal::game_winner_modal(app);
+    }
+
+    if app.show_games {
+        return games_table::games_table(app);
     }
 
     // Main layout with improved spacing and organization

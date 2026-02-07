@@ -253,3 +253,42 @@ pub fn ingest_modal(app: &TournamentApp) -> Element<'_, Message> {
     }
     container(text("")).into()
 }
+
+pub fn game_winner_modal(app: &TournamentApp) -> Element<'_, Message> {
+    if let Some(index) = app.selected_game_index {
+        if let Some(game) = app.tournament.games().get(index) {
+            let mut buttons = column![];
+            for player in game.players.iter() {
+                let p = player.clone();
+                buttons = buttons.push(
+                    button(text(p.clone())).on_press(Message::ChangeGameWinner(index, p)).width(Length::Fill),
+                );
+            }
+
+            let content = column![
+                text(format!("Change winner for game #{}", index)).size(18),
+                space().height(10),
+                buttons,
+                space().height(15),
+                row![
+                    button("Cancel").on_press(Message::OpenChangeWinnerModal(usize::MAX)),
+                ]
+                .spacing(5)
+            ]
+            .spacing(5)
+            .width(Length::Fixed(400.0));
+
+            return container(
+                container(content)
+                    .padding(Padding::new(20f32))
+                    .width(Length::Fixed(400.0)),
+            )
+            .align_y(Alignment::Center)
+            .align_x(Alignment::Center)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .into();
+        }
+    }
+    container(text("")).into()
+}

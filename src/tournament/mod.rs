@@ -68,4 +68,29 @@ impl Tournament {
     pub fn players(&self) -> &HashMap<String, PlayerStats> {
         &self.players
     }
+
+    /// Returns a reference to the game history.
+    pub fn games(&self) -> &Vec<GameRecord> {
+        &self.games
+    }
+
+    /// Change the winner for a game at the provided index and reload stats.
+    pub fn set_game_winner(&mut self, index: usize, winner: String) -> Result<(), TournamentError> {
+        if index >= self.games.len() {
+            return Err(TournamentError::GameNotFound(index));
+        }
+        self.games[index].winner = winner;
+        self.reload()?;
+        Ok(())
+    }
+
+    /// Delete a game at index and reload stats.
+    pub fn delete_game(&mut self, index: usize) -> Result<(), TournamentError> {
+        if index >= self.games.len() {
+            return Err(TournamentError::GameNotFound(index));
+        }
+        self.games.remove(index);
+        self.reload()?;
+        Ok(())
+    }
 }

@@ -35,4 +35,8 @@ pub enum Message {
     Save(String),
     New,
     SetMatchupType(MatchupType),
+    ShowGames(bool),
+    OpenChangeWinnerModal(usize),
+    ChangeGameWinner(usize, String),
+    DeleteGame(usize),
 }
