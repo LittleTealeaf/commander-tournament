@@ -64,7 +64,7 @@ pub fn view(app: &TournamentApp) -> Element<'_, Message> {
         row![
             leaderboard(app),
             rule::vertical(1),
-            column![game_input(app), rule::horizontal(1)]
+            column![game_input(app), rule::horizontal(1), game_matchups(app)]
         ]
     ]
     .padding(Padding::new(10f32))
@@ -157,13 +157,21 @@ fn game_matchups(app: &TournamentApp) -> Element<'_, Message> {
     let player = app.match_player.clone();
     let game = player.and_then(|p| {
         let mut iter = app.tournament.rank_combined(&p).ok()?;
-        let p2 = iter.next()?;
-        let p3 = iter.next()?;
-        let p4 = iter.next()?;
+        let p2 = iter.next()?.clone();
+        let p3 = iter.next()?.clone();
+        let p4 = iter.next()?.clone();
         drop(iter);
 
         Some([p, p2, p3, p4])
     });
+
+    let game_vec: Vec<_> = game.as_ref().map(|g| g.to_vec()).unwrap_or_default();
+
+    let player_names = game_vec
+        .iter()
+        .cloned()
+        .map(|p| text(p).into())
+        .collect::<Vec<Element<Message>>>();
 
     container(column![
         pick_list(
@@ -178,7 +186,7 @@ fn game_matchups(app: &TournamentApp) -> Element<'_, Message> {
         ),
         row![
             text("Combined"),
-            row(game.iter().flatten().map(|p| text(p).into())),
+            row(player_names),
             button("Load").on_press_maybe(game.map(Message::SelectPlayers))
         ]
     ])

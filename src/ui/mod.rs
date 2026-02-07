@@ -122,13 +122,14 @@ pub fn update(app: &mut TournamentApp, message: Message) -> anyhow::Result<()> {
             }
         }
         Message::SelectWinner(winner) => app.selected_winner = Some(winner),
-        Message::SelectMatchPlayer(_) => todo!(),
+        Message::SelectMatchPlayer(player) => app.match_player = Some(player),
         Message::SubmitGame => {
             if let (Some(game), Some(winner)) = (&app.selected_match, &app.selected_winner) {
                 app.tournament.submit_game(game.clone(), winner)?;
                 app.selected_players = Default::default();
                 app.selected_winner = Default::default();
                 app.selected_match = None;
+                app.match_player = None;
             }
         }
         Message::SetScoreConfig(config) => {
@@ -141,6 +142,7 @@ pub fn update(app: &mut TournamentApp, message: Message) -> anyhow::Result<()> {
             app.selected_match = Default::default();
             app.selected_winner = Default::default();
             app.selected_players = Default::default();
+            app.match_player = None;
         }
         Message::Save(path) => {
             fs::write(
