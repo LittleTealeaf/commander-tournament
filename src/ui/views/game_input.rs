@@ -45,14 +45,12 @@ pub fn game_input(app: &TournamentApp) -> Element<'_, Message> {
             ]
             .align_y(iced::Alignment::Center)
             .width(Length::Fill),
-
             pick_list(
                 player_choices.clone(),
                 app.selected_players[i].clone(),
                 move |choice| Message::SelectPlayer(i, Some(choice)),
             )
             .width(Length::Fill),
-
             text(stats_line).size(12).width(Length::Fill),
         ]
         .spacing(6)
@@ -74,9 +72,13 @@ pub fn game_input(app: &TournamentApp) -> Element<'_, Message> {
     ])
     .spacing(12);
 
-    let player_inputs = row![left_col.width(Length::Fill), space().width(10), right_col.width(Length::Fill)]
-        .spacing(10)
-        .width(Length::Fill);
+    let player_inputs = row![
+        left_col.width(Length::Fill),
+        space().width(10),
+        right_col.width(Length::Fill)
+    ]
+    .spacing(10)
+    .width(Length::Fill);
 
     let winner_row = row![
         pick_list(
@@ -89,16 +91,17 @@ pub fn game_input(app: &TournamentApp) -> Element<'_, Message> {
             Message::SelectWinner
         )
         .width(Length::Fill),
-
         space().width(8),
-
-        button("Submit Result").on_press_maybe(
-            (app.selected_match.is_some() && app.selected_winner.is_some()).then_some(Message::SubmitGame)
-        ).width(Length::Fixed(140.0)),
-
+        button("Submit Result")
+            .on_press_maybe(
+                (app.selected_match.is_some() && app.selected_winner.is_some())
+                    .then_some(Message::SubmitGame)
+            )
+            .width(Length::Fixed(140.0)),
         space().width(8),
-
-        button("Clear").on_press(Message::ClearGame).width(Length::Fixed(80.0)),
+        button("Clear")
+            .on_press(Message::ClearGame)
+            .width(Length::Fixed(80.0)),
     ]
     .spacing(8)
     .align_y(iced::Alignment::Center)

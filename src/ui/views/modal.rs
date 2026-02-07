@@ -1,6 +1,6 @@
 use iced::{
     Alignment, Element, Length, Padding,
-    widget::{button, column, container, row, space, text, text_input, scrollable},
+    widget::{button, column, container, row, scrollable, space, text, text_input},
 };
 
 use crate::ui::{Message, TournamentApp};
@@ -12,7 +12,9 @@ pub fn error_modal(app: &TournamentApp) -> Element<'_, Message> {
             space().height(10),
             text(msg),
             space().height(15),
-            button("Close").on_press(Message::CloseError).width(Length::Fill),
+            button("Close")
+                .on_press(Message::CloseError)
+                .width(Length::Fill),
         ]
         .spacing(5)
         .width(Length::Fixed(400.0));
@@ -20,7 +22,7 @@ pub fn error_modal(app: &TournamentApp) -> Element<'_, Message> {
         return container(
             container(content)
                 .padding(Padding::new(20f32))
-                .width(Length::Fixed(400.0))
+                .width(Length::Fixed(400.0)),
         )
         .align_y(Alignment::Center)
         .align_x(Alignment::Center)
@@ -71,7 +73,7 @@ pub fn player_name_modal(app: &TournamentApp) -> Element<'_, Message> {
         return container(
             container(content)
                 .padding(Padding::new(20f32))
-                .width(Length::Fixed(400.0))
+                .width(Length::Fixed(400.0)),
         )
         .align_y(Alignment::Center)
         .align_x(Alignment::Center)
@@ -89,43 +91,102 @@ pub fn config_modal(app: &TournamentApp) -> Element<'_, Message> {
             space().height(10),
             text("ScoreConfig").size(14),
             row![
-                column![text("starting_elo"), text_input("", &app.score_starting_elo).on_input(Message::UpdateScoreStartingElo).width(Length::Fill)],
+                column![
+                    text("starting_elo"),
+                    text_input("", &app.score_starting_elo)
+                        .on_input(Message::UpdateScoreStartingElo)
+                        .width(Length::Fill)
+                ],
                 space().width(10),
-                column![text("game_points"), text_input("", &app.score_game_points).on_input(Message::UpdateScoreGamePoints).width(Length::Fill)],
+                column![
+                    text("game_points"),
+                    text_input("", &app.score_game_points)
+                        .on_input(Message::UpdateScoreGamePoints)
+                        .width(Length::Fill)
+                ],
             ]
             .spacing(8),
             row![
-                column![text("elo_pow"), text_input("", &app.score_elo_pow).on_input(Message::UpdateScoreEloPow).width(Length::Fill)],
+                column![
+                    text("elo_pow"),
+                    text_input("", &app.score_elo_pow)
+                        .on_input(Message::UpdateScoreEloPow)
+                        .width(Length::Fill)
+                ],
                 space().width(10),
-                column![text("wr_pow"), text_input("", &app.score_wr_pow).on_input(Message::UpdateScoreWrPow).width(Length::Fill)],
+                column![
+                    text("wr_pow"),
+                    text_input("", &app.score_wr_pow)
+                        .on_input(Message::UpdateScoreWrPow)
+                        .width(Length::Fill)
+                ],
             ]
             .spacing(8),
             row![
-                column![text("elo_weight"), text_input("", &app.score_elo_weight).on_input(Message::UpdateScoreEloWeight).width(Length::Fill)],
+                column![
+                    text("elo_weight"),
+                    text_input("", &app.score_elo_weight)
+                        .on_input(Message::UpdateScoreEloWeight)
+                        .width(Length::Fill)
+                ],
                 space().width(10),
-                column![text("wr_weight"), text_input("", &app.score_wr_weight).on_input(Message::UpdateScoreWrWeight).width(Length::Fill)],
+                column![
+                    text("wr_weight"),
+                    text_input("", &app.score_wr_weight)
+                        .on_input(Message::UpdateScoreWrWeight)
+                        .width(Length::Fill)
+                ],
             ]
             .spacing(8),
             space().height(8),
             text("MatchmakerConfig").size(14),
             row![
-                column![text("weight_least_played"), text_input("", &app.match_weight_least_played).on_input(Message::UpdateMatchWeightLeastPlayed).width(Length::Fill)],
+                column![
+                    text("weight_least_played"),
+                    text_input("", &app.match_weight_least_played)
+                        .on_input(Message::UpdateMatchWeightLeastPlayed)
+                        .width(Length::Fill)
+                ],
                 space().width(10),
-                column![text("weight_nemesis"), text_input("", &app.match_weight_nemesis).on_input(Message::UpdateMatchWeightNemesis).width(Length::Fill)],
+                column![
+                    text("weight_nemesis"),
+                    text_input("", &app.match_weight_nemesis)
+                        .on_input(Message::UpdateMatchWeightNemesis)
+                        .width(Length::Fill)
+                ],
             ]
             .spacing(8),
             row![
-                column![text("weight_neighbor"), text_input("", &app.match_weight_neighbor).on_input(Message::UpdateMatchWeightNeighbor).width(Length::Fill)],
+                column![
+                    text("weight_neighbor"),
+                    text_input("", &app.match_weight_neighbor)
+                        .on_input(Message::UpdateMatchWeightNeighbor)
+                        .width(Length::Fill)
+                ],
                 space().width(10),
-                column![text("weight_wr_neighbor"), text_input("", &app.match_weight_wr_neighbor).on_input(Message::UpdateMatchWeightWrNeighbor).width(Length::Fill)],
+                column![
+                    text("weight_wr_neighbor"),
+                    text_input("", &app.match_weight_wr_neighbor)
+                        .on_input(Message::UpdateMatchWeightWrNeighbor)
+                        .width(Length::Fill)
+                ],
             ]
             .spacing(8),
-            column![text("weight_lost_with"), text_input("", &app.match_weight_lost_with).on_input(Message::UpdateMatchWeightLostWith).width(Length::Fill)],
+            column![
+                text("weight_lost_with"),
+                text_input("", &app.match_weight_lost_with)
+                    .on_input(Message::UpdateMatchWeightLostWith)
+                    .width(Length::Fill)
+            ],
             space().height(15),
             row![
-                button("Save").on_press(Message::SaveConfig).width(Length::Fill),
+                button("Save")
+                    .on_press(Message::SaveConfig)
+                    .width(Length::Fill),
                 space().width(10),
-                button("Cancel").on_press(Message::ShowConfig(false)).width(Length::Fill)
+                button("Cancel")
+                    .on_press(Message::ShowConfig(false))
+                    .width(Length::Fill)
             ]
         ]
         .spacing(5)
@@ -134,7 +195,7 @@ pub fn config_modal(app: &TournamentApp) -> Element<'_, Message> {
         return container(
             container(content)
                 .padding(Padding::new(20f32))
-                .width(Length::Fixed(640.0))
+                .width(Length::Fixed(640.0)),
         )
         .align_y(Alignment::Center)
         .align_x(Alignment::Center)
@@ -150,13 +211,17 @@ pub fn ingest_modal(app: &TournamentApp) -> Element<'_, Message> {
         let content = column![
             text("Import Game Data").size(18),
             space().height(10),
-            text("Paste tab-separated values (Player1\\tPlayer2\\tPlayer3\\tPlayer4\\tWinner):").size(11),
+            text("Paste tab-separated values (Player1\\tPlayer2\\tPlayer3\\tPlayer4\\tWinner):")
+                .size(11),
             space().height(8),
             scrollable(
-                text_input("Player1\tPlayer2\tPlayer3\tPlayer4\tWinner\n...", &app.ingest_text)
-                    .on_input(Message::UpdateIngest)
-                    .padding(10)
-                    .width(Length::Fill)
+                text_input(
+                    "Player1\tPlayer2\tPlayer3\tPlayer4\tWinner\n...",
+                    &app.ingest_text
+                )
+                .on_input(Message::UpdateIngest)
+                .padding(10)
+                .width(Length::Fill)
             )
             .height(Length::Fixed(300.0))
             .width(Length::Fill),
@@ -178,7 +243,7 @@ pub fn ingest_modal(app: &TournamentApp) -> Element<'_, Message> {
         return container(
             container(content)
                 .padding(Padding::new(20f32))
-                .width(Length::Fixed(700.0))
+                .width(Length::Fixed(700.0)),
         )
         .align_y(Alignment::Center)
         .align_x(Alignment::Center)

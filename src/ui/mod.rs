@@ -1,18 +1,18 @@
-mod state;
-mod message;
 mod errors;
+mod message;
+mod state;
 pub mod views;
 
-pub use state::TournamentApp;
 pub use message::Message;
+pub use state::TournamentApp;
 
 use std::fs::{self, File};
 
 use ron::ser::PrettyConfig;
 
-use crate::tournament::Tournament;
-use crate::tournament::ScoreConfig;
 use crate::tournament::MatchmakerConfig;
+use crate::tournament::ScoreConfig;
+use crate::tournament::Tournament;
 use anyhow::anyhow;
 
 fn f64_to_string(v: f64) -> String {

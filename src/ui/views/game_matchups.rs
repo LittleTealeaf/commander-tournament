@@ -26,7 +26,12 @@ pub fn game_matchups(app: &TournamentApp) -> Element<'_, Message> {
             .collect();
 
         if filtered.len() >= 3 {
-            Some([p, filtered[0].clone(), filtered[1].clone(), filtered[2].clone()])
+            Some([
+                p,
+                filtered[0].clone(),
+                filtered[1].clone(),
+                filtered[2].clone(),
+            ])
         } else {
             None
         }
@@ -46,23 +51,19 @@ pub fn game_matchups(app: &TournamentApp) -> Element<'_, Message> {
         // helper to build a card element: left (name/elo) | middle (score/rivalry) | right (button)
         let make_card = |_idx: usize, name: String| {
             let stats_opt = app.tournament.players().get(&name);
-            let elo_text = stats_opt.map(|s| format!("Elo: {:.0}", s.elo())).unwrap_or_default();
+            let elo_text = stats_opt
+                .map(|s| format!("Elo: {:.0}", s.elo()))
+                .unwrap_or_default();
 
             // Left column: name and elo
-            let left_col = column![
-                text(name.clone()).size(22),
-                text(elo_text).size(12),
-            ]
-            .spacing(4)
-            .width(Length::Fill);
+            let left_col = column![text(name.clone()).size(22), text(elo_text).size(12),]
+                .spacing(4)
+                .width(Length::Fill);
 
             // Middle column: score / rivalry score
-            let middle_col = column![
-                text("Score: -").size(12),
-                text("Rivalry Score: -").size(12),
-            ]
-            .spacing(4)
-            .width(Length::Shrink);
+            let middle_col = column![text("Score: -").size(12), text("Rivalry Score: -").size(12),]
+                .spacing(4)
+                .width(Length::Shrink);
 
             // Right column: add to game button
             let add_button = button("Add to Game")
@@ -99,7 +100,6 @@ pub fn game_matchups(app: &TournamentApp) -> Element<'_, Message> {
 
     let inner = column![
         text("Matchup Recommendation:").size(14),
-
         pick_list(
             app.tournament
                 .players()

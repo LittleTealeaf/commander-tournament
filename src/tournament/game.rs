@@ -184,7 +184,10 @@ impl Tournament {
     /// Updates the matchmaking configuration.
     ///
     /// This does not affect existing games or player ratings, only future matchmaking.
-    pub fn set_match_config(&mut self, config: crate::tournament::matchmaking::MatchmakerConfig) -> Result<(), TournamentError> {
+    pub fn set_match_config(
+        &mut self,
+        config: crate::tournament::matchmaking::MatchmakerConfig,
+    ) -> Result<(), TournamentError> {
         self.match_config = config;
         Ok(())
     }

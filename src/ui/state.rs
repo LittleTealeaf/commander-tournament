@@ -43,10 +43,6 @@ impl MatchupType {
     }
 }
 
-
-
-
-
 #[derive()]
 pub struct TournamentApp {
     pub tournament: Tournament,
@@ -79,7 +75,8 @@ impl Default for TournamentApp {
         // Try to load game.ron if it exists
         if std::path::Path::new("game.ron").exists()
             && let Ok(file) = File::open("game.ron")
-            && let Ok(tournament) = ron::de::from_reader(file) {
+            && let Ok(tournament) = ron::de::from_reader(file)
+        {
             return TournamentApp {
                 tournament,
                 selected_players: Default::default(),

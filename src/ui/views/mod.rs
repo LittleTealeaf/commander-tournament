@@ -1,8 +1,8 @@
-pub mod modal;
-pub mod toolbar;
-pub mod leaderboard;
 pub mod game_input;
 pub mod game_matchups;
+pub mod leaderboard;
+pub mod modal;
+pub mod toolbar;
 
 use iced::{
     Element, Length,
@@ -45,12 +45,8 @@ pub fn view(app: &TournamentApp) -> Element<'_, Message> {
     .width(Length::Fill)
     .height(Length::Fill);
 
-    column![
-        toolbar::toolbar(),
-        space().height(5),
-        main_content,
-    ]
-    .spacing(0)
-    .height(Length::Fill)
-    .into()
+    column![toolbar::toolbar(), space().height(5), main_content,]
+        .spacing(0)
+        .height(Length::Fill)
+        .into()
 }

@@ -22,14 +22,9 @@ pub fn toolbar() -> iced::widget::Container<'static, Message> {
     ]
     .spacing(10);
 
-    let toolbar_row = row![
-        left_buttons,
-        space().width(Length::Fill),
-        right_buttons,
-    ]
-    .width(Length::Fill)
-    .spacing(15);
+    let toolbar_row = row![left_buttons, space().width(Length::Fill), right_buttons,]
+        .width(Length::Fill)
+        .spacing(15);
 
-    container(toolbar_row)
-        .padding(Padding::new(10f32))
+    container(toolbar_row).padding(Padding::new(10f32))
 }

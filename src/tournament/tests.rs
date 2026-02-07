@@ -1,10 +1,7 @@
 // Comprehensive test suite for tournament mechanics, player management, and matchmaking
 #![allow(clippy::unwrap_used)]
 
-use crate::tournament::{
-    GameMatch, ScoreConfig, Tournament, TournamentError,
-    MatchmakerConfig,
-};
+use crate::tournament::{GameMatch, MatchmakerConfig, ScoreConfig, Tournament, TournamentError};
 
 // ============================================================================
 // FIXTURES AND HELPERS
@@ -231,7 +228,9 @@ fn register_player_starts_with_default_config_elo() {
 fn rename_player_updates_name() {
     let mut tournament = default_tournament();
     tournament.register_player("Alice".to_string());
-    tournament.rename_player("Alice".to_string(), "Alicia".to_string()).unwrap();
+    tournament
+        .rename_player("Alice".to_string(), "Alicia".to_string())
+        .unwrap();
 
     assert!(!tournament.has_registered_player("Alice"));
     assert!(tournament.has_registered_player("Alicia"));
@@ -246,7 +245,9 @@ fn rename_player_preserves_stats() {
     submit_game(&mut tournament, "Alice", "Bob", "Charlie", "David", "Alice").unwrap();
 
     let alice_original = *tournament.players().get("Alice").unwrap();
-    tournament.rename_player("Alice".to_string(), "Alicia".to_string()).unwrap();
+    tournament
+        .rename_player("Alice".to_string(), "Alicia".to_string())
+        .unwrap();
 
     let alicia = tournament.players().get("Alicia").unwrap();
     assert_eq!(alicia.games(), alice_original.games());
@@ -259,7 +260,9 @@ fn rename_player_updates_game_records() {
     setup_players(&mut tournament, &["Alice", "Bob", "Charlie", "David"]);
     submit_game(&mut tournament, "Alice", "Bob", "Charlie", "David", "Alice").unwrap();
 
-    tournament.rename_player("Alice".to_string(), "Alicia".to_string()).unwrap();
+    tournament
+        .rename_player("Alice".to_string(), "Alicia".to_string())
+        .unwrap();
 
     // Note: We don't have a way to access games directly, but rename should update them
     // We can verify by renaiming and checking if new name works
@@ -279,7 +282,10 @@ fn rename_to_existing_player_fails() {
     setup_players(&mut tournament, &["Alice", "Bob"]);
 
     let result = tournament.rename_player("Alice".to_string(), "Bob".to_string());
-    assert!(matches!(result, Err(TournamentError::PlayerAlreadyRegistered(_))));
+    assert!(matches!(
+        result,
+        Err(TournamentError::PlayerAlreadyRegistered(_))
+    ));
 }
 
 #[test]
@@ -339,7 +345,11 @@ fn create_game_expected_probabilities_sum_to_one() {
     let GameMatch(players) = game;
 
     let sum: f64 = players.iter().map(|p| p.expected()).sum();
-    assert!((sum - 1.0).abs() < 0.0001, "Expected probabilities should sum to 1.0, got {}", sum);
+    assert!(
+        (sum - 1.0).abs() < 0.0001,
+        "Expected probabilities should sum to 1.0, got {}",
+        sum
+    );
 }
 
 #[test]
@@ -352,8 +362,11 @@ fn create_game_equal_players_equal_expected() {
 
     // All players at same Elo should have equal expected
     for player in &players {
-        assert!((player.expected() - 0.25).abs() < 0.0001,
-                "Equal players should have ~0.25 expected, got {}", player.expected());
+        assert!(
+            (player.expected() - 0.25).abs() < 0.0001,
+            "Equal players should have ~0.25 expected, got {}",
+            player.expected()
+        );
     }
 }
 
@@ -371,8 +384,10 @@ fn create_game_higher_elo_higher_expected() {
     let alice = players.iter().find(|p| p.name() == "Alice").unwrap();
     let bob = players.iter().find(|p| p.name() == "Bob").unwrap();
 
-    assert!(alice.expected() > bob.expected(),
-            "Higher Elo player should have higher expected");
+    assert!(
+        alice.expected() > bob.expected(),
+        "Higher Elo player should have higher expected"
+    );
 }
 
 #[test]
@@ -430,7 +445,11 @@ fn submit_game_increments_game_count_all_players() {
 
     for player in ["Alice", "Bob", "Charlie", "David"] {
         let stats = tournament.players().get(player).unwrap();
-        assert_eq!(stats.games(), 1, "All players should have game count increased");
+        assert_eq!(
+            stats.games(),
+            1,
+            "All players should have game count increased"
+        );
     }
 }
 
@@ -450,7 +469,10 @@ fn submit_game_only_winner_gets_win() {
 #[test]
 fn submit_game_invalid_winner_fails() {
     let mut tournament = default_tournament();
-    setup_players(&mut tournament, &["Alice", "Bob", "Charlie", "David", "Eve"]);
+    setup_players(
+        &mut tournament,
+        &["Alice", "Bob", "Charlie", "David", "Eve"],
+    );
 
     let game = tournament.create_game(["Alice", "Bob", "Charlie", "David"]);
     let result = tournament.submit_game(game, "Eve");
@@ -461,11 +483,22 @@ fn submit_game_invalid_winner_fails() {
 #[test]
 fn submit_game_expected_affects_elo_change() {
     let mut tournament = default_tournament();
-    setup_players(&mut tournament, &["HighElo", "LowElo1", "LowElo2", "LowElo3"]);
+    setup_players(
+        &mut tournament,
+        &["HighElo", "LowElo1", "LowElo2", "LowElo3"],
+    );
 
     // Boost HighElo's rating
     for _ in 0..10 {
-        submit_game(&mut tournament, "HighElo", "LowElo1", "LowElo2", "LowElo3", "HighElo").unwrap();
+        submit_game(
+            &mut tournament,
+            "HighElo",
+            "LowElo1",
+            "LowElo2",
+            "LowElo3",
+            "HighElo",
+        )
+        .unwrap();
     }
 
     let high_elo_before = tournament.players().get("HighElo").unwrap().elo();
@@ -474,7 +507,15 @@ fn submit_game_expected_affects_elo_change() {
     tournament.register_player("Newcomer".to_string());
 
     // HighElo vs Newcomer (and two others) - HighElo should win but gain less
-    submit_game(&mut tournament, "HighElo", "Newcomer", "LowElo1", "LowElo2", "HighElo").unwrap();
+    submit_game(
+        &mut tournament,
+        "HighElo",
+        "Newcomer",
+        "LowElo1",
+        "LowElo2",
+        "HighElo",
+    )
+    .unwrap();
 
     let high_elo_after = tournament.players().get("HighElo").unwrap().elo();
     let gain = high_elo_after - high_elo_before;
@@ -486,23 +527,46 @@ fn submit_game_expected_affects_elo_change() {
 #[test]
 fn submit_game_upset_gains_more_elo() {
     let mut tournament = default_tournament();
-    setup_players(&mut tournament, &["HighElo", "LowElo1", "LowElo2", "Newcomer"]);
+    setup_players(
+        &mut tournament,
+        &["HighElo", "LowElo1", "LowElo2", "Newcomer"],
+    );
 
     // Boost HighElo
     for _ in 0..10 {
-        submit_game(&mut tournament, "HighElo", "LowElo1", "LowElo2", "Newcomer", "HighElo").unwrap();
+        submit_game(
+            &mut tournament,
+            "HighElo",
+            "LowElo1",
+            "LowElo2",
+            "Newcomer",
+            "HighElo",
+        )
+        .unwrap();
     }
 
     let low_elo1_before = tournament.players().get("LowElo1").unwrap().elo();
 
     // LowElo1 beats HighElo (upset)
-    submit_game(&mut tournament, "HighElo", "LowElo1", "LowElo2", "Newcomer", "LowElo1").unwrap();
+    submit_game(
+        &mut tournament,
+        "HighElo",
+        "LowElo1",
+        "LowElo2",
+        "Newcomer",
+        "LowElo1",
+    )
+    .unwrap();
 
     let low_elo1_after = tournament.players().get("LowElo1").unwrap().elo();
     let gain = low_elo1_after - low_elo1_before;
 
     // Should gain significant Elo for the upset
-    assert!(gain > 10.0, "Upset winner should gain significant Elo, got {}", gain);
+    assert!(
+        gain > 10.0,
+        "Upset winner should gain significant Elo, got {}",
+        gain
+    );
 }
 
 // ============================================================================
@@ -547,8 +611,10 @@ fn set_score_config_recalculates_ratings() {
     let alice_elo_second = tournament.players().get("Alice").unwrap().elo();
 
     // Elo should be different with new config
-    assert_ne!(alice_elo_first, alice_elo_second,
-               "Config change should recalculate Elo ratings");
+    assert_ne!(
+        alice_elo_first, alice_elo_second,
+        "Config change should recalculate Elo ratings"
+    );
 }
 
 #[test]
@@ -642,7 +708,10 @@ fn rank_least_played_empty_player_history() {
 #[test]
 fn rank_least_played_returns_unplayed_first() {
     let mut tournament = default_tournament();
-    setup_players(&mut tournament, &["Alice", "Bob", "Charlie", "David", "Eve"]);
+    setup_players(
+        &mut tournament,
+        &["Alice", "Bob", "Charlie", "David", "Eve"],
+    );
 
     // Alice plays Bob 3 times
     for _ in 0..3 {
@@ -659,7 +728,10 @@ fn rank_least_played_returns_unplayed_first() {
     let bob_pos = rank.iter().position(|p| p == "Bob");
 
     if let (Some(eve_p), Some(bob_p)) = (eve_pos, bob_pos) {
-        assert!(eve_p < bob_p, "Eve (0 games) should rank above Bob (3 games)");
+        assert!(
+            eve_p < bob_p,
+            "Eve (0 games) should rank above Bob (3 games)"
+        );
     }
 }
 
@@ -685,7 +757,10 @@ fn rank_nemesis_with_no_head_to_head() {
 #[test]
 fn rank_nemesis_identifies_actual_nemesis() {
     let mut tournament = default_tournament();
-    setup_players(&mut tournament, &["Alice", "Bob", "Charlie", "David", "Eve"]);
+    setup_players(
+        &mut tournament,
+        &["Alice", "Bob", "Charlie", "David", "Eve"],
+    );
 
     // Bob beats Alice many times
     for _ in 0..5 {
@@ -693,14 +768,25 @@ fn rank_nemesis_identifies_actual_nemesis() {
     }
 
     // Charlie beats Alice a few times
-    submit_game(&mut tournament, "Alice", "Charlie", "Bob", "David", "Charlie").unwrap();
+    submit_game(
+        &mut tournament,
+        "Alice",
+        "Charlie",
+        "Bob",
+        "David",
+        "Charlie",
+    )
+    .unwrap();
 
     // Eve has never played Alice
 
     let nemesis_rank: Vec<_> = tournament.rank_nemesis("Alice").unwrap().collect();
 
     // Bob should be the first nemesis (5 losses vs 1 loss)
-    assert_eq!(nemesis_rank[0], "Bob", "Bob (5 wins vs Alice) should be nemesis");
+    assert_eq!(
+        nemesis_rank[0], "Bob",
+        "Bob (5 wins vs Alice) should be nemesis"
+    );
 }
 
 #[test]
@@ -745,7 +831,10 @@ fn rank_neighbors_nonexistent_player_fails() {
 #[test]
 fn rank_loss_with_identifies_problem_partners() {
     let mut tournament = default_tournament();
-    setup_players(&mut tournament, &["Alice", "Bob", "Charlie", "David", "Eve"]);
+    setup_players(
+        &mut tournament,
+        &["Alice", "Bob", "Charlie", "David", "Eve"],
+    );
 
     // Alice plays often with Bob but loses
     for _ in 0..3 {
@@ -761,9 +850,12 @@ fn rank_loss_with_identifies_problem_partners() {
 
     // Bob (3 losses with) should rank before Charlie (1 win with)
     if let Some(bob_pos) = loss_rank.iter().position(|p| p == "Bob")
-        && let Some(charlie_pos) = loss_rank.iter().position(|p| p == "Charlie") {
-        assert!(bob_pos < charlie_pos,
-            "Bob (3 losses) should rank before Charlie (1 win)");
+        && let Some(charlie_pos) = loss_rank.iter().position(|p| p == "Charlie")
+    {
+        assert!(
+            bob_pos < charlie_pos,
+            "Bob (3 losses) should rank before Charlie (1 win)"
+        );
     }
 }
 
@@ -777,7 +869,10 @@ fn rank_loss_with_nonexistent_player_fails() {
 #[test]
 fn rank_combined_uses_all_strategies() {
     let mut tournament = default_tournament();
-    setup_players(&mut tournament, &["Alice", "Bob", "Charlie", "David", "Eve"]);
+    setup_players(
+        &mut tournament,
+        &["Alice", "Bob", "Charlie", "David", "Eve"],
+    );
 
     // Play some games to build history
     submit_game(&mut tournament, "Alice", "Bob", "Charlie", "David", "Alice").unwrap();
@@ -787,10 +882,17 @@ fn rank_combined_uses_all_strategies() {
     let combined_rank: Vec<_> = tournament.rank_combined("Alice").unwrap().collect();
 
     // Should have 4 opponents (all except Alice)
-    assert_eq!(combined_rank.len(), 4, "Combined ranking should include all opponents");
+    assert_eq!(
+        combined_rank.len(),
+        4,
+        "Combined ranking should include all opponents"
+    );
 
     // Eve should not be in the ranking (single player, not enough opponents)
-    assert!(!combined_rank.contains(&"Alice".to_string()), "Alice shouldn't rank against herself");
+    assert!(
+        !combined_rank.contains(&"Alice".to_string()),
+        "Alice shouldn't rank against herself"
+    );
 }
 
 #[test]
@@ -941,7 +1043,15 @@ fn elo_converges_for_consistent_players() {
 
     // Strong always wins
     for _ in 0..20 {
-        submit_game(&mut tournament, "Strong", "Weak1", "Weak2", "Weak3", "Strong").unwrap();
+        submit_game(
+            &mut tournament,
+            "Strong",
+            "Weak1",
+            "Weak2",
+            "Weak3",
+            "Strong",
+        )
+        .unwrap();
     }
 
     let strong_elo = tournament.players().get("Strong").unwrap().elo();

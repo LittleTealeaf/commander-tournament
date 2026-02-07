@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use itertools::{Itertools, chain};
 
 use crate::tournament::{GameMatch, PlayerStats, Tournament, TournamentError};
@@ -47,6 +49,13 @@ macro_rules! impl_game_creator {
             Ok(self.create_game([player.to_string(), p2, p3, p4]))
         }
     };
+}
+
+fn with_tie_breaker(cmp: Ordering, tie_breaker: impl Fn() -> Ordering) -> Ordering {
+    match cmp {
+        Ordering::Equal => tie_breaker(),
+        cmp => cmp,
+    }
 }
 
 impl Tournament {
@@ -112,18 +121,13 @@ impl Tournament {
         Ok(opponent_counts
             .into_iter()
             .sorted_by(|(p1, count1), (p2, count2)| {
-                // First sort by play count
-                match count1.cmp(count2) {
-                    std::cmp::Ordering::Equal => {
-                        // Tie-breaker: sort by ELO difference (ascending)
-                        let stats_p1 = self.get_player_stats(p1).map(|s| s.elo()).unwrap_or(0.0);
-                        let stats_p2 = self.get_player_stats(p2).map(|s| s.elo()).unwrap_or(0.0);
-                        let diff1 = (player_elo - stats_p1).abs();
-                        let diff2 = (player_elo - stats_p2).abs();
-                        diff1.total_cmp(&diff2)
-                    }
-                    other => other,
-                }
+                with_tie_breaker(count1.cmp(count2), || {
+                    let stats_p1 = self.get_player_stats(p1).map(|s| s.elo()).unwrap_or(0.0);
+                    let stats_p2 = self.get_player_stats(p2).map(|s| s.elo()).unwrap_or(0.0);
+                    let diff1 = (player_elo - stats_p1).abs();
+                    let diff2 = (player_elo - stats_p2).abs();
+                    with_tie_breaker(diff1.total_cmp(&diff2), || p1.cmp(p2))
+                })
             })
             .map(|(opponent, _)| opponent))
     }
@@ -185,16 +189,11 @@ impl Tournament {
         Ok(opponent_scores
             .into_iter()
             .sorted_by(|(p1, score1), (p2, score2)| {
-                // First sort by win/loss score (descending - highest nemesis score first)
-                match score2.cmp(score1) {
-                    std::cmp::Ordering::Equal => {
-                        // Tie-breaker: sort by ELO (ascending - lowest ELO first)
-                        let stats_p1 = self.get_player_stats(p1).map(|s| s.elo()).unwrap_or(0.0);
-                        let stats_p2 = self.get_player_stats(p2).map(|s| s.elo()).unwrap_or(0.0);
-                        stats_p1.total_cmp(&stats_p2)
-                    }
-                    other => other,
-                }
+                with_tie_breaker(score1.cmp(score2), || {
+                    let stats_p1 = self.get_player_stats(p1).map(|s| s.elo()).unwrap_or(0.0);
+                    let stats_p2 = self.get_player_stats(p2).map(|s| s.elo()).unwrap_or(0.0);
+                    with_tie_breaker(stats_p1.total_cmp(&stats_p2), || p1.cmp(p2))
+                })
             })
             .map(|(opponent, _)| opponent))
     }
@@ -204,8 +203,6 @@ impl Tournament {
     /// Ranks players by similarity in win rate (winrate neighbors).
     ///
     /// Returns all other players without any particular ordering for now.
-    /// This is a placeholder that should be enhanced to actually sort by
-    /// winrate proximity.
     ///
     /// # Strategy Benefits
     ///
@@ -219,15 +216,25 @@ impl Tournament {
         &self,
         player: &str,
     ) -> Result<impl Iterator<Item = String>, TournamentError> {
-        let _stats = self.get_player_stats(player)?;
+        let stats = self.get_player_stats(player)?;
 
         Ok(self
             .players
             .iter()
             .filter(|&(p, _)| p != player)
-            .map(|(p, _)| p.clone())
-            .collect::<Vec<_>>()
-            .into_iter())
+            .map(|(p, s)| {
+                (
+                    p.clone(),
+                    (s.wr().unwrap_or(0.0) - stats.wr().unwrap_or(0.0)).abs(),
+                    (s.elo() - stats.elo()).abs(),
+                )
+            })
+            .sorted_by(|(p1, wr1, elo1), (p2, wr2, elo2)| {
+                with_tie_breaker(wr1.total_cmp(wr2), || {
+                    with_tie_breaker(elo1.total_cmp(elo2), || p1.cmp(p2))
+                })
+            })
+            .map(|(p, _, _)| p))
     }
 
     impl_game_creator!(game_wr_neighbors, rank_wr_neighbors);
@@ -251,15 +258,17 @@ impl Tournament {
         &self,
         player: &str,
     ) -> Result<impl Iterator<Item = String>, TournamentError> {
-        let _stats = self.get_player_stats(player)?;
+        let stats = self.get_player_stats(player)?;
 
         Ok(self
             .players
             .iter()
             .filter(|&(p, _)| p != player)
-            .map(|(p, _)| p.clone())
-            .collect::<Vec<_>>()
-            .into_iter())
+            .map(|(p, s)| (p.clone(), (s.elo() - stats.elo()).abs()))
+            .sorted_by(|(p1, elo1), (p2, elo2)| {
+                with_tie_breaker(elo1.total_cmp(elo2), || p1.cmp(p2))
+            })
+            .map(|(p, _)| p))
     }
 
     impl_game_creator!(game_neighbors, rank_neighbors);
@@ -327,10 +336,10 @@ impl Tournament {
             .sorted_by(|(p1, score1, x1), (p2, score2, x2)| {
                 // First sort by loss_with score (ascending - lower scores first)
                 match score1.cmp(score2) {
-                    std::cmp::Ordering::Equal => {
+                    Ordering::Equal => {
                         // Tie-breaker 1: sort by games played together (x) (descending - more games first)
                         match x2.cmp(x1) {
-                            std::cmp::Ordering::Equal => {
+                            Ordering::Equal => {
                                 // Tie-breaker 2: sort by ELO difference (ascending - closest ELO first)
                                 let stats_p1 =
                                     self.get_player_stats(p1).map(|s| s.elo()).unwrap_or(0.0);
@@ -412,7 +421,10 @@ impl Tournament {
         .sum()
         .into_iter()
         .filter(|(p, _)| p != player)
-        .sorted_by(|(_, a), (_, b)| a.total_cmp(b))
+        .sorted_by(|(p2, p1_s), (p1, p2_s)| match p1_s.total_cmp(p2_s) {
+            Ordering::Equal => p1.cmp(p2),
+            order => order,
+        })
         .map(|(p, _)| p))
     }
 
