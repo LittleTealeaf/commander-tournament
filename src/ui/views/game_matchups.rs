@@ -49,6 +49,7 @@ pub fn game_matchups(app: &TournamentApp) -> Element<'_, Message> {
             .collect();
 
         // helper to build a card element: left (name/elo) | middle (score/rivalry) | right (button)
+        let focus = game_vec[0].clone();
         let make_card = |_idx: usize, name: String| {
             let stats_opt = app.tournament.players().get(&name);
             let elo_text = stats_opt
@@ -60,8 +61,39 @@ pub fn game_matchups(app: &TournamentApp) -> Element<'_, Message> {
                 .spacing(4)
                 .width(Length::Fill);
 
+            // Compute score and rivalry
+            let score_text = {
+                let focus_stats = app.tournament.players().get(&focus);
+                if let (Some(f), Some(o)) = (focus_stats, stats_opt) {
+                    let diff = f.elo() - o.elo();
+                    format!("Elo Δ: {:+.0}", diff)
+                } else {
+                    String::from("Elo Δ: -")
+                }
+            };
+
+            let rivalry_text = {
+                // head-to-head when both present in same game
+                let mut games_together = 0usize;
+                let mut focus_wins = 0usize;
+                for g in app.tournament.games().iter() {
+                    if g.players.contains(&focus) && g.players.contains(&name) {
+                        games_together += 1;
+                        if g.winner == focus {
+                            focus_wins += 1;
+                        }
+                    }
+                }
+                if games_together == 0 {
+                    String::from("H2H: N/A")
+                } else {
+                    let pct = (focus_wins as f64) / (games_together as f64) * 100.0;
+                    format!("H2H: {}/{} ({:.1}%)", focus_wins, games_together, pct)
+                }
+            };
+
             // Middle column: score / rivalry score
-            let middle_col = column![text("Score: -").size(12), text("Rivalry Score: -").size(12),]
+            let middle_col = column![text(score_text).size(12), text(rivalry_text).size(12),]
                 .spacing(4)
                 .width(Length::Shrink);
 

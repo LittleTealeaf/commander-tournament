@@ -44,6 +44,25 @@ pub fn update(app: &mut TournamentApp, message: Message) -> anyhow::Result<()> {
                 app.ingest_text.clear();
             }
         }
+        Message::ShowExport(val) => {
+            app.show_export = val;
+            if val {
+                // build TSV export from games
+                let mut buf = String::new();
+                for g in app.tournament.games().iter() {
+                    buf.push_str(&format!(
+                        "{}\t{}\t{}\t{}\t{}\n",
+                        g.players[0], g.players[1], g.players[2], g.players[3], g.winner
+                    ));
+                }
+                app.export_text = buf;
+            } else {
+                app.export_text.clear();
+            }
+        }
+        Message::UpdateExport(text) => {
+            app.export_text = text;
+        }
         Message::UpdateIngest(text) => {
             app.ingest_text = text;
         }
@@ -194,7 +213,6 @@ pub fn update(app: &mut TournamentApp, message: Message) -> anyhow::Result<()> {
                 app.selected_players = Default::default();
                 app.selected_winner = Default::default();
                 app.selected_match = None;
-                app.match_player = None;
             }
         }
         Message::ClearGame => {

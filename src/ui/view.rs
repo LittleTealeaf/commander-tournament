@@ -88,7 +88,7 @@ fn leaderboard(app: &TournamentApp) -> Element<'_, Message> {
                 text(
                     p.stats
                         .wr()
-                        .map(|wr| format!("{:.1}%", wr))
+                        .map(|wr| format!("{:.1}%", wr * 100.0))
                         .unwrap_or_default(),
                 )
             }),

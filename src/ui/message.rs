@@ -5,6 +5,8 @@ pub enum Message {
     ShowIngest(bool),
     UpdateIngest(String),
     SubmitIngest,
+    ShowExport(bool),
+    UpdateExport(String),
     SetChangePlayerName(Option<(Option<String>, String)>),
     ChangePlayerSubmit,
     ShowConfig(bool),

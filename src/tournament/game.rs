@@ -112,6 +112,8 @@ pub struct GamePlayer {
     name: String,
     stats: PlayerStats,
     expected: f64,
+    elo_win: f64,
+    elo_loss: f64,
 }
 
 impl GamePlayer {
@@ -131,6 +133,14 @@ impl GamePlayer {
     /// This is a value between 0.0 (expected to lose) and 1.0 (expected to win).
     pub fn expected(&self) -> f64 {
         self.expected
+    }
+
+    pub fn elo_win(&self) -> f64 {
+        self.elo_win
+    }
+
+    pub fn elo_loss(&self) -> f64 {
+        self.elo_loss
     }
 }
 
@@ -396,10 +406,16 @@ impl Tournament {
         let coef_wr = weight_wr / sum_scaled_wr;
         let coef_elo = weight_elo / sum_scaled_elo;
 
-        GameMatch(player_refs.map(|player| GamePlayer {
-            name: player.name,
-            stats: player.stats,
-            expected: (coef_wr * player.scaled_wr) + (coef_elo * player.scaled_elo),
+        GameMatch(player_refs.map(|player| {
+            let expected = (coef_wr * player.scaled_wr) + (coef_elo * player.scaled_elo);
+
+            GamePlayer {
+                name: player.name,
+                stats: player.stats,
+                elo_win: self.score_config.game_points * (1.0 - expected) / 0.75,
+                elo_loss: self.score_config.game_points * (expected / 0.75),
+                expected,
+            }
         }))
     }
 
@@ -485,9 +501,9 @@ impl Tournament {
             player.stats.games += 1;
             if player.name.eq(&winner) {
                 player.stats.wins += 1;
-                player.stats.elo += self.score_config.game_points * (1.0 - player.expected) / 0.75;
+                player.stats.elo += player.elo_win;
             } else {
-                player.stats.elo -= self.score_config.game_points * (player.expected / 0.75);
+                player.stats.elo -= player.elo_loss;
             }
 
             self.players.insert(player.name.clone(), player.stats);

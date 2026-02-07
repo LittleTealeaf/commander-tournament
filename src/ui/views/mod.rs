@@ -1,8 +1,8 @@
 pub mod game_input;
 pub mod game_matchups;
+pub mod games_table;
 pub mod leaderboard;
 pub mod modal;
-pub mod games_table;
 pub mod toolbar;
 
 use iced::{
@@ -20,6 +20,10 @@ pub fn view(app: &TournamentApp) -> Element<'_, Message> {
 
     if app.show_ingest {
         return modal::ingest_modal(app);
+    }
+
+    if app.show_export {
+        return modal::export_modal(app);
     }
 
     if app.show_config {

@@ -17,11 +17,16 @@ pub fn game_input(app: &TournamentApp) -> Element<'_, Message> {
         .collect::<Vec<_>>();
 
     let make_player_card = |i: usize| {
-        let percent = app
+        let (percent, elo_change) = app
             .selected_match
             .as_ref()
-            .map(|gm| format!("{:.1}%", gm.0[i].expected() * 100.0))
+            .map(|gm| (
+                format!("{:.1}%", gm.0[i].expected() * 100.0),
+                format!("+{:.1} / -{:.1}", gm.0[i].elo_win(), gm.0[i].elo_loss()),
+            ))
             .unwrap_or_default();
+
+
 
         let stats_line = app
             .selected_match
@@ -42,6 +47,8 @@ pub fn game_input(app: &TournamentApp) -> Element<'_, Message> {
                 text(format!("Player {}", i + 1)).size(12),
                 space().width(Length::Fill),
                 text(percent).size(12),
+                space().width(5),
+                text(elo_change).size(12)
             ]
             .align_y(iced::Alignment::Center)
             .width(Length::Fill),

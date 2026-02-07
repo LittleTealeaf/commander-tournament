@@ -68,6 +68,8 @@ pub struct TournamentApp {
     pub matchup_type: MatchupType,
     pub show_ingest: bool,
     pub ingest_text: String,
+    pub show_export: bool,
+    pub export_text: String,
     pub show_games: bool,
     pub selected_game_index: Option<usize>,
 }
@@ -101,7 +103,9 @@ impl Default for TournamentApp {
                 error: None,
                 matchup_type: Default::default(),
                 show_ingest: false,
+                show_export: false,
                 ingest_text: String::new(),
+                export_text: String::new(),
                 show_games: false,
                 selected_game_index: None,
             };
@@ -130,7 +134,9 @@ impl Default for TournamentApp {
             error: None,
             matchup_type: MatchupType::default(),
             show_ingest: false,
+            show_export: false,
             ingest_text: String::new(),
+            export_text: String::new(),
             show_games: false,
             selected_game_index: None,
         }
