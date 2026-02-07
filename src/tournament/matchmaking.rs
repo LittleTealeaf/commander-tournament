@@ -91,12 +91,12 @@ impl Tournament {
         let player_elo = player_stats.elo();
 
         // Initialize all registered players with count of 0
-        let mut opponent_counts: std::collections::HashMap<String, usize> =
-            self.players
-                .keys()
-                .filter(|p| *p != player)
-                .map(|p| (p.clone(), 0))
-                .collect();
+        let mut opponent_counts: std::collections::HashMap<String, usize> = self
+            .players
+            .keys()
+            .filter(|p| *p != player)
+            .map(|p| (p.clone(), 0))
+            .collect();
 
         // Count actual games played
         for game in self.games.iter() {
@@ -159,12 +159,12 @@ impl Tournament {
         self.is_registered(player)?;
 
         // Initialize all registered players with score of 0
-        let mut opponent_scores: std::collections::HashMap<String, i32> =
-            self.players
-                .keys()
-                .filter(|p| *p != player)
-                .map(|p| (p.clone(), 0))
-                .collect();
+        let mut opponent_scores: std::collections::HashMap<String, i32> = self
+            .players
+            .keys()
+            .filter(|p| *p != player)
+            .map(|p| (p.clone(), 0))
+            .collect();
 
         for game in self.games.iter() {
             if game.players.contains(&String::from(player)) {
@@ -296,15 +296,19 @@ impl Tournament {
         let player_elo = self.get_player_stats(player)?.elo();
 
         // Initialize all registered players with default stats
-        let mut opponent_stats: std::collections::HashMap<String, (usize, usize)> =
-            self.players
-                .keys()
-                .filter(|p| *p != player)
-                .map(|p| (p.clone(), (0, 0)))
-                .collect();
+        let mut opponent_stats: std::collections::HashMap<String, (usize, usize)> = self
+            .players
+            .keys()
+            .filter(|p| *p != player)
+            .map(|p| (p.clone(), (0, 0)))
+            .collect();
 
         // Single pass through games to collect stats
-        for game in self.games.iter().filter(|g| g.players.contains(&String::from(player))) {
+        for game in self
+            .games
+            .iter()
+            .filter(|g| g.players.contains(&String::from(player)))
+        {
             for opponent in game.players.iter().filter(|p| p.as_str() != player) {
                 let entry = opponent_stats.entry(opponent.clone()).or_insert((0, 0));
                 entry.0 += 1; // games played together
@@ -328,8 +332,10 @@ impl Tournament {
                         match x2.cmp(x1) {
                             std::cmp::Ordering::Equal => {
                                 // Tie-breaker 2: sort by ELO difference (ascending - closest ELO first)
-                                let stats_p1 = self.get_player_stats(p1).map(|s| s.elo()).unwrap_or(0.0);
-                                let stats_p2 = self.get_player_stats(p2).map(|s| s.elo()).unwrap_or(0.0);
+                                let stats_p1 =
+                                    self.get_player_stats(p1).map(|s| s.elo()).unwrap_or(0.0);
+                                let stats_p2 =
+                                    self.get_player_stats(p2).map(|s| s.elo()).unwrap_or(0.0);
                                 let diff1 = (player_elo - stats_p1).abs();
                                 let diff2 = (player_elo - stats_p2).abs();
                                 diff1.total_cmp(&diff2)
@@ -374,26 +380,33 @@ impl Tournament {
         &self,
         player: &str,
     ) -> Result<impl Iterator<Item = String>, TournamentError> {
-        fn to_weight(weight: f64) -> impl Fn((usize, String)) -> (String, f64) {
-            move |(score, player)| (player, (score as u64) as f64 * weight)
+        fn to_weight_rank(
+            ranking: impl Iterator<Item = String>,
+            weight: f64,
+        ) -> impl Iterator<Item = (String, f64)> {
+            ranking
+                .enumerate()
+                .map(move |(score, player)| (player, (score as u64) as f64 * weight))
         }
 
         Ok(chain!(
-            self.rank_least_played(player)?
-                .enumerate()
-                .map(to_weight(self.match_config.weight_least_played)),
-            self.rank_nemesis(player)?
-                .enumerate()
-                .map(to_weight(self.match_config.weight_nemesis)),
-            self.rank_neighbors(player)?
-                .enumerate()
-                .map(to_weight(self.match_config.weight_neighbor)),
-            self.rank_wr_neighbors(player)?
-                .enumerate()
-                .map(to_weight(self.match_config.weight_wr_neighbor)),
-            self.rank_loss_with(player)?
-                .enumerate()
-                .map(to_weight(self.match_config.weight_lost_with)),
+            to_weight_rank(
+                self.rank_least_played(player)?,
+                self.match_config.weight_least_played
+            ),
+            to_weight_rank(self.rank_nemesis(player)?, self.match_config.weight_nemesis),
+            to_weight_rank(
+                self.rank_neighbors(player)?,
+                self.match_config.weight_neighbor
+            ),
+            to_weight_rank(
+                self.rank_wr_neighbors(player)?,
+                self.match_config.weight_wr_neighbor
+            ),
+            to_weight_rank(
+                self.rank_loss_with(player)?,
+                self.match_config.weight_lost_with
+            )
         )
         .into_grouping_map()
         .sum()
