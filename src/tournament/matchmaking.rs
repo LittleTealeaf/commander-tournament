@@ -1,4 +1,4 @@
-use std::cmp::Ordering;
+use std::{cmp::Ordering, collections::HashMap};
 
 use itertools::{Itertools, chain};
 
@@ -162,19 +162,14 @@ impl Tournament {
     ) -> Result<impl Iterator<Item = String>, TournamentError> {
         self.is_registered(player)?;
 
-        // Initialize all registered players with score of 0
-        let mut opponent_scores: std::collections::HashMap<String, i32> = self
-            .players
-            .keys()
-            .filter(|p| *p != player)
-            .map(|p| (p.clone(), 0))
-            .collect();
 
-        for game in self.games.iter() {
+        let mut opponent_scores: HashMap<String, i32> = HashMap::new();
+
+        for game in &self.games {
             if game.players.contains(&String::from(player)) {
                 if player == game.winner {
                     // Player won, so reduce score for all other players (they lost)
-                    for opponent in game.players.iter() {
+                    for opponent in &game.players {
                         if opponent != player {
                             *opponent_scores.entry(opponent.clone()).or_insert(0) -= 1;
                         }
@@ -186,10 +181,14 @@ impl Tournament {
             }
         }
 
+        if opponent_scores.is_empty() {
+            opponent_scores = self.players.iter().filter(|(p, _)| p.as_str() != player).map(|(p, _)| (p.clone(), 0)).collect();
+        }
+
         Ok(opponent_scores
             .into_iter()
             .sorted_by(|(p1, score1), (p2, score2)| {
-                with_tie_breaker(score1.cmp(score2), || {
+                with_tie_breaker(score2.cmp(score1), || {
                     let stats_p1 = self.get_player_stats(p1).map(|s| s.elo()).unwrap_or(0.0);
                     let stats_p2 = self.get_player_stats(p2).map(|s| s.elo()).unwrap_or(0.0);
                     with_tie_breaker(stats_p1.total_cmp(&stats_p2), || p1.cmp(p2))
@@ -421,10 +420,7 @@ impl Tournament {
         .sum()
         .into_iter()
         .filter(|(p, _)| p != player)
-        .sorted_by(|(p2, p1_s), (p1, p2_s)| match p1_s.total_cmp(p2_s) {
-            Ordering::Equal => p1.cmp(p2),
-            order => order,
-        })
+        .sorted_by(|(p2, p1_s), (p1, p2_s)| with_tie_breaker(p1_s.total_cmp(p2_s), || p1.cmp(p2)))
         .map(|(p, _)| p))
     }
 
