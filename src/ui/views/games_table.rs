@@ -31,8 +31,20 @@ pub fn games_table(app: &TournamentApp) -> Element<'_, Message> {
             .enumerate()
             .map(|(i, g)| GameRow { index: i, players: &g.players, winner: &g.winner }),
     );
+    let content = iced::widget::column![
+        crate::ui::views::toolbar::toolbar(),
+        iced::widget::space().height(5),
+        container(scrollable(table_widget)).padding(Padding::new(10f32)).width(Length::Fill).height(Length::Fill),
+        iced::widget::row![
+            iced::widget::space().width(Length::Fill),
+            button(text("Close")).on_press(Message::ShowGames(false)).width(Length::Fixed(120.0)),
+        ]
+        .spacing(10)
+        .width(Length::Fill),
+    ]
+    .spacing(8)
+    .width(Length::Fill)
+    .height(Length::Fill);
 
-    container(scrollable(table_widget))
-        .padding(Padding::new(10f32))
-        .into()
+    container(content).width(Length::Fill).height(Length::Fill).into()
 }
