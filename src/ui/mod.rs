@@ -1,10 +1,29 @@
-mod view;
+mod state;
+mod message;
+mod errors;
+pub mod views;
+
+pub use state::TournamentApp;
+pub use message::Message;
 
 use std::fs::{self, File};
 
 use ron::ser::PrettyConfig;
 
-use crate::tournament::{GameMatch, ScoreConfig, Tournament};
+use crate::tournament::Tournament;
+use crate::tournament::ScoreConfig;
+use crate::tournament::MatchmakerConfig;
+use anyhow::anyhow;
+
+fn f64_to_string(v: f64) -> String {
+    format!("{}", v)
+}
+
+fn parse_f64(s: &str) -> Result<f64, anyhow::Error> {
+    s.trim()
+        .parse::<f64>()
+        .map_err(|e| anyhow!("Failed to parse '{}' as number: {}", s, e))
+}
 
 pub fn launch() -> iced::Result {
     fn updater(app: &mut TournamentApp, message: Message) {
@@ -14,45 +33,7 @@ pub fn launch() -> iced::Result {
             app.error = Some(msg);
         }
     }
-    iced::run(updater, view::view)
-}
-
-#[derive(Default)]
-struct TournamentApp {
-    tournament: Tournament,
-    selected_players: [Option<String>; 4],
-    selected_match: Option<GameMatch>,
-    selected_winner: Option<String>,
-    match_player: Option<String>,
-    change_player_name: Option<(Option<String>, String)>,
-    show_config: bool,
-    error: Option<String>,
-}
-
-#[derive(Debug, Clone)]
-pub enum Message {
-    Ingest,
-    SetChangePlayerName(Option<(Option<String>, String)>),
-    ChangePlayerSubmit,
-    ShowConfig(bool),
-    SelectPlayer(usize, Option<String>),
-    SelectPlayers([String; 4]),
-    SelectWinner(String),
-    SelectMatchPlayer(String),
-    DeletePlayer(String),
-    SubmitGame,
-    Reload,
-    SetScoreConfig(ScoreConfig),
-    CloseError,
-    Load(String),
-    Save(String),
-    New,
-}
-
-#[derive(thiserror::Error, Debug)]
-enum AppError {
-    #[error("Missing Player: {0}")]
-    MissingPlayer(usize),
+    iced::run(updater, views::view)
 }
 
 pub fn update(app: &mut TournamentApp, message: Message) -> anyhow::Result<()> {
@@ -82,7 +63,75 @@ pub fn update(app: &mut TournamentApp, message: Message) -> anyhow::Result<()> {
                 app.tournament.submit_game(game, winner)?;
             }
         }
-        Message::ShowConfig(val) => app.show_config = val,
+        Message::ShowConfig(val) => {
+            app.show_config = val;
+            if val {
+                // Pre-fill editable strings with current config numeric values
+                let sc = app.tournament.get_score_config();
+                app.score_starting_elo = f64_to_string(sc.starting_elo);
+                app.score_game_points = f64_to_string(sc.game_points);
+                app.score_elo_pow = f64_to_string(sc.elo_pow);
+                app.score_wr_pow = f64_to_string(sc.wr_pow);
+                app.score_elo_weight = f64_to_string(sc.elo_weight);
+                app.score_wr_weight = f64_to_string(sc.wr_weight);
+
+                let mc = app.tournament.get_match_config();
+                app.match_weight_least_played = f64_to_string(mc.weight_least_played);
+                app.match_weight_nemesis = f64_to_string(mc.weight_nemesis);
+                app.match_weight_neighbor = f64_to_string(mc.weight_neighbor);
+                app.match_weight_wr_neighbor = f64_to_string(mc.weight_wr_neighbor);
+                app.match_weight_lost_with = f64_to_string(mc.weight_lost_with);
+            }
+        }
+        Message::UpdateScoreStartingElo(s) => app.score_starting_elo = s,
+        Message::UpdateScoreGamePoints(s) => app.score_game_points = s,
+        Message::UpdateScoreEloPow(s) => app.score_elo_pow = s,
+        Message::UpdateScoreWrPow(s) => app.score_wr_pow = s,
+        Message::UpdateScoreEloWeight(s) => app.score_elo_weight = s,
+        Message::UpdateScoreWrWeight(s) => app.score_wr_weight = s,
+
+        Message::UpdateMatchWeightLeastPlayed(s) => app.match_weight_least_played = s,
+        Message::UpdateMatchWeightNemesis(s) => app.match_weight_nemesis = s,
+        Message::UpdateMatchWeightNeighbor(s) => app.match_weight_neighbor = s,
+        Message::UpdateMatchWeightWrNeighbor(s) => app.match_weight_wr_neighbor = s,
+        Message::UpdateMatchWeightLostWith(s) => app.match_weight_lost_with = s,
+
+        Message::SaveConfig => {
+            // Parse score config fields
+            let starting_elo = parse_f64(&app.score_starting_elo)?;
+            let game_points = parse_f64(&app.score_game_points)?;
+            let elo_pow = parse_f64(&app.score_elo_pow)?;
+            let wr_pow = parse_f64(&app.score_wr_pow)?;
+            let elo_weight = parse_f64(&app.score_elo_weight)?;
+            let wr_weight = parse_f64(&app.score_wr_weight)?;
+
+            let score_cfg = ScoreConfig {
+                starting_elo,
+                game_points,
+                elo_pow,
+                wr_pow,
+                elo_weight,
+                wr_weight,
+            };
+            app.tournament.set_score_config(score_cfg)?;
+
+            // Parse match config fields
+            let weight_least_played = parse_f64(&app.match_weight_least_played)?;
+            let weight_nemesis = parse_f64(&app.match_weight_nemesis)?;
+            let weight_neighbor = parse_f64(&app.match_weight_neighbor)?;
+            let weight_wr_neighbor = parse_f64(&app.match_weight_wr_neighbor)?;
+            let weight_lost_with = parse_f64(&app.match_weight_lost_with)?;
+
+            let match_cfg = MatchmakerConfig {
+                weight_least_played,
+                weight_nemesis,
+                weight_neighbor,
+                weight_wr_neighbor,
+                weight_lost_with,
+            };
+            app.tournament.set_match_config(match_cfg)?;
+            app.show_config = false;
+        }
         Message::ChangePlayerSubmit => {
             if let Some((prev, name)) = &app.change_player_name {
                 if let Some(prev) = prev {
@@ -134,6 +183,9 @@ pub fn update(app: &mut TournamentApp, message: Message) -> anyhow::Result<()> {
         }
         Message::SetScoreConfig(config) => {
             app.tournament.set_score_config(config)?;
+        }
+        Message::SetMatchupType(matchup_type) => {
+            app.matchup_type = matchup_type;
         }
         Message::Load(path) => {
             let file = File::open(path)?;

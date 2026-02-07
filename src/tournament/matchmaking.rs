@@ -4,11 +4,11 @@ use crate::tournament::{GameMatch, PlayerStats, Tournament, TournamentError};
 
 #[derive(Debug, Clone, Copy, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct MatchmakerConfig {
-    weight_least_played: f64,
-    weight_nemesis: f64,
-    weight_neighbor: f64,
-    weight_wr_neighbor: f64,
-    weight_lost_with: f64,
+    pub weight_least_played: f64,
+    pub weight_nemesis: f64,
+    pub weight_neighbor: f64,
+    pub weight_wr_neighbor: f64,
+    pub weight_lost_with: f64,
 }
 
 impl Default for MatchmakerConfig {
@@ -155,6 +155,7 @@ impl Tournament {
         .into_grouping_map()
         .sum()
         .into_iter()
+        .filter(|(p, _)| p != player)
         .sorted_by(|(_, a), (_, b)| a.total_cmp(b))
         .map(|(p, _)| p))
     }

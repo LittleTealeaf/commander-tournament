@@ -100,6 +100,15 @@ impl Tournament {
         Ok(())
     }
 
+    pub fn get_match_config(&self) -> &crate::tournament::matchmaking::MatchmakerConfig {
+        &self.match_config
+    }
+
+    pub fn set_match_config(&mut self, config: crate::tournament::matchmaking::MatchmakerConfig) -> Result<(), TournamentError> {
+        self.match_config = config;
+        Ok(())
+    }
+
     pub fn reload(&mut self) -> Result<(), TournamentError> {
         let games = self.games.clone();
         self.games.clear();

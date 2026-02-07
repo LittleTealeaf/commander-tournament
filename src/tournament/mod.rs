@@ -6,8 +6,7 @@ use std::collections::HashMap;
 
 pub use errors::*;
 pub use game::*;
-
-use crate::tournament::matchmaking::MatchmakerConfig;
+pub use matchmaking::MatchmakerConfig;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Tournament {
