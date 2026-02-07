@@ -2,8 +2,9 @@ use crate::tournament::{GameMatch, Tournament};
 use std::fmt;
 use std::fs::File;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum MatchupType {
+    #[default]
     Combined,
     LeastPlayed,
     Nemesis,
@@ -42,11 +43,7 @@ impl MatchupType {
     }
 }
 
-impl Default for MatchupType {
-    fn default() -> Self {
-        MatchupType::Combined
-    }
-}
+
 
 
 
@@ -80,35 +77,33 @@ pub struct TournamentApp {
 impl Default for TournamentApp {
     fn default() -> Self {
         // Try to load game.ron if it exists
-        if std::path::Path::new("game.ron").exists() {
-            if let Ok(file) = File::open("game.ron") {
-                if let Ok(tournament) = ron::de::from_reader(file) {
-                    return TournamentApp {
-                        tournament,
-                        selected_players: Default::default(),
-                        selected_match: None,
-                        selected_winner: Default::default(),
-                        match_player: None,
-                        change_player_name: None,
-                        show_config: false,
-                        score_starting_elo: Default::default(),
-                        score_game_points: Default::default(),
-                        score_elo_pow: Default::default(),
-                        score_wr_pow: Default::default(),
-                        score_elo_weight: Default::default(),
-                        score_wr_weight: Default::default(),
-                        match_weight_least_played: Default::default(),
-                        match_weight_nemesis: Default::default(),
-                        match_weight_neighbor: Default::default(),
-                        match_weight_wr_neighbor: Default::default(),
-                        match_weight_lost_with: Default::default(),
-                        error: None,
-                        matchup_type: MatchupType::default(),
-                        show_ingest: false,
-                        ingest_text: String::new(),
-                    };
-                }
-            }
+        if std::path::Path::new("game.ron").exists()
+            && let Ok(file) = File::open("game.ron")
+            && let Ok(tournament) = ron::de::from_reader(file) {
+            return TournamentApp {
+                tournament,
+                selected_players: Default::default(),
+                selected_match: None,
+                selected_winner: Default::default(),
+                match_player: None,
+                change_player_name: None,
+                show_config: false,
+                score_starting_elo: Default::default(),
+                score_game_points: Default::default(),
+                score_elo_pow: Default::default(),
+                score_wr_pow: Default::default(),
+                score_elo_weight: Default::default(),
+                score_wr_weight: Default::default(),
+                match_weight_least_played: Default::default(),
+                match_weight_nemesis: Default::default(),
+                match_weight_neighbor: Default::default(),
+                match_weight_wr_neighbor: Default::default(),
+                match_weight_lost_with: Default::default(),
+                error: None,
+                matchup_type: Default::default(),
+                show_ingest: false,
+                ingest_text: String::new(),
+            };
         }
 
         // Fall back to default empty app

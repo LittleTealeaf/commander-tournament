@@ -89,38 +89,38 @@ pub fn config_modal(app: &TournamentApp) -> Element<'_, Message> {
             space().height(10),
             text("ScoreConfig").size(14),
             row![
-                column![text("starting_elo"), text_input("", &app.score_starting_elo).on_input(|s| Message::UpdateScoreStartingElo(s)).width(Length::Fill)],
+                column![text("starting_elo"), text_input("", &app.score_starting_elo).on_input(Message::UpdateScoreStartingElo).width(Length::Fill)],
                 space().width(10),
-                column![text("game_points"), text_input("", &app.score_game_points).on_input(|s| Message::UpdateScoreGamePoints(s)).width(Length::Fill)],
+                column![text("game_points"), text_input("", &app.score_game_points).on_input(Message::UpdateScoreGamePoints).width(Length::Fill)],
             ]
             .spacing(8),
             row![
-                column![text("elo_pow"), text_input("", &app.score_elo_pow).on_input(|s| Message::UpdateScoreEloPow(s)).width(Length::Fill)],
+                column![text("elo_pow"), text_input("", &app.score_elo_pow).on_input(Message::UpdateScoreEloPow).width(Length::Fill)],
                 space().width(10),
-                column![text("wr_pow"), text_input("", &app.score_wr_pow).on_input(|s| Message::UpdateScoreWrPow(s)).width(Length::Fill)],
+                column![text("wr_pow"), text_input("", &app.score_wr_pow).on_input(Message::UpdateScoreWrPow).width(Length::Fill)],
             ]
             .spacing(8),
             row![
-                column![text("elo_weight"), text_input("", &app.score_elo_weight).on_input(|s| Message::UpdateScoreEloWeight(s)).width(Length::Fill)],
+                column![text("elo_weight"), text_input("", &app.score_elo_weight).on_input(Message::UpdateScoreEloWeight).width(Length::Fill)],
                 space().width(10),
-                column![text("wr_weight"), text_input("", &app.score_wr_weight).on_input(|s| Message::UpdateScoreWrWeight(s)).width(Length::Fill)],
+                column![text("wr_weight"), text_input("", &app.score_wr_weight).on_input(Message::UpdateScoreWrWeight).width(Length::Fill)],
             ]
             .spacing(8),
             space().height(8),
             text("MatchmakerConfig").size(14),
             row![
-                column![text("weight_least_played"), text_input("", &app.match_weight_least_played).on_input(|s| Message::UpdateMatchWeightLeastPlayed(s)).width(Length::Fill)],
+                column![text("weight_least_played"), text_input("", &app.match_weight_least_played).on_input(Message::UpdateMatchWeightLeastPlayed).width(Length::Fill)],
                 space().width(10),
-                column![text("weight_nemesis"), text_input("", &app.match_weight_nemesis).on_input(|s| Message::UpdateMatchWeightNemesis(s)).width(Length::Fill)],
+                column![text("weight_nemesis"), text_input("", &app.match_weight_nemesis).on_input(Message::UpdateMatchWeightNemesis).width(Length::Fill)],
             ]
             .spacing(8),
             row![
-                column![text("weight_neighbor"), text_input("", &app.match_weight_neighbor).on_input(|s| Message::UpdateMatchWeightNeighbor(s)).width(Length::Fill)],
+                column![text("weight_neighbor"), text_input("", &app.match_weight_neighbor).on_input(Message::UpdateMatchWeightNeighbor).width(Length::Fill)],
                 space().width(10),
-                column![text("weight_wr_neighbor"), text_input("", &app.match_weight_wr_neighbor).on_input(|s| Message::UpdateMatchWeightWrNeighbor(s)).width(Length::Fill)],
+                column![text("weight_wr_neighbor"), text_input("", &app.match_weight_wr_neighbor).on_input(Message::UpdateMatchWeightWrNeighbor).width(Length::Fill)],
             ]
             .spacing(8),
-            column![text("weight_lost_with"), text_input("", &app.match_weight_lost_with).on_input(|s| Message::UpdateMatchWeightLostWith(s)).width(Length::Fill)],
+            column![text("weight_lost_with"), text_input("", &app.match_weight_lost_with).on_input(Message::UpdateMatchWeightLostWith).width(Length::Fill)],
             space().height(15),
             row![
                 button("Save").on_press(Message::SaveConfig).width(Length::Fill),
