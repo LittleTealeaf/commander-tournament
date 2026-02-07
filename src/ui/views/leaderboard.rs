@@ -34,11 +34,9 @@ pub fn leaderboard(app: &TournamentApp) -> Element<'_, Message> {
                 )
                 .size(12)
             }),
-            table::column("Edit", |p: Player<'_>| {
-                button(text("✏").size(14))
-                    .on_press_with(|| {
-                        Message::SetChangePlayerName(Some((Some(p.name.clone()), p.name.clone())))
-                    })
+            table::column("View", |p: Player<'_>| {
+                button(text("👁").size(14))
+                    .on_press(Message::ShowPlayerInfo(p.name.clone()))
                     .padding(4)
                     .width(iced::Length::Fixed(28.0))
             }),

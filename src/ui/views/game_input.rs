@@ -42,6 +42,39 @@ pub fn game_input(app: &TournamentApp) -> Element<'_, Message> {
             })
             .unwrap_or_default();
 
+        let player_name = app.selected_players[i].clone();
+
+        let has_moxfield_link = player_name
+            .as_ref()
+            .and_then(|name| app.tournament.player_details(name))
+            .and_then(|details| details.moxfield_goldfish_link())
+            .is_some();
+
+        let moxfield_button = if has_moxfield_link {
+            let name = player_name.clone().unwrap_or_default();
+            button(text("🔗").size(14))
+                .on_press(Message::ShowPlayerInfo(name))
+                .padding(4)
+                .width(iced::Length::Fixed(28.0))
+        } else {
+            button(text("🔗").size(14))
+                .padding(4)
+                .width(iced::Length::Fixed(28.0))
+        };
+
+        let picker_row = row![
+            pick_list(
+                player_choices.clone(),
+                app.selected_players[i].clone(),
+                move |choice| Message::SelectPlayer(i, Some(choice)),
+            )
+            .width(Length::Fill),
+            space().width(4),
+            moxfield_button
+        ]
+        .align_y(iced::Alignment::Center)
+        .spacing(4);
+
         column![
             row![
                 text(format!("Player {}", i + 1)).size(12),
@@ -52,12 +85,7 @@ pub fn game_input(app: &TournamentApp) -> Element<'_, Message> {
             ]
             .align_y(iced::Alignment::Center)
             .width(Length::Fill),
-            pick_list(
-                player_choices.clone(),
-                app.selected_players[i].clone(),
-                move |choice| Message::SelectPlayer(i, Some(choice)),
-            )
-            .width(Length::Fill),
+            picker_row.width(Length::Fill),
             text(stats_line).size(12).width(Length::Fill),
         ]
         .spacing(6)

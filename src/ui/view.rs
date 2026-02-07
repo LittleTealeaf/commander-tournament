@@ -22,36 +22,11 @@ pub fn view(app: &TournamentApp) -> Element<'_, Message> {
         .into();
     }
 
-    if let Some((old, new)) = &app.change_player_name {
-        return container(column![
-            text(match old {
-                Some(old) => format!("Renaming {old}"),
-                None => String::from("New Deck"),
-            }),
-            text_input("Name...", new)
-                .on_input(|s| Message::SetChangePlayerName(Some((old.clone(), s))))
-                .on_submit(Message::ChangePlayerSubmit),
-            row![
-                button("Submit").on_press(Message::ChangePlayerSubmit),
-                space().width(5),
-                button("Cancel").on_press(Message::SetChangePlayerName(None)),
-                space().width(20),
-                button("Delete").on_press_maybe(
-                    old.as_ref()
-                        .map(|old| { Message::DeletePlayer(old.clone()) })
-                )
-            ]
-        ])
-        .align_x(Alignment::Center)
-        .align_y(Alignment::Center)
-        .into();
-    }
-
     column![
         row![
             button("Config").on_press(Message::ShowConfig(true)),
             button("New Player")
-                .on_press(Message::SetChangePlayerName(Some((None, String::new())))),
+                .on_press(Message::ShowPlayerInfo(String::new())),
             button("Reload").on_press(Message::Reload),
             space().width(Length::Fill),
             button("Ingest").on_press(Message::Ingest),

@@ -66,6 +66,100 @@ impl Default for ScoreConfig {
     }
 }
 
+/// Magic: The Gathering colors.
+///
+/// Represents the five colors of mana in Magic: The Gathering.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+pub enum MtgColor {
+    /// White mana
+    White,
+    /// Blue mana
+    Blue,
+    /// Black mana
+    Black,
+    /// Red mana
+    Red,
+    /// Green mana
+    Green,
+}
+
+impl MtgColor {
+    /// Returns the short code for this color (W, U, B, R, G)
+    #[allow(dead_code)]
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            MtgColor::White => "W",
+            MtgColor::Blue => "U",
+            MtgColor::Black => "B",
+            MtgColor::Red => "R",
+            MtgColor::Green => "G",
+        }
+    }
+}
+
+/// Optional details about a player's deck.
+///
+/// Contains additional information that can be displayed in the UI:
+/// - Description of the deck strategy
+/// - Link to the deck on Moxfield
+/// - Colors of the deck in Magic: The Gathering
+#[derive(Debug, Clone, PartialEq, Default, serde::Serialize, serde::Deserialize)]
+pub struct PlayerDetails {
+    /// Optional description of the deck
+    pub description: Option<String>,
+    /// Optional link to the deck on Moxfield
+    pub moxfield_link: Option<String>,
+    /// The colors used in this deck
+    pub colors: Vec<MtgColor>,
+}
+
+impl PlayerDetails {
+    /// Creates new player details with all fields optionally set.
+    #[allow(dead_code)]
+    pub fn new(
+        description: Option<String>,
+        moxfield_link: Option<String>,
+        colors: Vec<MtgColor>,
+    ) -> Self {
+        Self {
+            description,
+            moxfield_link,
+            colors,
+        }
+    }
+
+    /// Extracts the deck ID from a Moxfield link.
+    ///
+    /// Given a URL like "https://moxfield.com/decks/EoWfmyQpRkqeHHs_t52xIw",
+    /// returns "EoWfmyQpRkqeHHs_t52xIw".
+    #[allow(dead_code)]
+    pub fn moxfield_deck_id(&self) -> Option<&str> {
+        self.moxfield_link.as_ref().and_then(|link| {
+            link.split('/').next_back().and_then(|part| {
+                if part.is_empty() {
+                    None
+                } else {
+                    Some(part)
+                }
+            })
+        })
+    }
+
+    /// Generates a Moxfield Goldfish link from the current Moxfield link.
+    ///
+    /// Given a link like "https://moxfield.com/decks/EoWfmyQpRkqeHHs_t52xIw",
+    /// returns "https://moxfield.com/decks/EoWfmyQpRkqeHHs_t52xIw/goldfish".
+    pub fn moxfield_goldfish_link(&self) -> Option<String> {
+        self.moxfield_link.as_ref().map(|link| {
+            if link.ends_with("/goldfish") {
+                link.clone()
+            } else {
+                format!("{}/goldfish", link)
+            }
+        })
+    }
+}
+
 /// Statistics for a player in the tournament.
 ///
 /// Tracks cumulative performance metrics:
@@ -258,8 +352,9 @@ impl Tournament {
             return Err(TournamentError::PlayerAlreadyRegistered(to));
         }
 
-        // Get the stats for the player we're renaming before clearing
+        // Get the stats and details for the player we're renaming before clearing
         let from_stats = self.players.get(&from).copied();
+        let from_details = self.player_details.remove(&from);
 
         // Update games in place
         for game in self.games.iter_mut() {
@@ -276,7 +371,12 @@ impl Tournament {
         // Update player map
         self.players.remove(&from);
         if let Some(stats) = from_stats {
-            self.players.insert(to, stats);
+            self.players.insert(to.clone(), stats);
+        }
+
+        // Update details
+        if let Some(details) = from_details {
+            self.player_details.insert(to, details);
         }
 
         Ok(())
@@ -286,6 +386,7 @@ impl Tournament {
     ///
     /// This removes:
     /// - The player from the stats map
+    /// - The player's details
     /// - All games where this player participated
     ///
     /// # Arguments
@@ -299,6 +400,7 @@ impl Tournament {
     /// # Performance
     ///
     /// This is O(n) where n is the total number of games.
+    #[allow(dead_code)]
     pub fn remove_player(&mut self, player: String) -> Result<(), TournamentError> {
         if !self.players.contains_key(&player) {
             return Err(TournamentError::PlayerNotRegistered(player));
@@ -307,8 +409,9 @@ impl Tournament {
         // Remove games that contain this player
         self.games.retain(|game| !game.players.contains(&player));
 
-        // Remove player from the map
+        // Remove player from the map and details
         self.players.remove(&player);
+        self.player_details.remove(&player);
 
         Ok(())
     }

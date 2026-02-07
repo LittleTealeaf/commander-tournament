@@ -37,6 +37,8 @@ pub use matchmaking::MatchmakerConfig;
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Tournament {
     players: HashMap<String, PlayerStats>,
+    #[serde(default)]
+    player_details: HashMap<String, PlayerDetails>,
     games: Vec<GameRecord>,
     score_config: ScoreConfig,
     match_config: MatchmakerConfig,
@@ -53,6 +55,7 @@ impl Tournament {
     pub fn new() -> Self {
         Self {
             players: HashMap::new(),
+            player_details: HashMap::new(),
             games: Vec::new(),
             score_config: ScoreConfig::new(),
             match_config: MatchmakerConfig::default(),
@@ -72,6 +75,20 @@ impl Tournament {
     /// Returns a reference to the game history.
     pub fn games(&self) -> &Vec<GameRecord> {
         &self.games
+    }
+
+    /// Returns the details for a specific player, if they exist.
+    pub fn player_details(&self, player: &str) -> Option<&PlayerDetails> {
+        self.player_details.get(player)
+    }
+
+    /// Updates the details for a specific player.
+    pub fn set_player_details(&mut self, player: String, details: PlayerDetails) -> Result<(), TournamentError> {
+        if !self.has_registered_player(&player) {
+            return Err(TournamentError::PlayerNotRegistered(player));
+        }
+        self.player_details.insert(player, details);
+        Ok(())
     }
 
     /// Change the winner for a game at the provided index and reload stats.

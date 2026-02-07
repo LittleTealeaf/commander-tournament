@@ -1,39 +1,34 @@
 (
     players: {
-        "Explorers of the Deep (Precon)": (
-            elo: 1480.6594913787287,
-            games: 40,
-            wins: 8,
-        ),
-        "Anim Pakal, Thousandth Moon": (
-            elo: 1516.4627533643466,
-            games: 45,
-            wins: 16,
-        ),
-        "The Devil Strahd": (
-            elo: 1516.0573912898576,
-            games: 24,
-            wins: 7,
+        "Neerdiv, Devious Diver": (
+            elo: 1495.8075885371063,
+            games: 16,
+            wins: 3,
         ),
         "Aerith Gainsborough": (
             elo: 1430.6963256564045,
             games: 44,
             wins: 9,
         ),
-        "Balan, Wandering Knight": (
-            elo: 1552.0502455141907,
-            games: 40,
-            wins: 14,
-        ),
         "Pantlaza, Sun-Favored": (
             elo: 1495.7866853650683,
             games: 50,
             wins: 12,
         ),
-        "Neerdiv, Devious Diver": (
-            elo: 1495.8075885371063,
-            games: 16,
-            wins: 3,
+        "Blight Curse (Precon)": (
+            elo: 1440.2787634029462,
+            games: 13,
+            wins: 1,
+        ),
+        "The Devil Strahd": (
+            elo: 1516.0573912898576,
+            games: 24,
+            wins: 7,
+        ),
+        "Anim Pakal, Thousandth Moon": (
+            elo: 1516.4627533643466,
+            games: 45,
+            wins: 16,
         ),
         "Aloy, Machine Master": (
             elo: 1511.5264814246307,
@@ -50,15 +45,10 @@
             games: 50,
             wins: 11,
         ),
-        "Lae\'zel, Master Chef": (
-            elo: 1367.0177866885865,
-            games: 36,
-            wins: 8,
-        ),
-        "Veryan, Voice of Duality": (
-            elo: 1509.295860556574,
-            games: 34,
-            wins: 6,
+        "Narset, Enlightened Master": (
+            elo: 1549.674208263303,
+            games: 47,
+            wins: 14,
         ),
         "Veloci-Ramp-Tor (Precon)": (
             elo: 1466.0701489109051,
@@ -70,30 +60,15 @@
             games: 44,
             wins: 8,
         ),
-        "Hakbal of the Surging Soul": (
-            elo: 1452.8697827702072,
-            games: 29,
-            wins: 5,
-        ),
         "Bre of Clan Stoutarm": (
             elo: 1677.9509644244963,
             games: 48,
             wins: 15,
         ),
-        "Narset, Enlightened Master": (
-            elo: 1549.674208263303,
-            games: 47,
-            wins: 14,
-        ),
-        "Bruna, Light of Alabaster": (
-            elo: 1585.4766762768681,
-            games: 17,
-            wins: 8,
-        ),
-        "Blight Curse (Precon)": (
-            elo: 1440.2787634029462,
-            games: 13,
-            wins: 1,
+        "Veryan, Voice of Duality": (
+            elo: 1509.295860556574,
+            games: 34,
+            wins: 6,
         ),
         "Rocksanne, Starfall Savant": (
             elo: 1631.3302815716972,
@@ -109,6 +84,11 @@
             elo: 1664.9081767339353,
             games: 48,
             wins: 19,
+        ),
+        "Hakbal of the Surging Soul": (
+            elo: 1452.8697827702072,
+            games: 29,
+            wins: 5,
         ),
         "Aurelia, the Warleader": (
             elo: 1689.1583167565414,
@@ -134,6 +114,35 @@
             elo: 1476.811589168428,
             games: 48,
             wins: 13,
+        ),
+        "Balan, Wandering Knight": (
+            elo: 1552.0502455141907,
+            games: 40,
+            wins: 14,
+        ),
+        "Explorers of the Deep (Precon)": (
+            elo: 1480.6594913787287,
+            games: 40,
+            wins: 8,
+        ),
+        "Bruna, Light of Alabaster": (
+            elo: 1585.4766762768681,
+            games: 17,
+            wins: 8,
+        ),
+        "Lae\'zel, Master Chef": (
+            elo: 1367.0177866885865,
+            games: 36,
+            wins: 8,
+        ),
+    },
+    player_details: {
+        "Tifa Lockhart": (
+            description: None,
+            moxfield_link: None,
+            colors: [
+                Green,
+            ],
         ),
     },
     games: [

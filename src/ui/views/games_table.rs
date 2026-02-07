@@ -1,8 +1,7 @@
 use iced::{
-    Element, Length, Padding,
-    widget::{button, container, pick_list, scrollable, table, text},
+    Alignment, Element, Length, Padding,
+    widget::{button, container, pick_list, row, scrollable, space, table, text},
 };
-use itertools::Itertools;
 
 use crate::ui::{Message, TournamentApp};
 
@@ -12,13 +11,36 @@ pub fn games_table(app: &TournamentApp) -> Element<'_, Message> {
         index: usize,
         players: &'a [String; 4],
         winner: &'a String,
+        app: &'a TournamentApp,
     }
 
     let table_widget = table(
         [
             table::column("#", |r: GameRow<'_>| text(format!("{}", r.index)).size(12)),
             table::column("Players", |r: GameRow<'_>| {
-                text(r.players.iter().join(", ")).size(12)
+                let mut player_row = row![];
+                for player_name in r.players.iter() {
+                    let has_moxfield = r.app.tournament.player_details(player_name)
+                        .and_then(|d| d.moxfield_goldfish_link())
+                        .is_some();
+
+                    let player_text = text(player_name).size(12);
+                    player_row = player_row.push(player_text);
+
+                    if has_moxfield {
+                        let player_clone = player_name.clone();
+                        player_row = player_row.push(
+                            button(text("🔗").size(12))
+                                .on_press(Message::ShowPlayerInfo(player_clone))
+                                .padding(2)
+                                .width(Length::Fixed(24.0))
+                                .height(Length::Fixed(24.0))
+                        );
+                    }
+
+                    player_row = player_row.push(space().width(8));
+                }
+                player_row.spacing(4).align_y(Alignment::Center)
             }),
             table::column("Winner", |r: GameRow<'_>| {
                 let items = r.players.to_vec();
@@ -43,6 +65,7 @@ pub fn games_table(app: &TournamentApp) -> Element<'_, Message> {
                 index: i,
                 players: &g.players,
                 winner: &g.winner,
+                app,
             }),
     );
     // Ensure the table expands to fill available width by wrapping it in a container

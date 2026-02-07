@@ -50,7 +50,6 @@ pub struct TournamentApp {
     pub selected_match: Option<GameMatch>,
     pub selected_winner: Option<String>,
     pub match_player: Option<String>,
-    pub change_player_name: Option<(Option<String>, String)>,
     pub show_config: bool,
     pub score_starting_elo: String,
     pub score_game_points: String,
@@ -72,6 +71,11 @@ pub struct TournamentApp {
     pub export_text: String,
     pub show_games: bool,
     pub selected_game_index: Option<usize>,
+    pub show_player_info: Option<String>,
+    pub player_info_name: String,
+    pub player_info_description: String,
+    pub player_info_moxfield_link: String,
+    pub player_info_colors: Vec<crate::tournament::MtgColor>,
 }
 
 impl Default for TournamentApp {
@@ -87,7 +91,6 @@ impl Default for TournamentApp {
                 selected_match: None,
                 selected_winner: Default::default(),
                 match_player: None,
-                change_player_name: None,
                 show_config: false,
                 score_starting_elo: Default::default(),
                 score_game_points: Default::default(),
@@ -108,6 +111,11 @@ impl Default for TournamentApp {
                 export_text: String::new(),
                 show_games: false,
                 selected_game_index: None,
+                show_player_info: None,
+                player_info_name: String::new(),
+                player_info_description: String::new(),
+                player_info_moxfield_link: String::new(),
+                player_info_colors: Vec::new(),
             };
         }
 
@@ -118,7 +126,6 @@ impl Default for TournamentApp {
             selected_match: None,
             selected_winner: Default::default(),
             match_player: None,
-            change_player_name: None,
             show_config: false,
             score_starting_elo: Default::default(),
             score_game_points: Default::default(),
@@ -139,6 +146,11 @@ impl Default for TournamentApp {
             export_text: String::new(),
             show_games: false,
             selected_game_index: None,
+            show_player_info: None,
+            player_info_name: String::new(),
+            player_info_description: String::new(),
+            player_info_moxfield_link: String::new(),
+            player_info_colors: Vec::new(),
         }
     }
 }

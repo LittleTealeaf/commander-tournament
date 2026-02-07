@@ -33,57 +33,6 @@ pub fn error_modal(app: &TournamentApp) -> Element<'_, Message> {
     container(text("")).into()
 }
 
-pub fn player_name_modal(app: &TournamentApp) -> Element<'_, Message> {
-    if let Some((old, new)) = &app.change_player_name {
-        let title = match old {
-            Some(old) => format!("Renaming {old}"),
-            None => String::from("New Deck"),
-        };
-
-        let content = column![
-            text(title).size(18),
-            space().height(10),
-            text_input("Enter deck name...", new)
-                .on_input(|s| Message::SetChangePlayerName(Some((old.clone(), s))))
-                .on_submit(Message::ChangePlayerSubmit)
-                .padding(10)
-                .width(Length::Fill),
-            space().height(15),
-            row![
-                button("Submit")
-                    .on_press(Message::ChangePlayerSubmit)
-                    .width(Length::Fill),
-                space().width(10),
-                button("Cancel")
-                    .on_press(Message::SetChangePlayerName(None))
-                    .width(Length::Fill),
-                space().width(10),
-                button("Delete")
-                    .on_press_maybe(
-                        old.as_ref()
-                            .map(|old| { Message::DeletePlayer(old.clone()) })
-                    )
-                    .width(Length::Fill),
-            ]
-            .spacing(5)
-        ]
-        .spacing(5)
-        .width(Length::Fixed(400.0));
-
-        return container(
-            container(content)
-                .padding(Padding::new(20f32))
-                .width(Length::Fixed(400.0)),
-        )
-        .align_y(Alignment::Center)
-        .align_x(Alignment::Center)
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .into();
-    }
-    container(text("")).into()
-}
-
 pub fn config_modal(app: &TournamentApp) -> Element<'_, Message> {
     if app.show_config {
         let content = column![
@@ -326,6 +275,90 @@ pub fn game_winner_modal(app: &TournamentApp) -> Element<'_, Message> {
             container(content)
                 .padding(Padding::new(20f32))
                 .width(Length::Fixed(400.0)),
+        )
+        .align_y(Alignment::Center)
+        .align_x(Alignment::Center)
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .into();
+    }
+    container(text("")).into()
+}
+pub fn player_info_modal(app: &TournamentApp) -> Element<'_, Message> {
+    if let Some(player) = &app.show_player_info {
+        let is_new = player.is_empty();
+        let title = if is_new {
+            "New Deck".to_string()
+        } else {
+            format!("Edit Deck: {}", player)
+        };
+
+        let colors_row = {
+            use crate::tournament::MtgColor;
+            let colors = [
+                (MtgColor::White, "W"),
+                (MtgColor::Blue, "U"),
+                (MtgColor::Black, "B"),
+                (MtgColor::Red, "R"),
+                (MtgColor::Green, "G"),
+            ];
+
+            let mut row_content = row![];
+            for (color, label) in colors.iter() {
+                let is_selected = app.player_info_colors.contains(color);
+                let label_text = if is_selected {
+                    format!("{} ✓", label)
+                } else {
+                    label.to_string()
+                };
+
+                let btn = button(text(label_text))
+                    .on_press(Message::TogglePlayerColor(*color))
+                    .width(Length::Fixed(40.0));
+
+                row_content = row_content.push(btn);
+            }
+            row_content.spacing(5)
+        };
+
+        let content = column![
+            text(title).size(18),
+            space().height(10),
+            text("Deck Name:"),
+            text_input("Enter deck name...", &app.player_info_name)
+                .on_input(Message::SetPlayerName)
+                .padding(5)
+                .width(Length::Fill),
+            space().height(5),
+            text("Description:"),
+            text_input("Enter deck description...", &app.player_info_description)
+                .on_input(Message::SetPlayerDescription)
+                .padding(5)
+                .width(Length::Fill),
+            space().height(5),
+            text("Moxfield Link:"),
+            text_input("https://moxfield.com/decks/...", &app.player_info_moxfield_link)
+                .on_input(Message::SetPlayerMoxfieldLink)
+                .padding(5)
+                .width(Length::Fill),
+            space().height(5),
+            text("Colors:"),
+            colors_row,
+            space().height(15),
+            row![
+                button("Save").on_press(Message::SavePlayerDetails).width(Length::Fill),
+                button("Cancel").on_press(Message::ClosePlayerInfo).width(Length::Fill),
+            ]
+            .spacing(5)
+        ]
+        .spacing(5)
+        .width(Length::Fixed(500.0))
+        .padding(20);
+
+        return container(
+            container(content)
+                .padding(Padding::new(20f32))
+                .width(Length::Fixed(500.0)),
         )
         .align_y(Alignment::Center)
         .align_x(Alignment::Center)

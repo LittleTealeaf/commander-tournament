@@ -1082,3 +1082,193 @@ fn serialization_deserialize_roundtrip() {
         assert_eq!(stats.wins(), restored_stats.wins());
     }
 }
+// ============================================================================
+// PLAYER DETAILS TESTS
+// ============================================================================
+
+#[test]
+fn player_details_default_is_empty() {
+    use crate::tournament::PlayerDetails;
+    let details = PlayerDetails::default();
+    assert_eq!(details.description, None);
+    assert_eq!(details.moxfield_link, None);
+    assert!(details.colors.is_empty());
+}
+
+#[test]
+fn player_details_moxfield_goldfish_link() {
+    use crate::tournament::PlayerDetails;
+    let details = PlayerDetails {
+        description: Some("Test deck".to_string()),
+        moxfield_link: Some("https://moxfield.com/decks/EoWfmyQpRkqeHHs_t52xIw".to_string()),
+        colors: Vec::new(),
+    };
+
+    let goldfish_link = details.moxfield_goldfish_link();
+    assert_eq!(
+        goldfish_link,
+        Some("https://moxfield.com/decks/EoWfmyQpRkqeHHs_t52xIw/goldfish".to_string())
+    );
+}
+
+#[test]
+fn player_details_moxfield_goldfish_link_already_has_suffix() {
+    use crate::tournament::PlayerDetails;
+    let details = PlayerDetails {
+        description: None,
+        moxfield_link: Some("https://moxfield.com/decks/EoWfmyQpRkqeHHs_t52xIw/goldfish".to_string()),
+        colors: Vec::new(),
+    };
+
+    let goldfish_link = details.moxfield_goldfish_link();
+    assert_eq!(
+        goldfish_link,
+        Some("https://moxfield.com/decks/EoWfmyQpRkqeHHs_t52xIw/goldfish".to_string())
+    );
+}
+
+#[test]
+fn set_and_get_player_details() {
+    use crate::tournament::{MtgColor, PlayerDetails};
+    let mut tournament = default_tournament();
+    tournament.register_player("Alice".to_string());
+
+    let details = PlayerDetails {
+        description: Some("A powerful control deck".to_string()),
+        moxfield_link: Some("https://moxfield.com/decks/test123".to_string()),
+        colors: vec![MtgColor::Blue, MtgColor::Black],
+    };
+
+    tournament
+        .set_player_details("Alice".to_string(), details.clone())
+        .unwrap();
+
+    let retrieved = tournament.player_details("Alice").unwrap();
+    assert_eq!(retrieved.description, details.description);
+    assert_eq!(retrieved.moxfield_link, details.moxfield_link);
+    assert_eq!(retrieved.colors, details.colors);
+}
+
+#[test]
+fn set_player_details_nonexistent_player_fails() {
+    use crate::tournament::PlayerDetails;
+    let mut tournament = default_tournament();
+    let details = PlayerDetails::default();
+
+    let result = tournament.set_player_details("NonExistent".to_string(), details);
+    assert!(result.is_err());
+}
+
+#[test]
+fn rename_player_preserves_details() {
+    use crate::tournament::{MtgColor, PlayerDetails};
+    let mut tournament = default_tournament();
+    tournament.register_player("Alice".to_string());
+
+    let details = PlayerDetails {
+        description: Some("Test deck".to_string()),
+        moxfield_link: Some("https://moxfield.com/decks/test123".to_string()),
+        colors: vec![MtgColor::Red],
+    };
+
+    tournament
+        .set_player_details("Alice".to_string(), details.clone())
+        .unwrap();
+
+    tournament
+        .rename_player("Alice".to_string(), "Alicia".to_string())
+        .unwrap();
+
+    let retrieved = tournament.player_details("Alicia").unwrap();
+    assert_eq!(retrieved.description, details.description);
+    assert_eq!(retrieved.moxfield_link, details.moxfield_link);
+    assert_eq!(retrieved.colors, details.colors);
+
+    // Old name should not have details
+    assert!(tournament.player_details("Alice").is_none());
+}
+
+#[test]
+fn remove_player_removes_details() {
+    use crate::tournament::PlayerDetails;
+    let mut tournament = default_tournament();
+    tournament.register_player("Alice".to_string());
+
+    let details = PlayerDetails {
+        description: Some("Test deck".to_string()),
+        moxfield_link: None,
+        colors: Vec::new(),
+    };
+
+    tournament
+        .set_player_details("Alice".to_string(), details)
+        .unwrap();
+
+    tournament.remove_player("Alice".to_string()).unwrap();
+
+    assert!(tournament.player_details("Alice").is_none());
+}
+
+#[test]
+fn serialization_with_player_details() {
+    use crate::tournament::{MtgColor, PlayerDetails};
+    let mut tournament = default_tournament();
+    tournament.register_player("Alice".to_string());
+
+    let details = PlayerDetails {
+        description: Some("Control deck".to_string()),
+        moxfield_link: Some("https://moxfield.com/decks/test123".to_string()),
+        colors: vec![MtgColor::Blue, MtgColor::White],
+    };
+
+    tournament
+        .set_player_details("Alice".to_string(), details.clone())
+        .unwrap();
+
+    // Serialize and deserialize
+    let serialized = serde_json::to_string(&tournament).unwrap();
+    let deserialized: Tournament = serde_json::from_str(&serialized).unwrap();
+
+    let retrieved = deserialized.player_details("Alice").unwrap();
+    assert_eq!(retrieved.description, details.description);
+    assert_eq!(retrieved.moxfield_link, details.moxfield_link);
+    assert_eq!(retrieved.colors, details.colors);
+}
+
+#[test]
+fn backward_compatibility_ron_without_details() {
+    // Test that old .ron files without player_details can still be loaded
+    use crate::tournament::Tournament;
+
+    // Simulate old-style RON without player_details field
+    let old_ron = r#"(
+        players: {
+            "Alice": (elo: 1500.0, games: 0, wins: 0),
+            "Bob": (elo: 1500.0, games: 0, wins: 0),
+        },
+        games: [],
+        score_config: (
+            starting_elo: 1500.0,
+            game_points: 25.0,
+            elo_pow: 6.0,
+            wr_pow: 1.0,
+            elo_weight: 65.0,
+            wr_weight: 100.0,
+        ),
+        match_config: (
+            weight_least_played: 1.0,
+            weight_nemesis: 1.0,
+            weight_neighbor: 1.0,
+            weight_wr_neighbor: 1.0,
+            weight_lost_with: 1.0,
+        ),
+    )"#;
+
+    let result: Result<Tournament, _> = ron::from_str(old_ron);
+    assert!(result.is_ok(), "Should successfully deserialize old RON without player_details");
+
+    let tournament = result.unwrap();
+    assert_eq!(tournament.players().len(), 2);
+    assert!(tournament.player_details("Alice").is_none());
+    assert!(tournament.player_details("Bob").is_none());
+}

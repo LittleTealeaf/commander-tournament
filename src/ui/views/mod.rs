@@ -30,12 +30,12 @@ pub fn view(app: &TournamentApp) -> Element<'_, Message> {
         return modal::config_modal(app);
     }
 
-    if app.change_player_name.is_some() {
-        return modal::player_name_modal(app);
-    }
-
     if app.selected_game_index.is_some() {
         return modal::game_winner_modal(app);
+    }
+
+    if app.show_player_info.is_some() {
+        return modal::player_info_modal(app);
     }
 
     if app.show_games {

@@ -9,7 +9,7 @@ pub fn toolbar() -> iced::widget::Container<'static, Message> {
     let left_buttons = row![
         button(" ⚙ Config").on_press(Message::ShowConfig(true)),
         button(" ➕ New Player")
-            .on_press(Message::SetChangePlayerName(Some((None, String::new())))),
+            .on_press(Message::ShowPlayerInfo(String::new())),
         button(" 🔄 Reload").on_press(Message::Reload),
     ]
     .spacing(10);

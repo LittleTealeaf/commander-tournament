@@ -10,9 +10,7 @@ use std::fs::{self, File};
 
 use ron::ser::PrettyConfig;
 
-use crate::tournament::MatchmakerConfig;
-use crate::tournament::ScoreConfig;
-use crate::tournament::Tournament;
+use crate::tournament::{MatchmakerConfig, PlayerDetails, ScoreConfig, Tournament};
 use anyhow::anyhow;
 
 fn f64_to_string(v: f64) -> String {
@@ -167,26 +165,8 @@ pub fn update(app: &mut TournamentApp, message: Message) -> anyhow::Result<()> {
             app.tournament.set_match_config(match_cfg)?;
             app.show_config = false;
         }
-        Message::ChangePlayerSubmit => {
-            if let Some((prev, name)) = &app.change_player_name {
-                if let Some(prev) = prev {
-                    if !prev.eq(name) {
-                        app.tournament
-                            .rename_player(prev.to_string(), name.to_string())?;
-                    }
-                } else {
-                    app.tournament.register_player(name.to_string());
-                }
-                app.change_player_name = None;
-            }
-        }
-        Message::SetChangePlayerName(value) => app.change_player_name = value,
         Message::CloseError => {
             app.error = None;
-        }
-        Message::DeletePlayer(player) => {
-            app.tournament.remove_player(player)?;
-            app.change_player_name = None;
         }
         Message::SelectPlayer(index, value) => {
             if index < 4 {
@@ -259,6 +239,83 @@ pub fn update(app: &mut TournamentApp, message: Message) -> anyhow::Result<()> {
             app.tournament.delete_game(index)?;
             app.selected_game_index = None;
         }
-    }
+        Message::ShowPlayerInfo(player) => {
+            app.player_info_name = player.clone();
+            if let Some(details) = app.tournament.player_details(&player) {
+                app.player_info_description = details.description.clone().unwrap_or_default();
+                app.player_info_moxfield_link = details.moxfield_link.clone().unwrap_or_default();
+                app.player_info_colors = details.colors.clone();
+            } else {
+                app.player_info_description = String::new();
+                app.player_info_moxfield_link = String::new();
+                app.player_info_colors = Vec::new();
+            }
+            app.show_player_info = Some(player);
+        }
+        Message::ClosePlayerInfo => {
+            app.show_player_info = None;
+            app.player_info_name = String::new();
+            app.player_info_description = String::new();
+            app.player_info_moxfield_link = String::new();
+            app.player_info_colors = Vec::new();
+        }
+        Message::SetPlayerName(text) => {
+            app.player_info_name = text;
+        }
+        Message::SetPlayerDescription(text) => {
+            app.player_info_description = text;
+        }
+        Message::SetPlayerMoxfieldLink(text) => {
+            app.player_info_moxfield_link = text;
+        }
+        Message::TogglePlayerColor(color) => {
+            if app.player_info_colors.contains(&color) {
+                app.player_info_colors.retain(|&c| c != color);
+            } else {
+                app.player_info_colors.push(color);
+            }
+        }
+        Message::SavePlayerDetails => {
+            if let Some(original_player) = &app.show_player_info {
+                let new_name = app.player_info_name.clone();
+
+                // Check if this is create mode (empty original player name)
+                if original_player.is_empty() {
+                    // Create mode: register new player
+                    if !new_name.is_empty() {
+                        app.tournament.register_player(new_name.clone());
+                    }
+                } else {
+                    // Edit mode: rename if needed
+                    if original_player != &new_name && !new_name.is_empty() {
+                        app.tournament
+                            .rename_player(original_player.clone(), new_name.clone())?;
+                    }
+                }
+
+                // Update the details with the (possibly new) player name
+                if !new_name.is_empty() {
+                    let details = PlayerDetails {
+                        description: if app.player_info_description.is_empty() {
+                            None
+                        } else {
+                            Some(app.player_info_description.clone())
+                        },
+                        moxfield_link: if app.player_info_moxfield_link.is_empty() {
+                            None
+                        } else {
+                            Some(app.player_info_moxfield_link.clone())
+                        },
+                        colors: app.player_info_colors.clone(),
+                    };
+                    app.tournament.set_player_details(new_name, details)?;
+                }
+            }
+            app.show_player_info = None;
+            app.player_info_name = String::new();
+            app.player_info_description = String::new();
+            app.player_info_moxfield_link = String::new();
+            app.player_info_colors = Vec::new();
+        }    }
     Ok(())
 }

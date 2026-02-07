@@ -7,8 +7,6 @@ pub enum Message {
     SubmitIngest,
     ShowExport(bool),
     UpdateExport(String),
-    SetChangePlayerName(Option<(Option<String>, String)>),
-    ChangePlayerSubmit,
     ShowConfig(bool),
     UpdateScoreStartingElo(String),
     UpdateScoreGamePoints(String),
@@ -28,7 +26,6 @@ pub enum Message {
     AddPlayerToNextSlot(String),
     SelectWinner(String),
     SelectMatchPlayer(String),
-    DeletePlayer(String),
     SubmitGame,
     ClearGame,
     Reload,
@@ -41,4 +38,18 @@ pub enum Message {
     OpenChangeWinnerModal(usize),
     ChangeGameWinner(usize, String),
     DeleteGame(usize),
+    /// Open the player info/edit screen for a specific player
+    ShowPlayerInfo(String),
+    /// Close the player info/edit screen
+    ClosePlayerInfo,
+    /// Update the player name in player info
+    SetPlayerName(String),
+    /// Update the description in player info
+    SetPlayerDescription(String),
+    /// Update the moxfield link in player info
+    SetPlayerMoxfieldLink(String),
+    /// Toggle a color for the player
+    TogglePlayerColor(crate::tournament::MtgColor),
+    /// Save the player details
+    SavePlayerDetails,
 }
