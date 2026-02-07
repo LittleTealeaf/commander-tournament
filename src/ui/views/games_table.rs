@@ -16,7 +16,7 @@ pub fn games_table(app: &TournamentApp) -> Element<'_, Message> {
             table::column("#", |r: GameRow<'_>| text(format!("{}", r.index)).size(12)),
             table::column("Players", |r: GameRow<'_>| text(r.players.iter().join(", ")).size(12)),
             table::column("Winner", |r: GameRow<'_>| {
-                let items = r.players.iter().cloned().collect::<Vec<_>>();
+                let items = r.players.to_vec();
                 let idx = r.index;
                 pick_list(items, Some(r.winner.clone()), move |s: String| Message::ChangeGameWinner(idx, s)).width(Length::Fixed(160.0))
             }),

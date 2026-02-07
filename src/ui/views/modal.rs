@@ -255,8 +255,8 @@ pub fn ingest_modal(app: &TournamentApp) -> Element<'_, Message> {
 }
 
 pub fn game_winner_modal(app: &TournamentApp) -> Element<'_, Message> {
-    if let Some(index) = app.selected_game_index {
-        if let Some(game) = app.tournament.games().get(index) {
+    if let Some(index) = app.selected_game_index
+        && let Some(game) = app.tournament.games().get(index) {
             let mut buttons = column![];
             for player in game.players.iter() {
                 let p = player.clone();
@@ -289,6 +289,5 @@ pub fn game_winner_modal(app: &TournamentApp) -> Element<'_, Message> {
             .height(Length::Fill)
             .into();
         }
-    }
     container(text("")).into()
 }
