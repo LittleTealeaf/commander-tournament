@@ -11,35 +11,26 @@ use crate::{
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Tournament {
     config: TournamentConfig,
-    stats: HashMap<usize, PlayerStats>,
-    players: HashMap<usize, PlayerInfo>,
+    stats: HashMap<u32, PlayerStats>,
+    players: HashMap<u32, PlayerInfo>,
     #[serde(skip)]
-    player_names: HashMap<String, usize>,
-    #[serde(skip)]
-    next_id: usize,
+    player_names: HashMap<String, u32>,
 }
 
 impl Tournament {
-    fn get_next_id(&mut self) -> usize {
-        while self.players.contains_key(&self.next_id) {
-            self.next_id += 1;
-        }
-        self.next_id
-    }
-
-    pub fn get_player_id(&self, name: &String) -> Result<usize, TournamentError> {
+    pub fn get_player_id(&self, name: &String) -> Result<u32, TournamentError> {
         self.player_names
             .get(name)
             .copied()
             .ok_or(TournamentError::PlayerNameNotRegistered(name.to_string()))
     }
 
-    pub fn register_player(&mut self, name: String) -> Result<usize, TournamentError> {
+    pub fn register_player(&mut self, name: String) -> Result<u32, TournamentError> {
         if self.player_names.contains_key(&name) {
             return Err(TournamentError::PlayerAlreadyRegistered(name));
         }
 
-        let id = self.get_next_id();
+        let id = self.players.keys().max().map(|i| i + 1).unwrap_or(0);
 
         self.player_names.insert(name.clone(), id);
         self.players.insert(id, PlayerInfo::new(name));
@@ -68,3 +59,4 @@ impl Tournament {
         Ok(())
     }
 }
+
