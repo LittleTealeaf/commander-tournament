@@ -56,24 +56,25 @@ impl PlayerInfo {
 impl Tournament {
     pub fn set_player_info(
         &mut self,
-        player: usize,
+        player: u32,
         info: PlayerInfo,
     ) -> Result<(), TournamentError> {
         let player_info = self
             .players
             .get_mut(&player)
-            .ok_or(TournamentError::PlayerNotRegistered(player))?;
+            .ok_or(TournamentError::InvalidPlayerId(player))?;
 
-        info.stats = None;
-
-        *player_info = info;
+        *player_info = PlayerInfo {
+            stats: None,
+            ..info
+        };
         Ok(())
     }
 
-    pub fn get_player_info(&self, id: usize) -> Result<PlayerInfo, TournamentError> {
-        let info = self
+    pub fn get_player_info(&self, id: u32) -> Result<PlayerInfo, TournamentError> {
+        let mut info = self
             .players
-            .get(id)
+            .get(&id)
             .ok_or(TournamentError::InvalidPlayerId(id))?
             .clone();
         info.stats = self.stats.get(&id).cloned();

@@ -7,11 +7,11 @@ pub enum TournamentError {
     #[error("Player name is not registered: {0}")]
     PlayerNameNotRegistered(String),
     #[error("Player ID is not valid: {0}")]
-    InvalidPlayerId(usize),
+    InvalidPlayerId(u32),
     #[error("Player name is already registered: {0}")]
     PlayerAlreadyRegistered(String),
     #[error("Invalid Game: {0}")]
-    GameNotFound(usize),
+    GameNotFound(u32),
     #[error("Not enough players")]
     NotEnoughPlayers,
 }
