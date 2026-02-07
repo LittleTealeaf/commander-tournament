@@ -1,8 +1,7 @@
-use crate::ui::launch;
 
-mod tournament;
-mod ui;
+mod app;
+
 
 fn main() -> iced::Result {
-    launch()
+    todo!()
 }

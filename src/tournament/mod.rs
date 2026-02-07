@@ -1,113 +1,70 @@
-mod errors;
-mod game;
-mod matchmaking;
-#[cfg(test)]
-mod tests;
-
+pub mod config;
+pub mod error;
+pub mod info;
+pub mod stats;
 use std::collections::HashMap;
 
-pub use errors::*;
-pub use game::*;
-pub use matchmaking::MatchmakerConfig;
+use crate::{
+    config::TournamentConfig, error::TournamentError, info::PlayerInfo, stats::PlayerStats,
+};
 
-/// Manages a tournament with player statistics and game records.
-///
-/// `Tournament` maintains a collection of players with their statistics (Elo rating, win/loss records)
-/// and a history of games. It uses configurable scoring and matchmaking strategies to create
-/// competitive matches between players.
-///
-/// # Scoring System
-///
-/// The tournament uses an Elo-based rating system with two components:
-/// - **Elo Rating**: Traditional Elo rating that changes based on game outcomes
-/// - **Winrate**: Historical win/loss ratio that influences expected performance
-///
-/// Both factors are weighted according to [`ScoreConfig`] and combined to calculate
-/// expected win probability for each player in a match.
-///
-/// # Matchmaking
-///
-/// The tournament provides multiple matchmaking strategies through [`MatchmakerConfig`]:
-/// - **Combined**: Weighted combination of all strategies
-/// - **Least Played**: Prioritize opponents played least frequently
-/// - **Nemesis**: Find opponents with best win records against you
-/// - **WR Neighbors**: Match with players of similar winrate
-/// - **Neighbors**: Match with players of similar Elo rating
-/// - **Loss With**: Find opponents you struggle against together
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Tournament {
-    players: HashMap<String, PlayerStats>,
-    #[serde(default)]
-    player_details: HashMap<String, PlayerDetails>,
-    games: Vec<GameRecord>,
-    score_config: ScoreConfig,
-    match_config: MatchmakerConfig,
-}
-
-impl Default for Tournament {
-    fn default() -> Self {
-        Self::new()
-    }
+    config: TournamentConfig,
+    stats: HashMap<usize, PlayerStats>,
+    players: HashMap<usize, PlayerInfo>,
+    #[serde(skip)]
+    player_names: HashMap<String, usize>,
+    #[serde(skip)]
+    next_id: usize,
 }
 
 impl Tournament {
-    /// Creates a new empty tournament with default configuration.
-    pub fn new() -> Self {
-        Self {
-            players: HashMap::new(),
-            player_details: HashMap::new(),
-            games: Vec::new(),
-            score_config: ScoreConfig::new(),
-            match_config: MatchmakerConfig::default(),
+    fn get_next_id(&mut self) -> usize {
+        while self.players.contains_key(&self.next_id) {
+            self.next_id += 1;
         }
+        self.next_id
     }
 
-    /// Checks if a player is registered in the tournament.
-    pub fn has_registered_player(&self, player: &str) -> bool {
-        self.players.contains_key(player)
+    pub fn get_player_id(&self, name: &String) -> Result<usize, TournamentError> {
+        self.player_names
+            .get(name)
+            .copied()
+            .ok_or(TournamentError::PlayerNameNotRegistered(name.to_string()))
     }
 
-    /// Returns a reference to all registered players and their statistics.
-    pub fn players(&self) -> &HashMap<String, PlayerStats> {
-        &self.players
-    }
-
-    /// Returns a reference to the game history.
-    pub fn games(&self) -> &Vec<GameRecord> {
-        &self.games
-    }
-
-    /// Returns the details for a specific player, if they exist.
-    pub fn player_details(&self, player: &str) -> Option<&PlayerDetails> {
-        self.player_details.get(player)
-    }
-
-    /// Updates the details for a specific player.
-    pub fn set_player_details(&mut self, player: String, details: PlayerDetails) -> Result<(), TournamentError> {
-        if !self.has_registered_player(&player) {
-            return Err(TournamentError::PlayerNotRegistered(player));
+    pub fn register_player(&mut self, name: String) -> Result<usize, TournamentError> {
+        if self.player_names.contains_key(&name) {
+            return Err(TournamentError::PlayerAlreadyRegistered(name));
         }
-        self.player_details.insert(player, details);
-        Ok(())
+
+        let id = self.get_next_id();
+
+        self.player_names.insert(name.clone(), id);
+        self.players.insert(id, PlayerInfo::new(name));
+
+        Ok(id)
     }
 
-    /// Change the winner for a game at the provided index and reload stats.
-    pub fn set_game_winner(&mut self, index: usize, winner: String) -> Result<(), TournamentError> {
-        if index >= self.games.len() {
-            return Err(TournamentError::GameNotFound(index));
-        }
-        self.games[index].winner = winner;
+    pub fn config(&self) -> &TournamentConfig {
+        &self.config
+    }
+
+    pub fn set_config(&mut self, config: TournamentConfig) -> Result<(), TournamentError> {
+        self.config = config;
         self.reload()?;
         Ok(())
     }
 
-    /// Delete a game at index and reload stats.
-    pub fn delete_game(&mut self, index: usize) -> Result<(), TournamentError> {
-        if index >= self.games.len() {
-            return Err(TournamentError::GameNotFound(index));
-        }
-        self.games.remove(index);
-        self.reload()?;
+    pub fn reload(&mut self) -> Result<(), TournamentError> {
+        // Update player_names to the player info
+        self.player_names = self
+            .players
+            .iter()
+            .map(|(id, info)| (info.name().to_string(), *id))
+            .collect();
+
         Ok(())
     }
 }
