@@ -3,6 +3,7 @@ pub mod error;
 pub mod game;
 pub mod info;
 pub mod stats;
+pub mod matches;
 use std::collections::HashMap;
 
 use crate::{

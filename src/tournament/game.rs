@@ -14,6 +14,14 @@ impl GameRecord {
 
         Ok(Self { players, winner })
     }
+
+    pub fn players(&self) -> &[u32; 4] {
+        &self.players
+    }
+
+    pub fn winner(&self) -> u32 {
+        self.winner
+    }
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default)]
