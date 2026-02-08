@@ -19,7 +19,6 @@ pub enum MtgColor {
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct PlayerInfo {
     name: String,
-    stats: Option<PlayerStats>,
     description: String,
     colors: Vec<MtgColor>,
     moxfield_id: Option<String>,
@@ -29,7 +28,6 @@ impl PlayerInfo {
     pub(crate) fn new(name: String) -> Self {
         Self {
             name,
-            stats: None,
             description: String::new(),
             colors: Vec::new(),
             moxfield_id: None,
@@ -59,25 +57,20 @@ impl Tournament {
         player: u32,
         info: PlayerInfo,
     ) -> Result<(), TournamentError> {
-        let player_info = self
+        let saved_info = self
             .players
             .get_mut(&player)
             .ok_or(TournamentError::InvalidPlayerId(player))?;
+        *saved_info = info;
 
-        *player_info = PlayerInfo {
-            stats: None,
-            ..info
-        };
         Ok(())
     }
 
     pub fn get_player_info(&self, id: u32) -> Result<PlayerInfo, TournamentError> {
-        let mut info = self
+        Ok(self
             .players
             .get(&id)
             .ok_or(TournamentError::InvalidPlayerId(id))?
-            .clone();
-        info.stats = self.stats.get(&id).cloned();
-        Ok(info)
+            .clone())
     }
 }

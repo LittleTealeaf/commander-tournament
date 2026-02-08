@@ -25,6 +25,10 @@ impl Tournament {
             .ok_or(TournamentError::PlayerNameNotRegistered(name.to_string()))
     }
 
+    pub fn is_id_registered(&self, id: &u32) -> bool {
+        self.players.contains_key(id)
+    }
+
     pub fn register_player(&mut self, name: String) -> Result<u32, TournamentError> {
         if self.player_names.contains_key(&name) {
             return Err(TournamentError::PlayerAlreadyRegistered(name));
@@ -59,4 +63,3 @@ impl Tournament {
         Ok(())
     }
 }
-
