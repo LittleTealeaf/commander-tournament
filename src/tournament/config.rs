@@ -1,3 +1,5 @@
+use crate::{Tournament, error::TournamentError};
+
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
 pub struct TournamentConfig {
     pub starting_elo: f64,
@@ -11,6 +13,7 @@ pub struct TournamentConfig {
     pub match_weight_neighbor: f64,
     pub match_weight_wr_neighbor: f64,
     pub match_weight_lost_with: f64,
+    pub(crate) version: usize,
 }
 
 impl Default for TournamentConfig {
@@ -27,6 +30,22 @@ impl Default for TournamentConfig {
             match_weight_neighbor: 5.0,
             match_weight_wr_neighbor: 3.0,
             match_weight_lost_with: 3.0,
+            version: 0,
         }
+    }
+}
+
+impl Tournament {
+    pub fn config(&self) -> &TournamentConfig {
+        &self.config
+    }
+
+    pub fn set_config(&mut self, config: TournamentConfig) -> Result<(), TournamentError> {
+        self.config = TournamentConfig {
+            version: self.config.version + 1,
+            ..config
+        };
+        self.reload()?;
+        Ok(())
     }
 }

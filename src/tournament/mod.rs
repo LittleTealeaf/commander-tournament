@@ -1,11 +1,13 @@
 pub mod config;
 pub mod error;
+pub mod game;
 pub mod info;
 pub mod stats;
 use std::collections::HashMap;
 
 use crate::{
-    config::TournamentConfig, error::TournamentError, info::PlayerInfo, stats::PlayerStats,
+    config::TournamentConfig, error::TournamentError, game::GameRecord, info::PlayerInfo,
+    stats::PlayerStats,
 };
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -15,6 +17,7 @@ pub struct Tournament {
     players: HashMap<u32, PlayerInfo>,
     #[serde(skip)]
     player_names: HashMap<String, u32>,
+    games: Vec<GameRecord>,
 }
 
 impl Tournament {
@@ -42,16 +45,6 @@ impl Tournament {
         Ok(id)
     }
 
-    pub fn config(&self) -> &TournamentConfig {
-        &self.config
-    }
-
-    pub fn set_config(&mut self, config: TournamentConfig) -> Result<(), TournamentError> {
-        self.config = config;
-        self.reload()?;
-        Ok(())
-    }
-
     pub fn reload(&mut self) -> Result<(), TournamentError> {
         // Update player_names to the player info
         self.player_names = self
@@ -59,6 +52,14 @@ impl Tournament {
             .iter()
             .map(|(id, info)| (info.name().to_string(), *id))
             .collect();
+
+        self.stats.clear();
+
+        let mut games = Vec::new();
+        std::mem::swap(&mut self.games, &mut games);
+        for record in games {
+            self.register_record(record)?;
+        }
 
         Ok(())
     }

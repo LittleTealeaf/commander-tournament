@@ -2,17 +2,17 @@ use crate::{Tournament, error::TournamentError, stats::PlayerStats};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub enum MtgColor {
-    #[serde(alias = "w")]
+    #[serde(rename = "w")]
     White,
-    #[serde(alias = "u")]
+    #[serde(rename = "u")]
     Blue,
-    #[serde(alias = "g")]
+    #[serde(rename = "g")]
     Green,
-    #[serde(alias = "r")]
+    #[serde(rename = "r")]
     Red,
-    #[serde(alias = "b")]
+    #[serde(rename = "b")]
     Black,
-    #[serde(alias = "c")]
+    #[serde(rename = "c")]
     Colorless,
 }
 
