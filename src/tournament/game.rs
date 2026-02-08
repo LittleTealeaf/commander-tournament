@@ -1,4 +1,8 @@
-use crate::{Tournament, error::TournamentError, stats::PlayerStats};
+use crate::{
+    Tournament,
+    error::{TournResult, TournamentError},
+    stats::PlayerStats,
+};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct GameRecord {
@@ -143,6 +147,19 @@ impl Tournament {
 
         self.games.push(record);
 
+        Ok(())
+    }
+
+    pub fn games(&self) -> &Vec<GameRecord> {
+        &self.games
+    }
+
+    pub fn delete_game(&mut self, gid: usize) -> TournResult<()> {
+        if gid >= self.games.len() {
+            return Err(TournamentError::GameNotFound(gid));
+        }
+        self.games.remove(gid);
+        self.reload()?;
         Ok(())
     }
 }

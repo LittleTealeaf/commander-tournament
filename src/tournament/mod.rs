@@ -47,6 +47,15 @@ impl Tournament {
         Ok(id)
     }
 
+    pub fn unregister_player(&mut self, id: u32) -> Result<(), TournamentError> {
+        self.players
+            .remove(&id)
+            .ok_or(TournamentError::InvalidPlayerId(id))?;
+        self.games.retain(|game| !game.players().contains(&id));
+        self.reload()?;
+        Ok(())
+    }
+
     pub fn reload(&mut self) -> Result<(), TournamentError> {
         // Update player_names to the player info
         self.player_names = self

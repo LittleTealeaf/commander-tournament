@@ -11,7 +11,7 @@ pub enum TournamentError {
     #[error("Player name is already registered: {0}, id {1}")]
     PlayerAlreadyRegistered(String, u32),
     #[error("Invalid Game: {0}")]
-    GameNotFound(u32),
+    GameNotFound(usize),
     #[error("Not enough players")]
     NotEnoughPlayers,
 }
