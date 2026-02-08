@@ -19,8 +19,11 @@ pub enum MtgColor {
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct PlayerInfo {
     name: String,
+    #[serde(skip_serializing_if="String::is_empty")]
     description: String,
+    #[serde(skip_serializing_if="Vec::is_empty")]
     colors: Vec<MtgColor>,
+    #[serde(skip_serializing_if="Option::is_none")]
     moxfield_id: Option<String>,
 }
 

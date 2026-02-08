@@ -2,7 +2,9 @@ use crate::{Tournament, error::TournamentError, stats::PlayerStats};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct GameRecord {
+    #[serde(rename = "p")]
     players: [u32; 4],
+    #[serde(rename = "w")]
     winner: u32,
 }
 

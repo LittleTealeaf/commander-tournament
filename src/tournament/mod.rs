@@ -2,8 +2,9 @@ pub mod config;
 pub mod error;
 pub mod game;
 pub mod info;
-pub mod stats;
 pub mod matches;
+pub mod stats;
+pub mod tsv;
 use std::collections::HashMap;
 
 use crate::{
@@ -11,7 +12,7 @@ use crate::{
     stats::PlayerStats,
 };
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Tournament {
     config: TournamentConfig,
     stats: HashMap<u32, PlayerStats>,
@@ -34,8 +35,8 @@ impl Tournament {
     }
 
     pub fn register_player(&mut self, name: String) -> Result<u32, TournamentError> {
-        if self.player_names.contains_key(&name) {
-            return Err(TournamentError::PlayerAlreadyRegistered(name));
+        if let Some(id) = self.player_names.get(&name) {
+            return Err(TournamentError::PlayerAlreadyRegistered(name, *id));
         }
 
         let id = self.players.keys().max().map(|i| i + 1).unwrap_or(0);

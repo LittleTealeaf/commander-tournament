@@ -8,10 +8,12 @@ pub enum TournamentError {
     PlayerNameNotRegistered(String),
     #[error("Player ID is not valid: {0}")]
     InvalidPlayerId(u32),
-    #[error("Player name is already registered: {0}")]
-    PlayerAlreadyRegistered(String),
+    #[error("Player name is already registered: {0}, id {1}")]
+    PlayerAlreadyRegistered(String, u32),
     #[error("Invalid Game: {0}")]
     GameNotFound(u32),
     #[error("Not enough players")]
     NotEnoughPlayers,
 }
+
+pub type TournResult<T> = Result<T, TournamentError>;
