@@ -1,4 +1,4 @@
-use crate::{Tournament, error::TournamentError, stats::PlayerStats};
+use crate::{Tournament, error::TournamentError};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub enum MtgColor {
