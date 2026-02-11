@@ -3,6 +3,7 @@ mod traits;
 
 use commander_tournament::Tournament;
 use iced::Element;
+use opener::open_browser;
 
 use crate::app::traits::{HandleMessage, View};
 
@@ -14,7 +15,7 @@ pub fn launch() -> iced::Result {
             app.error = Some(msg);
         }
     }
-    iced::run(updater, view)
+    iced::run(updater, App::view)
 }
 
 #[derive(Default)]
@@ -23,8 +24,10 @@ struct App {
     error: Option<String>,
 }
 
+#[derive(Clone)]
 pub enum Message {
     ClearError,
+    OpenLink(String),
 }
 
 impl HandleMessage<Message> for App {
@@ -32,6 +35,9 @@ impl HandleMessage<Message> for App {
         match msg {
             Message::ClearError => {
                 self.error = None;
+            }
+            Message::OpenLink(link) => {
+                open_browser(link)?;
             }
         }
         Ok(())

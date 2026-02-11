@@ -1,8 +1,7 @@
 use commander_tournament::{info::PlayerInfo, stats::PlayerStats};
 use iced::{
     Padding,
-    theme::default,
-    widget::{container, row, scrollable, space, table, text},
+    widget::{button, container, row, scrollable, space, table, text},
 };
 use itertools::Itertools;
 
@@ -42,7 +41,10 @@ impl View for LeaderboardComponent {
 
         let tbl = table(
             [
-                table::column("Deck", |p: Player<'_>| text(p.info.name()).size(12)),
+                table::column("Deck", |p: Player<'_>| {
+                    button(text(p.info.name()).size(12))
+                        .on_press_maybe(p.info.moxfield_link().map(Message::OpenLink))
+                }),
                 table::column("Elo", |p: Player<'_>| {
                     text(p.stats.unwrap_or(&default_stats).elo()).size(12)
                 }),
