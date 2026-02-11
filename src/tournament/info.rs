@@ -1,6 +1,10 @@
+use iced::widget::sensor::Key;
+
 use crate::{Tournament, error::TournamentError};
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash, Copy,
+)]
 pub enum MtgColor {
     #[serde(rename = "w")]
     White,
@@ -51,6 +55,44 @@ impl PlayerInfo {
         self.moxfield_id
             .as_ref()
             .map(|id| format!("https://moxfield.com/decks/{id}/goldfish"))
+    }
+
+    pub fn set_name(&mut self, name: String) {
+        self.name = name
+    }
+
+    pub fn set_description(&mut self, description: String) {
+        self.description = description;
+    }
+
+    pub fn set_moxfield_id(&mut self, id: Option<String>) {
+        self.moxfield_id = id;
+    }
+
+    pub fn remove_color(&mut self, color: &MtgColor) {
+        for i in 0..self.colors.len() {
+            let Some(c) = self.colors.get(i) else {
+                continue;
+            };
+            if c.eq(color) {
+                self.colors.remove(i);
+                return;
+            }
+        }
+    }
+
+    pub fn add(&mut self, color: MtgColor) {
+        if !self.colors.contains(&color) {
+            self.colors.push(color);
+        }
+    }
+
+    pub fn toggle_color(&mut self, color: MtgColor) {
+        if self.colors.contains(&color) {
+            self.remove_color(&color);
+        } else {
+            self.colors.push(color);
+        }
     }
 }
 
