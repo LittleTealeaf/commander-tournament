@@ -102,4 +102,8 @@ impl Tournament {
 
         Ok(())
     }
+
+    pub fn players(&self) -> &HashMap<u32, PlayerInfo> {
+        &self.players
+    }
 }
