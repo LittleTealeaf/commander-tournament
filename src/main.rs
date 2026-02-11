@@ -12,7 +12,3 @@ fn main() -> anyhow::Result<()> {
 
     Ok(())
 }
-
-// fn main() -> iced::Result {
-//     todo!()
-// }

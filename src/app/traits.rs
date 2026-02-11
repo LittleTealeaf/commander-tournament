@@ -8,5 +8,5 @@ pub trait HandleMessage<T> {
 
 
 pub trait View {
-    fn view(app: &App) -> Element<'_, Message>
+    fn view(app: &App) -> Element<'_, Message>;
 }
