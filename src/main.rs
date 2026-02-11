@@ -6,8 +6,9 @@ fn main() -> anyhow::Result<()> {
     let mut tourn = Tournament::default();
     tourn.ingest_tsv_games(include_str!("../data.tsv"))?;
 
-
-    dbg!(ron::to_string(&tourn)?);
+    let deserialized = ron::to_string(&tourn)?;
+    let serialized = ron::from_str::<Tournament>(&deserialized)?;
+    dbg!(deserialized);
 
     Ok(())
 }

@@ -13,13 +13,41 @@ use crate::{
 };
 
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(try_from = "SerdeTournament")]
 pub struct Tournament {
     config: TournamentConfig,
+    #[serde(skip)]
     stats: HashMap<u32, PlayerStats>,
     players: HashMap<u32, PlayerInfo>,
     #[serde(skip)]
     player_names: HashMap<String, u32>,
     games: Vec<GameRecord>,
+}
+
+#[derive(serde::Deserialize)]
+struct SerdeTournament {
+    config: TournamentConfig,
+    players: HashMap<u32, PlayerInfo>,
+    games: Vec<GameRecord>,
+}
+
+impl TryFrom<SerdeTournament> for Tournament {
+    type Error = TournamentError;
+    fn try_from(value: SerdeTournament) -> Result<Tournament, TournamentError> {
+        let mut tournament = Self {
+            config: value.config,
+            stats: HashMap::new(),
+            players: value.players,
+            player_names: HashMap::new(),
+            games: Vec::new(),
+        };
+
+        for game in value.games {
+            tournament.register_record(game)?;
+        }
+
+        Ok(tournament)
+    }
 }
 
 impl Tournament {
