@@ -73,4 +73,3 @@ impl View for LeaderboardComponent {
             .into()
     }
 }
-
