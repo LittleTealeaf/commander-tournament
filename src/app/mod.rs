@@ -3,8 +3,9 @@ mod message;
 mod traits;
 mod view;
 
-use std::path::PathBuf;
+use std::{cell::RefCell, path::PathBuf, rc::Rc};
 
+use appconfig::AppConfigManager;
 use commander_tournament::Tournament;
 use iced::Task;
 
@@ -34,6 +35,12 @@ struct App {
     screen: Option<Screen>,
     home: AppHome,
     file: Option<PathBuf>,
+    config: AppConfigManager<AppConfig>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, PartialEq, Debug, Default)]
+struct AppConfig {
+    last_opened_file: Option<PathBuf>,
 }
 
 impl Default for App {
@@ -46,6 +53,12 @@ impl Default for App {
             screen: None,
             home: AppHome::default(),
             file: None,
+            config: AppConfigManager::new(
+                Rc::from(RefCell::from(AppConfig::default())),
+                "TournamentManager",
+                "Tealeaf",
+            )
+            .with_auto_saving(true),
         }
     }
 }

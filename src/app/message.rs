@@ -8,6 +8,7 @@ use super::App;
 use super::traits::HandleMessage;
 use commander_tournament::Tournament;
 use iced::Task;
+use iced::futures::FutureExt;
 use opener::open_browser;
 use rfd::AsyncFileDialog;
 use ron::ser::PrettyConfig;
