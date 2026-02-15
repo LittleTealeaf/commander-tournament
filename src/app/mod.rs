@@ -17,13 +17,12 @@ use crate::app::{
 pub fn launch() -> iced::Result {
     fn updater(app: &mut App, message: Message) -> Task<Message> {
         match app.update(message) {
-            Ok(Some(task)) => task,
+            Ok(task) => task,
             Err(res) => {
                 let msg = res.to_string();
                 app.error = Some(msg);
                 Task::none()
             }
-            Ok(None) => Task::none(),
         }
     }
     iced::run(updater, App::view)

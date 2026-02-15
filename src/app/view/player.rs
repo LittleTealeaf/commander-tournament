@@ -4,8 +4,7 @@ use commander_tournament::{
     info::{MtgColor, PlayerInfo},
 };
 use iced::{
-    Alignment, Element, Length, Padding,
-    widget::{button, column, container, row, space, text, text_editor, text_input},
+    widget::{button, column, container, row, space, text, text_editor, text_input}, Alignment, Element, Length, Padding, Task
 };
 
 use crate::app::{message::Message, traits::HandleMessage};
@@ -132,7 +131,7 @@ impl EditPlayer {
 }
 
 impl HandleMessage<EditPlayerMessage> for EditPlayer {
-    fn update(&mut self, msg: EditPlayerMessage) -> anyhow::Result<Option<iced::Task<Message>>> {
+    fn update(&mut self, msg: EditPlayerMessage) -> anyhow::Result<iced::Task<Message>> {
         match msg {
             EditPlayerMessage::DescriptionAction(action) => self.description.perform(action),
             EditPlayerMessage::SetName(name) => self.info.set_name(name),
@@ -146,6 +145,6 @@ impl HandleMessage<EditPlayerMessage> for EditPlayer {
             }
         }
 
-        Ok(None)
+        Ok(Task::none())
     }
 }

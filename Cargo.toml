@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1.0.100"
+appconfig = "0.2.1"
 async-fs = "2.2.0"
 iced = "0.14.0"
 itertools = "0.14.0"

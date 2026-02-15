@@ -35,7 +35,7 @@ impl View for App {
     }
 }
 
-fn render_toolbar(app: &App) -> Element<'_, Message> {
+fn render_toolbar(_: &App) -> Element<'_, Message> {
     row![
         button("New Player").on_press(Message::EditPlayer(None)),
         button("Open").on_press(Message::Open),

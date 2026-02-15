@@ -1,4 +1,4 @@
-use iced::Element;
+use iced::{Element, Task};
 
 use crate::app::{
     App,
@@ -35,7 +35,7 @@ impl From<HomeMessage> for Message {
 }
 
 impl HandleMessage<HomeMessage> for App {
-    fn update(&mut self, msg: HomeMessage) -> anyhow::Result<Option<iced::Task<Message>>> {
+    fn update(&mut self, msg: HomeMessage) -> anyhow::Result<iced::Task<Message>> {
         match msg {
             HomeMessage::SortLeaderboardBy(sort_column) => {
                 if self.home.leaderboard_sort_column.eq(&sort_column) {
@@ -45,7 +45,7 @@ impl HandleMessage<HomeMessage> for App {
                     self.home.leaderboard_sort_asc = matches!(sort_column, LeaderboardColumn::Name);
                 }
 
-                Ok(None)
+                Ok(Task::none())
             }
         }
     }
