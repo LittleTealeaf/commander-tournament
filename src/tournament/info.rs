@@ -18,7 +18,29 @@ pub enum MtgColor {
     Colorless,
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+impl MtgColor {
+    pub const COLORS: [Self; 6] = [
+        Self::White,
+        Self::Blue,
+        Self::Green,
+        Self::Red,
+        Self::Black,
+        Self::Colorless,
+    ];
+
+    pub fn letter(&self) -> &str {
+        match self {
+            MtgColor::White => "W",
+            MtgColor::Blue => "B",
+            MtgColor::Green => "G",
+            MtgColor::Red => "R",
+            MtgColor::Black => "B",
+            MtgColor::Colorless => "C",
+        }
+    }
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default)]
 pub struct PlayerInfo {
     name: String,
     #[serde(skip_serializing_if = "String::is_empty", default)]
@@ -43,6 +65,10 @@ impl PlayerInfo {
         &self.name
     }
 
+    pub fn moxfield_id(&self) -> Option<&String> {
+        self.moxfield_id.as_ref()
+    }
+
     pub fn moxfield_link(&self) -> Option<String> {
         self.moxfield_id
             .as_ref()
@@ -61,6 +87,10 @@ impl PlayerInfo {
 
     pub fn set_description(&mut self, description: String) {
         self.description = description;
+    }
+
+    pub fn description(&self) -> &str {
+        &self.description
     }
 
     pub fn set_moxfield_id(&mut self, id: Option<String>) {
@@ -92,6 +122,10 @@ impl PlayerInfo {
             self.colors.push(color);
         }
     }
+
+    pub fn has_color(&self, color: &MtgColor) -> bool {
+        self.colors.contains(color)
+    }
 }
 
 impl Tournament {
@@ -104,6 +138,19 @@ impl Tournament {
             .players
             .get_mut(&player)
             .ok_or(TournamentError::InvalidPlayerId(player))?;
+
+        if !saved_info.name().eq(info.name())
+            && let Some(old_id) = self.player_names.get(info.name())
+        {
+            return Err(TournamentError::PlayerAlreadyRegistered(
+                info.name().to_string(),
+                *old_id,
+            ));
+        }
+
+        self.player_names.insert(info.name().to_string(), player);
+        self.player_names.remove(saved_info.name());
+
         *saved_info = info;
 
         Ok(())

@@ -1,4 +1,4 @@
-mod components;
+#![allow(dead_code)]
 mod message;
 mod traits;
 mod view;
@@ -9,6 +9,7 @@ use iced::Task;
 use crate::app::{
     message::Message,
     traits::{HandleMessage, View},
+    view::{Screen, home::AppHome},
 };
 
 pub fn launch() -> iced::Result {
@@ -29,6 +30,8 @@ pub fn launch() -> iced::Result {
 struct App {
     tournament: Tournament,
     error: Option<String>,
+    screen: Option<Screen>,
+    home: AppHome,
 }
 
 impl Default for App {
@@ -38,6 +41,8 @@ impl Default for App {
         Self {
             error: None,
             tournament,
+            screen: None,
+            home: AppHome::default(),
         }
     }
 }
