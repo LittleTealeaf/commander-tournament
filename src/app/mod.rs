@@ -1,12 +1,13 @@
 mod components;
+mod message;
 mod traits;
+mod view;
 
 use commander_tournament::Tournament;
-use iced::{Element, Task};
-use opener::open_browser;
+use iced::Task;
 
 use crate::app::{
-    components::leaderboard::LeaderboardComponent,
+    message::Message,
     traits::{HandleMessage, View},
 };
 
@@ -25,35 +26,18 @@ pub fn launch() -> iced::Result {
     iced::run(updater, App::view)
 }
 
-#[derive(Default)]
 struct App {
     tournament: Tournament,
     error: Option<String>,
 }
 
-#[derive(Clone)]
-pub enum Message {
-    ClearError,
-    OpenLink(String),
-}
-
-impl HandleMessage<Message> for App {
-    fn update(&mut self, msg: Message) -> anyhow::Result<Option<Task<Message>>> {
-        match msg {
-            Message::ClearError => {
-                self.error = None;
-                Ok(None)
-            }
-            Message::OpenLink(link) => {
-                open_browser(link)?;
-                Ok(None)
-            }
+impl Default for App {
+    fn default() -> Self {
+        let mut tournament = Tournament::default();
+        let _ = tournament.ingest_tsv_games(include_str!("../../data.tsv"));
+        Self {
+            error: None,
+            tournament,
         }
-    }
-}
-
-impl View for App {
-    fn view(app: &App) -> Element<'_, Message> {
-        LeaderboardComponent::view(app)
     }
 }

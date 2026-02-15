@@ -1,5 +1,3 @@
-use iced::widget::sensor::Key;
-
 use crate::{Tournament, error::TournamentError};
 
 #[derive(

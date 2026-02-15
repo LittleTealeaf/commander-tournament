@@ -43,10 +43,11 @@ impl View for LeaderboardComponent {
             [
                 table::column("Deck", |p: Player<'_>| {
                     button(text(p.info.name()).size(12))
+                        .style(button::text)
                         .on_press_maybe(p.info.moxfield_link().map(Message::OpenLink))
                 }),
                 table::column("Elo", |p: Player<'_>| {
-                    text(p.stats.unwrap_or(&default_stats).elo()).size(12)
+                    text(format!("{:.0}", p.stats.unwrap_or(&default_stats).elo())).size(12)
                 }),
                 table::column("Games", |p: Player<'_>| {
                     text(p.stats.unwrap_or(&default_stats).games()).size(12)
