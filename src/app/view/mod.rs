@@ -36,7 +36,12 @@ impl View for App {
 }
 
 fn render_toolbar(app: &App) -> Element<'_, Message> {
-    row![button("New Player").on_press(Message::EditPlayer(None))].into()
+    row![
+        button("New Player").on_press(Message::EditPlayer(None)),
+        button("Open").on_press(Message::Open),
+        button("SaveAs").on_press(Message::SaveAs),
+    ]
+    .into()
 }
 
 fn render_error(error: &str) -> Element<'_, Message> {

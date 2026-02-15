@@ -3,6 +3,8 @@ mod message;
 mod traits;
 mod view;
 
+use std::path::PathBuf;
+
 use commander_tournament::Tournament;
 use iced::Task;
 
@@ -32,6 +34,7 @@ struct App {
     error: Option<String>,
     screen: Option<Screen>,
     home: AppHome,
+    file: Option<PathBuf>,
 }
 
 impl Default for App {
@@ -43,6 +46,7 @@ impl Default for App {
             tournament,
             screen: None,
             home: AppHome::default(),
+            file: None,
         }
     }
 }

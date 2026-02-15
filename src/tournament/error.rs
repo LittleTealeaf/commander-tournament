@@ -15,7 +15,7 @@ pub enum TournamentError {
     #[error("Not enough players")]
     NotEnoughPlayers,
     #[error("Player name is invalid: '{0}'")]
-    InvalidPlayerName(String), 
+    InvalidPlayerName(String),
 }
 
 pub type TournResult<T> = Result<T, TournamentError>;
