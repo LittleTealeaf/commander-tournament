@@ -63,6 +63,10 @@ impl Tournament {
     }
 
     pub fn register_player(&mut self, name: String) -> Result<u32, TournamentError> {
+        if name.is_empty() {
+            return Err(TournamentError::InvalidPlayerName(name));
+        }
+
         if let Some(id) = self.player_names.get(&name) {
             return Err(TournamentError::PlayerAlreadyRegistered(name, *id));
         }

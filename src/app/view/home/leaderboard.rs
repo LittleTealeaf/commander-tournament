@@ -94,7 +94,7 @@ pub fn view_leaderboard<'a>(app: &'a App) -> Element<'a, Message> {
                 |p: Player<'_>| {
                     button(text(p.info.name()).size(12))
                         .style(button::text)
-                        .on_press_maybe(p.info.moxfield_link().map(Message::OpenLink))
+                        .on_press(Message::EditPlayer(Some(p.id)))
                 },
             ),
             table::column(
@@ -122,7 +122,7 @@ pub fn view_leaderboard<'a>(app: &'a App) -> Element<'a, Message> {
                 .size(12)
             }),
             table::column("", |p: Player<'_>| {
-                button("").on_press(Message::EditPlayer(Some(p.id)))
+                button("").on_press_maybe(p.info.moxfield_link().map(Message::OpenLink))
             }),
         ],
         players,

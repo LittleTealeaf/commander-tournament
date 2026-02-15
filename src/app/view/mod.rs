@@ -8,7 +8,8 @@ use crate::app::{
     view::{home::view_home, player::EditPlayer},
 };
 use iced::{
-    Alignment, Element,
+    Alignment, Element, Length,
+    alignment::Horizontal,
     widget::{button, column, container, row, text},
 };
 
@@ -30,15 +31,24 @@ impl View for App {
             None => view_home(app),
         };
 
-        container(column![content]).into()
+        container(column![render_toolbar(app), content]).into()
     }
 }
 
+fn render_toolbar(app: &App) -> Element<'_, Message> {
+    row![button("New Player").on_press(Message::EditPlayer(None))].into()
+}
+
 fn render_error(error: &str) -> Element<'_, Message> {
-    container(row![
-        text(format!("Error: {error}")),
-        button("Close").on_press(Message::ClearError)
-    ])
+    container(
+        column![
+            text(format!("Error: {error}")),
+            button("Close").on_press(Message::ClearError)
+        ]
+        .align_x(Horizontal::Center),
+    )
+    .width(Length::Fill)
+    .height(Length::Fill)
     .align_x(Alignment::Center)
     .align_y(Alignment::Center)
     .into()

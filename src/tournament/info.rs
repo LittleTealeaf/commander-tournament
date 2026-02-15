@@ -139,13 +139,17 @@ impl Tournament {
             .get_mut(&player)
             .ok_or(TournamentError::InvalidPlayerId(player))?;
 
-        if !saved_info.name().eq(info.name())
-            && let Some(old_id) = self.player_names.get(info.name())
-        {
-            return Err(TournamentError::PlayerAlreadyRegistered(
-                info.name().to_string(),
-                *old_id,
-            ));
+        if !saved_info.name().eq(info.name()) {
+            if info.name().is_empty() {
+                return Err(TournamentError::InvalidPlayerName(info.name().to_string()));
+            }
+
+            if let Some(old_id) = self.player_names.get(info.name()) {
+                return Err(TournamentError::PlayerAlreadyRegistered(
+                    info.name().to_string(),
+                    *old_id,
+                ));
+            }
         }
 
         self.player_names.insert(info.name().to_string(), player);
