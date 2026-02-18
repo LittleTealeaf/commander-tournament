@@ -1,79 +1,24 @@
 (
     players: {
-        "Neerdiv, Devious Diver": (
-            elo: 1495.8075885371063,
-            games: 16,
+        "Fae Dominion (Precon)": (
+            elo: 1395.8141393533006,
+            games: 28,
             wins: 3,
         ),
         "Aerith Gainsborough": (
-            elo: 1430.6963256564045,
-            games: 44,
+            elo: 1423.5325829615595,
+            games: 45,
             wins: 9,
         ),
-        "Pantlaza, Sun-Favored": (
-            elo: 1495.7866853650683,
-            games: 50,
-            wins: 12,
-        ),
-        "Blight Curse (Precon)": (
-            elo: 1440.2787634029462,
-            games: 13,
-            wins: 1,
-        ),
-        "The Devil Strahd": (
-            elo: 1516.0573912898576,
-            games: 24,
-            wins: 7,
-        ),
-        "Anim Pakal, Thousandth Moon": (
-            elo: 1516.4627533643466,
-            games: 45,
-            wins: 16,
-        ),
         "Aloy, Machine Master": (
-            elo: 1511.5264814246307,
-            games: 53,
+            elo: 1496.597457339839,
+            games: 55,
             wins: 15,
         ),
-        "Aphelia, Viper Whisperer": (
-            elo: 1360.7440014306708,
-            games: 26,
-            wins: 2,
-        ),
-        "Massacre Girl": (
-            elo: 1423.5442394943204,
-            games: 50,
-            wins: 11,
-        ),
-        "Narset, Enlightened Master": (
-            elo: 1549.674208263303,
-            games: 47,
-            wins: 14,
-        ),
-        "Veloci-Ramp-Tor (Precon)": (
-            elo: 1466.0701489109051,
-            games: 25,
-            wins: 2,
-        ),
-        "Kemba, Kha Regent": (
-            elo: 1471.631883447918,
-            games: 44,
-            wins: 8,
-        ),
-        "Bre of Clan Stoutarm": (
-            elo: 1677.9509644244963,
-            games: 48,
-            wins: 15,
-        ),
-        "Veryan, Voice of Duality": (
-            elo: 1509.295860556574,
-            games: 34,
-            wins: 6,
-        ),
-        "Rocksanne, Starfall Savant": (
-            elo: 1631.3302815716972,
-            games: 43,
-            wins: 17,
+        "Bruna, Light of Alabaster": (
+            elo: 1573.2452898488398,
+            games: 22,
+            wins: 9,
         ),
         "Lazav, the Multifarious": (
             elo: 1417.3551230206779,
@@ -81,67 +26,158 @@
             wins: 4,
         ),
         "Tifa Lockhart": (
-            elo: 1664.9081767339353,
-            games: 48,
-            wins: 19,
+            elo: 1654.0327456273155,
+            games: 53,
+            wins: 20,
         ),
-        "Hakbal of the Surging Soul": (
-            elo: 1452.8697827702072,
-            games: 29,
-            wins: 5,
+        "Bre of Clan Stoutarm": (
+            elo: 1703.3911972060675,
+            games: 53,
+            wins: 17,
         ),
-        "Aurelia, the Warleader": (
-            elo: 1689.1583167565414,
-            games: 59,
-            wins: 21,
-        ),
-        "Fae Dominion (Precon)": (
-            elo: 1395.8141393533006,
-            games: 28,
-            wins: 3,
-        ),
-        "Vampiric Bloodline (Precon)": (
-            elo: 1484.081708682645,
-            games: 4,
-            wins: 0,
-        ),
-        "Jeskai Striker (Precon)": (
-            elo: 1436.9393865156471,
-            games: 28,
-            wins: 2,
-        ),
-        "Emmara, Soul of the Accord": (
-            elo: 1476.811589168428,
-            games: 48,
-            wins: 13,
-        ),
-        "Balan, Wandering Knight": (
-            elo: 1552.0502455141907,
-            games: 40,
+        "Pantlaza, Sun-Favored": (
+            elo: 1529.688673343701,
+            games: 55,
             wins: 14,
         ),
-        "Explorers of the Deep (Precon)": (
-            elo: 1480.6594913787287,
-            games: 40,
-            wins: 8,
+        "Emmara, Soul of the Accord": (
+            elo: 1463.320022552182,
+            games: 50,
+            wins: 13,
         ),
-        "Bruna, Light of Alabaster": (
-            elo: 1585.4766762768681,
-            games: 17,
-            wins: 8,
+        "Anim Pakal, Thousandth Moon": (
+            elo: 1500.903792615199,
+            games: 47,
+            wins: 16,
+        ),
+        "Blight Curse (Precon)": (
+            elo: 1435.7021813867532,
+            games: 14,
+            wins: 1,
+        ),
+        "Balan, Wandering Knight": (
+            elo: 1522.1516439569,
+            games: 44,
+            wins: 14,
         ),
         "Lae\'zel, Master Chef": (
             elo: 1367.0177866885865,
             games: 36,
             wins: 8,
         ),
+        "Kemba, Kha Regent": (
+            elo: 1467.5074939122178,
+            games: 45,
+            wins: 8,
+        ),
+        "Veloci-Ramp-Tor (Precon)": (
+            elo: 1517.3634367260174,
+            games: 28,
+            wins: 4,
+        ),
+        "Neerdiv, Devious Diver": (
+            elo: 1486.3766038731264,
+            games: 17,
+            wins: 3,
+        ),
+        "Narset, Enlightened Master": (
+            elo: 1528.5873675805694,
+            games: 50,
+            wins: 14,
+        ),
+        "Massacre Girl": (
+            elo: 1416.4142140715355,
+            games: 51,
+            wins: 11,
+        ),
+        "The Devil Strahd": (
+            elo: 1488.4603505810246,
+            games: 28,
+            wins: 7,
+        ),
+        "Minwu, White Mage": (
+            elo: 1519.446953297978,
+            games: 12,
+            wins: 5,
+        ),
+        "Aphelia, Viper Whisperer": (
+            elo: 1360.7440014306708,
+            games: 26,
+            wins: 2,
+        ),
+        "Vampiric Bloodline (Precon)": (
+            elo: 1480.9706329088197,
+            games: 5,
+            wins: 0,
+        ),
+        "Aurelia, the Warleader": (
+            elo: 1695.085558846295,
+            games: 62,
+            wins: 22,
+        ),
+        "Rocksanne, Starfall Savant": (
+            elo: 1671.372001294928,
+            games: 46,
+            wins: 19,
+        ),
+        "Veryan, Voice of Duality": (
+            elo: 1500.0472987392022,
+            games: 35,
+            wins: 6,
+        ),
+        "Hakbal of the Surging Soul": (
+            elo: 1472.0540228503282,
+            games: 31,
+            wins: 6,
+        ),
+        "Jeskai Striker (Precon)": (
+            elo: 1436.9393865156471,
+            games: 28,
+            wins: 2,
+        ),
+        "Explorers of the Deep (Precon)": (
+            elo: 1475.8780414707194,
+            games: 41,
+            wins: 8,
+        ),
     },
     player_details: {
+        "Rocksanne, Starfall Savant": (
+            description: None,
+            moxfield_link: None,
+            colors: [
+                Green,
+                Red,
+            ],
+        ),
+        "Minwu, White Mage": (
+            description: None,
+            moxfield_link: None,
+            colors: [
+                White,
+            ],
+        ),
         "Tifa Lockhart": (
             description: None,
             moxfield_link: None,
             colors: [
                 Green,
+            ],
+        ),
+        "Bre of Clan Stoutarm": (
+            description: None,
+            moxfield_link: None,
+            colors: [
+                Red,
+                White,
+            ],
+        ),
+        "Aurelia, the Warleader": (
+            description: None,
+            moxfield_link: Some("https://moxfield.com/decks/BtCcQ8eWg0uT8n4fFPK3Xg"),
+            colors: [
+                Red,
+                White,
             ],
         ),
     },
@@ -1118,6 +1154,74 @@
             players: ("Bre of Clan Stoutarm", "Tifa Lockhart", "Aurelia, the Warleader", "Aloy, Machine Master"),
             winner: "Bre of Clan Stoutarm",
         ),
+        (
+            players: ("Bre of Clan Stoutarm", "The Devil Strahd", "Aurelia, the Warleader", "Pantlaza, Sun-Favored"),
+            winner: "Pantlaza, Sun-Favored",
+        ),
+        (
+            players: ("Bre of Clan Stoutarm", "Pantlaza, Sun-Favored", "Tifa Lockhart", "Rocksanne, Starfall Savant"),
+            winner: "Rocksanne, Starfall Savant",
+        ),
+        (
+            players: ("Minwu, White Mage", "Neerdiv, Devious Diver", "Vampiric Bloodline (Precon)", "Veryan, Voice of Duality"),
+            winner: "Minwu, White Mage",
+        ),
+        (
+            players: ("Minwu, White Mage", "Anim Pakal, Thousandth Moon", "Pantlaza, Sun-Favored", "Aloy, Machine Master"),
+            winner: "Minwu, White Mage",
+        ),
+        (
+            players: ("Minwu, White Mage", "Narset, Enlightened Master", "Balan, Wandering Knight", "The Devil Strahd"),
+            winner: "Minwu, White Mage",
+        ),
+        (
+            players: ("Minwu, White Mage", "Bruna, Light of Alabaster", "Emmara, Soul of the Accord", "Explorers of the Deep (Precon)"),
+            winner: "Minwu, White Mage",
+        ),
+        (
+            players: ("The Devil Strahd", "Pantlaza, Sun-Favored", "Aloy, Machine Master", "Emmara, Soul of the Accord"),
+            winner: "Pantlaza, Sun-Favored",
+        ),
+        (
+            players: ("Minwu, White Mage", "Tifa Lockhart", "Rocksanne, Starfall Savant", "Bre of Clan Stoutarm"),
+            winner: "Rocksanne, Starfall Savant",
+        ),
+        (
+            players: ("Minwu, White Mage", "Aurelia, the Warleader", "Tifa Lockhart", "Kemba, Kha Regent"),
+            winner: "Tifa Lockhart",
+        ),
+        (
+            players: ("Aurelia, the Warleader", "Bruna, Light of Alabaster", "Balan, Wandering Knight", "Tifa Lockhart"),
+            winner: "Aurelia, the Warleader",
+        ),
+        (
+            players: ("Bre of Clan Stoutarm", "Minwu, White Mage", "Pantlaza, Sun-Favored", "The Devil Strahd"),
+            winner: "Bre of Clan Stoutarm",
+        ),
+        (
+            players: ("Bre of Clan Stoutarm", "Narset, Enlightened Master", "Bruna, Light of Alabaster", "Rocksanne, Starfall Savant"),
+            winner: "Bre of Clan Stoutarm",
+        ),
+        (
+            players: ("Balan, Wandering Knight", "Minwu, White Mage", "Veloci-Ramp-Tor (Precon)", "Anim Pakal, Thousandth Moon"),
+            winner: "Veloci-Ramp-Tor (Precon)",
+        ),
+        (
+            players: ("Minwu, White Mage", "Hakbal of the Surging Soul", "Aerith Gainsborough", "Blight Curse (Precon)"),
+            winner: "Hakbal of the Surging Soul",
+        ),
+        (
+            players: ("Minwu, White Mage", "Massacre Girl", "Veloci-Ramp-Tor (Precon)", "Hakbal of the Surging Soul"),
+            winner: "Veloci-Ramp-Tor (Precon)",
+        ),
+        (
+            players: ("Bruna, Light of Alabaster", "Minwu, White Mage", "Veloci-Ramp-Tor (Precon)", "Narset, Enlightened Master"),
+            winner: "Bruna, Light of Alabaster",
+        ),
+        (
+            players: ("Bruna, Light of Alabaster", "Balan, Wandering Knight", "Minwu, White Mage", "Tifa Lockhart"),
+            winner: "Minwu, White Mage",
+        ),
     ],
     score_config: (
         starting_elo: 1500.0,
@@ -1129,9 +1233,9 @@
     ),
     match_config: (
         weight_least_played: 6.0,
-        weight_nemesis: 4.0,
-        weight_neighbor: 5.0,
-        weight_wr_neighbor: 3.0,
-        weight_lost_with: 3.0,
+        weight_nemesis: 5.0,
+        weight_neighbor: 4.0,
+        weight_wr_neighbor: 3.5,
+        weight_lost_with: 2.0,
     ),
 )
