@@ -29,6 +29,10 @@ impl Tournament {
 
         Ok(tournament)
     }
+
+    pub fn sample_game() -> Tournament {
+        ron::from_str(include_str!("../../tests/sample-game.ron")).unwrap()
+    }
 }
 
 mod tests {
@@ -56,5 +60,10 @@ mod tests {
             let tournament = Tournament::generate_tournament(10, i).unwrap();
             assert_eq!(i, tournament.games().len());
         }
+    }
+
+    #[test]
+    fn sample_game_loads() {
+        Tournament::sample_game();
     }
 }

@@ -18,7 +18,7 @@ use crate::{
     utils::serde_utils::ordered_map,
 };
 
-#[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
 #[serde(try_from = "SerdeTournament")]
 pub struct Tournament {
     config: TournamentConfig,
@@ -41,11 +41,17 @@ struct SerdeTournament {
 impl TryFrom<SerdeTournament> for Tournament {
     type Error = TournamentError;
     fn try_from(value: SerdeTournament) -> Result<Tournament, TournamentError> {
+        let player_names = value
+            .players
+            .iter()
+            .map(|(id, info)| (info.name().to_string(), *id))
+            .collect();
+
         let mut tournament = Self {
             config: value.config,
             stats: HashMap::new(),
             players: value.players,
-            player_names: HashMap::new(),
+            player_names,
             games: Vec::new(),
         };
 
@@ -116,5 +122,44 @@ impl Tournament {
 
     pub fn players(&self) -> &HashMap<u32, PlayerInfo> {
         &self.players
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::tourn::Tournament;
+
+    #[test]
+    fn unregister_removes_players_games() {
+        let sample = Tournament::sample_game();
+        for id in sample.players().keys() {
+            let mut tourn = sample.clone();
+            tourn.unregister_player(*id).unwrap();
+            for game in tourn.games() {
+                assert!(!game.players().contains(id));
+                assert_ne!(game.winner(), *id)
+            }
+        }
+    }
+
+    #[test]
+    fn reload_maintains_equivilancy() {
+        let mut sample = Tournament::sample_game();
+        let snapshot = sample.clone();
+        sample.reload().unwrap();
+        assert_eq!(sample, snapshot);
+    }
+
+    #[test]
+    fn ron_serialize_loop() {
+        for mut game in [
+            Tournament::sample_game(),
+            Tournament::generate_tournament(30, 50).unwrap(),
+        ] {
+            for _ in 0..3 {
+                let ser = ron::ser::to_string(&game).unwrap();
+                game = ron::from_str(&ser).unwrap();
+            }
+        }
     }
 }

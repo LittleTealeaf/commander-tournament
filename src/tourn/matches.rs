@@ -207,3 +207,39 @@ impl Tournament {
             .map(|(pid, _)| pid))
     }
 }
+
+#[cfg(test)]
+mod tests {
+
+    macro_rules! rank_tests {
+        ($func: ident) => {
+            mod $func {
+                use crate::tourn::Tournament;
+                #[test]
+                fn returns_iterator() {
+                    let tournament = Tournament::sample_game();
+                    for id in tournament.players.keys() {
+                        let iter = tournament.$func(id).unwrap();
+                        assert_eq!(tournament.players.len() - 1, iter.count());
+                    }
+                }
+
+                #[test]
+                fn does_not_include_self() {
+                    let tournament = Tournament::sample_game();
+                    for id in tournament.players.keys() {
+                        let mut iter = tournament.$func(id).unwrap();
+                        assert!(!iter.any(|i| i == *id));
+                    }
+                }
+            }
+        };
+    }
+
+    rank_tests!(rank_least_played);
+    rank_tests!(rank_nemesis);
+    rank_tests!(rank_loss_with);
+    rank_tests!(rank_neighbors);
+    rank_tests!(rank_wr_neighbors);
+    rank_tests!(rank_combined);
+}

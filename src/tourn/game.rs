@@ -4,7 +4,7 @@ use crate::tourn::{
     stats::PlayerStats,
 };
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, Copy, Hash)]
 pub struct GameRecord {
     #[serde(rename = "p")]
     players: [u32; 4],

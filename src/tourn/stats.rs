@@ -1,6 +1,6 @@
 use crate::tourn::Tournament;
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
 pub struct PlayerStats {
     pub(crate) elo: f64,
     pub(crate) games: u32,
@@ -59,5 +59,14 @@ mod tests {
         let starting_elo = tournament.config.starting_elo;
         let stats = tournament.create_default_stats();
         assert_eq!(starting_elo, stats.elo);
+    }
+
+    #[test]
+    fn all_players_start_with_default_elo() {
+        let tournament = Tournament::generate_tournament(100, 0).unwrap();
+        let starting_elo = tournament.config.starting_elo;
+        for stats in tournament.stats.values() {
+            assert_eq!(starting_elo, stats.elo);
+        }
     }
 }

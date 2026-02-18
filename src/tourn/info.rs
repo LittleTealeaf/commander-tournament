@@ -40,7 +40,7 @@ impl MtgColor {
     }
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default, PartialEq, Eq)]
 pub struct PlayerInfo {
     name: String,
     #[serde(skip_serializing_if = "String::is_empty", default)]
