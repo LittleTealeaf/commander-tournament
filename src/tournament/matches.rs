@@ -2,7 +2,7 @@ use std::{cmp::Ordering, collections::HashMap};
 
 use itertools::{Itertools, chain};
 
-use crate::{Tournament, error::TournamentError, stats::PlayerStats};
+use crate::tournament::{Tournament, error::TournamentError, stats::PlayerStats};
 
 fn with_tie_breaker(cmp: Ordering, tie_breaker: impl Fn() -> Ordering) -> Ordering {
     match cmp {

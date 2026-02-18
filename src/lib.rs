@@ -1,2 +1,2 @@
-mod tournament;
-pub use tournament::*;
+pub mod tournament;
+pub mod compat;

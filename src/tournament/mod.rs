@@ -7,7 +7,7 @@ pub mod stats;
 pub mod tsv;
 use std::collections::HashMap;
 
-use crate::{
+use crate::tournament::{
     config::TournamentConfig, error::TournamentError, game::GameRecord, info::PlayerInfo,
     stats::PlayerStats,
 };

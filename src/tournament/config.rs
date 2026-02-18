@@ -1,4 +1,4 @@
-use crate::{Tournament, error::TournamentError};
+use crate::tournament::{Tournament, error::TournamentError};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
 pub struct TournamentConfig {

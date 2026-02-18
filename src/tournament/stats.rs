@@ -1,4 +1,4 @@
-use crate::Tournament;
+use crate::tournament::Tournament;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct PlayerStats {

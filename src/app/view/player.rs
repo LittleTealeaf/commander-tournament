@@ -1,4 +1,4 @@
-use commander_tournament::{
+use commander_tournament::tournament::{
     Tournament,
     error::TournamentError,
     info::{MtgColor, PlayerInfo},
