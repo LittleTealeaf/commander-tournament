@@ -48,3 +48,16 @@ impl Tournament {
         self.stats.get(player)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::tournament::Tournament;
+
+    #[test]
+    fn default_stats_use_starting_elo() {
+        let tournament = Tournament::default();
+        let starting_elo = tournament.config.starting_elo;
+        let stats = tournament.create_default_stats();
+        assert_eq!(starting_elo, stats.elo);
+    }
+}

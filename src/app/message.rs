@@ -27,6 +27,7 @@ pub enum Message {
     Error(String),
     Save,
     SaveAs,
+    Import,
     Open,
     New,
     #[default]
@@ -47,6 +48,24 @@ impl Message {
         move |result| match result {
             Ok(value) => on_success(value),
             Err(error) => Self::Error(error.to_string()),
+        }
+    }
+
+    fn some_or_none<T: Sized>(
+        on_some: impl Fn(T) -> Message + 'static,
+    ) -> impl Fn(Option<T>) -> Self + 'static {
+        move |option: Option<T>| match option {
+            Some(item) => on_some(item),
+            None => Self::None,
+        }
+    }
+
+    fn ok_or_error<T: Sized, E: ToString>(
+        on_ok: impl Fn(T) -> Message + 'static,
+    ) -> impl Fn(Result<T, E>) -> Self + 'static {
+        move |result: Result<T, E>| match result {
+            Ok(item) => on_ok(item),
+            Err(error) => Message::Error(error.to_string()),
         }
     }
 }
@@ -135,13 +154,27 @@ impl HandleMessage<Message> for App {
                         Some(file) => Some(file.read().await),
                     }
                 },
-                |result| match result {
-                    Some(bytes) => match ron::de::from_bytes(&bytes) {
-                        Ok(result) => Message::LoadTournament(result),
-                        Err(error) => Message::Error(error.to_string()),
-                    },
-                    None => Message::None,
+                Message::some_or_none(|bytes: Vec<u8>| {
+                    Message::ok_or_error(Message::LoadTournament)(ron::de::from_bytes(&bytes))
+                }),
+            )),
+            Message::Import => Ok(Task::perform(
+                async {
+                    match AsyncFileDialog::new()
+                        .add_filter("data", &["ron"])
+                        .set_directory(".")
+                        .pick_file()
+                        .await
+                    {
+                        None => None,
+                        Some(file) => Some(file.read().await),
+                    }
                 },
+                Message::some_or_none(|bytes: Vec<u8>| {
+                    Message::ok_or_error(|res: Tournament| Message::LoadTournament(res.into()))(
+                        Tournament::from_compat_bytes(&bytes),
+                    )
+                }),
             )),
             Message::New => {
                 self.file = None;
