@@ -128,4 +128,3 @@ impl TryFrom<TournamentCompatV1> for Tournament {
         Ok(tournament)
     }
 }
-

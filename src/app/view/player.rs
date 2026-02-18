@@ -4,7 +4,8 @@ use commander_tournament::tournament::{
     info::{MtgColor, PlayerInfo},
 };
 use iced::{
-    widget::{button, column, container, row, space, text, text_editor, text_input}, Alignment, Element, Length, Padding, Task
+    Alignment, Element, Length, Padding, Task,
+    widget::{button, column, container, row, space, text, text_editor, text_input},
 };
 
 use crate::app::{message::Message, traits::HandleMessage};

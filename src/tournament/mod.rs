@@ -7,9 +7,12 @@ pub mod stats;
 pub mod tsv;
 use std::collections::HashMap;
 
-use crate::tournament::{
-    config::TournamentConfig, error::TournamentError, game::GameRecord, info::PlayerInfo,
-    stats::PlayerStats,
+use crate::{
+    tournament::{
+        config::TournamentConfig, error::TournamentError, game::GameRecord, info::PlayerInfo,
+        stats::PlayerStats,
+    },
+    utils::serde_utils::ordered_map,
 };
 
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -18,6 +21,7 @@ pub struct Tournament {
     config: TournamentConfig,
     #[serde(skip)]
     stats: HashMap<u32, PlayerStats>,
+    #[serde(serialize_with = "ordered_map")]
     players: HashMap<u32, PlayerInfo>,
     #[serde(skip)]
     player_names: HashMap<String, u32>,
