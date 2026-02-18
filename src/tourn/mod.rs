@@ -55,6 +55,8 @@ impl TryFrom<SerdeTournament> for Tournament {
             games: Vec::new(),
         };
 
+        tournament.config.version = 0;
+
         for game in value.games {
             tournament.register_record(game)?;
         }
@@ -64,6 +66,10 @@ impl TryFrom<SerdeTournament> for Tournament {
 }
 
 impl Tournament {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
     pub fn get_player_id(&self, name: &String) -> Result<u32, TournamentError> {
         self.player_names
             .get(name)
@@ -75,22 +81,6 @@ impl Tournament {
         self.players.contains_key(id)
     }
 
-    pub fn register_player(&mut self, name: String) -> Result<u32, TournamentError> {
-        if name.is_empty() {
-            return Err(TournamentError::InvalidPlayerName(name));
-        }
-
-        if let Some(id) = self.player_names.get(&name) {
-            return Err(TournamentError::PlayerAlreadyRegistered(name, *id));
-        }
-
-        let id = self.players.keys().max().map(|i| i + 1).unwrap_or(0);
-
-        self.player_names.insert(name.clone(), id);
-        self.players.insert(id, PlayerInfo::new(name));
-
-        Ok(id)
-    }
 
     pub fn unregister_player(&mut self, id: u32) -> Result<(), TournamentError> {
         self.players
@@ -161,5 +151,10 @@ mod tests {
                 game = ron::from_str(&ser).unwrap();
             }
         }
+    }
+
+    #[test]
+    fn load_resets_config_version() {
+        assert_eq!(Tournament::sample_game().config.version, 0);
     }
 }

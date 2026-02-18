@@ -10,7 +10,7 @@ use crate::app::{
 use iced::{
     Alignment, Element, Length,
     alignment::Horizontal,
-    widget::{button, column, container, row, text},
+    widget::{button, column, container, row, space, text},
 };
 
 use crate::app::{message::Message, traits::View};
@@ -38,9 +38,12 @@ impl View for App {
 fn render_toolbar(_: &App) -> Element<'_, Message> {
     row![
         button("New Player").on_press(Message::EditPlayer(None)),
+        space().width(15.0),
+        button("Import").on_press(Message::Import),
         button("Open").on_press(Message::Open),
         button("SaveAs").on_press(Message::SaveAs),
     ]
+    .spacing(10)
     .into()
 }
 

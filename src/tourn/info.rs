@@ -109,7 +109,7 @@ impl PlayerInfo {
         }
     }
 
-    pub fn add(&mut self, color: MtgColor) {
+    pub fn add_color(&mut self, color: MtgColor) {
         if !self.colors.contains(&color) {
             self.colors.push(color);
         }
@@ -129,6 +129,23 @@ impl PlayerInfo {
 }
 
 impl Tournament {
+    pub fn register_player(&mut self, name: String) -> Result<u32, TournamentError> {
+        if name.is_empty() {
+            return Err(TournamentError::InvalidPlayerName(name));
+        }
+
+        if let Some(id) = self.player_names.get(&name) {
+            return Err(TournamentError::PlayerAlreadyRegistered(name, *id));
+        }
+
+        let id = self.players.keys().max().map(|i| i + 1).unwrap_or(0);
+
+        self.player_names.insert(name.clone(), id);
+        self.players.insert(id, PlayerInfo::new(name));
+
+        Ok(id)
+    }
+
     pub fn set_player_info(
         &mut self,
         player: u32,
@@ -166,5 +183,62 @@ impl Tournament {
             .get(&id)
             .ok_or(TournamentError::InvalidPlayerId(id))?
             .clone())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use itertools::Itertools;
+
+    use crate::tourn::{Tournament, error::TournamentError, info::PlayerInfo};
+
+    #[test]
+    fn set_info_invalid_id() {
+        let mut t = Tournament::new();
+        assert!(!t.players().keys().contains(&283));
+        assert!(matches!(
+            t.set_player_info(283, PlayerInfo::new(String::new())),
+            Err(TournamentError::InvalidPlayerId(283))
+        ));
+    }
+
+    #[test]
+    fn set_info_duplicate_name() {
+        let mut t = Tournament::new();
+        let name = "Test".to_string();
+        let _ = t.register_player(name.clone()).unwrap();
+        let id_2 = t.register_player("Test 2".to_string()).unwrap();
+        assert!(
+            t.set_player_info(id_2, PlayerInfo::new(name.clone()))
+                .is_err()
+        );
+    }
+
+    #[test]
+    fn set_info_invalid_name() {
+        let mut t = Tournament::new();
+        let id = t.register_player(String::from("hi")).unwrap();
+        let res = t.set_player_info(id, PlayerInfo::new(String::new()));
+        assert!(matches!(res, Err(TournamentError::InvalidPlayerName(_))));
+    }
+
+    #[test]
+    fn register_invalid_name() {
+        let mut t = Tournament::new();
+
+        let res = t.register_player(String::new());
+        assert!(matches!(res, Err(TournamentError::InvalidPlayerName(_))));
+    }
+
+    #[test]
+    fn register_duplicate_name() {
+        let mut t = Tournament::new();
+        let s = "hi".to_string();
+        let _ = t.register_player(s.clone()).unwrap();
+        let res = t.register_player(s.clone());
+        assert!(matches!(
+            res,
+            Err(TournamentError::PlayerAlreadyRegistered(_, _))
+        ));
     }
 }

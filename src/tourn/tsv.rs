@@ -42,3 +42,29 @@ impl Tournament {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use itertools::Itertools;
+
+    use crate::tourn::Tournament;
+
+    #[test]
+    fn parse_tsv_games() {
+        let mut t = Tournament::new();
+        let tsv = include_str!("../../tests/sample-tsv.tsv");
+        let game_count = tsv.lines().count();
+        let records = t.parse_tsv_games(tsv).collect_vec();
+        assert_eq!(game_count, records.len());
+    }
+
+    #[test]
+    fn ingest_tsv_games() {
+        let mut t = Tournament::new();
+        let tsv = include_str!("../../tests/sample-tsv.tsv");
+        let game_count = tsv.lines().count();
+        assert_eq!(0, t.games().len());
+        t.ingest_tsv_games(tsv).unwrap();
+        assert_eq!(game_count, t.games().len());
+    }
+}

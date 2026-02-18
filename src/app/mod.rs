@@ -2,6 +2,8 @@
 mod message;
 mod traits;
 mod view;
+#[cfg(test)]
+mod tests;
 
 use std::{cell::RefCell, path::PathBuf, rc::Rc};
 
@@ -29,7 +31,7 @@ pub fn launch() -> iced::Result {
     iced::run(updater, App::view)
 }
 
-struct App {
+pub struct App {
     tournament: Tournament,
     error: Option<String>,
     screen: Option<Screen>,

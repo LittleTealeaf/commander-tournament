@@ -49,3 +49,21 @@ impl Tournament {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::tourn::{Tournament, config::TournamentConfig};
+
+    #[test]
+    fn new_config_version_is_0() {
+        assert_eq!(0, TournamentConfig::default().version);
+    }
+
+    #[test]
+    fn updating_config_increases_version() {
+        let mut t = Tournament::new();
+        assert_eq!(0, t.config.version);
+        t.set_config(t.config.clone()).unwrap();
+        assert_eq!(1, t.config.version);
+    }
+}

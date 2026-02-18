@@ -1,5 +1,8 @@
+mod filesystem;
+
 use std::path::PathBuf;
 
+use crate::app::message::filesystem::parse_tournament_file;
 use crate::app::view::Screen;
 use crate::app::view::home::HomeMessage;
 use crate::app::view::player::{EditPlayer, EditPlayerMessage};
@@ -114,8 +117,8 @@ impl HandleMessage<Message> for App {
                 Message::handle_result(|()| Message::None),
             )),
             Message::OpenFile(path) => Ok(Task::perform(
-                async_fs::read_to_string(path),
-                Message::handle_result(Message::LoadSerialized),
+                parse_tournament_file(path),
+                Message::handle_result(|t: Tournament| Message::LoadTournament(t.into())),
             )),
             Message::LoadSerialized(serialized) => {
                 self.tournament = ron::de::from_str(&serialized)?;
@@ -124,7 +127,7 @@ impl HandleMessage<Message> for App {
             Message::Save => self.update(
                 self.file
                     .clone()
-                    .map(Message::OpenFile)
+                    .map(Message::SaveToFile)
                     .unwrap_or(Message::SaveAs),
             ),
             Message::SaveAs => Ok(Task::perform(
