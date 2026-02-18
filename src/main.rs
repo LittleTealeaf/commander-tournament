@@ -1,4 +1,4 @@
-use commander_tournament::tournament::Tournament;
+use commander_tournament::tourn::Tournament;
 
 use crate::app::launch;
 

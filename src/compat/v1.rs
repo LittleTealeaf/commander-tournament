@@ -2,7 +2,7 @@ use std::{collections::HashMap, iter::once};
 
 use itertools::{Itertools, chain};
 
-use crate::tournament::{
+use crate::tourn::{
     Tournament, config::TournamentConfig, error::TournamentError, game::GameRecord, info::MtgColor,
 };
 

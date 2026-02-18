@@ -6,7 +6,7 @@ use crate::app::view::player::{EditPlayer, EditPlayerMessage};
 
 use super::App;
 use super::traits::HandleMessage;
-use commander_tournament::tournament::Tournament;
+use commander_tournament::tourn::Tournament;
 use iced::Task;
 use opener::open_browser;
 use rfd::AsyncFileDialog;

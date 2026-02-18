@@ -4,7 +4,10 @@ pub mod game;
 pub mod info;
 pub mod matches;
 pub mod stats;
+#[cfg(test)]
+pub mod testing;
 pub mod tsv;
+
 use std::collections::HashMap;
 
 use crate::{

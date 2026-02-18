@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use commander_tournament::tournament::{info::PlayerInfo, stats::PlayerStats};
+use commander_tournament::tourn::{info::PlayerInfo, stats::PlayerStats};
 use iced::{
     Element, Padding,
     widget::{button, container, row, scrollable, space, table, text},

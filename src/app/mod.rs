@@ -6,7 +6,7 @@ mod view;
 use std::{cell::RefCell, path::PathBuf, rc::Rc};
 
 use appconfig::AppConfigManager;
-use commander_tournament::tournament::Tournament;
+use commander_tournament::tourn::Tournament;
 use iced::Task;
 
 use crate::app::{

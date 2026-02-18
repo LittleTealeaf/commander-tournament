@@ -1,4 +1,4 @@
-use crate::{compat::v1::TournamentCompatV1, tournament::Tournament};
+use crate::{compat::v1::TournamentCompatV1, tourn::Tournament};
 
 pub mod v1;
 

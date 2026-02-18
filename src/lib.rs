@@ -1,3 +1,3 @@
 pub mod compat;
-pub mod tournament;
+pub mod tourn;
 pub mod utils;
