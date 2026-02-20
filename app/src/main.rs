@@ -1,19 +1,19 @@
+use std::path::PathBuf;
+
 use edh_tourn::Tournament;
 use iced::Task;
 
 use crate::{logic::Message, traits::HandleMessage};
 
+mod logic;
 mod traits;
 mod view;
-mod logic;
-
-
-
 
 #[derive(Default)]
 pub struct App {
     tournament: Tournament,
     error: Option<String>,
+    file: Option<PathBuf>,
 }
 
 pub fn main() -> iced::Result {
@@ -29,11 +29,6 @@ pub fn main() -> iced::Result {
     }
     iced::run(updater, App::view)
 }
-
-
-
-
-
 
 //
 // #![allow(dead_code)]

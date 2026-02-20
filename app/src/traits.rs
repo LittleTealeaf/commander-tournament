@@ -4,11 +4,14 @@ use crate::App;
 use crate::logic::Message;
 
 pub trait HandleMessage<T> {
-    fn done() -> anyhow::Result<Task<Message>> {
-        Ok(Task::none())
+    fn update(&mut self, msg: T) -> anyhow::Result<Task<Message>>;
+
+
+    #[cfg(test)]
+    fn test_update(&mut self, msg: T) {
+        let _ = self.update(msg).unwrap();
     }
 
-    fn update(&mut self, msg: T) -> anyhow::Result<Task<Message>>;
 }
 
 pub trait View {
