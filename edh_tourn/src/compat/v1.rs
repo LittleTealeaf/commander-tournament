@@ -1,8 +1,9 @@
-use std::{collections::HashMap, iter::once};
+use core::iter::once;
+use std::collections::HashMap;
 
 use itertools::{Itertools, chain};
 
-use crate::tourn::{
+use crate::{
     Tournament, config::TournamentConfig, error::TournamentError, game::GameRecord, info::MtgColor,
 };
 
@@ -23,6 +24,7 @@ struct CompatScoreConfig {
 }
 
 #[derive(Clone, serde::Deserialize)]
+#[allow(clippy::struct_field_names)]
 struct CompatMatchConfig {
     weight_least_played: f64,
     weight_nemesis: f64,

@@ -1,10 +1,10 @@
 pub mod utils;
 
-use std::{io::Write, path::PathBuf};
+use std::io::Write;
 
-use tempfile::{NamedTempFile, tempfile};
+use tempfile::NamedTempFile;
 
-use crate::app::{App, message::Message, tests::utils::sample_tournament, traits::HandleMessage};
+use crate::{App, message::Message, tests::utils::sample_tournament, traits::HandleMessage};
 
 #[test]
 fn load_tournament() {

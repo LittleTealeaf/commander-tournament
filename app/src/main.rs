@@ -1,21 +1,27 @@
 #![allow(dead_code)]
 mod message;
-mod traits;
-mod view;
 #[cfg(test)]
 mod tests;
+mod traits;
+mod view;
 
-use std::{cell::RefCell, path::PathBuf, rc::Rc};
+use core::cell::RefCell;
+use std::{path::PathBuf, rc::Rc};
 
 use appconfig::AppConfigManager;
-use commander_tournament::tourn::Tournament;
+use edh_tourn::Tournament;
 use iced::Task;
 
-use crate::app::{
+use crate::{
     message::Message,
     traits::{HandleMessage, View},
     view::{Screen, home::AppHome},
 };
+
+pub fn main() -> anyhow::Result<()> {
+    launch()?;
+    Ok(())
+}
 
 pub fn launch() -> iced::Result {
     fn updater(app: &mut App, message: Message) -> Task<Message> {

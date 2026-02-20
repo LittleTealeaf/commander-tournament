@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use commander_tournament::tourn::Tournament;
+use edh_tourn::Tournament;
 
 pub async fn parse_tournament_file(path: PathBuf) -> anyhow::Result<Tournament> {
     let data = async_fs::read_to_string(path).await?;
@@ -13,7 +13,7 @@ mod tests {
 
     use tempfile::NamedTempFile;
 
-    use crate::app::{message::filesystem::parse_tournament_file, tests::utils::sample_tournament};
+    use crate::{message::filesystem::parse_tournament_file, tests::utils::sample_tournament};
 
     #[tokio::test]
     async fn parses_from_tournament_file() {

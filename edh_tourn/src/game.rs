@@ -1,4 +1,4 @@
-use crate::tourn::{
+use crate::{
     Tournament,
     error::{TournResult, TournamentError},
     stats::PlayerStats,

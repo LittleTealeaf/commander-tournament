@@ -1,3 +1,4 @@
+pub mod compat;
 pub mod config;
 pub mod error;
 pub mod game;
@@ -7,15 +8,16 @@ pub mod stats;
 #[cfg(test)]
 pub mod testing;
 pub mod tsv;
+pub mod utils;
 
 use std::collections::HashMap;
 
 use crate::{
-    tourn::{
+    utils::ordered_map,
+    {
         config::TournamentConfig, error::TournamentError, game::GameRecord, info::PlayerInfo,
         stats::PlayerStats,
     },
-    utils::serde_utils::ordered_map,
 };
 
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
@@ -40,11 +42,11 @@ struct SerdeTournament {
 
 impl TryFrom<SerdeTournament> for Tournament {
     type Error = TournamentError;
-    fn try_from(value: SerdeTournament) -> Result<Tournament, TournamentError> {
+    fn try_from(value: SerdeTournament) -> Result<Self, TournamentError> {
         let player_names = value
             .players
             .iter()
-            .map(|(id, info)| (info.name().to_string(), *id))
+            .map(|(id, info)| (info.name().to_owned(), *id))
             .collect();
 
         let mut tournament = Self {
@@ -66,6 +68,7 @@ impl TryFrom<SerdeTournament> for Tournament {
 }
 
 impl Tournament {
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -74,13 +77,13 @@ impl Tournament {
         self.player_names
             .get(name)
             .copied()
-            .ok_or(TournamentError::PlayerNameNotRegistered(name.to_string()))
+            .ok_or_else(|| TournamentError::PlayerNameNotRegistered(name.clone()))
     }
 
+    #[must_use]
     pub fn is_id_registered(&self, id: &u32) -> bool {
         self.players.contains_key(id)
     }
-
 
     pub fn unregister_player(&mut self, id: u32) -> Result<(), TournamentError> {
         self.players
@@ -96,7 +99,7 @@ impl Tournament {
         self.player_names = self
             .players
             .iter()
-            .map(|(id, info)| (info.name().to_string(), *id))
+            .map(|(id, info)| (info.name().to_owned(), *id))
             .collect();
 
         self.stats.clear();
@@ -117,7 +120,7 @@ impl Tournament {
 
 #[cfg(test)]
 mod tests {
-    use crate::tourn::Tournament;
+    use crate::Tournament;
 
     #[test]
     fn unregister_removes_players_games() {

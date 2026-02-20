@@ -1,4 +1,4 @@
-use commander_tournament::tourn::{
+use edh_tourn::{
     Tournament,
     error::TournamentError,
     info::{MtgColor, PlayerInfo},
@@ -8,7 +8,7 @@ use iced::{
     widget::{button, column, container, row, space, text, text_editor, text_input},
 };
 
-use crate::app::{message::Message, traits::HandleMessage};
+use crate::{message::Message, traits::HandleMessage};
 
 #[derive(Clone)]
 pub struct EditPlayer {

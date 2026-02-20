@@ -3,7 +3,7 @@ pub mod games;
 pub mod home;
 pub mod player;
 
-use crate::app::{
+use crate::{
     App,
     view::{home::view_home, player::EditPlayer},
 };
@@ -13,7 +13,7 @@ use iced::{
     widget::{button, column, container, row, space, text},
 };
 
-use crate::app::{message::Message, traits::View};
+use crate::{message::Message, traits::View};
 
 pub enum Screen {
     Player(EditPlayer),

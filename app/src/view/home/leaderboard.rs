@@ -1,13 +1,13 @@
 use std::cmp::Ordering;
 
-use commander_tournament::tourn::{info::PlayerInfo, stats::PlayerStats};
+use edh_tourn::{info::PlayerInfo, stats::PlayerStats};
 use iced::{
     Element, Padding,
     widget::{button, container, row, scrollable, space, table, text},
 };
 use itertools::Itertools;
 
-use crate::app::{App, Message, view::home::HomeMessage};
+use crate::{App, Message, view::home::HomeMessage};
 
 #[derive(Clone)]
 struct Player<'a> {

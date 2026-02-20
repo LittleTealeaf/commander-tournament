@@ -1,0 +1,25 @@
+[package]
+name = "app"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.100"
+appconfig = "0.2.1"
+async-fs = "2.2.0"
+iced = "0.14.0"
+itertools = "0.14.0"
+opener = "0.8.4"
+rfd = "0.17.2"
+ron = "0.12.0"
+serde = {version="1.0.228"}
+serde_json = "1.0.149"
+thiserror = "2.0.18"
+edh_tourn = {path = "../edh_tourn/"}
+
+[dev-dependencies]
+tempfile = "3.19.1"
+tokio = {version = "1.49.0", features=["rt", "macros"]}
+
+[lints]
+workspace = true

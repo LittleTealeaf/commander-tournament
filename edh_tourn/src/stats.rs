@@ -1,4 +1,4 @@
-use crate::tourn::Tournament;
+use crate::Tournament;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
 pub struct PlayerStats {
@@ -51,7 +51,7 @@ impl Tournament {
 
 #[cfg(test)]
 mod tests {
-    use crate::tourn::Tournament;
+    use crate::Tournament;
 
     #[test]
     fn default_stats_use_starting_elo() {

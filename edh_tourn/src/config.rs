@@ -1,4 +1,4 @@
-use crate::tourn::{Tournament, error::TournamentError};
+use crate::{Tournament, error::TournamentError};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
 pub struct TournamentConfig {
@@ -52,7 +52,7 @@ impl Tournament {
 
 #[cfg(test)]
 mod tests {
-    use crate::tourn::{Tournament, config::TournamentConfig};
+    use crate::{Tournament, config::TournamentConfig};
 
     #[test]
     fn new_config_version_is_0() {

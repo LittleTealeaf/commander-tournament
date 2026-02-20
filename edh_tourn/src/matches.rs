@@ -2,7 +2,7 @@ use std::{cmp::Ordering, collections::HashMap};
 
 use itertools::{Itertools, chain};
 
-use crate::tourn::{Tournament, error::TournamentError, stats::PlayerStats};
+use crate::{Tournament, error::TournamentError, stats::PlayerStats};
 
 fn with_tie_breaker(cmp: Ordering, tie_breaker: impl Fn() -> Ordering) -> Ordering {
     match cmp {
@@ -214,7 +214,7 @@ mod tests {
     macro_rules! rank_tests {
         ($func: ident) => {
             mod $func {
-                use crate::tourn::Tournament;
+                use crate::Tournament;
                 #[test]
                 fn returns_iterator() {
                     let tournament = Tournament::sample_game();

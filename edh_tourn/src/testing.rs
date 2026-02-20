@@ -1,4 +1,4 @@
-use crate::tourn::{Tournament, error::TournamentError, game::GameRecord};
+use crate::{Tournament, error::TournamentError, game::GameRecord};
 
 impl Tournament {
     pub fn generate_tournament(
@@ -36,7 +36,7 @@ impl Tournament {
 }
 
 mod tests {
-    use crate::tourn::Tournament;
+    use crate::Tournament;
 
     #[test]
     fn generator_errors_when_few_players() {

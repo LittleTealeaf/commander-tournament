@@ -1,6 +1,6 @@
 use iced::{Element, Task};
 
-use crate::app::{App, Message};
+use crate::{App, Message};
 
 pub trait HandleMessage<T> {
     fn done() -> anyhow::Result<Task<Message>> {

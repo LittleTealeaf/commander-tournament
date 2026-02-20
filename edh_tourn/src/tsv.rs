@@ -1,4 +1,4 @@
-use crate::tourn::{
+use crate::{
     Tournament,
     error::{TournResult, TournamentError},
     game::GameRecord,
@@ -47,7 +47,7 @@ impl Tournament {
 mod tests {
     use itertools::Itertools;
 
-    use crate::tourn::Tournament;
+    use crate::Tournament;
 
     #[test]
     fn parse_tsv_games() {

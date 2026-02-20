@@ -1,6 +1,6 @@
 use iced::{Element, Task};
 
-use crate::app::{
+use crate::{
     App,
     message::Message,
     traits::HandleMessage,

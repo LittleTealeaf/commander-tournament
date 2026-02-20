@@ -2,14 +2,14 @@ mod filesystem;
 
 use std::path::PathBuf;
 
-use crate::app::message::filesystem::parse_tournament_file;
-use crate::app::view::Screen;
-use crate::app::view::home::HomeMessage;
-use crate::app::view::player::{EditPlayer, EditPlayerMessage};
+use crate::message::filesystem::parse_tournament_file;
+use crate::view::Screen;
+use crate::view::home::HomeMessage;
+use crate::view::player::{EditPlayer, EditPlayerMessage};
 
 use super::App;
 use super::traits::HandleMessage;
-use commander_tournament::tourn::Tournament;
+use edh_tourn::Tournament;
 use iced::Task;
 use opener::open_browser;
 use rfd::AsyncFileDialog;
