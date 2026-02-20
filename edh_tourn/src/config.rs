@@ -36,14 +36,15 @@ impl Default for TournamentConfig {
 }
 
 impl Tournament {
-    pub fn config(&self) -> &TournamentConfig {
+    #[must_use]
+    pub const fn config(&self) -> &TournamentConfig {
         &self.config
     }
 
-    pub fn set_config(&mut self, config: TournamentConfig) -> Result<(), TournamentError> {
+    pub fn set_config(&mut self, config: &TournamentConfig) -> Result<(), TournamentError> {
         self.config = TournamentConfig {
             version: self.config.version + 1,
-            ..config
+            ..*config
         };
         self.reload()?;
         Ok(())
@@ -63,7 +64,7 @@ mod tests {
     fn updating_config_increases_version() {
         let mut t = Tournament::new();
         assert_eq!(0, t.config.version);
-        t.set_config(t.config.clone()).unwrap();
+        t.set_config(&t.config.clone()).unwrap();
         assert_eq!(1, t.config.version);
     }
 }

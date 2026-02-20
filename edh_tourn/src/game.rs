@@ -21,11 +21,13 @@ impl GameRecord {
         Ok(Self { players, winner })
     }
 
-    pub fn players(&self) -> &[u32; 4] {
+    #[must_use]
+    pub const fn players(&self) -> &[u32; 4] {
         &self.players
     }
 
-    pub fn winner(&self) -> u32 {
+    #[must_use]
+    pub const fn winner(&self) -> u32 {
         self.winner
     }
 }
@@ -46,6 +48,7 @@ pub struct Matchup {
 }
 
 impl Matchup {
+    #[must_use]
     pub fn get_ids(&self) -> [u32; 4] {
         let mut ids = [0; 4];
         (0..4).for_each(|i| ids[i] = self.players[i].id);

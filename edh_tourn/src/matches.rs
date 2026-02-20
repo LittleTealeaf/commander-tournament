@@ -1,4 +1,5 @@
-use std::{cmp::Ordering, collections::HashMap};
+use core::cmp::Ordering;
+use std::collections::HashMap;
 
 use itertools::{Itertools, chain};
 
@@ -36,8 +37,8 @@ impl Tournament {
         Ok(())
     }
 
-    fn get_elo(&self, id: &u32) -> f64 {
-        self.get_player_stats(id)
+    fn get_elo(&self, id: u32) -> f64 {
+        self.get_player_stats(&id)
             .map(PlayerStats::elo)
             .unwrap_or(self.config.starting_elo)
     }
@@ -71,11 +72,11 @@ impl Tournament {
 
         counts.remove(id);
 
-        let cmp_elo = self.get_elo(id);
+        let cmp_elo = self.get_elo(*id);
 
         Ok(counts
             .into_iter()
-            .map(|(id, count)| (id, count, (cmp_elo - self.get_elo(&id)).abs()))
+            .map(|(id, count)| (id, count, (cmp_elo - self.get_elo(id)).abs()))
             .sorted_by(|(id1, c1, elo1), (id2, c2, elo2)| {
                 with_tie_breaker(c1.cmp(c2), || {
                     with_tie_breaker(elo1.total_cmp(elo2), || id1.cmp(id2))
@@ -107,7 +108,7 @@ impl Tournament {
 
         Ok(counts
             .into_iter()
-            .map(|(id, score)| (id, score, self.get_elo(&id)))
+            .map(|(id, score)| (id, score, self.get_elo(id)))
             .sorted_by(|(id1, s1, e1), (id2, s2, e2)| {
                 with_tie_breaker(s1.cmp(s2), || {
                     with_tie_breaker(e1.total_cmp(e2), || id1.cmp(id2))
@@ -154,13 +155,13 @@ impl Tournament {
 
     pub fn rank_neighbors(&self, id: &u32) -> Result<impl Iterator<Item = u32>, TournamentError> {
         self.ensure_id_registered(id)?;
-        let elo = self.get_elo(id);
+        let elo = self.get_elo(*id);
 
         Ok(self
             .players
             .keys()
             .filter(|pid| &id != pid)
-            .map(|pid| (*pid, (self.get_elo(pid) - elo).abs()))
+            .map(|pid| (*pid, (self.get_elo(*pid) - elo).abs()))
             .sorted_by(|(i1, d1), (i2, d2)| with_tie_breaker(d1.total_cmp(d2), || i1.cmp(i2)))
             .map(|(i, _)| i))
     }

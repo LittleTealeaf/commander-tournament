@@ -1,14 +1,11 @@
 use crate::{Tournament, error::TournamentError, game::GameRecord};
 
 impl Tournament {
-    pub fn generate_tournament(
-        player_count: usize,
-        games: usize,
-    ) -> Result<Tournament, TournamentError> {
+    pub fn generate_tournament(player_count: usize, games: usize) -> Result<Self, TournamentError> {
         if games > 0 && player_count < 4 {
             return Err(TournamentError::NotEnoughPlayers);
         }
-        let mut tournament = Tournament::default();
+        let mut tournament = Self::default();
         let mut ids = Vec::new();
         for name in 0..player_count {
             let id = tournament.register_player(format!("{name}"))?;
@@ -18,31 +15,38 @@ impl Tournament {
         let len = ids.len();
         for i in 0..games {
             let players = [
-                ids[i % len],
-                ids[(i + 1) % len],
-                ids[(i + 2) % len],
-                ids[(i + 3) % len],
+                *ids.get(i % len).ok_or(TournamentError::NotEnoughPlayers)?,
+                *ids.get((i + 1) % len)
+                    .ok_or(TournamentError::NotEnoughPlayers)?,
+                *ids.get((i + 2) % len)
+                    .ok_or(TournamentError::NotEnoughPlayers)?,
+                *ids.get((i + 3) % len)
+                    .ok_or(TournamentError::NotEnoughPlayers)?,
             ];
-            let winner = players[i % 4];
+            let winner = *players
+                .get(i % 4)
+                .ok_or_else(|| TournamentError::WinnerNotInMatch(u32::try_from(i).unwrap() % 4))?;
             tournament.register_record(GameRecord::new(players, winner)?)?;
         }
 
         Ok(tournament)
     }
 
-    pub fn sample_game() -> Tournament {
-        ron::from_str(include_str!("../../tests/sample-game.ron")).unwrap()
+    #[must_use]
+    pub fn sample_game() -> Self {
+        ron::from_str(include_str!("../res/tests/sample-game.ron")).unwrap()
     }
 }
 
 mod tests {
-    use crate::Tournament;
+    #[allow(unused)]
+    use super::*;
 
     #[test]
     fn generator_errors_when_few_players() {
         for i in 0..3 {
-            assert!(Tournament::generate_tournament(i, 0).is_ok());
-            assert!(Tournament::generate_tournament(i, 1).is_err());
+            Tournament::generate_tournament(i, 0).unwrap();
+            Tournament::generate_tournament(i, 1).unwrap_err();
         }
     }
 
@@ -64,6 +68,6 @@ mod tests {
 
     #[test]
     fn sample_game_loads() {
-        Tournament::sample_game();
+        let _ = Tournament::sample_game();
     }
 }

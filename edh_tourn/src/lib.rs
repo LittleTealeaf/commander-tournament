@@ -2,11 +2,12 @@ pub mod compat;
 pub mod config;
 pub mod error;
 pub mod game;
+pub mod serialization;
 pub mod info;
 pub mod matches;
 pub mod stats;
-#[cfg(test)]
-pub mod testing;
+#[cfg(feature="dev")]
+pub mod dev;
 pub mod tsv;
 pub mod utils;
 
@@ -21,7 +22,7 @@ use crate::{
 };
 
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
-#[serde(try_from = "SerdeTournament")]
+#[serde(try_from = "serialization::SerdeTournament")]
 pub struct Tournament {
     config: TournamentConfig,
     #[serde(skip)]
@@ -31,40 +32,6 @@ pub struct Tournament {
     #[serde(skip)]
     player_names: HashMap<String, u32>,
     games: Vec<GameRecord>,
-}
-
-#[derive(serde::Deserialize)]
-struct SerdeTournament {
-    config: TournamentConfig,
-    players: HashMap<u32, PlayerInfo>,
-    games: Vec<GameRecord>,
-}
-
-impl TryFrom<SerdeTournament> for Tournament {
-    type Error = TournamentError;
-    fn try_from(value: SerdeTournament) -> Result<Self, TournamentError> {
-        let player_names = value
-            .players
-            .iter()
-            .map(|(id, info)| (info.name().to_owned(), *id))
-            .collect();
-
-        let mut tournament = Self {
-            config: value.config,
-            stats: HashMap::new(),
-            players: value.players,
-            player_names,
-            games: Vec::new(),
-        };
-
-        tournament.config.version = 0;
-
-        for game in value.games {
-            tournament.register_record(game)?;
-        }
-
-        Ok(tournament)
-    }
 }
 
 impl Tournament {
@@ -130,7 +97,7 @@ mod tests {
             tourn.unregister_player(*id).unwrap();
             for game in tourn.games() {
                 assert!(!game.players().contains(id));
-                assert_ne!(game.winner(), *id)
+                assert_ne!(game.winner(), *id);
             }
         }
     }
@@ -141,19 +108,6 @@ mod tests {
         let snapshot = sample.clone();
         sample.reload().unwrap();
         assert_eq!(sample, snapshot);
-    }
-
-    #[test]
-    fn ron_serialize_loop() {
-        for mut game in [
-            Tournament::sample_game(),
-            Tournament::generate_tournament(30, 50).unwrap(),
-        ] {
-            for _ in 0..3 {
-                let ser = ron::ser::to_string(&game).unwrap();
-                game = ron::from_str(&ser).unwrap();
-            }
-        }
     }
 
     #[test]

@@ -46,3 +46,5 @@ too_many_lines = { level = "allow", priority = 1 }
 module_name_repetitions = { level = "allow", priority = 1 }
 needless_collect = { level = "allow", priority = 1 }
 missing_errors_doc = "allow"
+missing_pandas_doc = "allow"
+missing_panics_doc = "allow"

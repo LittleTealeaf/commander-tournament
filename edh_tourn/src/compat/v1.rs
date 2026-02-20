@@ -113,13 +113,13 @@ impl TryFrom<TournamentCompatV1> for Tournament {
             version: 0,
         };
 
-        tournament.set_config(config)?;
+        tournament.set_config(&config)?;
 
         for game in value.games {
             let mut ids = [0; 4];
             for (i, player) in game.players.iter().enumerate() {
                 let id = tournament.get_player_id(player)?;
-                ids[i] = id;
+                *ids.get_mut(i).ok_or(TournamentError::NotEnoughPlayers)? = id;
             }
             let winner = tournament.get_player_id(&game.winner)?;
 

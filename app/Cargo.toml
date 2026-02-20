@@ -20,6 +20,7 @@ edh_tourn = {path = "../edh_tourn/"}
 [dev-dependencies]
 tempfile = "3.19.1"
 tokio = {version = "1.49.0", features=["rt", "macros"]}
+edh_tourn = {path = "../edh_tourn/", features=["dev"]}
 
 [lints]
 workspace = true
