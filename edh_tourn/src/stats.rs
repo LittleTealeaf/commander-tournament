@@ -18,25 +18,30 @@ impl Default for PlayerStats {
 }
 
 impl PlayerStats {
-    pub fn elo(&self) -> f64 {
+    #[must_use]
+    pub const fn elo(&self) -> f64 {
         self.elo
     }
 
-    pub fn games(&self) -> u32 {
+    #[must_use]
+    pub const fn games(&self) -> u32 {
         self.games
     }
 
-    pub fn wins(&self) -> u32 {
+    #[must_use]
+    pub const fn wins(&self) -> u32 {
         self.wins
     }
 
+    #[must_use]
     pub fn wr(&self) -> Option<f64> {
-        (self.games > 0).then(|| (self.wins as f64) / (self.games as f64))
+        (self.games > 0).then(|| f64::from(self.wins) / f64::from(self.games))
     }
 }
 
 impl Tournament {
-    pub fn create_default_stats(&self) -> PlayerStats {
+    #[must_use]
+    pub const fn create_default_stats(&self) -> PlayerStats {
         PlayerStats {
             elo: self.config.starting_elo,
             games: 0,
@@ -44,8 +49,9 @@ impl Tournament {
         }
     }
 
-    pub fn get_player_stats(&self, player: &u32) -> Option<&PlayerStats> {
-        self.stats.get(player)
+    #[must_use]
+    pub fn get_player_stats(&self, player: u32) -> Option<&PlayerStats> {
+        self.stats.get(&player)
     }
 }
 
@@ -58,7 +64,7 @@ mod tests {
         let tournament = Tournament::default();
         let starting_elo = tournament.config.starting_elo;
         let stats = tournament.create_default_stats();
-        assert_eq!(starting_elo, stats.elo);
+        assert!(starting_elo.total_cmp(&stats.elo).is_eq());
     }
 
     #[test]
@@ -66,7 +72,7 @@ mod tests {
         let tournament = Tournament::generate_tournament(100, 0).unwrap();
         let starting_elo = tournament.config.starting_elo;
         for stats in tournament.stats.values() {
-            assert_eq!(starting_elo, stats.elo);
+            assert!(starting_elo.total_cmp(&stats.elo).is_eq());
         }
     }
 }

@@ -23,12 +23,12 @@ impl Tournament {
             }
 
             let players = [
-                self.create_or_get_id(parts[0].to_string()).ok()?,
-                self.create_or_get_id(parts[1].to_string()).ok()?,
-                self.create_or_get_id(parts[2].to_string()).ok()?,
-                self.create_or_get_id(parts[3].to_string()).ok()?,
+                self.create_or_get_id(parts.first()?.to_string()).ok()?,
+                self.create_or_get_id(parts.get(1)?.to_string()).ok()?,
+                self.create_or_get_id(parts.get(2)?.to_string()).ok()?,
+                self.create_or_get_id(parts.get(3)?.to_string()).ok()?,
             ];
-            let winner = self.create_or_get_id(parts[4].to_string()).ok()?;
+            let winner = self.create_or_get_id(parts.get(4)?.to_string()).ok()?;
 
             GameRecord::new(players, winner).ok()
         })

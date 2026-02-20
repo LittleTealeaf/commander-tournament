@@ -28,14 +28,15 @@ impl MtgColor {
         Self::Colorless,
     ];
 
-    pub fn letter(&self) -> &str {
+    #[must_use]
+    pub const fn letter(&self) -> &str {
         match self {
-            MtgColor::White => "W",
-            MtgColor::Blue => "B",
-            MtgColor::Green => "G",
-            MtgColor::Red => "R",
-            MtgColor::Black => "B",
-            MtgColor::Colorless => "C",
+            Self::White => "W",
+            Self::Blue => "U",
+            Self::Green => "G",
+            Self::Red => "R",
+            Self::Black => "B",
+            Self::Colorless => "C",
         }
     }
 }
@@ -52,7 +53,7 @@ pub struct PlayerInfo {
 }
 
 impl PlayerInfo {
-    pub(crate) fn new(name: String) -> Self {
+    pub(crate) const fn new(name: String) -> Self {
         Self {
             name,
             description: String::new(),
@@ -61,20 +62,24 @@ impl PlayerInfo {
         }
     }
 
+    #[must_use]
     pub fn name(&self) -> &str {
         &self.name
     }
 
-    pub fn moxfield_id(&self) -> Option<&String> {
+    #[must_use]
+    pub const fn moxfield_id(&self) -> Option<&String> {
         self.moxfield_id.as_ref()
     }
 
+    #[must_use]
     pub fn moxfield_link(&self) -> Option<String> {
         self.moxfield_id
             .as_ref()
             .map(|id| format!("https://moxfield.com/decks/{id}"))
     }
 
+    #[must_use]
     pub fn moxfield_goldfish_link(&self) -> Option<String> {
         self.moxfield_id
             .as_ref()
@@ -82,13 +87,14 @@ impl PlayerInfo {
     }
 
     pub fn set_name(&mut self, name: String) {
-        self.name = name
+        self.name = name;
     }
 
     pub fn set_description(&mut self, description: String) {
         self.description = description;
     }
 
+    #[must_use]
     pub fn description(&self) -> &str {
         &self.description
     }
@@ -123,6 +129,7 @@ impl PlayerInfo {
         }
     }
 
+    #[must_use]
     pub fn has_color(&self, color: &MtgColor) -> bool {
         self.colors.contains(color)
     }
@@ -138,7 +145,7 @@ impl Tournament {
             return Err(TournamentError::PlayerAlreadyRegistered(name, *id));
         }
 
-        let id = self.players.keys().max().map(|i| i + 1).unwrap_or(0);
+        let id = self.players.keys().max().map_or(0, |i| i + 1);
 
         self.player_names.insert(name.clone(), id);
         self.players.insert(id, PlayerInfo::new(name));
@@ -158,18 +165,18 @@ impl Tournament {
 
         if !saved_info.name().eq(info.name()) {
             if info.name().is_empty() {
-                return Err(TournamentError::InvalidPlayerName(info.name().to_string()));
+                return Err(TournamentError::InvalidPlayerName(info.name().to_owned()));
             }
 
             if let Some(old_id) = self.player_names.get(info.name()) {
                 return Err(TournamentError::PlayerAlreadyRegistered(
-                    info.name().to_string(),
+                    info.name().to_owned(),
                     *old_id,
                 ));
             }
         }
 
-        self.player_names.insert(info.name().to_string(), player);
+        self.player_names.insert(info.name().to_owned(), player);
         self.player_names.remove(saved_info.name());
 
         *saved_info = info;
@@ -205,13 +212,10 @@ mod tests {
     #[test]
     fn set_info_duplicate_name() {
         let mut t = Tournament::new();
-        let name = "Test".to_string();
+        let name = "Test".to_owned();
         let _ = t.register_player(name.clone()).unwrap();
-        let id_2 = t.register_player("Test 2".to_string()).unwrap();
-        assert!(
-            t.set_player_info(id_2, PlayerInfo::new(name.clone()))
-                .is_err()
-        );
+        let id_2 = t.register_player("Test 2".to_owned()).unwrap();
+        assert!(t.set_player_info(id_2, PlayerInfo::new(name)).is_err());
     }
 
     #[test]
@@ -233,9 +237,9 @@ mod tests {
     #[test]
     fn register_duplicate_name() {
         let mut t = Tournament::new();
-        let s = "hi".to_string();
+        let s = "hi".to_owned();
         let _ = t.register_player(s.clone()).unwrap();
-        let res = t.register_player(s.clone());
+        let res = t.register_player(s);
         assert!(matches!(
             res,
             Err(TournamentError::PlayerAlreadyRegistered(_, _))

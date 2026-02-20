@@ -1,13 +1,13 @@
 pub mod compat;
 pub mod config;
+#[cfg(feature = "dev")]
+pub mod dev;
 pub mod error;
 pub mod game;
-pub mod serialization;
 pub mod info;
 pub mod matches;
+pub mod serialization;
 pub mod stats;
-#[cfg(feature="dev")]
-pub mod dev;
 pub mod tsv;
 pub mod utils;
 
@@ -72,7 +72,7 @@ impl Tournament {
         self.stats.clear();
 
         let mut games = Vec::new();
-        std::mem::swap(&mut self.games, &mut games);
+        core::mem::swap(&mut self.games, &mut games);
         for record in games {
             self.register_record(record)?;
         }
@@ -80,7 +80,8 @@ impl Tournament {
         Ok(())
     }
 
-    pub fn players(&self) -> &HashMap<u32, PlayerInfo> {
+    #[must_use]
+    pub const fn players(&self) -> &HashMap<u32, PlayerInfo> {
         &self.players
     }
 }

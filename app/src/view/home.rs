@@ -1,3 +1,1 @@
-pub struct AppHome {
-
-}
+pub struct AppHome;

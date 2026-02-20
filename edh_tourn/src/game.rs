@@ -50,9 +50,7 @@ pub struct Matchup {
 impl Matchup {
     #[must_use]
     pub fn get_ids(&self) -> [u32; 4] {
-        let mut ids = [0; 4];
-        (0..4).for_each(|i| ids[i] = self.players[i].id);
-        ids
+        self.players.clone().map(|player| player.id)
     }
 
     pub fn create_record(&self, winner: u32) -> Result<GameRecord, TournamentError> {
@@ -62,32 +60,37 @@ impl Matchup {
 
 impl Tournament {
     pub fn create_match(&self, ids: [u32; 4]) -> Result<Matchup, TournamentError> {
-        let default_stats = self.create_default_stats();
-        let mut stats = [&default_stats; 4];
-
-        let mut scaled_elo = [0.0; 4];
-        let mut scaled_wr = [0.0; 4];
-
-        for i in 0..4 {
-            let id = ids[i];
-            if !self.is_id_registered(&id) {
-                return Err(TournamentError::InvalidPlayerId(id));
-            }
-            if let Some(ps) = self.get_player_stats(&id) {
-                stats[i] = ps;
-            }
-
-            scaled_elo[i] = stats[i].elo.powf(self.config.game_elo_pow_scale);
-            scaled_wr[i] = stats[i]
-                .wr()
-                .unwrap_or(0.25)
-                .powf(self.config.game_wr_pow_scale);
+        struct TempMatchPlayer<'a> {
+            id: u32,
+            stats: &'a PlayerStats,
+            scaled_elo: f64,
+            scaled_wr: f64,
         }
 
-        let sum_elo = scaled_elo.iter().sum::<f64>();
-        let sum_wr = scaled_wr.iter().sum::<f64>();
+        // First check registration
+        for id in &ids {
+            if !self.is_id_registered(id) {
+                return Err(TournamentError::InvalidPlayerId(*id));
+            }
+        }
 
-        let mut match_players: [MatchPlayer; 4] = Default::default();
+        let default_stats = self.create_default_stats();
+
+        let players = ids.map(|id| {
+            let stats = self.get_player_stats(id).unwrap_or(&default_stats);
+            TempMatchPlayer {
+                scaled_wr: stats
+                    .wr()
+                    .unwrap_or(0.25)
+                    .powf(self.config.game_wr_pow_scale),
+                scaled_elo: stats.elo().powf(self.config.game_elo_pow_scale),
+                stats,
+                id,
+            }
+        });
+
+        let sum_elo = players.iter().map(|player| player.scaled_elo).sum::<f64>();
+        let sum_wr = players.iter().map(|player| player.scaled_wr).sum::<f64>();
 
         let weight_total = self.config.game_wr_weight + self.config.game_elo_weight;
         let weight_wr = self.config.game_wr_weight / weight_total;
@@ -96,19 +99,23 @@ impl Tournament {
         let coef_wr = weight_wr / sum_wr;
         let coef_elo = weight_elo / sum_elo;
 
-        for i in 0..4 {
-            let id = ids[i];
-            let p = &mut match_players[i];
-            p.id = id;
-            p.stats = stats[i].clone();
-            p.expected = (coef_wr * scaled_wr[i]) + (coef_elo * scaled_elo[i]);
-            p.elo_win = self.config.game_points * (1.0 - p.expected) / 0.75;
-            p.elo_loss = self.config.game_points * (p.expected) / 0.75;
-        }
+        let match_players = players.map(|player| {
+            let expected = coef_wr.mul_add(player.scaled_wr, coef_elo * player.scaled_elo);
+            let elo_win = self.config.game_points * (1.0 - expected) / 0.75;
+            let elo_loss = self.config.game_points * expected / 0.75;
+
+            MatchPlayer {
+                id: player.id,
+                stats: player.stats.clone(),
+                expected,
+                elo_win,
+                elo_loss,
+            }
+        });
 
         Ok(Matchup {
             players: match_players,
-            config_version: self.config.version,
+            config_version: self.config().version,
         })
     }
 
@@ -116,11 +123,7 @@ impl Tournament {
         if matchup.config_version == self.config.version {
             return Ok(matchup);
         }
-        let mut ids = [0; 4];
-        (0..4).for_each(|i| {
-            ids[i] = matchup.players[i].id;
-        });
-        self.create_match(ids)
+        self.create_match(matchup.players.map(|player| player.id))
     }
 
     pub fn register_record(&mut self, record: GameRecord) -> Result<(), TournamentError> {
@@ -130,21 +133,22 @@ impl Tournament {
     pub fn register_match(&mut self, matchup: Matchup, winner: u32) -> Result<(), TournamentError> {
         let matchup = self.update_match(matchup)?;
         let record = matchup.create_record(winner)?;
+
         let default_stats = self.create_default_stats();
 
-        for i in 0..4 {
-            let id = record.players[i];
+        for player in matchup.players {
             let stats = self
                 .stats
-                .entry(id)
+                .entry(player.id)
                 .or_insert_with(|| default_stats.clone());
 
             stats.games += 1;
-            if id == record.winner {
+
+            if player.id == winner {
                 stats.wins += 1;
-                stats.elo += matchup.players[i].elo_win;
+                stats.elo += player.elo_win;
             } else {
-                stats.elo += matchup.players[i].elo_loss;
+                stats.elo -= player.elo_loss;
             }
         }
 
@@ -153,7 +157,8 @@ impl Tournament {
         Ok(())
     }
 
-    pub fn games(&self) -> &Vec<GameRecord> {
+    #[must_use]
+    pub const fn games(&self) -> &Vec<GameRecord> {
         &self.games
     }
 

@@ -19,6 +19,7 @@ fn get_mut_from_map<'a, T>(
     map.get_mut(id).ok_or(TournamentError::InvalidPlayerId(*id))
 }
 
+#[allow(clippy::cast_precision_loss)]
 fn to_weight_rank(
     ranking: impl IntoIterator<Item = u32>,
     weight: f64,
@@ -30,29 +31,25 @@ fn to_weight_rank(
 }
 
 impl Tournament {
-    fn ensure_id_registered(&self, id: &u32) -> Result<(), TournamentError> {
-        if !self.is_id_registered(id) {
-            return Err(TournamentError::InvalidPlayerId(*id));
+    fn ensure_id_registered(&self, id: u32) -> Result<(), TournamentError> {
+        if !self.is_id_registered(&id) {
+            return Err(TournamentError::InvalidPlayerId(id));
         }
         Ok(())
     }
 
     fn get_elo(&self, id: u32) -> f64 {
-        self.get_player_stats(&id)
-            .map(PlayerStats::elo)
-            .unwrap_or(self.config.starting_elo)
+        self.get_player_stats(id)
+            .map_or(self.config.starting_elo, PlayerStats::elo)
     }
 
-    fn get_wr(&self, id: &u32) -> f64 {
+    fn get_wr(&self, id: u32) -> f64 {
         self.get_player_stats(id)
             .and_then(PlayerStats::wr)
             .unwrap_or(0.25)
     }
 
-    pub fn rank_least_played(
-        &self,
-        id: &u32,
-    ) -> Result<impl Iterator<Item = u32>, TournamentError> {
+    pub fn rank_least_played(&self, id: u32) -> Result<impl Iterator<Item = u32>, TournamentError> {
         self.ensure_id_registered(id)?;
 
         let mut counts = self
@@ -63,16 +60,16 @@ impl Tournament {
 
         for game in &self.games {
             let players = game.players();
-            if players.contains(id) {
+            if players.contains(&id) {
                 for player in players {
                     *get_mut_from_map(player, &mut counts)? += 1;
                 }
             }
         }
 
-        counts.remove(id);
+        counts.remove(&id);
 
-        let cmp_elo = self.get_elo(*id);
+        let cmp_elo = self.get_elo(id);
 
         Ok(counts
             .into_iter()
@@ -85,7 +82,7 @@ impl Tournament {
             .map(|(id, _, _)| id))
     }
 
-    pub fn rank_nemesis(&self, id: &u32) -> Result<impl Iterator<Item = u32>, TournamentError> {
+    pub fn rank_nemesis(&self, id: u32) -> Result<impl Iterator<Item = u32>, TournamentError> {
         self.ensure_id_registered(id)?;
 
         let mut counts = self
@@ -96,15 +93,15 @@ impl Tournament {
 
         for game in &self.games {
             let players = game.players();
-            if players.contains(id) {
-                let val = if game.winner() == *id { 1 } else { -1 };
+            if players.contains(&id) {
+                let val = if game.winner() == id { 1 } else { -1 };
                 for player in players {
                     *get_mut_from_map(player, &mut counts)? += val;
                 }
             }
         }
 
-        counts.remove(id);
+        counts.remove(&id);
 
         Ok(counts
             .into_iter()
@@ -117,7 +114,7 @@ impl Tournament {
             .map(|(id, _, _)| id))
     }
 
-    pub fn rank_loss_with(&self, id: &u32) -> Result<impl Iterator<Item = u32>, TournamentError> {
+    pub fn rank_loss_with(&self, id: u32) -> Result<impl Iterator<Item = u32>, TournamentError> {
         self.ensure_id_registered(id)?;
 
         let mut counts = self
@@ -130,12 +127,12 @@ impl Tournament {
 
         for game in &self.games {
             let players = game.players();
-            if players.contains(id) {
+            if players.contains(&id) {
                 for pid in players {
                     let (score, games) = get_mut_from_map(pid, &mut counts)?;
                     *games += 1;
-                    if game.winner() == *id || game.winner() == *pid {
-                        *score -= 1
+                    if game.winner() == id || game.winner() == *pid {
+                        *score -= 1;
                     } else {
                         *score += 1;
                     }
@@ -143,7 +140,7 @@ impl Tournament {
             }
         }
 
-        counts.remove(id);
+        counts.remove(&id);
 
         Ok(counts
             .into_iter()
@@ -153,36 +150,33 @@ impl Tournament {
             .map(|(id, _)| id))
     }
 
-    pub fn rank_neighbors(&self, id: &u32) -> Result<impl Iterator<Item = u32>, TournamentError> {
+    pub fn rank_neighbors(&self, id: u32) -> Result<impl Iterator<Item = u32>, TournamentError> {
         self.ensure_id_registered(id)?;
-        let elo = self.get_elo(*id);
+        let elo = self.get_elo(id);
 
         Ok(self
             .players
             .keys()
-            .filter(|pid| &id != pid)
+            .filter(|pid| id != **pid)
             .map(|pid| (*pid, (self.get_elo(*pid) - elo).abs()))
             .sorted_by(|(i1, d1), (i2, d2)| with_tie_breaker(d1.total_cmp(d2), || i1.cmp(i2)))
             .map(|(i, _)| i))
     }
 
-    pub fn rank_wr_neighbors(
-        &self,
-        id: &u32,
-    ) -> Result<impl Iterator<Item = u32>, TournamentError> {
+    pub fn rank_wr_neighbors(&self, id: u32) -> Result<impl Iterator<Item = u32>, TournamentError> {
         self.ensure_id_registered(id)?;
         let wr = self.get_wr(id);
 
         Ok(self
             .players
             .keys()
-            .filter(|pid| &id != pid)
-            .map(|pid| (*pid, (self.get_wr(pid) - wr).abs()))
+            .filter(|pid| id != **pid)
+            .map(|pid| (*pid, (self.get_wr(*pid) - wr).abs()))
             .sorted_by(|(i1, d1), (i2, d2)| with_tie_breaker(d1.total_cmp(d2), || i1.cmp(i2)))
             .map(|(i, _)| i))
     }
 
-    pub fn rank_combined(&self, id: &u32) -> Result<impl Iterator<Item = u32>, TournamentError> {
+    pub fn rank_combined(&self, id: u32) -> Result<impl Iterator<Item = u32>, TournamentError> {
         let scores = chain!(
             to_weight_rank(
                 self.rank_least_played(id)?,
@@ -201,7 +195,7 @@ impl Tournament {
             .into_grouping_map()
             .sum()
             .into_iter()
-            .filter(|(i, _)| i != id)
+            .filter(|(i, _)| *i != id)
             .sorted_by(|(p1, p1_s), (p2, p2_s)| {
                 with_tie_breaker(p1_s.total_cmp(p2_s), || p1.cmp(p2))
             })
@@ -220,7 +214,7 @@ mod tests {
                 fn returns_iterator() {
                     let tournament = Tournament::sample_game();
                     for id in tournament.players.keys() {
-                        let iter = tournament.$func(id).unwrap();
+                        let iter = tournament.$func(*id).unwrap();
                         assert_eq!(tournament.players.len() - 1, iter.count());
                     }
                 }
@@ -229,7 +223,7 @@ mod tests {
                 fn does_not_include_self() {
                     let tournament = Tournament::sample_game();
                     for id in tournament.players.keys() {
-                        let mut iter = tournament.$func(id).unwrap();
+                        let mut iter = tournament.$func(*id).unwrap();
                         assert!(!iter.any(|i| i == *id));
                     }
                 }
