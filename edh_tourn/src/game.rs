@@ -171,3 +171,79 @@ impl Tournament {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::indexing_slicing)]
+
+    use itertools::Itertools;
+
+    use crate::{Tournament, game::GameRecord};
+
+    #[test]
+    fn game_record_winner_must_be_player() {
+        GameRecord::new([0, 1, 2, 3], 0).unwrap();
+        GameRecord::new([0, 1, 2, 3], 1).unwrap();
+        GameRecord::new([0, 1, 2, 3], 2).unwrap();
+        GameRecord::new([0, 1, 2, 3], 3).unwrap();
+        GameRecord::new([0, 1, 2, 3], 4).unwrap_err();
+    }
+
+    #[test]
+    fn matchup_record_winner_must_be_player() {
+        let tournament = Tournament::generate_tournament(5, 0).unwrap();
+        let ids = tournament.players().keys().copied().collect_vec();
+        assert_eq!(5, ids.len());
+        let matchup = tournament
+            .create_match([ids[0], ids[1], ids[2], ids[3]])
+            .unwrap();
+        matchup.create_record(ids[0]).unwrap();
+        matchup.create_record(ids[1]).unwrap();
+        matchup.create_record(ids[2]).unwrap();
+        matchup.create_record(ids[3]).unwrap();
+        matchup.create_record(ids[4]).unwrap_err();
+    }
+
+    #[test]
+    fn winner_gains_points() -> anyhow::Result<()> {
+        for i in 0..4 {
+            let mut tourn = Tournament::generate_tournament(4, 0)?;
+            let ids = tourn.players().keys().copied().collect_vec();
+            let mut match_ids = [0; 4];
+            match_ids.copy_from_slice(&ids);
+            let matchup = tourn.create_match(match_ids)?;
+            let starting_elo = matchup.players[i].stats.elo();
+            tourn.register_match(matchup, match_ids[i])?;
+            let elo = tourn.stats[&match_ids[i]].elo();
+            assert!(elo.total_cmp(&starting_elo).is_gt());
+        }
+        Ok(())
+    }
+
+    #[test]
+    #[allow(clippy::needless_range_loop)]
+    fn losers_lose_points() -> anyhow::Result<()> {
+        for winner_i in 0..4 {
+            let tourn = Tournament::generate_tournament(4, 0)?;
+            let ids = tourn.players().keys().copied().collect_vec();
+            let winner_id = ids[winner_i];
+            let mut match_ids = [0; 4];
+            match_ids.copy_from_slice(&ids);
+            let matchup = tourn.create_match(match_ids)?;
+            for loser_i in 0..4 {
+                let mut tourn = tourn.clone();
+                let matchup = matchup.clone();
+                if winner_i == loser_i {
+                    continue;
+                }
+                let loser_id = ids[loser_i];
+                let starting_elo = matchup.players[loser_i].stats.elo();
+                tourn.register_match(matchup, winner_id)?;
+                let elo = tourn.stats[&loser_id].elo();
+                assert!(elo.total_cmp(&starting_elo).is_le());
+            }
+        }
+
+        Ok(())
+    }
+}
