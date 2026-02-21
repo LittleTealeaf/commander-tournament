@@ -162,6 +162,20 @@ impl Tournament {
         &self.games
     }
 
+    pub fn get_player_games(
+        &self,
+        id: u32,
+    ) -> Result<impl Iterator<Item = &GameRecord>, TournamentError> {
+        if !self.is_id_registered(&id) {
+            return Err(TournamentError::InvalidPlayerId(id));
+        }
+
+        Ok(self
+            .games()
+            .iter()
+            .filter(move |game| game.players().contains(&id)))
+    }
+
     pub fn delete_game(&mut self, gid: usize) -> TournResult<()> {
         if gid >= self.games.len() {
             return Err(TournamentError::GameNotFound(gid));

@@ -4,7 +4,12 @@ use edh_tourn::Tournament;
 use iced::Task;
 use opener::open_browser;
 
-use crate::{App, logic::file::FileMessage, traits::HandleMessage};
+use crate::{
+    App,
+    logic::file::FileMessage,
+    traits::HandleMessage,
+    view::{home::HomeMessage, view_player::ViewPlayerMessage},
+};
 
 #[derive(Clone, Default)]
 pub enum Message {
@@ -14,6 +19,8 @@ pub enum Message {
     Error(Option<String>),
     File(FileMessage),
     LoadTournament(Box<Tournament>),
+    Home(HomeMessage),
+    ViewPlayer(ViewPlayerMessage),
 }
 
 impl Message {
@@ -53,6 +60,8 @@ impl HandleMessage<Message> for App {
                 self.tournament = *tournament;
                 Message::done()
             }
+            Message::Home(msg) => self.update(msg),
+            Message::ViewPlayer(msg) => self.update(msg),
         }
     }
 }

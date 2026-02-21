@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use edh_tourn::Tournament;
 use iced::Task;
 
-use crate::{logic::Message, traits::HandleMessage};
+use crate::{logic::Message, traits::HandleMessage, view::{home::HomeState, Scene}};
 
 mod logic;
 mod traits;
@@ -14,6 +14,8 @@ pub struct App {
     tournament: Tournament,
     error: Option<String>,
     file: Option<PathBuf>,
+    home: HomeState,
+    scene: Scene
 }
 
 pub fn main() -> iced::Result {

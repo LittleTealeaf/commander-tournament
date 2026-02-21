@@ -1,3 +1,4 @@
+pub mod view_player;
 pub mod home;
 
 use iced::{
@@ -9,7 +10,15 @@ use iced::{
 use crate::{
     App,
     logic::{Message, file::FileMessage},
+    view::view_player::ViewPlayerScene,
 };
+
+#[derive(Default)]
+pub enum Scene {
+    #[default]
+    Home,
+    Player(ViewPlayerScene),
+}
 
 impl App {
     #[must_use]
