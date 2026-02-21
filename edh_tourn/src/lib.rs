@@ -84,10 +84,46 @@ impl Tournament {
     pub const fn players(&self) -> &HashMap<u32, PlayerInfo> {
         &self.players
     }
+
+    /// Moves all of the tournament data, systematically, into a new Tournament object.
+    /// This is useful as a way around resetting player ids
+    pub fn into_fresh(&self) -> Result<Self, TournamentError> {
+        let mut tourn = Self::new();
+
+        // Set Config
+        tourn.config = TournamentConfig {
+            version: 0,
+            ..self.config
+        };
+
+        let mut id_map = HashMap::new();
+
+        // Register players
+        for (old_id, info) in &self.players {
+            let id = tourn.register_player_with_info(info.clone())?;
+            id_map.insert(*old_id, id);
+        }
+
+        // Register Games
+        for game in &self.games {
+            let players = (*game.players()).map(|p| id_map.get(&p));
+            let ([Some(a), Some(b), Some(c), Some(d)], Some(winner)) =
+                (players, id_map.get(&game.winner()))
+            else {
+                continue;
+            };
+            let record = GameRecord::new([*a, *b, *c, *d], *winner)?;
+            tourn.register_record(record)?;
+        }
+
+        Ok(tourn)
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use itertools::Itertools;
+
     use crate::Tournament;
 
     #[test]
@@ -114,5 +150,59 @@ mod tests {
     #[test]
     fn load_resets_config_version() {
         assert_eq!(Tournament::sample_game().config.version, 0);
+    }
+
+    #[test]
+    fn into_fresh_works_simple() -> anyhow::Result<()> {
+        Tournament::sample_game().into_fresh()?;
+        Tournament::generate_tournament(13, 50)?.into_fresh()?;
+        Tournament::generate_tournament(13, 0)?.into_fresh()?;
+        Tournament::generate_tournament(100, 50)?.into_fresh()?;
+        Ok(())
+    }
+
+    #[test]
+    fn into_fresh_same_players() -> anyhow::Result<()> {
+        let game = Tournament::generate_tournament(35, 20)?;
+        let new_game = game.into_fresh()?;
+        let new_game_players = new_game.players().values().collect::<Vec<_>>();
+        for player in game.players().values() {
+            assert!(new_game_players.contains(&player));
+        }
+        assert_eq!(game.players().len(), new_game_players.len());
+
+        Ok(())
+    }
+
+    #[test]
+    fn into_fresh_resets_config_version() {
+        let mut game = Tournament::new();
+        game.config.version = 5;
+        let new_game = game.into_fresh().unwrap();
+        assert_eq!(0, new_game.config.version);
+    }
+
+    #[test]
+    fn into_fresh_resets_ids() -> anyhow::Result<()> {
+        const REMOVE_COUNT: usize = 40;
+        let mut game = Tournament::generate_tournament(100, 0)?;
+        let mut ids = game.players.keys().copied().sorted().take(40);
+        // Just a dummy test that the first one is 0
+        assert_eq!(0, ids.next().unwrap());
+        game.unregister_player(0)?;
+
+        for id in ids {
+            game.unregister_player(id)?;
+        }
+
+        assert_eq!(60, game.players.len());
+        assert_eq!(99, *game.players.keys().max().unwrap());
+
+        let new_game = game.into_fresh()?;
+
+        assert_eq!(60, new_game.players.len());
+        assert_eq!(59, *new_game.players.keys().max().unwrap());
+
+        Ok(())
     }
 }

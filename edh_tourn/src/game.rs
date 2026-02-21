@@ -136,6 +136,8 @@ impl Tournament {
 
         let default_stats = self.create_default_stats();
 
+        let mut winner_tracked = false;
+
         for player in matchup.players {
             let stats = self
                 .stats
@@ -144,9 +146,10 @@ impl Tournament {
 
             stats.games += 1;
 
-            if player.id == winner {
+            if !winner_tracked && player.id == winner {
                 stats.wins += 1;
                 stats.elo += player.elo_win;
+                winner_tracked = true;
             } else {
                 stats.elo -= player.elo_loss;
             }
@@ -257,6 +260,23 @@ mod tests {
                 assert!(elo.total_cmp(&starting_elo).is_le());
             }
         }
+
+        Ok(())
+    }
+
+    #[test]
+    #[allow(clippy::needless_range_loop)]
+    fn winner_only_counted_once() -> anyhow::Result<()> {
+        let mut tourn = Tournament::new();
+        let id = tourn.register_player(String::from("sample"))?;
+        let matchup = tourn.create_match([id, id, id, id])?;
+        let starting_elo = matchup.players[0].stats.elo();
+        tourn.register_match(matchup, id)?;
+        let elo = tourn.stats[&id].elo();
+        assert!(
+            (starting_elo - elo).abs() <= 1e-10,
+            "Elos do not match: {starting_elo} to {elo}"
+        );
 
         Ok(())
     }

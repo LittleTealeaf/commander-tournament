@@ -137,18 +137,22 @@ impl PlayerInfo {
 
 impl Tournament {
     pub fn register_player(&mut self, name: String) -> Result<u32, TournamentError> {
-        if name.is_empty() {
-            return Err(TournamentError::InvalidPlayerName(name));
+        self.register_player_with_info(PlayerInfo::new(name))
+    }
+
+    pub fn register_player_with_info(&mut self, info: PlayerInfo) -> Result<u32, TournamentError> {
+        if info.name.is_empty() {
+            return Err(TournamentError::InvalidPlayerName(info.name));
         }
 
-        if let Some(id) = self.player_names.get(&name) {
-            return Err(TournamentError::PlayerAlreadyRegistered(name, *id));
+        if let Some(id) = self.player_names.get(&info.name) {
+            return Err(TournamentError::PlayerAlreadyRegistered(info.name, *id));
         }
 
         let id = self.players.keys().max().map_or(0, |i| i + 1);
 
-        self.player_names.insert(name.clone(), id);
-        self.players.insert(id, PlayerInfo::new(name));
+        self.player_names.insert(info.name.clone(), id);
+        self.players.insert(id, info);
 
         Ok(id)
     }

@@ -95,14 +95,13 @@ impl HandleMessage<ViewPlayerMessage> for App {
                 Ok(Task::none())
             }
             ViewPlayerMessage::SaveAndClose => {
-                let id = match scene.player {
-                    Some(id) => id,
-                    None => self
-                        .tournament
-                        .register_player(scene.info.name().to_owned())?,
-                };
+                if let Some(id) = scene.player {
+                    self.tournament.set_player_info(id, scene.info.clone())?;
+                } else {
+                    self.tournament
+                        .register_player_with_info(scene.info.clone())?;
+                }
 
-                self.tournament.set_player_info(id, scene.info.clone())?;
                 self.scenes.pop();
 
                 Ok(Task::none())
