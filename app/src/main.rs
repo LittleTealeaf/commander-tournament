@@ -15,7 +15,7 @@ pub struct App {
     error: Option<String>,
     file: Option<PathBuf>,
     home: HomeState,
-    scene: Scene
+    scenes: Vec<Scene>
 }
 
 pub fn main() -> iced::Result {

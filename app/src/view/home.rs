@@ -1,7 +1,10 @@
-use iced::Task;
+use iced::{Task, widget::row};
 
 use crate::{
-    App, logic::Message, traits::HandleMessage, view::home::leaderboard::LeaderboardColumn,
+    App,
+    logic::Message,
+    traits::{HandleMessage, ViewApp},
+    view::home::leaderboard::LeaderboardColumn,
 };
 
 mod leaderboard;
@@ -45,5 +48,11 @@ impl HandleMessage<HomeMessage> for App {
                 Ok(Task::none())
             }
         }
+    }
+}
+
+impl ViewApp for HomeState {
+    fn view(app: &App) -> iced::Element<'_, Message> {
+        row![app.view_home_leaderboard()].into()
     }
 }

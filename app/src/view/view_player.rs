@@ -6,7 +6,12 @@ use edh_tourn::{
 };
 use iced::Task;
 
-use crate::{App, logic::Message, traits::HandleMessage, view::Scene};
+use crate::{
+    App,
+    logic::Message,
+    traits::{HandleMessage, View},
+    view::Scene,
+};
 
 #[derive(Clone)]
 pub struct ViewPlayerScene {
@@ -43,6 +48,12 @@ impl ViewPlayerScene {
     }
 }
 
+impl View for ViewPlayerScene {
+    fn view(&self) -> iced::Element<'_, Message> {
+        todo!()
+    }
+}
+
 #[derive(Clone)]
 pub enum ViewPlayerMessage {
     Open(Option<u32>),
@@ -65,15 +76,24 @@ impl HandleMessage<ViewPlayerMessage> for App {
         &mut self,
         msg: ViewPlayerMessage,
     ) -> anyhow::Result<iced::Task<crate::logic::Message>> {
-        let Scene::Player(scene) = &mut self.scene else {
+        let Some(Scene::Player(scene)) = self.scenes.last_mut() else {
             if let ViewPlayerMessage::Open(maybe_id) = msg {
-                self.scene = Scene::Player(ViewPlayerScene::new(&self.tournament, maybe_id)?);
+                self.scenes.push(Scene::Player(ViewPlayerScene::new(
+                    &self.tournament,
+                    maybe_id,
+                )?));
             }
             return Ok(Task::none());
         };
 
         match msg {
-            ViewPlayerMessage::Open(_) => Ok(Task::none()),
+            ViewPlayerMessage::Open(maybe_id) => {
+                self.scenes.push(Scene::Player(ViewPlayerScene::new(
+                    &self.tournament,
+                    maybe_id,
+                )?));
+                Ok(Task::none())
+            }
             ViewPlayerMessage::SaveAndClose => {
                 let id = match scene.player {
                     Some(id) => id,
@@ -83,11 +103,14 @@ impl HandleMessage<ViewPlayerMessage> for App {
                 };
 
                 self.tournament.set_player_info(id, scene.info.clone())?;
-                self.scene = Scene::Home;
+                self.scenes.pop();
 
                 Ok(Task::none())
             }
-            ViewPlayerMessage::Close => todo!(),
+            ViewPlayerMessage::Close => {
+                self.scenes.pop();
+                Ok(Task::none())
+            }
             ViewPlayerMessage::SetName(name) => {
                 scene.info.set_name(name);
                 Ok(Task::none())

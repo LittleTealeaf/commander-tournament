@@ -12,6 +12,10 @@ pub trait HandleMessage<T> {
     }
 }
 
-pub trait View {
+pub trait ViewApp {
     fn view(app: &App) -> Element<'_, Message>;
+}
+
+pub trait View {
+    fn view(&self) -> Element<'_, Message>;
 }

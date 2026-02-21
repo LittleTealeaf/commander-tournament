@@ -1,5 +1,5 @@
-pub mod view_player;
 pub mod home;
+pub mod view_player;
 
 use iced::{
     Alignment, Element, Length,
@@ -10,13 +10,14 @@ use iced::{
 use crate::{
     App,
     logic::{Message, file::FileMessage},
-    view::view_player::ViewPlayerScene,
+    traits::{View, ViewApp},
+    view::{
+        home::HomeState,
+        view_player::{ViewPlayerMessage, ViewPlayerScene},
+    },
 };
 
-#[derive(Default)]
 pub enum Scene {
-    #[default]
-    Home,
     Player(ViewPlayerScene),
 }
 
@@ -26,13 +27,19 @@ impl App {
         if let Some(error) = &self.error {
             return error_screen(error);
         }
+        let screen = self.scenes.last().map_or_else(
+            || HomeState::view(self),
+            |scene| match scene {
+                Scene::Player(scene) => scene.view(),
+            },
+        );
 
-        column![self.toolbar(),].into()
+        column![self.toolbar(), screen,].into()
     }
 
     fn toolbar(&self) -> Element<'_, Message> {
         row![
-            button("New Player"),
+            button("New Player").on_press(ViewPlayerMessage::Open(None).into()),
             space().width(15.0),
             button("Open").on_press(FileMessage::OpenFile.into()),
             button("Save").on_press(FileMessage::Save.into()),
