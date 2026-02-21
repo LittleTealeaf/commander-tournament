@@ -54,6 +54,9 @@ impl Tournament {
     }
 
     pub fn set_config(&mut self, config: &TournamentConfig) -> Result<(), TournamentError> {
+        if self.config.version == usize::MAX {
+            self.config.version = usize::MIN;
+        }
         self.config = TournamentConfig {
             version: self.config.version + 1,
             ..*config
@@ -88,6 +91,13 @@ mod tests {
         config.version = 5;
         t.set_config(&config).unwrap();
         assert_eq!(1, t.config.version);
+    }
+
+    #[test]
+    fn config_version_loops() {
+        let mut t = Tournament::new();
+        t.config.version = usize::MAX;
+        t.set_config(&t.config.clone()).unwrap();
     }
 
     #[test]

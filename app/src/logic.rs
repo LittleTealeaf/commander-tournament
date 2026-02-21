@@ -15,6 +15,8 @@ use crate::{
 pub enum Message {
     #[default]
     None,
+    ReloadTournament,
+    RefreshTournament,
     OpenLink(String),
     Error(Option<String>),
     File(FileMessage),
@@ -62,6 +64,14 @@ impl HandleMessage<Message> for App {
             }
             Message::Home(msg) => self.update(msg),
             Message::ViewPlayer(msg) => self.update(msg),
+            Message::ReloadTournament => {
+                self.tournament.reload()?;
+                Ok(Task::none())
+            }
+            Message::RefreshTournament => {
+                self.tournament = self.tournament.into_fresh()?;
+                Ok(Task::none())
+            }
         }
     }
 }
