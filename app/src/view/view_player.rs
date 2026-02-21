@@ -13,7 +13,7 @@ use crate::{
     view::Scene,
 };
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ViewPlayerScene {
     player: Option<u32>,
     info: PlayerInfo,
@@ -131,6 +131,52 @@ impl HandleMessage<ViewPlayerMessage> for App {
                 scene.info.toggle_color(color);
                 Ok(Task::none())
             }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use edh_tourn::Tournament;
+    use itertools::Itertools;
+
+    use crate::view::view_player::ViewPlayerScene;
+
+    #[test]
+    fn new_creates_default_values() {
+        let t = Tournament::sample_game();
+        let scene = ViewPlayerScene::new(&t, None).unwrap();
+        assert!(scene.info.name().is_empty());
+        assert!(scene.info.description().is_empty());
+        assert!(scene.info.moxfield_link().is_none());
+        assert!(scene.record.is_empty());
+    }
+
+    #[test]
+    fn new_fails_when_invalid_id() {
+        let t = Tournament::new();
+        assert!(!t.players().keys().contains(&100));
+        ViewPlayerScene::new(&t, Some(100)).unwrap_err();
+    }
+
+    #[test]
+    fn new_grabs_player_data() {
+        let t = Tournament::sample_game();
+
+        for (id, info) in t.players().clone() {
+            let stats = t
+                .get_player_stats(id)
+                .cloned()
+                .unwrap_or_else(|| t.create_default_stats());
+
+            let games = t.get_player_games(id).unwrap().copied().collect::<Vec<_>>();
+
+            let scene = ViewPlayerScene::new(&t, Some(id)).unwrap();
+
+            assert_eq!(Some(id), scene.player);
+            assert_eq!(games, scene.record);
+            assert_eq!(info, scene.info);
+            assert_eq!(Some(stats), scene.stats);
         }
     }
 }
