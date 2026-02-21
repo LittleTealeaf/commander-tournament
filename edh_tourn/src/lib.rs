@@ -127,6 +127,12 @@ mod tests {
     use crate::Tournament;
 
     #[test]
+    fn new_has_no_players() {
+        let new_tourn = Tournament::new();
+        assert_eq!(0, new_tourn.players.len());
+    }
+
+    #[test]
     fn unregister_removes_players_games() {
         let sample = Tournament::sample_game();
         for id in sample.players().keys() {
@@ -136,6 +142,14 @@ mod tests {
                 assert!(!game.players().contains(id));
                 assert_ne!(game.winner(), *id);
             }
+        }
+    }
+
+    #[test]
+    fn unregister_invalid_id_returns_err() {
+        let mut tourn = Tournament::new();
+        for i in 0..100 {
+            tourn.unregister_player(i).unwrap_err();
         }
     }
 

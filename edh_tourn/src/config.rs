@@ -77,6 +77,8 @@ mod tests {
         let mut t = Tournament::new();
         t.set_config(&t.config.clone()).unwrap();
         assert_eq!(1, t.config.version);
+        t.set_config(&t.config.clone()).unwrap();
+        assert_eq!(2, t.config.version);
     }
 
     #[test]
