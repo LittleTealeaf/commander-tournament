@@ -136,6 +136,13 @@ impl PlayerInfo {
 }
 
 impl Tournament {
+    pub fn get_or_register_player(&mut self, name: String) -> Result<u32, TournamentError> {
+        match self.register_player(name) {
+            Ok(id) | Err(TournamentError::PlayerAlreadyRegistered(_, id)) => Ok(id),
+            Err(err) => Err(err),
+        }
+    }
+
     pub fn register_player(&mut self, name: String) -> Result<u32, TournamentError> {
         self.register_player_with_info(PlayerInfo::new(name))
     }
@@ -188,11 +195,9 @@ impl Tournament {
         Ok(())
     }
 
-    pub fn get_player_info(&self, id: u32) -> Result<PlayerInfo, TournamentError> {
-        self.players
-            .get(&id)
-            .cloned()
-            .ok_or(TournamentError::InvalidPlayerId(id))
+    #[must_use]
+    pub fn get_player_info(&self, id: &u32) -> Option<&PlayerInfo> {
+        self.players().get(id)
     }
 }
 

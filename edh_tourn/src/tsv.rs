@@ -5,66 +5,44 @@ use crate::{
 };
 
 impl Tournament {
-    fn create_or_get_id(&mut self, name: String) -> Result<u32, TournamentError> {
-        match self.register_player(name) {
-            Ok(id) => Ok(id),
-            Err(err) => match err {
-                TournamentError::PlayerAlreadyRegistered(_, id) => Ok(id),
-                err => Err(err),
-            },
+    pub fn from_tsv_games(text: &str) -> TournResult<Self> {
+        let mut tourn = Self::new();
+        for line in text.lines() {
+            let mut parts = line.split('\t');
+            // Grabs names
+            let a_name = parts.next().ok_or(TournamentError::NotEnoughPlayers)?;
+            let b_name = parts.next().ok_or(TournamentError::NotEnoughPlayers)?;
+            let c_name = parts.next().ok_or(TournamentError::NotEnoughPlayers)?;
+            let d_name = parts.next().ok_or(TournamentError::NotEnoughPlayers)?;
+            let w_name = parts.next().ok_or(TournamentError::NotEnoughPlayers)?;
+
+            // Get IDS
+            let a_id = tourn.get_or_register_player(a_name.to_owned())?;
+            let b_id = tourn.get_or_register_player(b_name.to_owned())?;
+            let c_id = tourn.get_or_register_player(c_name.to_owned())?;
+            let d_id = tourn.get_or_register_player(d_name.to_owned())?;
+            let w_id = tourn.get_or_register_player(w_name.to_owned())?;
+
+            // Create record
+            let record = GameRecord::new([a_id, b_id, c_id, d_id], w_id)?;
+
+            // Register record
+            tourn.register_record(record)?;
         }
-    }
 
-    fn parse_tsv_games(&mut self, text: &str) -> impl Iterator<Item = GameRecord> {
-        text.lines().filter_map(|line| {
-            let parts = line.split('\t').collect::<Vec<_>>();
-            if parts.len() < 5 {
-                return None;
-            }
-
-            let players = [
-                self.create_or_get_id(parts.first()?.to_string()).ok()?,
-                self.create_or_get_id(parts.get(1)?.to_string()).ok()?,
-                self.create_or_get_id(parts.get(2)?.to_string()).ok()?,
-                self.create_or_get_id(parts.get(3)?.to_string()).ok()?,
-            ];
-            let winner = self.create_or_get_id(parts.get(4)?.to_string()).ok()?;
-
-            GameRecord::new(players, winner).ok()
-        })
-    }
-
-    pub fn ingest_tsv_games(&mut self, text: &str) -> TournResult<()> {
-        let games = self.parse_tsv_games(text).collect::<Vec<_>>();
-        for game in games {
-            self.register_record(game)?;
-        }
-        Ok(())
+        Ok(tourn)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use itertools::Itertools;
-
     use crate::Tournament;
 
     #[test]
-    fn parse_tsv_games() {
-        let mut t = Tournament::new();
+    fn parse_tsv_game_count() {
         let tsv = include_str!("../../tests/sample-tsv.tsv");
         let game_count = tsv.lines().count();
-        let records = t.parse_tsv_games(tsv).collect_vec();
-        assert_eq!(game_count, records.len());
-    }
-
-    #[test]
-    fn ingest_tsv_games() {
-        let mut t = Tournament::new();
-        let tsv = include_str!("../../tests/sample-tsv.tsv");
-        let game_count = tsv.lines().count();
-        assert_eq!(0, t.games().len());
-        t.ingest_tsv_games(tsv).unwrap();
-        assert_eq!(game_count, t.games().len());
+        let records = Tournament::from_tsv_games(tsv).unwrap();
+        assert_eq!(game_count, records.games().len());
     }
 }

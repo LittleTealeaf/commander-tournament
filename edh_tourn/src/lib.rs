@@ -9,12 +9,11 @@ pub mod matches;
 pub mod serialization;
 pub mod stats;
 pub mod tsv;
-pub mod utils;
 
 use std::collections::HashMap;
 
 use crate::{
-    utils::ordered_map,
+    serialization::ordered_map,
     {
         config::TournamentConfig, error::TournamentError, game::GameRecord, info::PlayerInfo,
         stats::PlayerStats,

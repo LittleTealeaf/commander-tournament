@@ -4,14 +4,19 @@ use crate::{
     App,
     logic::Message,
     traits::{HandleMessage, ViewApp},
-    view::home::leaderboard::LeaderboardColumn,
+    view::home::{
+        leaderboard::LeaderboardColumn,
+        matchup::{MatchupMessage, MatchupView},
+    },
 };
 
 mod leaderboard;
+mod matchup;
 
 pub struct HomeState {
     leaderboard_sort_column: LeaderboardColumn,
     leaderboard_sort_asc: bool,
+    matchup_view: MatchupView,
 }
 
 impl Default for HomeState {
@@ -19,6 +24,7 @@ impl Default for HomeState {
         Self {
             leaderboard_sort_column: LeaderboardColumn::Elo,
             leaderboard_sort_asc: false,
+            matchup_view: MatchupView::default(),
         }
     }
 }
@@ -26,6 +32,7 @@ impl Default for HomeState {
 #[derive(Clone)]
 pub enum HomeMessage {
     SortLeaderboardBy(LeaderboardColumn),
+    MatchupMessage(MatchupMessage),
 }
 
 impl From<HomeMessage> for Message {
@@ -47,6 +54,7 @@ impl HandleMessage<HomeMessage> for App {
 
                 Ok(Task::none())
             }
+            HomeMessage::MatchupMessage(msg) => self.update(msg),
         }
     }
 }

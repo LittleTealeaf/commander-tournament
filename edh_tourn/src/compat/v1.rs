@@ -4,7 +4,11 @@ use std::collections::HashMap;
 use itertools::{Itertools, chain};
 
 use crate::{
-    Tournament, config::TournamentConfig, error::TournamentError, game::GameRecord, info::MtgColor,
+    Tournament,
+    config::TournamentConfig,
+    error::TournamentError,
+    game::GameRecord,
+    info::{MtgColor, PlayerInfo},
 };
 
 #[derive(Clone, serde::Deserialize)]
@@ -75,9 +79,9 @@ impl TryFrom<TournamentCompatV1> for Tournament {
         .collect_vec();
 
         for player in players {
-            let id = tournament.register_player(player.clone())?;
+            let mut info = PlayerInfo::new(player.clone());
+
             if let Some(compat_info) = value.player_details.get(&player) {
-                let mut info = tournament.get_player_info(id)?;
                 if let Some(description) = &compat_info.description {
                     info.set_description(description.to_owned());
                 }
@@ -94,8 +98,9 @@ impl TryFrom<TournamentCompatV1> for Tournament {
                         );
                     }
                 }
-                tournament.set_player_info(id, info)?;
             }
+
+            tournament.register_player_with_info(info)?;
         }
 
         let config = TournamentConfig {
@@ -120,23 +125,13 @@ impl TryFrom<TournamentCompatV1> for Tournament {
             let winner = game.winner;
 
             let players = [
-                tournament
-                    .get_player_id(&player_a)
-                    .ok_or(TournamentError::PlayerNameNotRegistered(player_a))?,
-                tournament
-                    .get_player_id(&player_b)
-                    .ok_or(TournamentError::PlayerNameNotRegistered(player_b))?,
-                tournament
-                    .get_player_id(&player_c)
-                    .ok_or(TournamentError::PlayerNameNotRegistered(player_c))?,
-                tournament
-                    .get_player_id(&player_d)
-                    .ok_or(TournamentError::PlayerNameNotRegistered(player_d))?,
+                tournament.get_or_register_player(player_a)?,
+                tournament.get_or_register_player(player_b)?,
+                tournament.get_or_register_player(player_c)?,
+                tournament.get_or_register_player(player_d)?,
             ];
 
-            let winner = tournament
-                .get_player_id(&winner)
-                .ok_or(TournamentError::PlayerNameNotRegistered(winner))?;
+            let winner = tournament.get_or_register_player(winner)?;
 
             let record = GameRecord::new(players, winner)?;
             tournament.register_record(record)?;

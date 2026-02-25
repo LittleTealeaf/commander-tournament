@@ -1,5 +1,6 @@
 use edh_tourn::{
     Tournament,
+    error::TournamentError,
     game::GameRecord,
     info::{MtgColor, PlayerInfo},
     stats::PlayerStats,
@@ -36,7 +37,11 @@ impl ViewPlayerScene {
     fn new(tournament: &Tournament, maybe_id: Option<u32>) -> anyhow::Result<Self> {
         Ok(match maybe_id {
             Some(id) => {
-                let info = tournament.get_player_info(id)?;
+                let info = tournament
+                    .get_player_info(&id)
+                    .ok_or(TournamentError::InvalidPlayerId(id))?
+                    .clone();
+
                 Self {
                     player: Some(id),
                     moxfield: info.moxfield_id().cloned().unwrap_or_default(),
