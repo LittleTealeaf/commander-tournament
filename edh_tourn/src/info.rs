@@ -29,7 +29,7 @@ impl MtgColor {
     ];
 
     #[must_use]
-    pub const fn letter(&self) -> &str {
+    pub const fn letter(&self) -> &'static str {
         match self {
             Self::White => "W",
             Self::Blue => "U",
@@ -63,7 +63,7 @@ impl PlayerInfo {
     }
 
     #[must_use]
-    pub fn name(&self) -> &str {
+    pub const fn name(&self) -> &String {
         &self.name
     }
 
@@ -178,10 +178,10 @@ impl Tournament {
                     *old_id,
                 ));
             }
-        }
 
-        self.player_names.insert(info.name().to_owned(), player);
-        self.player_names.remove(saved_info.name());
+            self.player_names.remove(saved_info.name());
+            self.player_names.insert(info.name().to_owned(), player);
+        }
 
         *saved_info = info;
 
@@ -189,11 +189,10 @@ impl Tournament {
     }
 
     pub fn get_player_info(&self, id: u32) -> Result<PlayerInfo, TournamentError> {
-        Ok(self
-            .players
+        self.players
             .get(&id)
-            .ok_or(TournamentError::InvalidPlayerId(id))?
-            .clone())
+            .cloned()
+            .ok_or(TournamentError::InvalidPlayerId(id))
     }
 }
 

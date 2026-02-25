@@ -116,14 +116,29 @@ impl TryFrom<TournamentCompatV1> for Tournament {
         tournament.set_config(&config)?;
 
         for game in value.games {
-            let mut ids = [0; 4];
-            for (i, player) in game.players.iter().enumerate() {
-                let id = tournament.get_player_id(player)?;
-                *ids.get_mut(i).ok_or(TournamentError::NotEnoughPlayers)? = id;
-            }
-            let winner = tournament.get_player_id(&game.winner)?;
+            let [player_a, player_b, player_c, player_d] = game.players;
+            let winner = game.winner;
 
-            let record = GameRecord::new(ids, winner)?;
+            let players = [
+                tournament
+                    .get_player_id(&player_a)
+                    .ok_or(TournamentError::PlayerNameNotRegistered(player_a))?,
+                tournament
+                    .get_player_id(&player_b)
+                    .ok_or(TournamentError::PlayerNameNotRegistered(player_b))?,
+                tournament
+                    .get_player_id(&player_c)
+                    .ok_or(TournamentError::PlayerNameNotRegistered(player_c))?,
+                tournament
+                    .get_player_id(&player_d)
+                    .ok_or(TournamentError::PlayerNameNotRegistered(player_d))?,
+            ];
+
+            let winner = tournament
+                .get_player_id(&winner)
+                .ok_or(TournamentError::PlayerNameNotRegistered(winner))?;
+
+            let record = GameRecord::new(players, winner)?;
             tournament.register_record(record)?;
         }
 

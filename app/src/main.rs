@@ -31,7 +31,6 @@ pub fn main() -> iced::Result {
     }
     iced::run(updater, App::view)
 }
-
 //
 // #![allow(dead_code)]
 // mod message;

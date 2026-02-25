@@ -7,7 +7,11 @@ use iced::{
 };
 use itertools::Itertools;
 
-use crate::{App, logic::Message, view::home::HomeMessage};
+use crate::{
+    App,
+    logic::Message,
+    view::{home::HomeMessage, view_player::ViewPlayerMessage},
+};
 
 #[derive(Clone)]
 struct Player<'a> {
@@ -95,9 +99,9 @@ impl App {
                 table::column(
                     col_header("Name", LeaderboardColumn::Name),
                     |p: Player<'_>| {
-                        button(text(p.info.name()).size(12)).style(button::text)
-                        // TODO: edit player
-                        // .on_press(Message::EditPlayer(Some(p.id)))
+                        button(text(p.info.name()).size(12))
+                            .style(button::text)
+                            .on_press(ViewPlayerMessage::Open(Some(p.id)).into())
                     },
                 ),
                 table::column(

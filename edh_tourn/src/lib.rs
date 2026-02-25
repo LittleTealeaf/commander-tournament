@@ -40,11 +40,9 @@ impl Tournament {
         Self::default()
     }
 
-    pub fn get_player_id(&self, name: &String) -> Result<u32, TournamentError> {
-        self.player_names
-            .get(name)
-            .copied()
-            .ok_or_else(|| TournamentError::PlayerNameNotRegistered(name.clone()))
+    #[must_use]
+    pub fn get_player_id(&self, name: &String) -> Option<u32> {
+        self.player_names.get(name).copied()
     }
 
     #[must_use]
@@ -85,6 +83,28 @@ impl Tournament {
         &self.players
     }
 
+    /// Merges with another tournament. If decks from either game have the same name, they are
+    /// merged. Games are added to the end of the base tournament.
+    pub fn merge_tournament(&mut self, other: &Self) -> Result<(), TournamentError> {
+        let mut id_map = HashMap::new();
+
+        for (old_id, info) in &other.players {
+            id_map.insert(
+                *old_id,
+                match self.get_player_id(info.name()) {
+                    Some(id) => id,
+                    None => self.register_player_with_info(info.clone())?,
+                },
+            );
+        }
+
+        for game in &other.games {
+            self.register_record(game.map_ids(&id_map)?)?;
+        }
+
+        Ok(())
+    }
+
     /// Moves all of the tournament data, systematically, into a new Tournament object.
     /// This is useful as a way around resetting player ids
     pub fn into_fresh(&self) -> Result<Self, TournamentError> {
@@ -106,14 +126,7 @@ impl Tournament {
 
         // Register Games
         for game in &self.games {
-            let players = (*game.players()).map(|p| id_map.get(&p));
-            let ([Some(a), Some(b), Some(c), Some(d)], Some(winner)) =
-                (players, id_map.get(&game.winner()))
-            else {
-                continue;
-            };
-            let record = GameRecord::new([*a, *b, *c, *d], *winner)?;
-            tourn.register_record(record)?;
+            tourn.register_record(game.map_ids(&id_map)?)?;
         }
 
         Ok(tourn)
@@ -218,5 +231,50 @@ mod tests {
         assert_eq!(59, *new_game.players.keys().max().unwrap());
 
         Ok(())
+    }
+
+    #[test]
+    fn into_fresh_same_stats() -> anyhow::Result<()> {
+        let test_games = [
+            Tournament::generate_tournament(30, 200)?,
+            Tournament::generate_tournament(100, 20)?,
+            Tournament::generate_tournament(10, 0)?,
+            Tournament::new(),
+            Tournament::sample_game(),
+        ];
+
+        for game in test_games {
+            let new_game = game.into_fresh()?;
+            for (id, info) in game.players() {
+                let stats = game.get_player_stats(*id);
+                let new_id = new_game.get_player_id(info.name()).unwrap();
+                let new_stats = new_game.get_player_stats(new_id);
+                assert_eq!(stats.is_some(), new_stats.is_some());
+                let (Some(stats), Some(new_stats)) = (stats, new_stats) else {
+                    continue;
+                };
+
+                assert!((stats.elo() - new_stats.elo()).abs() <= 1e-9);
+            }
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn merge_tournaments_merge_players() {
+        let players = ["a", "b", "c", "d"];
+        let mut tournament_a = Tournament::new();
+        for p in &players {
+            tournament_a.register_player(p.to_string()).unwrap();
+        }
+        let mut tournament_b = Tournament::new();
+        for p in &players {
+            tournament_b.register_player(p.to_string()).unwrap();
+        }
+
+        tournament_a.merge_tournament(&tournament_b).unwrap();
+
+        assert_eq!(4, tournament_a.players.len());
     }
 }

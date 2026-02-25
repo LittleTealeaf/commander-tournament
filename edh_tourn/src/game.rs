@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::{
     Tournament,
     error::{TournResult, TournamentError},
@@ -29,6 +31,19 @@ impl GameRecord {
     #[must_use]
     pub const fn winner(&self) -> u32 {
         self.winner
+    }
+
+    pub fn map_ids(&self, ids: &HashMap<u32, u32>) -> Result<Self, TournamentError> {
+        let [a, b, c, d] = self.players;
+        let a = ids.get(&a).ok_or(TournamentError::InvalidPlayerId(a))?;
+        let b = ids.get(&b).ok_or(TournamentError::InvalidPlayerId(b))?;
+        let c = ids.get(&c).ok_or(TournamentError::InvalidPlayerId(c))?;
+        let d = ids.get(&d).ok_or(TournamentError::InvalidPlayerId(d))?;
+        let winner = ids
+            .get(&self.winner)
+            .ok_or(TournamentError::InvalidPlayerId(self.winner))?;
+
+        Self::new([*a, *b, *c, *d], *winner)
     }
 }
 

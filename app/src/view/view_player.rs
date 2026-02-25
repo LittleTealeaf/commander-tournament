@@ -4,7 +4,10 @@ use edh_tourn::{
     info::{MtgColor, PlayerInfo},
     stats::PlayerStats,
 };
-use iced::Task;
+use iced::{
+    Alignment, Length, Task,
+    widget::{button, column, container, row, text, text_input},
+};
 
 use crate::{
     App,
@@ -16,30 +19,45 @@ use crate::{
 #[derive(Clone, Debug)]
 pub struct ViewPlayerScene {
     player: Option<u32>,
+    name: Option<String>,
+    moxfield: String,
     info: PlayerInfo,
     stats: Option<PlayerStats>,
     record: Vec<GameRecord>,
 }
 
+impl From<ViewPlayerScene> for Scene {
+    fn from(value: ViewPlayerScene) -> Self {
+        Self::Player(value)
+    }
+}
+
 impl ViewPlayerScene {
     fn new(tournament: &Tournament, maybe_id: Option<u32>) -> anyhow::Result<Self> {
         Ok(match maybe_id {
-            Some(id) => Self {
-                player: Some(id),
-                stats: Some(
-                    tournament
-                        .get_player_stats(id)
-                        .cloned()
-                        .unwrap_or_else(|| tournament.create_default_stats()),
-                ),
-                info: tournament.get_player_info(id)?,
-                record: tournament
-                    .get_player_games(id)?
-                    .copied()
-                    .collect::<Vec<_>>(),
-            },
+            Some(id) => {
+                let info = tournament.get_player_info(id)?;
+                Self {
+                    player: Some(id),
+                    moxfield: info.moxfield_id().cloned().unwrap_or_default(),
+                    name: Some(info.name().to_owned()),
+                    stats: Some(
+                        tournament
+                            .get_player_stats(id)
+                            .cloned()
+                            .unwrap_or_else(|| tournament.create_default_stats()),
+                    ),
+                    info,
+                    record: tournament
+                        .get_player_games(id)?
+                        .copied()
+                        .collect::<Vec<_>>(),
+                }
+            }
             None => Self {
                 player: None,
+                name: None,
+                moxfield: String::new(),
                 info: PlayerInfo::default(),
                 stats: None,
                 record: Vec::new(),
@@ -50,7 +68,45 @@ impl ViewPlayerScene {
 
 impl View for ViewPlayerScene {
     fn view(&self) -> iced::Element<'_, Message> {
-        todo!()
+        let title = self.name.as_ref().map_or_else(
+            || String::from("Create New Deck"),
+            |name| format!("Edit: {name}"),
+        );
+
+        let colors_row = row(MtgColor::COLORS.into_iter().map(|color| {
+            let style = if self.info.has_color(&color) {
+                button::primary
+            } else {
+                button::secondary
+            };
+
+            button(color.letter())
+                .on_press(ViewPlayerMessage::ToggleColor(color).into())
+                .style(style)
+                .into()
+        }));
+
+        let info_page = column![
+            text_input("", self.info.name())
+                .on_input(|text| ViewPlayerMessage::SetName(text).into()),
+            text_input("Description", self.info.description())
+                .on_input(|text| ViewPlayerMessage::SetDescription(text).into()),
+            text_input("Moxfield ID", &self.moxfield)
+                .on_input(|text| ViewPlayerMessage::SetMoxfieldId(text).into()),
+            colors_row,
+        ];
+
+        let submit_row = row![
+            button("Save").on_press(ViewPlayerMessage::SaveAndClose.into()),
+            button("Close").on_press(ViewPlayerMessage::Close.into()),
+        ];
+
+        container(column![text(title), info_page, submit_row])
+            .align_x(Alignment::Center)
+            .align_y(Alignment::Center)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .into()
     }
 }
 
@@ -119,11 +175,7 @@ impl HandleMessage<ViewPlayerMessage> for App {
                 Ok(Task::none())
             }
             ViewPlayerMessage::SetMoxfieldId(text) => {
-                if text.is_empty() {
-                    scene.info.set_moxfield_id(None);
-                } else {
-                    scene.info.set_moxfield_id(Some(text));
-                }
+                scene.moxfield = text;
                 Ok(Task::none())
             }
             ViewPlayerMessage::ToggleColor(color) => {

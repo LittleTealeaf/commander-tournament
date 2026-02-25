@@ -111,4 +111,16 @@ mod tests {
         let elo_end = tournament.get_player_stats(id).unwrap().elo();
         assert!(elo_start.total_cmp(&elo_end).is_ne());
     }
+
+    #[test]
+    fn deserialize_version_is_0() {
+        let config = TournamentConfig {
+            version: 100,
+            ..TournamentConfig::default()
+        };
+
+        let ser = ron::to_string(&config).unwrap();
+        let deconfig: TournamentConfig = ron::from_str(&ser).unwrap();
+        assert_eq!(0, deconfig.version);
+    }
 }
