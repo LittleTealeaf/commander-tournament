@@ -3,7 +3,11 @@ use std::path::PathBuf;
 use edh_tourn::Tournament;
 use iced::Task;
 
-use crate::{logic::Message, traits::HandleMessage, view::{home::HomeState, Scene}};
+use crate::{
+    logic::Message,
+    traits::HandleMessage,
+    view::{Scene, home::HomeState},
+};
 
 mod logic;
 mod traits;
@@ -15,7 +19,7 @@ pub struct App {
     error: Option<String>,
     file: Option<PathBuf>,
     home: HomeState,
-    scenes: Vec<Scene>
+    scenes: Vec<Scene>,
 }
 
 pub fn main() -> iced::Result {

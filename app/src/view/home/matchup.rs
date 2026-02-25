@@ -96,8 +96,3 @@ impl HandleMessage<MatchupMessage> for App {
     }
 }
 
-#[cfg(test)]
-mod tests {
-
-}
-

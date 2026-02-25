@@ -132,6 +132,19 @@ impl Tournament {
     }
 }
 
+impl FromIterator<Self> for Tournament {
+    fn from_iter<T: IntoIterator<Item = Self>>(iter: T) -> Self {
+        let mut iter = iter.into_iter();
+        let mut base = iter.next().unwrap_or_default();
+
+        for tourn in iter {
+            let _ = base.merge_tournament(&tourn);
+        }
+
+        base
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use itertools::Itertools;
