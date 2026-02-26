@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::anyhow;
-use edh_tourn::Tournament;
+use edh_tourn::{Tournament, compat::v1::TournamentCompatV1};
 use iced::{Task, futures::FutureExt};
 use rfd::AsyncFileDialog;
 use serde::{Deserialize, Serialize};
@@ -92,7 +92,12 @@ impl HandleMessage<FileMessage> for App {
 async fn load_file(path: PathBuf) -> anyhow::Result<Tournament> {
     let extension = get_extension(&path).ok_or_else(|| anyhow!("Invalid File Extension"))?;
     let data = async_fs::read_to_string(&path).await?;
-    deserialize_by_extension(&data, extension)
+
+    deserialize_by_extension(&data, extension).or_else(|error| {
+        deserialize_by_extension::<TournamentCompatV1>(&data, extension)
+            .and_then(|tourn| Ok(Tournament::try_from(tourn)?))
+            .map_err(|_| error)
+    })
 }
 
 fn get_extension(path: &Path) -> Option<&str> {
@@ -125,7 +130,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
+    use std::{io::Write, path::PathBuf};
 
     use edh_tourn::Tournament;
     use tempfile::NamedTempFile;
@@ -134,7 +139,10 @@ mod tests {
         App,
         logic::{
             Message,
-            file::{FileMessage, deserialize_by_extension, get_extension, serialize_by_extension},
+            file::{
+                FileMessage, deserialize_by_extension, get_extension, load_file,
+                serialize_by_extension,
+            },
         },
         traits::HandleMessage,
     };
@@ -156,6 +164,14 @@ mod tests {
         app.file = Some(temp_file.path().to_path_buf());
         app.test_update(FileMessage::New);
         assert!(app.file.is_none());
+    }
+
+    #[tokio::test]
+    async fn loads_v1_compat() {
+        let compat_str = include_bytes!("../../../tests/v1-game.ron");
+        let mut file = NamedTempFile::with_suffix(".ron").unwrap();
+        file.write_all(compat_str).unwrap();
+        load_file(file.path().to_path_buf()).await.unwrap();
     }
 
     #[test]

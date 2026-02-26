@@ -45,7 +45,7 @@ impl App {
             button("Save").on_press(FileMessage::Save.into()),
             button("Save As")
                 .on_press_maybe(self.file.is_some().then_some(FileMessage::SaveAs.into())),
-            button("New").on_press(FileMessage::New.into())
+            button("New").on_press(FileMessage::New.into()),
         ]
         .into()
     }
