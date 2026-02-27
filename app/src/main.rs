@@ -33,7 +33,7 @@ pub fn main() -> iced::Result {
             }
         }
     }
-    iced::run(updater, App::view)
+    iced::run(updater, App::app_view)
 }
 //
 // #![allow(dead_code)]

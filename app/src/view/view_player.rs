@@ -1,18 +1,19 @@
+use std::borrow::ToOwned;
+
 use edh_tourn::{
     Tournament,
     error::TournamentError,
     info::{MtgColor, PlayerInfo},
-    stats::PlayerStats,
 };
 use iced::{
     Element, Length, Task,
-    widget::{button, column, row, space, table, text, text_input},
+    widget::{button, column, container, row, space, table, text, text_editor, text_input},
 };
 
 use crate::{
     App,
     logic::Message,
-    traits::{HandleMessage, ViewWithApp},
+    traits::{HandleMessage, View},
     view::Scene,
 };
 
@@ -20,6 +21,7 @@ use crate::{
 pub struct ViewPlayerScene {
     player: Option<u32>,
     name: Option<String>,
+    edit_description: text_editor::Content,
     moxfield: String,
     info: PlayerInfo,
 }
@@ -43,12 +45,14 @@ impl ViewPlayerScene {
                     player: Some(id),
                     moxfield: info.moxfield_id().cloned().unwrap_or_default(),
                     name: Some(info.name().to_owned()),
+                    edit_description: text_editor::Content::new(),
                     info,
                 }
             }
             None => Self {
                 player: None,
                 name: None,
+                edit_description: text_editor::Content::new(),
                 moxfield: String::new(),
                 info: PlayerInfo::default(),
             },
@@ -61,7 +65,7 @@ pub enum ViewPlayerMessage {
     SaveAndClose,
     Close,
     SetName(String),
-    SetDescription(String),
+    EditDescription(text_editor::Action),
     SetMoxfieldId(String),
     ToggleColor(MtgColor),
 }
@@ -84,7 +88,7 @@ impl HandleMessage<ViewPlayerMessage> for App {
                     maybe_id,
                 )?));
             }
-            return Ok(Task::none());
+            return Message::done();
         };
 
         match msg {
@@ -93,7 +97,7 @@ impl HandleMessage<ViewPlayerMessage> for App {
                     &self.tournament,
                     maybe_id,
                 )?));
-                Ok(Task::none())
+                Message::done()
             }
             ViewPlayerMessage::SaveAndClose => {
                 if let Some(id) = scene.player {
@@ -105,145 +109,75 @@ impl HandleMessage<ViewPlayerMessage> for App {
 
                 self.scenes.pop();
 
-                Ok(Task::none())
+                Message::done()
             }
             ViewPlayerMessage::Close => {
                 self.scenes.pop();
-                Ok(Task::none())
+                Message::done()
             }
             ViewPlayerMessage::SetName(name) => {
                 scene.info.set_name(name);
-                Ok(Task::none())
+                Message::done()
             }
-            ViewPlayerMessage::SetDescription(description) => {
-                scene.info.set_description(description);
-                Ok(Task::none())
+            ViewPlayerMessage::EditDescription(action) => {
+                scene.edit_description.perform(action);
+                Message::done()
             }
             ViewPlayerMessage::SetMoxfieldId(text) => {
                 scene.moxfield = text;
-                Ok(Task::none())
+                Message::done()
             }
             ViewPlayerMessage::ToggleColor(color) => {
                 scene.info.toggle_color(color);
-                Ok(Task::none())
+                Message::done()
             }
         }
     }
 }
 
-impl ViewWithApp for ViewPlayerScene {
-    fn view<'a>(&'a self, app: &'a App) -> iced::Element<'a, Message> {
-        let tournament = &app.tournament;
+impl View<ViewPlayerScene> for App {
+    fn view<'a>(&'a self, scene: &'a ViewPlayerScene) -> Element<'a, Message> {
+        let title_text = scene
+            .name
+            .as_ref()
+            .map_or_else(|| "Create New Player".to_owned(), ToOwned::to_owned);
 
-        let stats_panel = self.player.map(|id| {
-            let stats = tournament.get_player_or_default_stats(id);
+        let title = text(title_text).width(Length::Fill).center().size(50);
 
-            let stats_view = stats_display(stats);
-            let games_table = games_table(id, tournament);
+        let info_panel = {
+            let edit_name = text_input("Player Name...", scene.info.name())
+                .on_input(|text| ViewPlayerMessage::SetName(text).into());
 
-            column![stats_view, games_table]
-        });
+            let edit_description = text_editor(&scene.edit_description)
+                .on_action(|action| ViewPlayerMessage::EditDescription(action).into());
 
-        let info_panel = info_display(
-            self.info.name(),
-            self.info.description(),
-            &self.moxfield,
-            self.info.colors(),
-        );
+            let deck_colors = row(MtgColor::COLORS.map(|color| {
+                let style = if scene.info.has_color(&color) {
+                    button::primary
+                } else {
+                    button::secondary
+                };
 
-        let mut row = row![info_panel];
-        if let Some(stats_panel) = stats_panel {
-            row = row.push(stats_panel);
-        }
+                button(color.letter())
+                    .on_press(ViewPlayerMessage::ToggleColor(color).into())
+                    .style(style)
+                    .into()
+            }))
+            .spacing(50);
 
-        row.into()
-    }
-}
-
-fn colors_bar(colors: &[MtgColor]) -> Element<'_, Message> {
-    row(MtgColor::COLORS.into_iter().map(|color| {
-        let style = if colors.contains(&color) {
-            button::primary
-        } else {
-            button::secondary
+            column![edit_name, edit_description, deck_colors]
         };
 
-        button(color.letter())
-            .on_press(ViewPlayerMessage::ToggleColor(color).into())
-            .style(style)
-            .into()
-    }))
-    .into()
-}
+        let bottom_panel = { row![space().width(Length::Fill)] };
 
-fn info_display<'a>(
-    name: &'a str,
-    description: &'a str,
-    moxfield: &'a str,
-    colors: &'a [MtgColor],
-) -> Element<'a, Message> {
-    column![
-        text_input("", name).on_input(|text| ViewPlayerMessage::SetName(text).into()),
-        text_input("Description", description)
-            .on_input(|text| ViewPlayerMessage::SetDescription(text).into()),
-        text_input("Moxfield ID", moxfield)
-            .on_input(|text| ViewPlayerMessage::SetMoxfieldId(text).into()),
-        colors_bar(colors)
-    ]
-    .into()
-}
-
-fn stats_display(stats: &PlayerStats) -> Element<'_, Message> {
-    row![
-        text(format!("Elo: {}", stats.elo())).size(15),
-        space().width(Length::Fill)
-    ]
-    .width(Length::Fill)
-    .into()
-}
-
-fn games_table(id: u32, tournament: &Tournament) -> Element<'_, Message> {
-    #[derive(Clone)]
-    struct GameRow {
-        players: [String; 4],
-        winner: String,
-        elo_change: f64,
-    }
-
-    let unknown_string = String::from("??????");
-    let rows = tournament
-        .get_player_games(id)
-        .into_iter()
-        .flatten()
-        .map(|record| GameRow {
-            players: (*record.players()).map(|player| {
-                tournament
-                    .get_player_info(&player)
-                    .map_or_else(|| &unknown_string, PlayerInfo::name)
-                    .to_owned()
-            }),
-            winner: tournament
-                .get_player_info(&record.winner())
-                .map_or_else(|| &unknown_string, PlayerInfo::name)
-                .to_owned(),
-            elo_change: record.get_player_elo_change(&id).unwrap_or_default(),
+        let deck_progress = scene.player.map(|id| {
+            let stats = self.tournament.get_player_or_default_stats(id);
         });
 
-    table(
-        [
-            table::column("Players", |row: GameRow| {
-                text(format!(
-                    "{}\n{}\n{}\n{}",
-                    row.players[0], row.players[1], row.players[2], row.players[3]
-                ))
-            }),
-            table::column("Winner", |row: GameRow| text(row.winner)),
-            table::column("Elo Change", |row: GameRow| text(row.elo_change)),
-        ],
-        rows,
-    )
-    .into()
+        container(column![title, info_panel, bottom_panel].width(Length::Fill)).into()
+    }
 }
+
 
 #[cfg(test)]
 mod tests {

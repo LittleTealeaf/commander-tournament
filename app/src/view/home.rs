@@ -1,12 +1,18 @@
-use iced::{Task, widget::row};
+use iced::{
+    Task,
+    widget::{button, column, row, space},
+};
 
 use crate::{
     App,
-    logic::Message,
-    traits::{HandleMessage, ViewApp},
-    view::home::{
-        leaderboard::LeaderboardColumn,
-        matchup::{MatchupMessage, MatchupView},
+    logic::{Message, file::FileMessage},
+    traits::{HandleMessage, View},
+    view::{
+        home::{
+            leaderboard::LeaderboardColumn,
+            matchup::{MatchupMessage, MatchupView},
+        },
+        view_player::ViewPlayerMessage,
     },
 };
 
@@ -52,15 +58,27 @@ impl HandleMessage<HomeMessage> for App {
                     self.home.leaderboard_sort_asc = matches!(sort_column, LeaderboardColumn::Name);
                 }
 
-                Ok(Task::none())
+                Message::done()
             }
             HomeMessage::MatchupMessage(msg) => self.update(msg),
         }
     }
 }
 
-impl ViewApp for HomeState {
-    fn view(app: &App) -> iced::Element<'_, Message> {
-        row![app.view_home_leaderboard()].into()
+impl View<HomeState> for App {
+    fn view<'a>(&'a self, _: &'a HomeState) -> iced::Element<'a, Message> {
+        column![
+            row![
+                button("New Player").on_press(ViewPlayerMessage::Open(None).into()),
+                space().width(15.0),
+                button("Open").on_press(FileMessage::OpenFile.into()),
+                button("Save").on_press(FileMessage::Save.into()),
+                button("Save As")
+                    .on_press_maybe(self.file.is_some().then_some(FileMessage::SaveAs.into())),
+                button("New").on_press(FileMessage::New.into()),
+            ],
+            self.view_home_leaderboard()
+        ]
+        .into()
     }
 }

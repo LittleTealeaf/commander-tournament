@@ -1,6 +1,6 @@
 use itertools::chain;
 
-use crate::{Tournament, error::TournamentError, game::GameRecord};
+use crate::{Tournament, error::TournamentError};
 
 impl Tournament {
     pub fn generate_tournament(player_count: usize, games: usize) -> Result<Self, TournamentError> {

@@ -1,6 +1,5 @@
 use iced::{Element, Task};
 
-use crate::App;
 use crate::logic::Message;
 
 pub trait HandleMessage<T> {
@@ -12,14 +11,6 @@ pub trait HandleMessage<T> {
     }
 }
 
-pub trait ViewApp {
-    fn view(app: &App) -> Element<'_, Message>;
-}
-
-pub trait ViewWithApp {
-    fn view<'a>(&'a self, app: &'a App) -> Element<'a, Message>;
-}
-
-pub trait View {
-    fn view(&self) -> Element<'_, Message>;
+pub trait View<S> {
+    fn view<'a>(&'a self, scene: &'a S) -> Element<'a, Message>;
 }

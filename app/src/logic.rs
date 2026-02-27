@@ -27,7 +27,7 @@ pub enum Message {
 
 impl Message {
     #[allow(clippy::unnecessary_wraps)]
-    fn done() -> anyhow::Result<Task<Self>> {
+    pub fn done() -> anyhow::Result<Task<Self>> {
         Ok(Task::none())
     }
 
