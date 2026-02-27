@@ -10,7 +10,7 @@ use iced::{
 use crate::{
     App,
     logic::{Message, file::FileMessage},
-    traits::{View, ViewApp},
+    traits::{ViewWithApp, ViewApp},
     view::{
         home::HomeState,
         view_player::{ViewPlayerMessage, ViewPlayerScene},
@@ -30,7 +30,7 @@ impl App {
         let screen = self.scenes.last().map_or_else(
             || HomeState::view(self),
             |scene| match scene {
-                Scene::Player(scene) => scene.view(),
+                Scene::Player(scene) => scene.view(self),
             },
         );
 

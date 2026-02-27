@@ -6,21 +6,35 @@ use crate::{
     stats::PlayerStats,
 };
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, Copy, Hash)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Copy)]
 pub struct GameRecord {
     #[serde(rename = "p")]
     players: [u32; 4],
     #[serde(rename = "w")]
     winner: u32,
+    #[serde(skip)]
+    change_elo: Option<[f64; 4]>,
 }
 
 impl GameRecord {
     pub fn new(players: [u32; 4], winner: u32) -> Result<Self, TournamentError> {
+        Self::with_scores(players, winner, None)
+    }
+
+    fn with_scores(
+        players: [u32; 4],
+        winner: u32,
+        change_elo: Option<[f64; 4]>,
+    ) -> Result<Self, TournamentError> {
         if !players.contains(&winner) {
             return Err(TournamentError::WinnerNotInMatch(winner));
         }
 
-        Ok(Self { players, winner })
+        Ok(Self {
+            players,
+            winner,
+            change_elo,
+        })
     }
 
     #[must_use]
@@ -44,6 +58,35 @@ impl GameRecord {
             .ok_or(TournamentError::InvalidPlayerId(self.winner))?;
 
         Self::new([*a, *b, *c, *d], *winner)
+    }
+
+    #[must_use]
+    pub const fn elo_changes(&self) -> &Option<[f64; 4]> {
+        &self.change_elo
+    }
+
+    pub fn get_player_elo_change(&self, id: &u32) -> Result<f64, TournamentError> {
+        if !self.players.contains(id) {
+            return Err(TournamentError::InvalidPlayerId(*id));
+        }
+        let [a, b, c, d] = &self.players;
+        let Some([ea, eb, ec, ed]) = &self.change_elo else {
+            return Err(TournamentError::RecordNoEloData);
+        };
+        let mut chg_elo = 0.0;
+        if a == id {
+            chg_elo += ea;
+        }
+        if b == id {
+            chg_elo += eb;
+        }
+        if c == id {
+            chg_elo += ec;
+        }
+        if d == id {
+            chg_elo += ed;
+        }
+        Ok(chg_elo)
     }
 }
 
@@ -69,7 +112,14 @@ impl Matchup {
     }
 
     pub fn create_record(&self, winner: u32) -> Result<GameRecord, TournamentError> {
-        GameRecord::new(self.get_ids(), winner)
+        let elo_changes = self.players.clone().map(|player| {
+            if player.id == winner {
+                player.elo_win
+            } else {
+                player.elo_loss
+            }
+        });
+        GameRecord::with_scores(self.get_ids(), winner, Some(elo_changes))
     }
 }
 
@@ -211,6 +261,27 @@ mod tests {
     use itertools::Itertools;
 
     use crate::{Tournament, game::GameRecord};
+
+    #[test]
+    fn game_record_without_scores() {
+        let record = GameRecord::new([1, 2, 3, 4], 3).unwrap();
+        record.get_player_elo_change(&3).unwrap_err();
+        assert!(record.elo_changes().is_none());
+    }
+
+    #[test]
+    fn registered_matches_have_scores() {
+        for tournament in Tournament::test_tournaments() {
+            for game in tournament.games() {
+                assert!(game.elo_changes().is_some());
+                let players = *game.players();
+                for p in players {
+                    game.get_player_elo_change(&p).unwrap();
+                }
+            }
+        }
+
+    }
 
     #[test]
     fn game_record_winner_must_be_player() {

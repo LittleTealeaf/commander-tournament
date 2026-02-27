@@ -40,7 +40,7 @@ mod tests {
 
     #[test]
     fn parse_tsv_game_count() {
-        let tsv = include_str!("../../tests/sample-tsv.tsv");
+        let tsv = include_str!("../res/tests/sample-tsv.tsv");
         let game_count = tsv.lines().count();
         let records = Tournament::from_tsv_games(tsv).unwrap();
         assert_eq!(game_count, records.games().len());

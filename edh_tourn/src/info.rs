@@ -133,6 +133,11 @@ impl PlayerInfo {
     pub fn has_color(&self, color: &MtgColor) -> bool {
         self.colors.contains(color)
     }
+
+    #[must_use]
+    pub const fn colors(&self) -> &Vec<MtgColor> {
+        &self.colors
+    }
 }
 
 impl Tournament {
@@ -198,6 +203,11 @@ impl Tournament {
     #[must_use]
     pub fn get_player_info(&self, id: &u32) -> Option<&PlayerInfo> {
         self.players().get(id)
+    }
+
+    #[must_use]
+    pub fn get_player_name(&self, id: &u32) -> Option<&String> {
+        self.get_player_info(id).map(PlayerInfo::name)
     }
 }
 

@@ -1,19 +1,18 @@
 use edh_tourn::{
     Tournament,
     error::TournamentError,
-    game::GameRecord,
     info::{MtgColor, PlayerInfo},
     stats::PlayerStats,
 };
 use iced::{
-    Alignment, Length, Task,
-    widget::{button, column, container, row, text, text_input},
+    Alignment, Element, Length, Task,
+    widget::{button, column, container, row, space, table, text, text_input},
 };
 
 use crate::{
     App,
     logic::Message,
-    traits::{HandleMessage, View},
+    traits::{HandleMessage, ViewWithApp},
     view::Scene,
 };
 
@@ -23,8 +22,6 @@ pub struct ViewPlayerScene {
     name: Option<String>,
     moxfield: String,
     info: PlayerInfo,
-    stats: Option<PlayerStats>,
-    record: Vec<GameRecord>,
 }
 
 impl From<ViewPlayerScene> for Scene {
@@ -46,17 +43,7 @@ impl ViewPlayerScene {
                     player: Some(id),
                     moxfield: info.moxfield_id().cloned().unwrap_or_default(),
                     name: Some(info.name().to_owned()),
-                    stats: Some(
-                        tournament
-                            .get_player_stats(id)
-                            .cloned()
-                            .unwrap_or_else(|| tournament.create_default_stats()),
-                    ),
                     info,
-                    record: tournament
-                        .get_player_games(id)?
-                        .copied()
-                        .collect::<Vec<_>>(),
                 }
             }
             None => Self {
@@ -64,57 +51,10 @@ impl ViewPlayerScene {
                 name: None,
                 moxfield: String::new(),
                 info: PlayerInfo::default(),
-                stats: None,
-                record: Vec::new(),
             },
         })
     }
 }
-
-impl View for ViewPlayerScene {
-    fn view(&self) -> iced::Element<'_, Message> {
-        let title = self.name.as_ref().map_or_else(
-            || String::from("Create New Deck"),
-            |name| format!("Edit: {name}"),
-        );
-
-        let colors_row = row(MtgColor::COLORS.into_iter().map(|color| {
-            let style = if self.info.has_color(&color) {
-                button::primary
-            } else {
-                button::secondary
-            };
-
-            button(color.letter())
-                .on_press(ViewPlayerMessage::ToggleColor(color).into())
-                .style(style)
-                .into()
-        }));
-
-        let info_page = column![
-            text_input("", self.info.name())
-                .on_input(|text| ViewPlayerMessage::SetName(text).into()),
-            text_input("Description", self.info.description())
-                .on_input(|text| ViewPlayerMessage::SetDescription(text).into()),
-            text_input("Moxfield ID", &self.moxfield)
-                .on_input(|text| ViewPlayerMessage::SetMoxfieldId(text).into()),
-            colors_row,
-        ];
-
-        let submit_row = row![
-            button("Save").on_press(ViewPlayerMessage::SaveAndClose.into()),
-            button("Close").on_press(ViewPlayerMessage::Close.into()),
-        ];
-
-        container(column![text(title), info_page, submit_row])
-            .align_x(Alignment::Center)
-            .align_y(Alignment::Center)
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .into()
-    }
-}
-
 #[derive(Clone)]
 pub enum ViewPlayerMessage {
     Open(Option<u32>),
@@ -191,6 +131,123 @@ impl HandleMessage<ViewPlayerMessage> for App {
     }
 }
 
+impl ViewWithApp for ViewPlayerScene {
+    fn view(&self, app: &App) -> iced::Element<'_, Message> {
+        let tournament = &app.tournament;
+
+        let stats_panel = self.player.map(|id| {
+            let stats = tournament
+                .get_player_stats(id)
+                .cloned()
+                .unwrap_or_else(|| tournament.create_default_stats());
+
+            let stats_view = stats_display(&stats);
+            let games_table = games_table(id, tournament);
+
+            column![stats_view, games_table]
+        });
+
+        let info_panel = info_display(
+            self.info.name(),
+            self.info.description(),
+            &self.moxfield,
+            self.info.colors(),
+        );
+
+        let mut row = row![info_panel];
+        if let Some(stats_panel) = stats_panel {
+            row = row.push(stats_panel);
+        }
+
+        row.into()
+    }
+}
+
+fn colors_bar(colors: &[MtgColor]) -> Element<'_, Message> {
+    row(MtgColor::COLORS.into_iter().map(|color| {
+        let style = if colors.contains(&color) {
+            button::primary
+        } else {
+            button::secondary
+        };
+
+        button(color.letter())
+            .on_press(ViewPlayerMessage::ToggleColor(color).into())
+            .style(style)
+            .into()
+    }))
+    .into()
+}
+
+fn info_display<'a>(
+    name: &'a str,
+    description: &'a str,
+    moxfield: &'a str,
+    colors: &'a [MtgColor],
+) -> Element<'a, Message> {
+    column![
+        text_input("", name).on_input(|text| ViewPlayerMessage::SetName(text).into()),
+        text_input("Description", description)
+            .on_input(|text| ViewPlayerMessage::SetDescription(text).into()),
+        text_input("Moxfield ID", moxfield)
+            .on_input(|text| ViewPlayerMessage::SetMoxfieldId(text).into()),
+        colors_bar(colors)
+    ]
+    .into()
+}
+
+fn stats_display(stats: &PlayerStats) -> Element<'_, Message> {
+    row![
+        text(format!("Elo: {}", stats.elo())).size(15),
+        space().width(Length::Fill)
+    ]
+    .width(Length::Fill)
+    .into()
+}
+
+fn games_table(id: u32, tournament: &Tournament) -> Element<'_, Message> {
+    #[derive(Clone)]
+    struct GameRow {
+        players: [String; 4],
+        winner: String,
+        elo_change: f64,
+    }
+
+    let unknown_string = String::from("??????");
+    let rows = tournament
+        .get_player_games(id)
+        .into_iter()
+        .flatten()
+        .map(|record| GameRow {
+            players: (*record.players()).map(|player| {
+                tournament
+                    .get_player_info(&player)
+                    .map_or_else(|| &unknown_string, PlayerInfo::name)
+                    .to_owned()
+            }),
+            winner: tournament
+                .get_player_info(&record.winner())
+                .map_or_else(|| &unknown_string, PlayerInfo::name)
+                .to_owned(),
+            elo_change: record.get_player_elo_change(&id).unwrap_or_default(),
+        });
+
+    table(
+        [
+            table::column("Players", |row: GameRow| {
+                text(format!(
+                    "{}\n{}\n{}\n{}",
+                    row.players[0], row.players[1], row.players[2], row.players[3]
+                ))
+            }),
+            table::column("Winner", |row: GameRow| text(row.winner)),
+            table::column("Elo Change", |row: GameRow| text(row.elo_change)),
+        ],
+        rows,
+    )
+    .into()
+}
+
 #[cfg(test)]
 mod tests {
     use edh_tourn::Tournament;
@@ -205,7 +262,6 @@ mod tests {
         assert!(scene.info.name().is_empty());
         assert!(scene.info.description().is_empty());
         assert!(scene.info.moxfield_link().is_none());
-        assert!(scene.record.is_empty());
     }
 
     #[test]
@@ -220,19 +276,10 @@ mod tests {
         let t = Tournament::sample_game();
 
         for (id, info) in t.players().clone() {
-            let stats = t
-                .get_player_stats(id)
-                .cloned()
-                .unwrap_or_else(|| t.create_default_stats());
-
-            let games = t.get_player_games(id).unwrap().copied().collect::<Vec<_>>();
-
             let scene = ViewPlayerScene::new(&t, Some(id)).unwrap();
 
             assert_eq!(Some(id), scene.player);
-            assert_eq!(games, scene.record);
             assert_eq!(info, scene.info);
-            assert_eq!(Some(stats), scene.stats);
         }
     }
 }

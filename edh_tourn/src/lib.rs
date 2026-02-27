@@ -134,9 +134,7 @@ impl Tournament {
 
 impl FromIterator<Self> for Tournament {
     fn from_iter<T: IntoIterator<Item = Self>>(iter: T) -> Self {
-        let mut iter = iter.into_iter();
-        let mut base = iter.next().unwrap_or_default();
-
+        let mut base = Self::new();
         for tourn in iter {
             let _ = base.merge_tournament(&tourn);
         }
@@ -150,6 +148,12 @@ mod tests {
     use itertools::Itertools;
 
     use crate::Tournament;
+
+    #[test]
+    fn collects_into_tournament() {
+        let tourn = Tournament::test_tournaments().collect::<Tournament>();
+        assert!(!tourn.games().is_empty());
+    }
 
     #[test]
     fn new_has_no_players() {
@@ -193,10 +197,9 @@ mod tests {
 
     #[test]
     fn into_fresh_works_simple() -> anyhow::Result<()> {
-        Tournament::sample_game().into_fresh()?;
-        Tournament::generate_tournament(13, 50)?.into_fresh()?;
-        Tournament::generate_tournament(13, 0)?.into_fresh()?;
-        Tournament::generate_tournament(100, 50)?.into_fresh()?;
+        for game in Tournament::test_tournaments() {
+            game.into_fresh()?;
+        }
         Ok(())
     }
 
@@ -247,15 +250,7 @@ mod tests {
 
     #[test]
     fn into_fresh_same_stats() -> anyhow::Result<()> {
-        let test_games = [
-            Tournament::generate_tournament(30, 200)?,
-            Tournament::generate_tournament(100, 20)?,
-            Tournament::generate_tournament(10, 0)?,
-            Tournament::new(),
-            Tournament::sample_game(),
-        ];
-
-        for game in test_games {
+        for game in Tournament::test_tournaments() {
             let new_game = game.into_fresh()?;
             for (id, info) in game.players() {
                 let stats = game.get_player_stats(*id);
