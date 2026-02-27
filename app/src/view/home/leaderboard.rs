@@ -128,9 +128,12 @@ impl App {
                     )
                     .size(12)
                 }),
-                table::column("", |p: Player<'_>| {
-                    button("").on_press_maybe(p.info.moxfield_link().map(Message::OpenLink))
-                }),
+                table::column(
+                    button("+").on_press(ViewPlayerMessage::Open(None).into()),
+                    |p: Player<'_>| {
+                        button("").on_press_maybe(p.info.moxfield_link().map(Message::OpenLink))
+                    },
+                ),
             ],
             sorted_players,
         );
