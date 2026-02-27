@@ -61,10 +61,7 @@ mod tests {
 
     #[test]
     fn ron_serialize_loop() {
-        for mut game in [
-            Tournament::sample_game(),
-            Tournament::generate_tournament(30, 50).unwrap(),
-        ] {
+        for mut game in Tournament::test_tournaments() {
             for _ in 0..3 {
                 let ser = ron::ser::to_string(&game).unwrap();
                 game = ron::from_str(&ser).unwrap();
@@ -74,23 +71,17 @@ mod tests {
 
     #[test]
     fn json_serialize_loop() {
-        for mut game in [
-            Tournament::sample_game(),
-            Tournament::generate_tournament(30, 50).unwrap(),
-        ] {
+        for mut game in Tournament::test_tournaments() {
             for _ in 0..3 {
-                let ser = ron::ser::to_string(&game).unwrap();
-                game = ron::from_str(&ser).unwrap();
+                let ser = serde_json::to_string(&game).unwrap();
+                game = serde_json::from_str(&ser).unwrap();
             }
         }
     }
 
     #[test]
     fn toml_serialize_loop() {
-        for mut game in [
-            Tournament::sample_game(),
-            Tournament::generate_tournament(30, 50).unwrap(),
-        ] {
+        for mut game in Tournament::test_tournaments() {
             for _ in 0..3 {
                 let ser = toml::to_string(&game).unwrap();
                 game = toml::from_str(&ser).unwrap();
@@ -122,5 +113,18 @@ mod tests {
                 .get_player_id(&String::from("Test String"))
                 .unwrap()
         );
+    }
+
+    #[test]
+    fn deserialize_configures_default_stats() {
+        let mut tourn = Tournament::sample_game();
+        let mut config = tourn.config.clone();
+        config.starting_elo += 1500.0;
+        tourn.set_config(&config).unwrap();
+        let starting_elo = tourn.default_stats().elo;
+
+        let serialized = ron::to_string(&tourn).unwrap();
+        let de_tourn: Tournament = ron::from_str(&serialized).unwrap();
+        assert!((starting_elo - de_tourn.default_stats().elo) <= 1e-9);
     }
 }

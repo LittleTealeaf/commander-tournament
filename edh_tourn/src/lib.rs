@@ -20,7 +20,7 @@ use crate::{
     },
 };
 
-#[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
 #[serde(try_from = "serialization::SerdeTournament")]
 pub struct Tournament {
     config: TournamentConfig,
@@ -33,6 +33,20 @@ pub struct Tournament {
     #[serde(skip)]
     player_names: HashMap<String, u32>,
     games: Vec<GameRecord>,
+}
+
+impl Default for Tournament {
+    fn default() -> Self {
+        let config = TournamentConfig::default();
+        Self {
+            stats: HashMap::default(),
+            default_stats: PlayerStats::new(config.starting_elo),
+            players: HashMap::default(),
+            player_names: HashMap::default(),
+            games: Vec::new(),
+            config,
+        }
+    }
 }
 
 impl Tournament {

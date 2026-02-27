@@ -313,7 +313,7 @@ mod tests {
             let starting_elo = matchup.players[i].stats.elo();
             tourn.register_match(matchup, match_ids[i])?;
             let elo = tourn.stats[&match_ids[i]].elo();
-            assert!(elo.total_cmp(&starting_elo).is_gt());
+            assert!(elo.total_cmp(&starting_elo).is_gt(), "Elo {elo} should be greater than starting elo {starting_elo}");
         }
         Ok(())
     }

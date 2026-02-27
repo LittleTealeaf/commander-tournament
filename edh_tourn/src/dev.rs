@@ -16,19 +16,15 @@ impl Tournament {
 
         let len = ids.len();
         for i in 0..games {
-            let players = [
-                *ids.get(i % len).ok_or(TournamentError::NotEnoughPlayers)?,
-                *ids.get((i + 1) % len)
-                    .ok_or(TournamentError::NotEnoughPlayers)?,
-                *ids.get((i + 2) % len)
-                    .ok_or(TournamentError::NotEnoughPlayers)?,
-                *ids.get((i + 3) % len)
-                    .ok_or(TournamentError::NotEnoughPlayers)?,
-            ];
-            let winner = *players
-                .get(i % 4)
-                .ok_or_else(|| TournamentError::WinnerNotInMatch(u32::try_from(i).unwrap() % 4))?;
-            tournament.register_record(GameRecord::new(players, winner)?)?;
+            let ids = [0, 1, 2, 3].map(|n| ids.get((i + n) % len).copied());
+            let [Some(a), Some(b), Some(c), Some(d)] = ids else {
+                return Err(TournamentError::NotEnoughPlayers);
+            };
+            let players = [a, b, c, d];
+            let winner = players.get(i % 4).copied().unwrap_or_default();
+
+            let matchup = tournament.create_match(players)?;
+            tournament.register_match(matchup, winner)?;
         }
 
         Ok(tournament)
