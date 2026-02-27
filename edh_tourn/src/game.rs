@@ -139,10 +139,8 @@ impl Tournament {
             }
         }
 
-        let default_stats = self.create_default_stats();
-
         let players = ids.map(|id| {
-            let stats = self.get_player_stats(id).unwrap_or(&default_stats);
+            let stats = self.get_player_or_default_stats(id);
             TempMatchPlayer {
                 scaled_wr: stats
                     .wr()
@@ -199,15 +197,13 @@ impl Tournament {
         let matchup = self.update_match(matchup)?;
         let record = matchup.create_record(winner)?;
 
-        let default_stats = self.create_default_stats();
-
         let mut winner_tracked = false;
 
         for player in matchup.players {
             let stats = self
                 .stats
                 .entry(player.id)
-                .or_insert_with(|| default_stats.clone());
+                .or_insert_with(|| self.default_stats.clone());
 
             stats.games += 1;
 
@@ -280,7 +276,6 @@ mod tests {
                 }
             }
         }
-
     }
 
     #[test]

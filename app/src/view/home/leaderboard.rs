@@ -38,7 +38,7 @@ pub enum LeaderboardColumn {
 impl App {
     #[must_use]
     pub fn view_home_leaderboard(&self) -> Element<'_, Message> {
-        let default_stats = self.tournament.create_default_stats();
+        let default_stats = self.tournament.default_stats();
 
         let players = self
             .tournament
@@ -54,22 +54,22 @@ impl App {
             let sort = match self.home.leaderboard_sort_column {
                 LeaderboardColumn::Name => a.info.name().cmp(b.info.name()),
                 LeaderboardColumn::Elo => a
-                    .get_stats(&default_stats)
+                    .get_stats(default_stats)
                     .elo()
-                    .total_cmp(&b.get_stats(&default_stats).elo()),
+                    .total_cmp(&b.get_stats(default_stats).elo()),
                 LeaderboardColumn::WR => a
-                    .get_stats(&default_stats)
+                    .get_stats(default_stats)
                     .wr()
-                    .partial_cmp(&b.get_stats(&default_stats).wr())
+                    .partial_cmp(&b.get_stats(default_stats).wr())
                     .unwrap_or(Ordering::Equal),
                 LeaderboardColumn::Games => a
-                    .get_stats(&default_stats)
+                    .get_stats(default_stats)
                     .games()
-                    .cmp(&b.get_stats(&default_stats).games()),
+                    .cmp(&b.get_stats(default_stats).games()),
                 LeaderboardColumn::Wins => a
-                    .get_stats(&default_stats)
+                    .get_stats(default_stats)
                     .wins()
-                    .cmp(&b.get_stats(&default_stats).wins()),
+                    .cmp(&b.get_stats(default_stats).wins()),
             };
             if self.home.leaderboard_sort_asc {
                 sort
@@ -107,21 +107,21 @@ impl App {
                 table::column(
                     col_header("Elo", LeaderboardColumn::Elo),
                     |p: Player<'_>| {
-                        text(format!("{:.0}", p.stats.unwrap_or(&default_stats).elo())).size(12)
+                        text(format!("{:.0}", p.stats.unwrap_or(default_stats).elo())).size(12)
                     },
                 ),
                 table::column(
                     col_header("Games", LeaderboardColumn::Games),
-                    |p: Player<'_>| text(p.stats.unwrap_or(&default_stats).games()).size(12),
+                    |p: Player<'_>| text(p.stats.unwrap_or(default_stats).games()).size(12),
                 ),
                 table::column(
                     col_header("Wins", LeaderboardColumn::Wins),
-                    |p: Player<'_>| text(p.stats.unwrap_or(&default_stats).wins()).size(12),
+                    |p: Player<'_>| text(p.stats.unwrap_or(default_stats).wins()).size(12),
                 ),
                 table::column(col_header("WR", LeaderboardColumn::WR), |p: Player<'_>| {
                     text(
                         p.stats
-                            .unwrap_or(&default_stats)
+                            .unwrap_or(default_stats)
                             .wr()
                             .map(|wr| format!("{:.1}%", wr * 100.0))
                             .unwrap_or_default(),

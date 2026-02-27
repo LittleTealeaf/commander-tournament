@@ -5,7 +5,7 @@ use serde::{Serialize, Serializer};
 
 use crate::{
     Tournament, config::TournamentConfig, error::TournamentError, game::GameRecord,
-    info::PlayerInfo,
+    info::PlayerInfo, stats::PlayerStats,
 };
 
 /// For use with serde's ``serialize_with`` attribute
@@ -37,6 +37,7 @@ impl TryFrom<SerdeTournament> for Tournament {
             .collect();
 
         let mut tournament = Self {
+            default_stats: PlayerStats::new(value.config.starting_elo),
             config: value.config,
             stats: HashMap::new(),
             players: value.players,

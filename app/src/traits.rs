@@ -17,7 +17,7 @@ pub trait ViewApp {
 }
 
 pub trait ViewWithApp {
-    fn view(&self, app: &App) -> Element<'_, Message>;
+    fn view<'a>(&'a self, app: &'a App) -> Element<'a, Message>;
 }
 
 pub trait View {

@@ -26,6 +26,8 @@ pub struct Tournament {
     config: TournamentConfig,
     #[serde(skip)]
     stats: HashMap<u32, PlayerStats>,
+    #[serde(skip)]
+    default_stats: PlayerStats,
     #[serde(serialize_with = "ordered_map")]
     players: HashMap<u32, PlayerInfo>,
     #[serde(skip)]
@@ -59,6 +61,11 @@ impl Tournament {
     }
 
     pub fn reload(&mut self) -> Result<(), TournamentError> {
+        self.default_stats = PlayerStats {
+            elo: self.config.starting_elo,
+            games: 0,
+            wins: 0,
+        };
         // Update player_names to the player info
         self.player_names = self
             .players

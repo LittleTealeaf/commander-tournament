@@ -19,6 +19,15 @@ impl Default for PlayerStats {
 
 impl PlayerStats {
     #[must_use]
+    pub(crate) const fn new(elo: f64) -> Self {
+        Self {
+            elo,
+            games: 0,
+            wins: 0,
+        }
+    }
+
+    #[must_use]
     pub const fn elo(&self) -> f64 {
         self.elo
     }
@@ -41,12 +50,13 @@ impl PlayerStats {
 
 impl Tournament {
     #[must_use]
-    pub const fn create_default_stats(&self) -> PlayerStats {
-        PlayerStats {
-            elo: self.config.starting_elo,
-            games: 0,
-            wins: 0,
-        }
+    pub const fn default_stats(&self) -> &PlayerStats {
+        &self.default_stats
+    }
+
+    #[must_use]
+    pub fn get_player_or_default_stats(&self, player: u32) -> &PlayerStats {
+        self.get_player_stats(player).unwrap_or(&self.default_stats)
     }
 
     #[must_use]
@@ -63,7 +73,7 @@ mod tests {
     fn default_stats_use_starting_elo() {
         let tournament = Tournament::default();
         let starting_elo = tournament.config.starting_elo;
-        let stats = tournament.create_default_stats();
+        let stats = tournament.default_stats();
         assert!(starting_elo.total_cmp(&stats.elo).is_eq());
     }
 

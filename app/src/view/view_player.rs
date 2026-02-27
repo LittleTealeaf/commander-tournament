@@ -5,8 +5,8 @@ use edh_tourn::{
     stats::PlayerStats,
 };
 use iced::{
-    Alignment, Element, Length, Task,
-    widget::{button, column, container, row, space, table, text, text_input},
+    Element, Length, Task,
+    widget::{button, column, row, space, table, text, text_input},
 };
 
 use crate::{
@@ -132,16 +132,13 @@ impl HandleMessage<ViewPlayerMessage> for App {
 }
 
 impl ViewWithApp for ViewPlayerScene {
-    fn view(&self, app: &App) -> iced::Element<'_, Message> {
+    fn view<'a>(&'a self, app: &'a App) -> iced::Element<'a, Message> {
         let tournament = &app.tournament;
 
         let stats_panel = self.player.map(|id| {
-            let stats = tournament
-                .get_player_stats(id)
-                .cloned()
-                .unwrap_or_else(|| tournament.create_default_stats());
+            let stats = tournament.get_player_or_default_stats(id);
 
-            let stats_view = stats_display(&stats);
+            let stats_view = stats_display(stats);
             let games_table = games_table(id, tournament);
 
             column![stats_view, games_table]
