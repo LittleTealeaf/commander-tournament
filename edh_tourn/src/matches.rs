@@ -85,12 +85,12 @@ impl Tournament {
         &self,
         id: u32,
     ) -> Result<impl Iterator<Item = u32>, TournamentError> {
-        self.ensure_id_registered(id)?;
-
         struct R {
             elo: f64,
             wr: f64,
         }
+
+        self.ensure_id_registered(id)?;
 
         let mut players = HashMap::new();
 
@@ -109,51 +109,21 @@ impl Tournament {
             players.insert(*player, R { elo, wr });
         }
 
-        let player = players.remove(&id).ok_or(TournamentError::InvalidPlayerId(id))?;
-        let target_elo = player.elo / sum_elo;
-        let target_wr = player.wr / sum_wr;
-        // copied logic from other
+        let coef_elo = self.config.game_elo_weight / sum_elo;
+        let coef_wr = self.config.game_wr_weight / sum_wr;
 
+        let player = players
+            .remove(&id)
+            .ok_or(TournamentError::InvalidPlayerId(id))?;
+        let target = player.wr.mul_add(coef_wr, player.elo * coef_elo);
 
-
-        // Ok(
-        //     players.into_iter().map(|(id, R {wr, elo})| {
-        //
-        //     })
-        // )
-        //
-        todo!()
-
-
-        // struct TempRankPlayer<'a> {
-        //     id: u32,
-        //     stats: &'a PlayerStats,
-        //     scaled_elo: f64,
-        //     scaled_wr: f64,
-        // }
-        //
-        // let players = self
-        //     .players()
-        //     .keys()
-        //     .copied()
-        //     .map(|id| {
-        //         let stats = self.get_player_or_default_stats(id);
-        //         TempRankPlayer {
-        //             scaled_wr: stats
-        //                 .wr()
-        //                 .unwrap_or(0.25)
-        //                 .powf(self.config.game_wr_pow_scale),
-        //             scaled_elo: stats.elo().powf(self.config.game_elo_pow_scale),
-        //             stats,
-        //             id,
-        //         }
-        //     })
-        //     .collect::<Vec<_>>();
-        //
-        // let sum_elo = players.iter().map(|player| player.scaled_elo).sum::<f64>();
-        // let sum_wr = players.iter().map(|player| player.scaled_wr).sum::<f64>();
-
-        todo!()
+        Ok(players
+            .into_iter()
+            .map(move |(id, R { wr, elo })| {
+                (id, (target - wr.mul_add(coef_wr, elo * coef_elo)).abs())
+            })
+            .sorted_by(|(id1, s1), (id2, s2)| with_tie_breaker(s1.total_cmp(s2), || id1.cmp(id2)))
+            .map(|(id, _)| id))
     }
 
     pub fn rank_nemesis(&self, id: u32) -> Result<impl Iterator<Item = u32>, TournamentError> {
