@@ -13,11 +13,12 @@ pub mod tsv;
 use std::collections::HashMap;
 
 use crate::{
-    serialization::ordered_map,
-    {
-        config::TournamentConfig, error::TournamentError, game::GameRecord, info::PlayerInfo,
-        stats::PlayerStats,
-    },
+    config::TournamentConfig,
+    error::TournamentError,
+    game::{GameEntry, GameRecord},
+    info::PlayerInfo,
+    serialization::{convert_games, ordered_map},
+    stats::PlayerStats,
 };
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
@@ -32,6 +33,7 @@ pub struct Tournament {
     players: HashMap<u32, PlayerInfo>,
     #[serde(skip)]
     player_names: HashMap<String, u32>,
+    #[serde(serialize_with = "convert_games")]
     games: Vec<GameRecord>,
 }
 
@@ -69,7 +71,7 @@ impl Tournament {
         self.players
             .remove(&id)
             .ok_or(TournamentError::InvalidPlayerId(id))?;
-        self.games.retain(|game| !game.players().contains(&id));
+        self.games.retain(|game| !game.has_player(id));
         self.reload()?;
         Ok(())
     }
@@ -119,7 +121,7 @@ impl Tournament {
         }
 
         for game in &other.games {
-            self.register_record(game.map_ids(&id_map)?)?;
+            self.register_entry(GameEntry::from(game).map_ids(&id_map)?)?;
         }
 
         Ok(())
@@ -146,7 +148,7 @@ impl Tournament {
 
         // Register Games
         for game in &self.games {
-            tourn.register_record(game.map_ids(&id_map)?)?;
+            tourn.register_entry(GameEntry::from(game).map_ids(&id_map)?)?;
         }
 
         Ok(tourn)
@@ -189,7 +191,7 @@ mod tests {
             let mut tourn = sample.clone();
             tourn.unregister_player(*id).unwrap();
             for game in tourn.games() {
-                assert!(!game.players().contains(id));
+                assert!(!game.has_player(*id));
                 assert_ne!(game.winner(), *id);
             }
         }

@@ -6,45 +6,38 @@ use crate::{
     stats::PlayerStats,
 };
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Copy)]
-pub struct GameRecord {
-    #[serde(rename = "p")]
+/// Stores only the player IDs and the winner ID. Primarily used for serialization or conversions
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default, PartialEq, Copy, Eq)]
+pub struct GameEntry {
+    #[serde(rename = "p", alias = "players")]
     players: [u32; 4],
-    #[serde(rename = "w")]
+    #[serde(rename = "w", alias = "winner")]
     winner: u32,
-    #[serde(skip)]
-    change_elo: Option<[f64; 4]>,
 }
 
-impl GameRecord {
-    pub fn new(players: [u32; 4], winner: u32) -> Result<Self, TournamentError> {
-        Self::with_scores(players, winner, None)
+impl From<GameRecord> for GameEntry {
+    fn from(value: GameRecord) -> Self {
+        let players = value.matchup.players.map(|player| player.id);
+        let winner = value.winner;
+        Self { players, winner }
     }
+}
 
-    fn with_scores(
-        players: [u32; 4],
-        winner: u32,
-        change_elo: Option<[f64; 4]>,
-    ) -> Result<Self, TournamentError> {
+impl<'a> From<&'a GameRecord> for GameEntry {
+    fn from(value: &'a GameRecord) -> Self {
+        let [a, b, c, d] = &value.matchup.players;
+        let players = [a.id, b.id, c.id, d.id];
+        let winner = value.winner;
+        Self { players, winner }
+    }
+}
+
+impl GameEntry {
+    pub fn new(players: [u32; 4], winner: u32) -> Result<Self, TournamentError> {
         if !players.contains(&winner) {
             return Err(TournamentError::WinnerNotInMatch(winner));
         }
-
-        Ok(Self {
-            players,
-            winner,
-            change_elo,
-        })
-    }
-
-    #[must_use]
-    pub const fn players(&self) -> &[u32; 4] {
-        &self.players
-    }
-
-    #[must_use]
-    pub const fn winner(&self) -> u32 {
-        self.winner
+        Ok(Self { players, winner })
     }
 
     pub fn map_ids(&self, ids: &HashMap<u32, u32>) -> Result<Self, TournamentError> {
@@ -59,38 +52,9 @@ impl GameRecord {
 
         Self::new([*a, *b, *c, *d], *winner)
     }
-
-    #[must_use]
-    pub const fn elo_changes(&self) -> &Option<[f64; 4]> {
-        &self.change_elo
-    }
-
-    pub fn get_player_elo_change(&self, id: &u32) -> Result<f64, TournamentError> {
-        if !self.players.contains(id) {
-            return Err(TournamentError::InvalidPlayerId(*id));
-        }
-        let [a, b, c, d] = &self.players;
-        let Some([ea, eb, ec, ed]) = &self.change_elo else {
-            return Err(TournamentError::RecordNoEloData);
-        };
-        let mut chg_elo = 0.0;
-        if a == id {
-            chg_elo += ea;
-        }
-        if b == id {
-            chg_elo += eb;
-        }
-        if c == id {
-            chg_elo += ec;
-        }
-        if d == id {
-            chg_elo += ed;
-        }
-        Ok(chg_elo)
-    }
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default, PartialEq)]
 pub struct MatchPlayer {
     id: u32,
     stats: PlayerStats,
@@ -99,10 +63,38 @@ pub struct MatchPlayer {
     elo_loss: f64,
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+impl MatchPlayer {
+    #[must_use]
+    pub const fn id(&self) -> u32 {
+        self.id
+    }
+
+    #[must_use]
+    pub const fn stats(&self) -> &PlayerStats {
+        &self.stats
+    }
+
+    #[must_use]
+    pub const fn expected(&self) -> &f64 {
+        &self.expected
+    }
+
+    #[must_use]
+    pub const fn elo_win(&self) -> &f64 {
+        &self.elo_win
+    }
+
+    #[must_use]
+    pub const fn elo_loss(&self) -> &f64 {
+        &self.elo_loss
+    }
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
 pub struct Matchup {
     players: [MatchPlayer; 4],
     config_version: usize,
+    game_id: usize,
 }
 
 impl Matchup {
@@ -111,15 +103,68 @@ impl Matchup {
         self.players.clone().map(|player| player.id)
     }
 
-    pub fn create_record(&self, winner: u32) -> Result<GameRecord, TournamentError> {
-        let elo_changes = self.players.clone().map(|player| {
-            if player.id == winner {
-                player.elo_win
-            } else {
-                player.elo_loss
+    pub fn record(self, winner: u32) -> Result<GameRecord, TournamentError> {
+        GameRecord::new(self, winner)
+    }
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
+pub struct GameRecord {
+    matchup: Matchup,
+    winner: u32,
+}
+
+impl GameRecord {
+    pub fn new(matchup: Matchup, winner: u32) -> Result<Self, TournamentError> {
+        let winner_in_matchup = matchup
+            .players
+            .iter()
+            .map(|player| player.id)
+            .any(|i| i == winner);
+        if !winner_in_matchup {
+            return Err(TournamentError::WinnerNotInMatch(winner));
+        }
+
+        Ok(Self { matchup, winner })
+    }
+
+    #[must_use]
+    pub fn has_player(&self, id: u32) -> bool {
+        self.matchup.players.iter().any(|player| player.id == id)
+    }
+
+    #[must_use]
+    pub const fn matchup(&self) -> &Matchup {
+        &self.matchup
+    }
+
+    #[must_use]
+    pub const fn players(&self) -> &[MatchPlayer; 4] {
+        &self.matchup().players
+    }
+
+    #[must_use]
+    pub const fn winner(&self) -> u32 {
+        self.winner
+    }
+
+    pub fn get_player_elo_change(&self, id: u32) -> Result<f64, TournamentError> {
+        let mut score = 0.0;
+        let mut won = false;
+
+        for player in &self.matchup.players {
+            if player.id != id {
+                continue;
             }
-        });
-        GameRecord::with_scores(self.get_ids(), winner, Some(elo_changes))
+            if player.id == self.winner && !won {
+                won = true;
+                score += player.elo_win;
+            } else {
+                score -= player.elo_loss;
+            }
+        }
+
+        Ok(score)
     }
 }
 
@@ -179,27 +224,27 @@ impl Tournament {
         Ok(Matchup {
             players: match_players,
             config_version: self.config().version,
+            game_id: self.games.len(),
         })
     }
 
     pub fn update_match(&self, matchup: Matchup) -> Result<Matchup, TournamentError> {
-        if matchup.config_version == self.config.version {
+        if matchup.config_version == self.config.version && matchup.game_id == self.games.len() {
             return Ok(matchup);
         }
         self.create_match(matchup.players.map(|player| player.id))
     }
 
-    pub fn register_record(&mut self, record: GameRecord) -> Result<(), TournamentError> {
-        self.register_match(self.create_match(record.players)?, record.winner)
+    pub fn register_entry(&mut self, entry: GameEntry) -> Result<(), TournamentError> {
+        self.register_record(self.create_match(entry.players)?.record(entry.winner)?)?;
+        Ok(())
     }
 
-    pub fn register_match(&mut self, matchup: Matchup, winner: u32) -> Result<(), TournamentError> {
-        let matchup = self.update_match(matchup)?;
-        let record = matchup.create_record(winner)?;
-
+    pub fn register_record(&mut self, record: GameRecord) -> Result<(), TournamentError> {
+        let record = GameRecord::new(self.update_match(record.matchup)?, record.winner)?;
         let mut winner_tracked = false;
 
-        for player in matchup.players {
+        for player in &record.matchup.players {
             let stats = self
                 .stats
                 .entry(player.id)
@@ -207,7 +252,7 @@ impl Tournament {
 
             stats.games += 1;
 
-            if !winner_tracked && player.id == winner {
+            if !winner_tracked && player.id == record.winner {
                 stats.wins += 1;
                 stats.elo += player.elo_win;
                 winner_tracked = true;
@@ -234,10 +279,7 @@ impl Tournament {
             return Err(TournamentError::InvalidPlayerId(id));
         }
 
-        Ok(self
-            .games()
-            .iter()
-            .filter(move |game| game.players().contains(&id)))
+        Ok(self.games().iter().filter(move |game| game.has_player(id)))
     }
 
     pub fn delete_game(&mut self, gid: usize) -> TournResult<()> {
@@ -256,35 +298,15 @@ mod tests {
 
     use itertools::Itertools;
 
-    use crate::{Tournament, game::GameRecord};
+    use crate::{Tournament, game::GameEntry};
 
     #[test]
-    fn game_record_without_scores() {
-        let record = GameRecord::new([1, 2, 3, 4], 3).unwrap();
-        record.get_player_elo_change(&3).unwrap_err();
-        assert!(record.elo_changes().is_none());
-    }
-
-    #[test]
-    fn registered_matches_have_scores() {
-        for tournament in Tournament::test_tournaments() {
-            for game in tournament.games() {
-                assert!(game.elo_changes().is_some());
-                let players = *game.players();
-                for p in players {
-                    game.get_player_elo_change(&p).unwrap();
-                }
-            }
-        }
-    }
-
-    #[test]
-    fn game_record_winner_must_be_player() {
-        GameRecord::new([0, 1, 2, 3], 0).unwrap();
-        GameRecord::new([0, 1, 2, 3], 1).unwrap();
-        GameRecord::new([0, 1, 2, 3], 2).unwrap();
-        GameRecord::new([0, 1, 2, 3], 3).unwrap();
-        GameRecord::new([0, 1, 2, 3], 4).unwrap_err();
+    fn game_entry_record_winner_must_be_player() {
+        GameEntry::new([0, 1, 2, 3], 0).unwrap();
+        GameEntry::new([0, 1, 2, 3], 1).unwrap();
+        GameEntry::new([0, 1, 2, 3], 2).unwrap();
+        GameEntry::new([0, 1, 2, 3], 3).unwrap();
+        GameEntry::new([0, 1, 2, 3], 4).unwrap_err();
     }
 
     #[test]
@@ -295,11 +317,11 @@ mod tests {
         let matchup = tournament
             .create_match([ids[0], ids[1], ids[2], ids[3]])
             .unwrap();
-        matchup.create_record(ids[0]).unwrap();
-        matchup.create_record(ids[1]).unwrap();
-        matchup.create_record(ids[2]).unwrap();
-        matchup.create_record(ids[3]).unwrap();
-        matchup.create_record(ids[4]).unwrap_err();
+        matchup.clone().record(ids[0]).unwrap();
+        matchup.clone().record(ids[1]).unwrap();
+        matchup.clone().record(ids[2]).unwrap();
+        matchup.clone().record(ids[3]).unwrap();
+        matchup.record(ids[4]).unwrap_err();
     }
 
     #[test]
@@ -311,7 +333,7 @@ mod tests {
             match_ids.copy_from_slice(&ids);
             let matchup = tourn.create_match(match_ids)?;
             let starting_elo = matchup.players[i].stats.elo();
-            tourn.register_match(matchup, match_ids[i])?;
+            tourn.register_record(matchup.record(match_ids[i])?)?;
             let elo = tourn.stats[&match_ids[i]].elo();
             assert!(
                 elo.total_cmp(&starting_elo).is_gt(),
@@ -339,7 +361,7 @@ mod tests {
                 }
                 let loser_id = ids[loser_i];
                 let starting_elo = matchup.players[loser_i].stats.elo();
-                tourn.register_match(matchup, winner_id)?;
+                tourn.register_record(matchup.record(winner_id)?)?;
                 let elo = tourn.stats[&loser_id].elo();
                 assert!(elo.total_cmp(&starting_elo).is_le());
             }
@@ -355,7 +377,7 @@ mod tests {
         let id = tourn.register_player(String::from("sample"))?;
         let matchup = tourn.create_match([id, id, id, id])?;
         let starting_elo = matchup.players[0].stats.elo();
-        tourn.register_match(matchup, id)?;
+        tourn.register_record(matchup.record(id)?)?;
         let elo = tourn.stats[&id].elo();
         assert!(
             (starting_elo - elo).abs() <= 1e-10,

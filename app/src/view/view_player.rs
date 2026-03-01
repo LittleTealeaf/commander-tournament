@@ -6,8 +6,8 @@ use edh_tourn::{
     info::{MtgColor, PlayerInfo},
 };
 use iced::{
-    Element, Length, Task,
-    widget::{button, column, container, row, space, table, text, text_editor, text_input},
+    Element, Length,
+    widget::{button, column, container, row, space, text, text_editor, text_input},
 };
 
 use crate::{

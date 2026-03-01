@@ -1,7 +1,7 @@
 use crate::{
     Tournament,
     error::{TournResult, TournamentError},
-    game::GameRecord,
+    game::GameEntry,
 };
 
 impl Tournament {
@@ -24,10 +24,10 @@ impl Tournament {
             let w_id = tourn.get_or_register_player(w_name.to_owned())?;
 
             // Create record
-            let record = GameRecord::new([a_id, b_id, c_id, d_id], w_id)?;
+            let record = GameEntry::new([a_id, b_id, c_id, d_id], w_id)?;
 
             // Register record
-            tourn.register_record(record)?;
+            tourn.register_entry(record)?;
         }
 
         Ok(tourn)

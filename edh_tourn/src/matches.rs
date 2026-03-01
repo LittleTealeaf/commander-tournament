@@ -59,10 +59,9 @@ impl Tournament {
             .collect::<HashMap<u32, u32>>();
 
         for game in &self.games {
-            let players = game.players();
-            if players.contains(&id) {
-                for player in players {
-                    *get_mut_from_map(player, &mut counts)? += 1;
+            if game.has_player(id) {
+                for player in game.players() {
+                    *get_mut_from_map(&player.id(), &mut counts)? += 1;
                 }
             }
         }
@@ -92,11 +91,10 @@ impl Tournament {
             .collect::<HashMap<u32, i32>>();
 
         for game in &self.games {
-            let players = game.players();
-            if players.contains(&id) {
+            if game.has_player(id) {
                 let val = if game.winner() == id { 1 } else { -1 };
-                for player in players {
-                    *get_mut_from_map(player, &mut counts)? += val;
+                for player in game.players() {
+                    *get_mut_from_map(&player.id(), &mut counts)? += val;
                 }
             }
         }
@@ -126,12 +124,12 @@ impl Tournament {
         // Matched scores pick highest games
 
         for game in &self.games {
-            let players = game.players();
-            if players.contains(&id) {
-                for pid in players {
-                    let (score, games) = get_mut_from_map(pid, &mut counts)?;
+            if game.has_player(id) {
+                for player in game.players() {
+                    let pid = player.id();
+                    let (score, games) = get_mut_from_map(&pid, &mut counts)?;
                     *games += 1;
-                    if game.winner() == id || game.winner() == *pid {
+                    if game.winner() == id || game.winner() == pid {
                         *score -= 1;
                     } else {
                         *score += 1;

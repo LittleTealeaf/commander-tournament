@@ -82,7 +82,8 @@ impl HandleMessage<MatchupMessage> for App {
                     return Ok(Task::none());
                 };
 
-                self.tournament.register_match(matchup.clone(), winner)?;
+                self.tournament
+                    .register_record(matchup.clone().record(winner)?)?;
                 *view = MatchupView::default();
 
                 Ok(Task::none())
@@ -95,4 +96,3 @@ impl HandleMessage<MatchupMessage> for App {
         }
     }
 }
-

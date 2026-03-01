@@ -4,8 +4,12 @@ use std::collections::{BTreeMap, HashMap};
 use serde::{Serialize, Serializer};
 
 use crate::{
-    Tournament, config::TournamentConfig, error::TournamentError, game::GameRecord,
-    info::PlayerInfo, stats::PlayerStats,
+    Tournament,
+    config::TournamentConfig,
+    error::TournamentError,
+    game::{GameEntry, GameRecord},
+    info::PlayerInfo,
+    stats::PlayerStats,
 };
 
 /// For use with serde's ``serialize_with`` attribute
@@ -20,11 +24,22 @@ where
     ordered.serialize(serializer)
 }
 
+pub fn convert_games<S>(items: &[GameRecord], serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    let values = items
+        .iter()
+        .map(|record| GameEntry::from(record.clone()))
+        .collect::<Vec<_>>();
+    values.serialize(serializer)
+}
+
 #[derive(serde::Deserialize)]
 pub struct SerdeTournament {
     config: TournamentConfig,
     players: HashMap<u32, PlayerInfo>,
-    games: Vec<GameRecord>,
+    games: Vec<GameEntry>,
 }
 
 impl TryFrom<SerdeTournament> for Tournament {
@@ -48,7 +63,7 @@ impl TryFrom<SerdeTournament> for Tournament {
         tournament.config.version = 0;
 
         for game in value.games {
-            tournament.register_record(game)?;
+            tournament.register_entry(game)?;
         }
 
         Ok(tournament)

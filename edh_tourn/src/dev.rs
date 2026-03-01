@@ -23,8 +23,7 @@ impl Tournament {
             let players = [a, b, c, d];
             let winner = players.get(i % 4).copied().unwrap_or_default();
 
-            let matchup = tournament.create_match(players)?;
-            tournament.register_match(matchup, winner)?;
+            tournament.register_record(tournament.create_match(players)?.record(winner)?)?;
         }
 
         Ok(tournament)

@@ -7,7 +7,6 @@ use crate::{
     Tournament,
     config::TournamentConfig,
     error::TournamentError,
-    game::GameRecord,
     info::{MtgColor, PlayerInfo},
 };
 
@@ -133,8 +132,7 @@ impl TryFrom<TournamentCompatV1> for Tournament {
 
             let winner = tournament.get_or_register_player(winner)?;
 
-            let record = GameRecord::new(players, winner)?;
-            tournament.register_record(record)?;
+            tournament.register_record(tournament.create_match(players)?.record(winner)?)?;
         }
 
         Ok(tournament)
