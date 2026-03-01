@@ -11,6 +11,7 @@
         match_weight_neighbor: 4.0,
         match_weight_wr_neighbor: 3.5,
         match_weight_lost_with: 2.0,
+				match_weight_expected_neighbor: 4.0,
         version: 1,
     ),
     players: {
