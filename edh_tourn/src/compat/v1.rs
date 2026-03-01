@@ -114,11 +114,10 @@ impl TryFrom<TournamentCompatV1> for Tournament {
             match_weight_neighbor: value.match_config.weight_neighbor,
             match_weight_wr_neighbor: value.match_config.weight_wr_neighbor,
             match_weight_lost_with: value.match_config.weight_lost_with,
-            version: 0,
             ..TournamentConfig::default()
         };
 
-        tournament.set_config(&config)?;
+        tournament.set_config(config)?;
 
         for game in value.games {
             let [player_a, player_b, player_c, player_d] = game.players;

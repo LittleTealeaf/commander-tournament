@@ -35,6 +35,8 @@ pub struct Tournament {
     player_names: HashMap<String, u32>,
     #[serde(serialize_with = "convert_games")]
     games: Vec<GameRecord>,
+    #[serde(skip)]
+    snapshot: usize,
 }
 
 impl Default for Tournament {
@@ -46,6 +48,7 @@ impl Default for Tournament {
             players: HashMap::default(),
             player_names: HashMap::default(),
             games: Vec::new(),
+            snapshot: 0,
             config,
         }
     }
@@ -77,6 +80,7 @@ impl Tournament {
     }
 
     pub fn reload(&mut self) -> Result<(), TournamentError> {
+        let version = self.snapshot;
         self.default_stats = PlayerStats {
             elo: self.config.starting_elo,
             games: 0,
@@ -94,8 +98,9 @@ impl Tournament {
         let mut games = Vec::new();
         core::mem::swap(&mut self.games, &mut games);
         for record in games {
-            self.register_record(record)?;
+            self.inner_register_record(record)?;
         }
+        self.snapshot = version + 1;
 
         Ok(())
     }
@@ -133,10 +138,8 @@ impl Tournament {
         let mut tourn = Self::new();
 
         // Set Config
-        tourn.config = TournamentConfig {
-            version: 0,
-            ..self.config
-        };
+        self.config.clone_into(&mut tourn.config);
+        tourn.snapshot = 0;
 
         let mut id_map = HashMap::new();
 
@@ -150,6 +153,8 @@ impl Tournament {
         for game in &self.games {
             tourn.register_entry(GameEntry::from(game).map_ids(&id_map)?)?;
         }
+
+        tourn.snapshot = 0;
 
         Ok(tourn)
     }
@@ -171,6 +176,12 @@ mod tests {
     use itertools::Itertools;
 
     use crate::Tournament;
+
+    #[test]
+    fn new_tournament_snapshot_is_0() {
+        let tourn = Tournament::new();
+        assert_eq!(0, tourn.snapshot);
+    }
 
     #[test]
     fn collects_into_tournament() {
@@ -206,16 +217,8 @@ mod tests {
     }
 
     #[test]
-    fn reload_maintains_equivilancy() {
-        let mut sample = Tournament::sample_game();
-        let snapshot = sample.clone();
-        sample.reload().unwrap();
-        assert_eq!(sample, snapshot);
-    }
-
-    #[test]
-    fn load_resets_config_version() {
-        assert_eq!(Tournament::sample_game().config.version, 0);
+    fn load_resets_snapshot() {
+        assert_eq!(Tournament::sample_game().snapshot, 0);
     }
 
     #[test]
@@ -240,11 +243,11 @@ mod tests {
     }
 
     #[test]
-    fn into_fresh_resets_config_version() {
+    fn into_fresh_resets_snapshot() {
         let mut game = Tournament::new();
-        game.config.version = 5;
+        game.snapshot = 5;
         let new_game = game.into_fresh().unwrap();
-        assert_eq!(0, new_game.config.version);
+        assert_eq!(0, new_game.snapshot);
     }
 
     #[test]

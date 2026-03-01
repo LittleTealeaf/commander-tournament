@@ -58,13 +58,14 @@ impl TryFrom<SerdeTournament> for Tournament {
             players: value.players,
             player_names,
             games: Vec::new(),
+            snapshot: 0,
         };
-
-        tournament.config.version = 0;
 
         for game in value.games {
             tournament.register_entry(game)?;
         }
+
+        tournament.snapshot = 0;
 
         Ok(tournament)
     }
@@ -105,16 +106,6 @@ mod tests {
     }
 
     #[test]
-    fn deserialize_resets_config_version() {
-        let mut t_source = Tournament::sample_game();
-        t_source.config.version = 2;
-
-        let ser = ron::to_string(&t_source).unwrap();
-        let t_deserialized: Tournament = ron::from_str(&ser).unwrap();
-        assert_eq!(0, t_deserialized.config.version);
-    }
-
-    #[test]
     fn deserialize_populates_player_table() {
         let mut tourn = Tournament::sample_game();
         let id = tourn.register_player(String::from("Test String")).unwrap();
@@ -135,11 +126,21 @@ mod tests {
         let mut tourn = Tournament::sample_game();
         let mut config = tourn.config.clone();
         config.starting_elo += 1500.0;
-        tourn.set_config(&config).unwrap();
+        tourn.set_config(config).unwrap();
         let starting_elo = tourn.default_stats().elo;
 
         let serialized = ron::to_string(&tourn).unwrap();
         let de_tourn: Tournament = ron::from_str(&serialized).unwrap();
         assert!((starting_elo - de_tourn.default_stats().elo) <= 1e-9);
+    }
+
+    #[test]
+    fn deserialize_resets_snapshot() {
+        let mut t_source = Tournament::sample_game();
+        t_source.snapshot = 2;
+
+        let ser = ron::to_string(&t_source).unwrap();
+        let t_deserialized: Tournament = ron::from_str(&ser).unwrap();
+        assert_eq!(0, t_deserialized.snapshot);
     }
 }

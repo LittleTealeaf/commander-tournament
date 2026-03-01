@@ -26,8 +26,6 @@ pub struct TournamentConfig {
     pub match_weight_lost_with: f64,
     #[serde(rename = "mwen", alias = "match_weight_expected_neighbor")]
     pub match_weight_expected_neighbor: f64,
-    #[serde(skip)]
-    pub(crate) version: usize,
 }
 
 impl Default for TournamentConfig {
@@ -45,7 +43,6 @@ impl Default for TournamentConfig {
             match_weight_wr_neighbor: 3.0,
             match_weight_lost_with: 3.0,
             match_weight_expected_neighbor: 4.0,
-            version: 0,
         }
     }
 }
@@ -56,14 +53,8 @@ impl Tournament {
         &self.config
     }
 
-    pub fn set_config(&mut self, config: &TournamentConfig) -> Result<(), TournamentError> {
-        if self.config.version == usize::MAX {
-            self.config.version = usize::MIN;
-        }
-        self.config = TournamentConfig {
-            version: self.config.version + 1,
-            ..*config
-        };
+    pub fn set_config(&mut self, config: TournamentConfig) -> Result<(), TournamentError> {
+        self.config = config;
         self.reload()?;
         Ok(())
     }
@@ -71,37 +62,7 @@ impl Tournament {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Tournament, config::TournamentConfig};
-
-    #[test]
-    fn new_config_version_is_0() {
-        assert_eq!(0, TournamentConfig::default().version);
-    }
-
-    #[test]
-    fn updating_config_increases_version() {
-        let mut t = Tournament::new();
-        t.set_config(&t.config.clone()).unwrap();
-        assert_eq!(1, t.config.version);
-        t.set_config(&t.config.clone()).unwrap();
-        assert_eq!(2, t.config.version);
-    }
-
-    #[test]
-    fn config_version_based_on_tournament() {
-        let mut t = Tournament::new();
-        let mut config = t.config().clone();
-        config.version = 5;
-        t.set_config(&config).unwrap();
-        assert_eq!(1, t.config.version);
-    }
-
-    #[test]
-    fn config_version_loops() {
-        let mut t = Tournament::new();
-        t.config.version = usize::MAX;
-        t.set_config(&t.config.clone()).unwrap();
-    }
+    use crate::Tournament;
 
     #[test]
     fn updating_config_updates_stats() {
@@ -110,20 +71,8 @@ mod tests {
         let elo_start = tournament.get_player_stats(id).unwrap().elo();
         let mut config = tournament.config().clone();
         config.starting_elo += 1500.0;
-        tournament.set_config(&config).unwrap();
+        tournament.set_config(config).unwrap();
         let elo_end = tournament.get_player_stats(id).unwrap().elo();
         assert!(elo_start.total_cmp(&elo_end).is_ne());
-    }
-
-    #[test]
-    fn deserialize_version_is_0() {
-        let config = TournamentConfig {
-            version: 100,
-            ..TournamentConfig::default()
-        };
-
-        let ser = ron::to_string(&config).unwrap();
-        let deconfig: TournamentConfig = ron::from_str(&ser).unwrap();
-        assert_eq!(0, deconfig.version);
     }
 }

@@ -93,7 +93,7 @@ impl MatchPlayer {
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
 pub struct Matchup {
     players: [MatchPlayer; 4],
-    config_version: usize,
+    version: usize,
     game_id: usize,
 }
 
@@ -223,13 +223,13 @@ impl Tournament {
 
         Ok(Matchup {
             players: match_players,
-            config_version: self.config().version,
+            version: self.snapshot,
             game_id: self.games.len(),
         })
     }
 
     pub fn update_match(&self, matchup: Matchup) -> Result<Matchup, TournamentError> {
-        if matchup.config_version == self.config.version && matchup.game_id == self.games.len() {
+        if matchup.version == self.snapshot && matchup.game_id == self.games.len() {
             return Ok(matchup);
         }
         self.create_match(matchup.players.map(|player| player.id))
@@ -241,6 +241,15 @@ impl Tournament {
     }
 
     pub fn register_record(&mut self, record: GameRecord) -> Result<(), TournamentError> {
+        self.inner_register_record(record)?;
+        self.snapshot += 1;
+        Ok(())
+    }
+
+    pub(super) fn inner_register_record(
+        &mut self,
+        record: GameRecord,
+    ) -> Result<(), TournamentError> {
         let record = GameRecord::new(self.update_match(record.matchup)?, record.winner)?;
         let mut winner_tracked = false;
 
@@ -262,7 +271,6 @@ impl Tournament {
         }
 
         self.games.push(record);
-
         Ok(())
     }
 
