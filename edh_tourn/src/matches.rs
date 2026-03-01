@@ -81,7 +81,7 @@ impl Tournament {
             .map(|(id, _, _)| id))
     }
 
-    pub fn rank_match_expected(
+    pub fn rank_expected_neighbor(
         &self,
         id: u32,
     ) -> Result<impl Iterator<Item = u32>, TournamentError> {
@@ -231,7 +231,11 @@ impl Tournament {
                 self.config.match_weight_wr_neighbor
             ),
             to_weight_rank(self.rank_neighbors(id)?, self.config.match_weight_neighbor),
-            to_weight_rank(self.rank_loss_with(id)?, self.config.match_weight_lost_with)
+            to_weight_rank(self.rank_loss_with(id)?, self.config.match_weight_lost_with),
+            to_weight_rank(
+                self.rank_expected_neighbor(id)?,
+                self.config.match_weight_expected_neighbor
+            ),
         );
 
         Ok(scores

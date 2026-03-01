@@ -24,6 +24,8 @@ pub struct TournamentConfig {
     pub match_weight_wr_neighbor: f64,
     #[serde(rename = "mwlw", alias = "match_weight_lost_with")]
     pub match_weight_lost_with: f64,
+    #[serde(rename = "mwen", alias = "match_weight_expected_neighbor")]
+    pub match_weight_expected_neighbor: f64,
     #[serde(skip)]
     pub(crate) version: usize,
 }
@@ -42,6 +44,7 @@ impl Default for TournamentConfig {
             match_weight_neighbor: 5.0,
             match_weight_wr_neighbor: 3.0,
             match_weight_lost_with: 3.0,
+            match_weight_expected_neighbor: 4.0,
             version: 0,
         }
     }
