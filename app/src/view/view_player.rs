@@ -178,7 +178,6 @@ impl View<ViewPlayerScene> for App {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use edh_tourn::Tournament;

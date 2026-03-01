@@ -1,6 +1,4 @@
-use iced::{
-    widget::{button, column, row, space},
-};
+use iced::widget::{button, column, row, space};
 
 use crate::{
     App,
