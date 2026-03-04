@@ -14,7 +14,7 @@ use crate::{
     App,
     logic::Message,
     traits::{HandleMessage, View},
-    view::Scene,
+    view::{Scene, confirm_prompt::ConfirmPrompt},
 };
 
 #[derive(Clone, Debug)]
@@ -68,6 +68,8 @@ pub enum ViewPlayerMessage {
     EditDescription(text_editor::Action),
     SetMoxfieldId(String),
     ToggleColor(MtgColor),
+    ConfirmedDelete,
+    Delete,
 }
 
 impl From<ViewPlayerMessage> for Message {
@@ -100,6 +102,10 @@ impl HandleMessage<ViewPlayerMessage> for App {
                 Message::done()
             }
             ViewPlayerMessage::SaveAndClose => {
+                scene.info.set_description(scene.edit_description.text());
+                if !scene.moxfield.is_empty() {
+                    scene.info.set_moxfield_id(Some(scene.moxfield.clone()));
+                }
                 if let Some(id) = scene.player {
                     self.tournament.set_player_info(id, scene.info.clone())?;
                 } else {
@@ -131,12 +137,34 @@ impl HandleMessage<ViewPlayerMessage> for App {
                 scene.info.toggle_color(color);
                 Message::done()
             }
+            ViewPlayerMessage::Delete => {
+                let name = scene.name.clone().unwrap_or_default();
+                self.scenes.push(Scene::Confirm(ConfirmPrompt::new(format!(
+                    "Are you sure you want to delete {name}, including any games they participated in?"
+                ),
+                    ViewPlayerMessage::ConfirmedDelete.into())));
+                Message::done()
+            }
+            ViewPlayerMessage::ConfirmedDelete => {
+                if let Some(id) = &scene.player {
+                    self.tournament.unregister_player(*id)?;
+                }
+                self.scenes.pop();
+                Message::done()
+            }
         }
     }
 }
 
 impl View<ViewPlayerScene> for App {
     fn view<'a>(&'a self, scene: &'a ViewPlayerScene) -> Element<'a, Message> {
+        let menu_bar = row![
+            space().width(Length::Fill),
+            button(text("Cancel")).on_press(ViewPlayerMessage::Close.into()),
+            button(text("Save")).on_press(ViewPlayerMessage::SaveAndClose.into()),
+        ]
+        .spacing(20);
+
         let title_text = scene
             .name
             .as_ref()
@@ -163,7 +191,7 @@ impl View<ViewPlayerScene> for App {
                     .style(style)
                     .into()
             }))
-            .spacing(50);
+            .spacing(5);
 
             column![edit_name, edit_description, deck_colors]
         };
@@ -174,7 +202,7 @@ impl View<ViewPlayerScene> for App {
             let stats = self.tournament.get_player_or_default_stats(id);
         });
 
-        container(column![title, info_panel, bottom_panel].width(Length::Fill)).into()
+        container(column![menu_bar, title, info_panel, bottom_panel].width(Length::Fill)).into()
     }
 }
 

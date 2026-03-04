@@ -1,6 +1,6 @@
 pub mod file;
 
-use edh_tourn::Tournament;
+use edh_tourn::{Tournament, info::PlayerInfo};
 use iced::Task;
 use opener::open_browser;
 
@@ -8,7 +8,9 @@ use crate::{
     App,
     logic::file::FileMessage,
     traits::HandleMessage,
-    view::{home::HomeMessage, view_player::ViewPlayerMessage},
+    view::{
+        confirm_prompt::ConfirmPromptMessage, home::HomeMessage, view_player::ViewPlayerMessage,
+    },
 };
 
 #[derive(Clone, Default)]
@@ -23,6 +25,7 @@ pub enum Message {
     LoadTournament(Box<Tournament>),
     Home(HomeMessage),
     ViewPlayer(ViewPlayerMessage),
+    ConfirmationPrompt(ConfirmPromptMessage),
 }
 
 impl Message {
@@ -72,6 +75,7 @@ impl HandleMessage<Message> for App {
                 self.tournament = self.tournament.into_fresh()?;
                 Ok(Task::none())
             }
+            Message::ConfirmationPrompt(msg) => self.update(msg),
         }
     }
 }

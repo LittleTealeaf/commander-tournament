@@ -3,6 +3,9 @@ name = "app"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+dev = []
+
 [dependencies]
 anyhow = "1.0.100"
 appconfig = "0.2.1"
@@ -19,6 +22,7 @@ thiserror = "2.0.18"
 edh_tourn = {path = "../edh_tourn/"}
 
 [dev-dependencies]
+app = {path = ".", features = ["dev"]}
 tempfile = "3.19.1"
 tokio = {version = "1.49.0", features=["rt", "macros"]}
 edh_tourn = {path = "../edh_tourn/", features=["dev"]}

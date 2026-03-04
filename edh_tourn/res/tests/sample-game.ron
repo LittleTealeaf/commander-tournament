@@ -49,6 +49,7 @@
         ),
         9: (
             name: "Pantlaza, Sun-Favored",
+						description: "This is the description for Pantlaza",
         ),
         10: (
             name: "Rocksanne, Starfall Savant",

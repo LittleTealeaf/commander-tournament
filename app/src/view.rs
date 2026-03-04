@@ -1,3 +1,4 @@
+pub mod confirm_prompt;
 pub mod home;
 pub mod view_player;
 
@@ -7,10 +8,16 @@ use iced::{
     widget::{button, column, container, text},
 };
 
-use crate::{App, logic::Message, traits::View, view::view_player::ViewPlayerScene};
+use crate::{
+    App,
+    logic::Message,
+    traits::View,
+    view::{confirm_prompt::ConfirmPrompt, view_player::ViewPlayerScene},
+};
 
 pub enum Scene {
     Player(ViewPlayerScene),
+    Confirm(ConfirmPrompt),
 }
 
 impl App {
@@ -23,6 +30,7 @@ impl App {
             || self.view(&self.home),
             |scene| match scene {
                 Scene::Player(scene) => self.view(scene),
+                Scene::Confirm(prompt) => self.view(prompt),
             },
         );
 

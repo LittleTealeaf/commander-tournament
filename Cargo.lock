@@ -87,6 +87,7 @@ name = "app"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "app",
  "appconfig",
  "async-fs",
  "edh_tourn",
