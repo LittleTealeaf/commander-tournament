@@ -1,4 +1,5 @@
 use crate::{
+    Tournament,
     error::TournamentError,
     game::{entry::GameEntry, match_player::MatchPlayer, matchup::Matchup},
 };
@@ -42,6 +43,11 @@ impl GameRecord {
     }
 
     #[must_use]
+    pub const fn ids(&self) -> [u32; 4] {
+        self.matchup.ids()
+    }
+
+    #[must_use]
     pub const fn winner(&self) -> u32 {
         self.winner
     }
@@ -66,28 +72,14 @@ impl GameRecord {
     }
 }
 
-impl From<GameRecord> for (Matchup, u32) {
+impl Tournament {
+    pub fn update_record(&self, record: GameRecord) -> Result<GameRecord, TournamentError> {
+        self.update_match(record.matchup)?.record(record.winner)
+    }
+}
+
+impl From<GameRecord> for GameEntry {
     fn from(value: GameRecord) -> Self {
-        (value.matchup, value.winner)
-    }
-}
-
-impl TryFrom<GameRecord> for GameEntry {
-    type Error = TournamentError;
-    fn try_from(value: GameRecord) -> Result<Self, Self::Error> {
-        let [a, b, c, d] = value.matchup.players();
-        let players = [a.id(), b.id(), c.id(), d.id()];
-        let winner = value.winner;
-        Self::new(players, winner)
-    }
-}
-
-impl<'a> TryFrom<&'a GameRecord> for GameEntry {
-    type Error = TournamentError;
-    fn try_from(value: &'a GameRecord) -> Result<Self, Self::Error> {
-        let [a, b, c, d] = value.matchup.players();
-        let players = [a.id(), b.id(), c.id(), d.id()];
-        let winner = value.winner;
-        Self::new(players, winner)
+        Self::new_unchecked(value.ids(), value.winner)
     }
 }

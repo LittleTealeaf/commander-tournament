@@ -1,3 +1,7 @@
+#[cfg(test)]
+#[macro_use]
+extern crate approx;
+
 pub mod compat;
 pub mod config;
 #[cfg(feature = "dev")]
@@ -98,7 +102,7 @@ impl Tournament {
         let mut games = Vec::new();
         core::mem::swap(&mut self.games, &mut games);
         for record in games {
-            self.inner_register_record(record)?;
+            self.register_entry(record.into())?;
         }
         self.snapshot = version + 1;
 
@@ -112,7 +116,7 @@ impl Tournament {
 
     /// Merges with another tournament. If decks from either game have the same name, they are
     /// merged. Games are added to the end of the base tournament.
-    pub fn merge_tournament(&mut self, other: &Self) -> Result<(), TournamentError> {
+    pub fn merge(&mut self, other: &Self) -> Result<(), TournamentError> {
         let mut id_map = HashMap::new();
 
         for (old_id, info) in &other.players {
@@ -126,7 +130,7 @@ impl Tournament {
         }
 
         for game in &other.games {
-            let entry = GameEntry::try_from(game)?;
+            let entry = GameEntry::new(game.ids(), game.winner())?;
             let entry_mapped = entry.map_ids(&id_map)?;
             self.register_entry(entry_mapped)?;
         }
@@ -153,9 +157,10 @@ impl Tournament {
 
         // Register Games
         for game in &self.games {
-            let entry = GameEntry::try_from(game)?;
+            let entry = GameEntry::new(game.ids(), game.winner())?;
             let mapped = entry.map_ids(&id_map)?;
-            tourn.register_entry(mapped)?;
+            let record = self.create_entry_record(mapped)?;
+            tourn.register_record(record)?;
         }
 
         tourn.snapshot = 0;
@@ -168,7 +173,7 @@ impl FromIterator<Self> for Tournament {
     fn from_iter<T: IntoIterator<Item = Self>>(iter: T) -> Self {
         let mut base = Self::new();
         for tourn in iter {
-            let _ = base.merge_tournament(&tourn);
+            let _ = base.merge(&tourn);
         }
 
         base
@@ -310,7 +315,7 @@ mod tests {
             tournament_b.register_player(p.to_string()).unwrap();
         }
 
-        tournament_a.merge_tournament(&tournament_b).unwrap();
+        tournament_a.merge(&tournament_b).unwrap();
 
         assert_eq!(4, tournament_a.players.len());
     }

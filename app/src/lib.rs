@@ -4,10 +4,10 @@ use edh_tourn::Tournament;
 use iced::Task;
 
 pub mod logic;
-pub mod traits;
-pub mod view;
 #[cfg(feature = "dev")]
 pub mod tests;
+pub mod traits;
+pub mod view;
 
 use crate::{
     logic::Message,

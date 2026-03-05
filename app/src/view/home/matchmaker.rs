@@ -37,7 +37,7 @@ impl MatchMakerView {
             MatchMethod::ExpectedNeighbors => tournament.rank_expected_neighbors(id)?.collect_vec(),
             MatchMethod::LossWith => tournament.rank_loss_with(id)?.collect_vec(),
             MatchMethod::Nemesis => tournament.rank_nemesis(id)?.collect_vec(),
-            MatchMethod::EloNeighbors => tournament.rank_neighbors(id)?.collect_vec(),
+            MatchMethod::EloNeighbors => tournament.rank_elo_neighbors(id)?.collect_vec(),
             MatchMethod::WRNeighbors => tournament.rank_wr_neighbors(id)?.collect_vec(),
             MatchMethod::Combined => tournament.rank_combined(id)?.collect_vec(),
         }

@@ -30,7 +30,7 @@ where
 {
     let values = items
         .iter()
-        .flat_map(|record| GameEntry::try_from(record.clone()))
+        .flat_map(|record| GameEntry::new(record.ids(), record.winner()))
         .collect::<Vec<_>>();
     values.serialize(serializer)
 }

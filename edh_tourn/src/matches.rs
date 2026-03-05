@@ -3,7 +3,12 @@ use std::collections::HashMap;
 
 use itertools::{Itertools, chain};
 
-use crate::{Tournament, error::TournamentError, stats::PlayerStats};
+use crate::{
+    Tournament,
+    error::TournamentError,
+    game::{match_player::MatchPlayer, record::GameRecord},
+    stats::PlayerStats,
+};
 
 fn with_tie_breaker(cmp: Ordering, tie_breaker: impl Fn() -> Ordering) -> Ordering {
     match cmp {
@@ -52,17 +57,14 @@ impl Tournament {
     pub fn rank_least_played(&self, id: u32) -> Result<impl Iterator<Item = u32>, TournamentError> {
         self.ensure_id_registered(id)?;
 
-        let mut counts = self
-            .players
-            .keys()
-            .map(|i| (*i, 0))
-            .collect::<HashMap<u32, u32>>();
+        let games = self.games().iter().filter(|game| game.has_player(id));
 
-        for game in &self.games {
-            if game.has_player(id) {
-                for player in game.players() {
-                    *get_mut_from_map(&player.id(), &mut counts)? += 1;
-                }
+        let players = games.flat_map(GameRecord::players);
+        let player_ids = players.map(MatchPlayer::id);
+        let mut counts = player_ids.counts();
+        for player in self.players.keys() {
+            if !counts.contains_key(player) {
+                counts.insert(*player, 0);
             }
         }
 
@@ -193,7 +195,10 @@ impl Tournament {
             .map(|(id, _)| id))
     }
 
-    pub fn rank_neighbors(&self, id: u32) -> Result<impl Iterator<Item = u32>, TournamentError> {
+    pub fn rank_elo_neighbors(
+        &self,
+        id: u32,
+    ) -> Result<impl Iterator<Item = u32>, TournamentError> {
         self.ensure_id_registered(id)?;
         let elo = self.get_elo(id);
 
@@ -230,7 +235,10 @@ impl Tournament {
                 self.rank_wr_neighbors(id)?,
                 self.config.match_weight_wr_neighbor
             ),
-            to_weight_rank(self.rank_neighbors(id)?, self.config.match_weight_neighbor),
+            to_weight_rank(
+                self.rank_elo_neighbors(id)?,
+                self.config.match_weight_neighbor
+            ),
             to_weight_rank(self.rank_loss_with(id)?, self.config.match_weight_lost_with),
             to_weight_rank(
                 self.rank_expected_neighbors(id)?,
@@ -281,7 +289,7 @@ mod tests {
     rank_tests!(rank_least_played);
     rank_tests!(rank_nemesis);
     rank_tests!(rank_loss_with);
-    rank_tests!(rank_neighbors);
+    rank_tests!(rank_elo_neighbors);
     rank_tests!(rank_wr_neighbors);
     rank_tests!(rank_expected_neighbors);
     rank_tests!(rank_combined);

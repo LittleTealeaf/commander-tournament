@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{error::TournamentError};
+use crate::{Tournament, error::TournamentError, game::record::GameRecord};
 
 /// Stores only the player IDs and the winner ID. Primarily used for serialization or conversions
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default, PartialEq, Copy, Eq)]
@@ -16,7 +16,12 @@ impl GameEntry {
         if !players.contains(&winner) {
             return Err(TournamentError::WinnerNotInMatch(winner));
         }
-        Ok(Self { players, winner })
+        Ok(Self::new_unchecked(players, winner))
+    }
+
+    #[must_use]
+    pub(crate) const fn new_unchecked(players: [u32; 4], winner: u32) -> Self {
+        Self { players, winner }
     }
 
     #[must_use]
@@ -40,5 +45,45 @@ impl GameEntry {
             .ok_or(TournamentError::InvalidPlayerId(self.winner))?;
 
         Self::new([*a, *b, *c, *d], *winner)
+    }
+}
+
+impl Tournament {
+    pub fn create_entry_record(&self, entry: GameEntry) -> Result<GameRecord, TournamentError> {
+        self.create_match(entry.players)?.record(entry.winner)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn winner_must_be_player() {
+        GameEntry::new([0, 1, 2, 3], 0).unwrap();
+        GameEntry::new([0, 1, 2, 3], 1).unwrap();
+        GameEntry::new([0, 1, 2, 3], 2).unwrap();
+        GameEntry::new([0, 1, 2, 3], 3).unwrap();
+        GameEntry::new([0, 1, 2, 3], 4).unwrap_err();
+    }
+
+    #[test]
+    fn maps_to_correct_ids() {
+        let starting = [1, 2, 3, 4];
+        let ending = [5, 6, 7, 8];
+        let map = [(1, 5), (2, 6), (3, 7), (4, 8)]
+            .into_iter()
+            .collect::<HashMap<_, _>>();
+
+        let entry = GameEntry::new(starting, 1).unwrap();
+        let mapped_entry = entry.map_ids(&map).unwrap();
+        assert_eq!(ending, mapped_entry.players);
+        assert_eq!(5, mapped_entry.winner);
+    }
+
+    #[test]
+    fn map_fails_invalid_id() {
+        let entry = GameEntry::new([1, 2, 3, 4], 1).unwrap();
+        entry.map_ids(&HashMap::new()).unwrap_err();
     }
 }

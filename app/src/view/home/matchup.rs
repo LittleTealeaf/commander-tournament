@@ -1,7 +1,17 @@
-use edh_tourn::{Tournament, error::TournamentError, game::matchup::Matchup};
-use iced::Task;
+use edh_tourn::{
+    Tournament,
+    error::TournamentError,
+    game::{match_player::MatchPlayer, matchup::Matchup},
+};
+use iced::{widget::pick_list, Task};
+use itertools::Itertools;
 
-use crate::{App, logic::Message, traits::HandleMessage, view::home::HomeMessage};
+use crate::{
+    App,
+    logic::Message,
+    traits::{HandleMessage, View},
+    view::home::HomeMessage,
+};
 
 #[derive(Default, Debug)]
 pub struct MatchupView {
@@ -14,13 +24,32 @@ pub struct MatchupView {
 }
 
 impl MatchupView {
-    const fn set_player(&mut self, position: MatchupPlayerPosition, value: Option<u32>) {
+    const fn set_player(&mut self, position: MatchViewPlayer, value: Option<u32>) {
         match position {
-            MatchupPlayerPosition::PlayerA => self.player_a = value,
-            MatchupPlayerPosition::PlayerB => self.player_b = value,
-            MatchupPlayerPosition::PlayerC => self.player_c = value,
-            MatchupPlayerPosition::PlayerD => self.player_d = value,
+            MatchViewPlayer::PlayerA => self.player_a = value,
+            MatchViewPlayer::PlayerB => self.player_b = value,
+            MatchViewPlayer::PlayerC => self.player_c = value,
+            MatchViewPlayer::PlayerD => self.player_d = value,
         }
+    }
+
+    const fn get_player(&self, position: MatchViewPlayer) -> &Option<u32> {
+        match position {
+            MatchViewPlayer::PlayerA => &self.player_a,
+            MatchViewPlayer::PlayerB => &self.player_b,
+            MatchViewPlayer::PlayerC => &self.player_c,
+            MatchViewPlayer::PlayerD => &self.player_d,
+        }
+    }
+
+    fn get_matchup_player(&self, position: MatchViewPlayer) -> Option<&MatchPlayer> {
+        let [player_a, player_b, player_c, player_d] = self.matchup.as_ref()?.players();
+        Some(match position {
+            MatchViewPlayer::PlayerA => player_a,
+            MatchViewPlayer::PlayerB => player_b,
+            MatchViewPlayer::PlayerC => player_c,
+            MatchViewPlayer::PlayerD => player_d,
+        })
     }
 
     fn players(&self) -> Option<[u32; 4]> {
@@ -42,16 +71,29 @@ impl MatchupView {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum MatchupPlayerPosition {
+pub enum MatchViewPlayer {
     PlayerA,
     PlayerB,
     PlayerC,
     PlayerD,
 }
 
+impl MatchViewPlayer {
+    const PLAYERS: [Self; 4] = [Self::PlayerA, Self::PlayerB, Self::PlayerC, Self::PlayerD];
+
+    fn number(&self) -> usize {
+        match self {
+            MatchViewPlayer::PlayerA => 1,
+            MatchViewPlayer::PlayerB => 2,
+            MatchViewPlayer::PlayerC => 3,
+            MatchViewPlayer::PlayerD => 4,
+        }
+    }
+}
+
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum MatchupMessage {
-    SetPlayer(MatchupPlayerPosition, Option<u32>),
+    SetPlayer(MatchViewPlayer, Option<u32>),
     SetWinner(Option<u32>),
     SubmitGame,
     Clear,
@@ -94,5 +136,34 @@ impl HandleMessage<MatchupMessage> for App {
                 Ok(Task::none())
             }
         }
+    }
+}
+
+impl View<MatchupView> for App {
+    fn view<'a>(&'a self, scene: &'a MatchupView) -> iced::Element<'a, Message> {
+        let players = self
+            .tournament()
+            .players()
+            .keys()
+            .filter_map(|id| Some((*id, self.tournament().get_player_info(id)?)))
+            .sorted_by_key(|(id, info)| info.name())
+            .collect_vec();
+
+
+        let match_players = MatchViewPlayer::PLAYERS.map(|position| {
+            let id = scene.get_player(position).as_ref().copied();
+            let info = id.and_then(|id| self.tournament.get_player_info(&id));
+            let match_player = scene.get_matchup_player(position);
+
+            let selector = pick_list(players.clone(), , on_selected)
+
+
+
+
+
+
+
+
+        });
     }
 }

@@ -8,9 +8,7 @@ use crate::{
     App,
     logic::file::FileMessage,
     traits::HandleMessage,
-    view::{
-        confirm::ConfirmPromptMessage, home::HomeMessage, player::ViewPlayerMessage,
-    },
+    view::{confirm::ConfirmPromptMessage, home::HomeMessage, player::ViewPlayerMessage},
 };
 
 #[derive(Clone, Default)]

@@ -150,7 +150,8 @@ mod tests {
     #[test]
     fn new_sets_default_tournament() {
         let mut app = App::default();
-        app.test_update(Message::LoadTournament(Tournament::sample_game().into())).unwrap();
+        app.test_update(Message::LoadTournament(Tournament::sample_game().into()))
+            .unwrap();
         let tournament = app.tournament.clone();
         app.test_update(FileMessage::New).unwrap();
         let new_tournament = app.tournament.clone();
@@ -182,7 +183,8 @@ mod tests {
         app.test_update(FileMessage::LoadTournamentFromFile(
             temp_file.path().to_path_buf(),
             Tournament::sample_game().into(),
-        )).unwrap();
+        ))
+        .unwrap();
         assert_eq!(Some(temp_file.path().to_path_buf()), app.file);
     }
 
