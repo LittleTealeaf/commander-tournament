@@ -1,6 +1,6 @@
 pub mod file;
 
-use edh_tourn::{Tournament, info::PlayerInfo};
+use edh_tourn::Tournament;
 use iced::Task;
 use opener::open_browser;
 
@@ -9,7 +9,7 @@ use crate::{
     logic::file::FileMessage,
     traits::HandleMessage,
     view::{
-        confirm_prompt::ConfirmPromptMessage, home::HomeMessage, view_player::ViewPlayerMessage,
+        confirm::ConfirmPromptMessage, home::HomeMessage, player::ViewPlayerMessage,
     },
 };
 

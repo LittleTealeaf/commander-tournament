@@ -7,19 +7,22 @@ use crate::{
     view::{
         home::{
             leaderboard::LeaderboardColumn,
+            matchmaker::{MatchMakerMessage, MatchMakerView},
             matchup::{MatchupMessage, MatchupView},
         },
-        view_player::ViewPlayerMessage,
+        player::ViewPlayerMessage,
     },
 };
 
 mod leaderboard;
+mod matchmaker;
 mod matchup;
 
 pub struct HomeState {
     leaderboard_sort_column: LeaderboardColumn,
     leaderboard_sort_asc: bool,
     matchup_view: MatchupView,
+    matchmaker: MatchMakerView,
 }
 
 impl Default for HomeState {
@@ -28,6 +31,7 @@ impl Default for HomeState {
             leaderboard_sort_column: LeaderboardColumn::Elo,
             leaderboard_sort_asc: false,
             matchup_view: MatchupView::default(),
+            matchmaker: MatchMakerView::default(),
         }
     }
 }
@@ -36,6 +40,7 @@ impl Default for HomeState {
 pub enum HomeMessage {
     SortLeaderboardBy(LeaderboardColumn),
     MatchupMessage(MatchupMessage),
+    MatchmakerMessage(MatchMakerMessage),
 }
 
 impl From<HomeMessage> for Message {
@@ -58,6 +63,7 @@ impl HandleMessage<HomeMessage> for App {
                 Message::done()
             }
             HomeMessage::MatchupMessage(msg) => self.update(msg),
+            HomeMessage::MatchmakerMessage(msg) => self.update(msg),
         }
     }
 }

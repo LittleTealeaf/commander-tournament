@@ -1,6 +1,6 @@
-pub mod confirm_prompt;
+pub mod confirm;
 pub mod home;
-pub mod view_player;
+pub mod player;
 
 use iced::{
     Alignment, Element, Length,
@@ -12,7 +12,7 @@ use crate::{
     App,
     logic::Message,
     traits::View,
-    view::{confirm_prompt::ConfirmPrompt, view_player::ViewPlayerScene},
+    view::{confirm::ConfirmPrompt, player::ViewPlayerScene},
 };
 
 pub enum Scene {

@@ -14,7 +14,7 @@ use crate::{
     App,
     logic::Message,
     traits::{HandleMessage, View},
-    view::{Scene, confirm_prompt::ConfirmPrompt},
+    view::{Scene, confirm::ConfirmPrompt},
 };
 
 #[derive(Clone, Debug)]
@@ -200,9 +200,18 @@ impl View<ViewPlayerScene> for App {
 
         let deck_progress = scene.player.map(|id| {
             let stats = self.tournament.get_player_or_default_stats(id);
+
+            let view_stats = row![text(format!("Elo: {}", stats.elo()))];
+
+            column![view_stats]
         });
 
-        container(column![menu_bar, title, info_panel, bottom_panel].width(Length::Fill)).into()
+        let content = match deck_progress {
+            Some(view) => container(row![info_panel, view]),
+            None => container(info_panel),
+        };
+
+        container(column![menu_bar, title, content, bottom_panel].width(Length::Fill)).into()
     }
 }
 
@@ -211,7 +220,7 @@ mod tests {
     use edh_tourn::Tournament;
     use itertools::Itertools;
 
-    use crate::view::view_player::ViewPlayerScene;
+    use crate::view::player::ViewPlayerScene;
 
     #[test]
     fn new_creates_default_values() {

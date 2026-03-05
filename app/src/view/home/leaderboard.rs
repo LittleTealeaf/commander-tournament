@@ -10,7 +10,7 @@ use itertools::Itertools;
 use crate::{
     App,
     logic::Message,
-    view::{home::HomeMessage, view_player::ViewPlayerMessage},
+    view::{home::HomeMessage, player::ViewPlayerMessage},
 };
 
 #[derive(Clone)]

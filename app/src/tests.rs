@@ -7,4 +7,15 @@ impl App {
     {
         self.update(msg).map(|_| ())
     }
+
+    pub fn test_updates<I, T>(&mut self, messages: I) -> anyhow::Result<()>
+    where
+        I: IntoIterator<Item = T>,
+        Self: HandleMessage<T>,
+    {
+        for message in messages {
+            self.test_update(message)?;
+        }
+        Ok(())
+    }
 }

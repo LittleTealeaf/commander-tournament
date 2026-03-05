@@ -1,3 +1,5 @@
+use iced::widget::{button, center, column, row, text};
+
 use crate::{
     App,
     logic::Message,
@@ -11,7 +13,8 @@ pub struct ConfirmPrompt {
 }
 
 impl ConfirmPrompt {
-    pub fn new(text: String, on_confirm: Message) -> Self {
+    #[must_use]
+    pub const fn new(text: String, on_confirm: Message) -> Self {
         Self { text, on_confirm }
     }
 }
@@ -50,6 +53,13 @@ impl HandleMessage<ConfirmPromptMessage> for App {
 
 impl View<ConfirmPrompt> for App {
     fn view<'a>(&'a self, scene: &'a ConfirmPrompt) -> iced::Element<'a, Message> {
-        todo!()
+        center(column![
+            text(&scene.text),
+            row![
+                button("No").on_press(ConfirmPromptMessage::Deny.into()),
+                button("Yes").on_press(ConfirmPromptMessage::Confirm.into())
+            ]
+        ])
+        .into()
     }
 }

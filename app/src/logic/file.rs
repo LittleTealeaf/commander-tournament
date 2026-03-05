@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{App, logic::Message, traits::HandleMessage};
 
+#[must_use]
 pub fn accepted_file_types() -> Vec<&'static str> {
     vec!["ron", "json", "toml"]
 }
@@ -144,15 +145,14 @@ mod tests {
                 serialize_by_extension,
             },
         },
-        traits::HandleMessage,
     };
 
     #[test]
     fn new_sets_default_tournament() {
         let mut app = App::default();
-        app.test_update(Message::LoadTournament(Tournament::sample_game().into()));
+        app.test_update(Message::LoadTournament(Tournament::sample_game().into())).unwrap();
         let tournament = app.tournament.clone();
-        app.test_update(FileMessage::New);
+        app.test_update(FileMessage::New).unwrap();
         let new_tournament = app.tournament.clone();
         assert_ne!(tournament, new_tournament);
     }
@@ -162,7 +162,7 @@ mod tests {
         let mut app = App::default();
         let temp_file = NamedTempFile::new().unwrap();
         app.file = Some(temp_file.path().to_path_buf());
-        app.test_update(FileMessage::New);
+        app.test_update(FileMessage::New).unwrap();
         assert!(app.file.is_none());
     }
 
@@ -182,7 +182,7 @@ mod tests {
         app.test_update(FileMessage::LoadTournamentFromFile(
             temp_file.path().to_path_buf(),
             Tournament::sample_game().into(),
-        ));
+        )).unwrap();
         assert_eq!(Some(temp_file.path().to_path_buf()), app.file);
     }
 
