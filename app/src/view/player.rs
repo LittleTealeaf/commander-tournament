@@ -3,7 +3,7 @@ use std::borrow::ToOwned;
 use edh_tourn::{
     Tournament,
     error::TournamentError,
-    info::{MtgColor, PlayerInfo},
+    player::info::{MtgColor, PlayerInfo},
 };
 use iced::{
     Element, Length,

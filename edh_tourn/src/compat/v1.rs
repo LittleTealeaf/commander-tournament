@@ -7,7 +7,7 @@ use crate::{
     Tournament,
     config::TournamentConfig,
     error::TournamentError,
-    info::{MtgColor, PlayerInfo},
+    player::info::{MtgColor, PlayerInfo},
 };
 
 #[derive(Clone, serde::Deserialize)]

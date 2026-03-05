@@ -2,7 +2,7 @@ use crate::{
     Tournament,
     error::TournamentError,
     game::{match_player::MatchPlayer, record::GameRecord},
-    stats::PlayerStats,
+    player::stats::PlayerStats,
 };
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]

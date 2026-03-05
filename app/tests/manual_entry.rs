@@ -1,6 +1,6 @@
 use anyhow::anyhow;
 use app::{App, view::player::ViewPlayerMessage};
-use edh_tourn::{Tournament, info::MtgColor};
+use edh_tourn::{Tournament, player::info::MtgColor};
 use iced::widget::text_editor::{Action, Edit};
 use itertools::chain;
 

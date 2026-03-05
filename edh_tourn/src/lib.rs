@@ -8,10 +8,9 @@ pub mod config;
 pub mod dev;
 pub mod error;
 pub mod game;
-pub mod info;
 pub mod matches;
+pub mod player;
 pub mod serialization;
-pub mod stats;
 pub mod tsv;
 
 use std::collections::HashMap;
@@ -20,9 +19,9 @@ use crate::{
     config::TournamentConfig,
     error::TournamentError,
     game::{entry::GameEntry, record::GameRecord},
-    info::PlayerInfo,
+    player::info::PlayerInfo,
+    player::stats::PlayerStats,
     serialization::{convert_games, ordered_map},
-    stats::PlayerStats,
 };
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
@@ -159,8 +158,7 @@ impl Tournament {
         for game in &self.games {
             let entry = GameEntry::new(game.ids(), game.winner())?;
             let mapped = entry.map_ids(&id_map)?;
-            let record = self.create_entry_record(mapped)?;
-            tourn.register_record(record)?;
+            tourn.register_entry(mapped)?;
         }
 
         tourn.snapshot = 0;

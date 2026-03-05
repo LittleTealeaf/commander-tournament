@@ -8,8 +8,8 @@ use crate::{
     config::TournamentConfig,
     error::TournamentError,
     game::{entry::GameEntry, record::GameRecord},
-    info::PlayerInfo,
-    stats::PlayerStats,
+    player::info::PlayerInfo,
+    player::stats::PlayerStats,
 };
 
 /// For use with serde's ``serialize_with`` attribute

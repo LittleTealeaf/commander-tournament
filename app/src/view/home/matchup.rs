@@ -3,7 +3,10 @@ use edh_tourn::{
     error::TournamentError,
     game::{match_player::MatchPlayer, matchup::Matchup},
 };
-use iced::{widget::pick_list, Task};
+use iced::{
+    Task,
+    widget::{column, container, pick_list},
+};
 use itertools::Itertools;
 
 use crate::{
@@ -33,12 +36,13 @@ impl MatchupView {
         }
     }
 
-    const fn get_player(&self, position: MatchViewPlayer) -> &Option<u32> {
+    #[must_use]
+    const fn get_player(&self, position: MatchViewPlayer) -> Option<&u32> {
         match position {
-            MatchViewPlayer::PlayerA => &self.player_a,
-            MatchViewPlayer::PlayerB => &self.player_b,
-            MatchViewPlayer::PlayerC => &self.player_c,
-            MatchViewPlayer::PlayerD => &self.player_d,
+            MatchViewPlayer::PlayerA => self.player_a.as_ref(),
+            MatchViewPlayer::PlayerB => self.player_b.as_ref(),
+            MatchViewPlayer::PlayerC => self.player_c.as_ref(),
+            MatchViewPlayer::PlayerD => self.player_d.as_ref(),
         }
     }
 
@@ -81,12 +85,12 @@ pub enum MatchViewPlayer {
 impl MatchViewPlayer {
     const PLAYERS: [Self; 4] = [Self::PlayerA, Self::PlayerB, Self::PlayerC, Self::PlayerD];
 
-    fn number(&self) -> usize {
+    const fn number(self) -> u8 {
         match self {
-            MatchViewPlayer::PlayerA => 1,
-            MatchViewPlayer::PlayerB => 2,
-            MatchViewPlayer::PlayerC => 3,
-            MatchViewPlayer::PlayerD => 4,
+            Self::PlayerA => 1,
+            Self::PlayerB => 2,
+            Self::PlayerC => 3,
+            Self::PlayerD => 4,
         }
     }
 }
@@ -142,28 +146,21 @@ impl HandleMessage<MatchupMessage> for App {
 impl View<MatchupView> for App {
     fn view<'a>(&'a self, scene: &'a MatchupView) -> iced::Element<'a, Message> {
         let players = self
-            .tournament()
-            .players()
-            .keys()
-            .filter_map(|id| Some((*id, self.tournament().get_player_info(id)?)))
-            .sorted_by_key(|(id, info)| info.name())
+            .tournament
+            .get_registered_players()
+            .sorted_by(|a, b| a.info().name().cmp(b.info().name()))
             .collect_vec();
 
-
         let match_players = MatchViewPlayer::PLAYERS.map(|position| {
-            let id = scene.get_player(position).as_ref().copied();
-            let info = id.and_then(|id| self.tournament.get_player_info(&id));
-            let match_player = scene.get_matchup_player(position);
+            let id = scene.get_player(position).copied();
+            let entry = id.and_then(|id| self.tournament.get_registered_player(id).ok());
 
-            let selector = pick_list(players.clone(), , on_selected)
+            let selector = pick_list(players.clone(), entry, move |option| {
+                MatchupMessage::SetPlayer(position, Some(option.id())).into()
+            });
 
-
-
-
-
-
-
-
+            container(selector).into()
         });
+        column(match_players).into()
     }
 }

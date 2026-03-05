@@ -7,7 +7,7 @@ use crate::{
     Tournament,
     error::TournamentError,
     game::{match_player::MatchPlayer, record::GameRecord},
-    stats::PlayerStats,
+    player::stats::PlayerStats,
 };
 
 fn with_tie_breaker(cmp: Ordering, tie_breaker: impl Fn() -> Ordering) -> Ordering {

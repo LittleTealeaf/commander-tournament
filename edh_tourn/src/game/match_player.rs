@@ -1,4 +1,4 @@
-use crate::stats::PlayerStats;
+use crate::player::stats::PlayerStats;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default, PartialEq)]
 pub struct MatchPlayer {

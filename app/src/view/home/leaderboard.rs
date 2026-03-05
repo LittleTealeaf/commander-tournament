@@ -1,6 +1,6 @@
 use core::cmp::Ordering;
 
-use edh_tourn::{info::PlayerInfo, stats::PlayerStats};
+use edh_tourn::{player::info::PlayerInfo, player::stats::PlayerStats};
 use iced::{
     Element, Padding,
     widget::{button, container, row, scrollable, space, table, text},

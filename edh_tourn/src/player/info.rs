@@ -215,7 +215,7 @@ impl Tournament {
 mod tests {
     use itertools::Itertools;
 
-    use crate::{Tournament, error::TournamentError, info::PlayerInfo};
+    use crate::{Tournament, error::TournamentError, player::info::PlayerInfo};
 
     #[test]
     fn set_info_invalid_id() {

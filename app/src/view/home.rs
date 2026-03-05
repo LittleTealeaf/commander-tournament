@@ -80,7 +80,10 @@ impl View<HomeState> for App {
                     .on_press_maybe(self.file.is_some().then_some(FileMessage::SaveAs.into())),
                 button("New").on_press(FileMessage::New.into()),
             ],
-            self.view_home_leaderboard()
+            row![
+                self.view_home_leaderboard(),
+                self.view(&self.home.matchup_view)
+            ]
         ]
         .into()
     }
