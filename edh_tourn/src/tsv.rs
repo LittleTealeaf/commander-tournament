@@ -1,7 +1,7 @@
 use crate::{
     Tournament,
     error::{TournResult, TournamentError},
-    game::GameEntry,
+    game::entry::GameEntry,
 };
 
 impl Tournament {

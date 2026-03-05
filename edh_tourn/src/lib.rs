@@ -15,7 +15,7 @@ use std::collections::HashMap;
 use crate::{
     config::TournamentConfig,
     error::TournamentError,
-    game::{GameEntry, GameRecord},
+    game::{entry::GameEntry, record::GameRecord},
     info::PlayerInfo,
     serialization::{convert_games, ordered_map},
     stats::PlayerStats,
@@ -126,7 +126,9 @@ impl Tournament {
         }
 
         for game in &other.games {
-            self.register_entry(GameEntry::from(game).map_ids(&id_map)?)?;
+            let entry = GameEntry::try_from(game)?;
+            let entry_mapped = entry.map_ids(&id_map)?;
+            self.register_entry(entry_mapped)?;
         }
 
         Ok(())
@@ -151,7 +153,9 @@ impl Tournament {
 
         // Register Games
         for game in &self.games {
-            tourn.register_entry(GameEntry::from(game).map_ids(&id_map)?)?;
+            let entry = GameEntry::try_from(game)?;
+            let mapped = entry.map_ids(&id_map)?;
+            tourn.register_entry(mapped)?;
         }
 
         tourn.snapshot = 0;

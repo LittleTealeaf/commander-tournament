@@ -83,7 +83,7 @@ impl HandleMessage<MatchMakerMessage> for App {
 }
 
 impl View<MatchMakerView> for App {
-    fn view<'a>(&'a self, scene: &'a MatchMakerView) -> iced::Element<'a, Message> {
+    fn view<'a>(&'a self, _scene: &'a MatchMakerView) -> iced::Element<'a, Message> {
         todo!()
     }
 }

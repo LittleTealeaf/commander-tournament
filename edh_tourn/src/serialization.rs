@@ -7,7 +7,7 @@ use crate::{
     Tournament,
     config::TournamentConfig,
     error::TournamentError,
-    game::{GameEntry, GameRecord},
+    game::{entry::GameEntry, record::GameRecord},
     info::PlayerInfo,
     stats::PlayerStats,
 };
@@ -30,7 +30,7 @@ where
 {
     let values = items
         .iter()
-        .map(|record| GameEntry::from(record.clone()))
+        .flat_map(|record| GameEntry::try_from(record.clone()))
         .collect::<Vec<_>>();
     values.serialize(serializer)
 }

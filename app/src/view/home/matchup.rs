@@ -1,4 +1,4 @@
-use edh_tourn::{Tournament, error::TournamentError, game::Matchup};
+use edh_tourn::{Tournament, error::TournamentError, game::matchup::Matchup};
 use iced::Task;
 
 use crate::{App, logic::Message, traits::HandleMessage, view::home::HomeMessage};
