@@ -1,6 +1,7 @@
 use crate::{Tournament, error::TournamentError};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
+#[serde(default = "Default::default")]
 pub struct TournamentConfig {
     #[serde(rename = "se", alias = "starting_elo")]
     pub starting_elo: f64,

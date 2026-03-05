@@ -1,53 +1,19 @@
-use crate::{Tournament, error::TournamentError};
-
-#[derive(
-    Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash, Copy,
-)]
-pub enum MtgColor {
-    #[serde(rename = "w", alias = "White")]
-    White,
-    #[serde(rename = "u", alias = "Blue")]
-    Blue,
-    #[serde(rename = "g", alias = "Green")]
-    Green,
-    #[serde(rename = "r", alias = "Red")]
-    Red,
-    #[serde(rename = "b", alias = "Black")]
-    Black,
-    #[serde(rename = "c", alias = "Colorless")]
-    Colorless,
-}
-
-impl MtgColor {
-    pub const COLORS: [Self; 6] = [
-        Self::White,
-        Self::Blue,
-        Self::Green,
-        Self::Red,
-        Self::Black,
-        Self::Colorless,
-    ];
-
-    #[must_use]
-    pub const fn letter(&self) -> &'static str {
-        match self {
-            Self::White => "W",
-            Self::Blue => "U",
-            Self::Green => "G",
-            Self::Red => "R",
-            Self::Black => "B",
-            Self::Colorless => "C",
-        }
-    }
-}
+use crate::{
+    Tournament,
+    error::TournamentError,
+    player::color::{ColorIdentity, MtgColor},
+};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default, PartialEq, Eq)]
 pub struct PlayerInfo {
     name: String,
     #[serde(skip_serializing_if = "String::is_empty", default)]
     description: String,
-    #[serde(skip_serializing_if = "Vec::is_empty", default)]
-    colors: Vec<MtgColor>,
+    #[serde(
+        skip_serializing_if = "ColorIdentity::is_colorless",
+        default = "ColorIdentity::default"
+    )]
+    identity: ColorIdentity,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     moxfield_id: Option<String>,
 }
@@ -57,7 +23,7 @@ impl PlayerInfo {
         Self {
             name,
             description: String::new(),
-            colors: Vec::new(),
+            identity: ColorIdentity(0),
             moxfield_id: None,
         }
     }
@@ -103,40 +69,29 @@ impl PlayerInfo {
         self.moxfield_id = id;
     }
 
-    pub fn remove_color(&mut self, color: &MtgColor) {
-        for i in 0..self.colors.len() {
-            let Some(c) = self.colors.get(i) else {
-                continue;
-            };
-            if c.eq(color) {
-                self.colors.remove(i);
-                return;
-            }
-        }
+    #[must_use]
+    pub const fn color_identity(&self) -> &ColorIdentity {
+        &self.identity
     }
 
-    pub fn add_color(&mut self, color: MtgColor) {
-        if !self.colors.contains(&color) {
-            self.colors.push(color);
-        }
+    pub const fn set_color_identity(&mut self, identity: ColorIdentity) {
+        self.identity = identity;
     }
 
-    pub fn toggle_color(&mut self, color: MtgColor) {
-        if self.colors.contains(&color) {
-            self.remove_color(&color);
+    pub const fn add_color(&mut self, color: MtgColor) {
+        self.identity.add_color(color);
+    }
+
+    pub const fn remove_color(&mut self, color: MtgColor) {
+        self.identity.remove_color(color);
+    }
+
+    pub const fn toggle_color(&mut self, color: MtgColor) {
+        if self.identity.has_color(color) {
+            self.identity.remove_color(color);
         } else {
-            self.colors.push(color);
+            self.identity.add_color(color);
         }
-    }
-
-    #[must_use]
-    pub fn has_color(&self, color: &MtgColor) -> bool {
-        self.colors.contains(color)
-    }
-
-    #[must_use]
-    pub const fn colors(&self) -> &Vec<MtgColor> {
-        &self.colors
     }
 }
 

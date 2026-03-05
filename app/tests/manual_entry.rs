@@ -1,6 +1,6 @@
 use anyhow::anyhow;
 use app::{App, view::player::ViewPlayerMessage};
-use edh_tourn::{Tournament, player::info::MtgColor};
+use edh_tourn::{Tournament, player::color::MtgColor};
 use iced::widget::text_editor::{Action, Edit};
 use itertools::chain;
 
@@ -32,9 +32,9 @@ fn test_input_players(app: &mut App, tournament: &Tournament) -> anyhow::Result<
                 ViewPlayerMessage::SetMoxfieldId(info.moxfield_id().cloned().unwrap_or_default(),),
                 ViewPlayerMessage::ToggleColor(MtgColor::Red)
             ],
-            info.colors()
-                .iter()
-                .map(|color| ViewPlayerMessage::ToggleColor(*color)),
+            info.color_identity()
+                .to_colors()
+                .map(ViewPlayerMessage::ToggleColor),
             [ViewPlayerMessage::SaveAndClose]
         ))?;
 
@@ -56,9 +56,9 @@ fn test_input_players(app: &mut App, tournament: &Tournament) -> anyhow::Result<
                 ViewPlayerMessage::SetMoxfieldId(player.moxfield_id().cloned().unwrap_or_default(),)
             ],
             player
-                .colors()
-                .iter()
-                .map(|color| ViewPlayerMessage::ToggleColor(*color)),
+                .color_identity()
+                .to_colors()
+                .map(ViewPlayerMessage::ToggleColor),
             [ViewPlayerMessage::SaveAndClose]
         ))?;
 

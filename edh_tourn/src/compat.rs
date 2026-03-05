@@ -20,14 +20,14 @@ mod tests {
 
     #[test]
     fn test_v1_compat() -> anyhow::Result<()> {
-        let string = include_str!("../../tests/v1-game.ron");
+        let string = include_str!("../../tests/compat-v1.ron");
         let _ = Tournament::from_compat(string)?;
         Ok(())
     }
 
     #[test]
     fn test_v1_compat_bytes() -> anyhow::Result<()> {
-        let bytes = include_bytes!("../../tests/v1-game.ron");
+        let bytes = include_bytes!("../../tests/compat-v1.ron");
         let _ = Tournament::from_compat_bytes(bytes)?;
         Ok(())
     }

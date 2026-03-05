@@ -169,7 +169,7 @@ mod tests {
 
     #[tokio::test]
     async fn loads_v1_compat() {
-        let compat_str = include_bytes!("../../../tests/v1-game.ron");
+        let compat_str = include_bytes!("../../../tests/compat-v1.ron");
         let mut file = NamedTempFile::with_suffix(".ron").unwrap();
         file.write_all(compat_str).unwrap();
         load_file(file.path().to_path_buf()).await.unwrap();

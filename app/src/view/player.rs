@@ -1,9 +1,7 @@
 use std::borrow::ToOwned;
 
 use edh_tourn::{
-    Tournament,
-    error::TournamentError,
-    player::info::{MtgColor, PlayerInfo},
+    Tournament, error::TournamentError, player::color::MtgColor, player::info::PlayerInfo,
 };
 use iced::{
     Element, Length,
@@ -180,7 +178,7 @@ impl View<ViewPlayerScene> for App {
                 .on_action(|action| ViewPlayerMessage::EditDescription(action).into());
 
             let deck_colors = row(MtgColor::COLORS.map(|color| {
-                let style = if scene.info.has_color(&color) {
+                let style = if scene.info.color_identity().has_color(color) {
                     button::primary
                 } else {
                     button::secondary

@@ -7,6 +7,7 @@ use crate::{
 };
 
 pub mod info;
+pub mod color;
 pub mod stats;
 
 #[derive(Clone, Copy, PartialEq, Debug)]
