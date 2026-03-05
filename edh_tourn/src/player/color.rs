@@ -16,7 +16,7 @@ use itertools::Itertools;
     Copy,
 )]
 #[serde(transparent)]
-pub struct ColorIdentity(pub(crate) u32);
+pub struct ColorIdentity(pub(crate) u8);
 
 impl ColorIdentity {
     #[must_use]
@@ -96,7 +96,7 @@ impl FromIterator<MtgColor> for ColorIdentity {
             iter.into_iter()
                 .unique()
                 .map(MtgColor::to_identity_number)
-                .sum::<u32>(),
+                .sum::<u8>(),
         )
     }
 }
@@ -131,7 +131,7 @@ impl MtgColor {
         }
     }
 
-    const fn to_identity_number(self) -> u32 {
+    const fn to_identity_number(self) -> u8 {
         match self {
             Self::White => 1,
             Self::Blue => 1 << 1,
