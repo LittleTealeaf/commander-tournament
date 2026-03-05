@@ -15,6 +15,7 @@ use itertools::Itertools;
     Hash,
     Copy,
 )]
+#[serde(transparent)]
 pub struct ColorIdentity(pub(crate) u32);
 
 impl ColorIdentity {
