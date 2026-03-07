@@ -9,3 +9,8 @@ pub trait HandleMessage<T> {
 pub trait View<S> {
     fn view<'a>(&'a self, scene: &'a S) -> Element<'a, Message>;
 }
+
+pub trait PushMaybe<'a, M, T, R> {
+    #[must_use]
+    fn push_maybe(self, item: Option<impl Into<Element<'a, M, T, R>>>) -> Self;
+}

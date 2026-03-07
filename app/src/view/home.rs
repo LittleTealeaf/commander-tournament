@@ -1,4 +1,4 @@
-use iced::widget::{button, column, row, space};
+use iced::widget::{button, column, container, row, rule, space};
 
 use crate::{
     App,
@@ -81,8 +81,9 @@ impl View<HomeState> for App {
                 button("New").on_press(FileMessage::New.into()),
             ],
             row![
-                self.view_home_leaderboard(),
-                self.view(&self.home.matchup_view)
+                container(self.view_home_leaderboard()).padding(10),
+                rule::vertical(2),
+                column![self.view(&self.home.matchup_view), rule::horizontal(2)].padding(10)
             ]
         ]
         .into()

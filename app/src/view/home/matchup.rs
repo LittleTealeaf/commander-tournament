@@ -4,10 +4,11 @@ use edh_tourn::{
     game::{match_player::MatchPlayer, matchup::Matchup},
 };
 use iced::{
-    Task,
-    widget::{column, container, pick_list},
+    Alignment, Length, Task,
+    alignment::Vertical,
+    widget::{button, column, container, pick_list, row, space, text},
 };
-use itertools::Itertools;
+use itertools::{Itertools, chain};
 
 use crate::{
     App,
@@ -85,12 +86,12 @@ pub enum MatchViewPlayer {
 impl MatchViewPlayer {
     const PLAYERS: [Self; 4] = [Self::PlayerA, Self::PlayerB, Self::PlayerC, Self::PlayerD];
 
-    const fn number(self) -> u8 {
+    const fn number(self) -> usize {
         match self {
-            Self::PlayerA => 1,
-            Self::PlayerB => 2,
-            Self::PlayerC => 3,
-            Self::PlayerD => 4,
+            Self::PlayerA => 0,
+            Self::PlayerB => 1,
+            Self::PlayerC => 2,
+            Self::PlayerD => 3,
         }
     }
 }
@@ -155,12 +156,71 @@ impl View<MatchupView> for App {
             let id = scene.get_player(position).copied();
             let entry = id.and_then(|id| self.tournament.get_registered_player(id).ok());
 
-            let selector = pick_list(players.clone(), entry, move |option| {
-                MatchupMessage::SetPlayer(position, Some(option.id())).into()
+            let text_stats = entry.map(|p| {
+                let stats = p.stats();
+                let str_wr = stats.wr().map_or_else(
+                    || "--% WR".to_owned(),
+                    |wr| format!("{}% WR", (wr * 100.0).round()),
+                );
+                text(format!("{} Elo, {str_wr}", stats.elo().round()))
             });
 
-            container(selector).into()
+            let text_expected = scene.matchup.as_ref().and_then(|matchup| {
+                let player = matchup.players().get(position.number())?;
+
+                Some(text(format!(
+                    "Expected: {}% (+{}/-{})",
+                    (player.expected() * 100f64).round(),
+                    player.elo_win().round(),
+                    player.elo_loss().round()
+                )))
+            });
+
+            let player_info = row![
+                text_stats,
+                text(""),
+                space().width(Length::Fill),
+                text_expected
+            ];
+
+            let selector = pick_list(players.clone(), entry, move |option| {
+                MatchupMessage::SetPlayer(position, Some(option.id())).into()
+            })
+            .width(Length::Fill);
+
+            container(column![selector, player_info]).into()
         });
-        column(match_players).into()
+
+        let players = column(match_players).spacing(15);
+
+        let title = text("Record Game")
+            .size(20)
+            .align_x(Alignment::Center)
+            .width(Length::Fill);
+
+        let current_players = MatchViewPlayer::PLAYERS
+            .iter()
+            .filter_map(|player| scene.get_player(*player).copied())
+            .filter_map(|id| self.tournament().get_registered_player(id).ok())
+            .collect_vec();
+        let winner = scene
+            .winner
+            .and_then(|id| self.tournament().get_registered_player(id).ok());
+
+        let winner = row![
+            text("Winner: ").size(17),
+            pick_list(current_players, winner, |picked| {
+                MatchupMessage::SetWinner(Some(picked.id())).into()
+            })
+            .width(Length::Fill),
+            button("Submit").on_press_maybe(
+                (scene.matchup.is_some() && scene.winner.is_some())
+                    .then_some(MatchupMessage::SubmitGame.into())
+            )
+        ]
+        .spacing(10)
+        .align_y(Vertical::Center);
+
+        container(column![title, players, winner].spacing(10)).into()
     }
 }
