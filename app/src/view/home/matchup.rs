@@ -109,6 +109,7 @@ impl MatchViewPlayer {
 pub enum MatchupMessage {
     SetPlayer(MatchViewPlayer, Option<u32>),
     SetWinner(Option<u32>),
+    AddPlayer(u32),
     SubmitGame,
     Clear,
 }
@@ -131,6 +132,11 @@ impl HandleMessage<MatchupMessage> for App {
             }
             MatchupMessage::SetWinner(value) => {
                 view.winner = value;
+                Ok(Task::none())
+            }
+            MatchupMessage::AddPlayer(player) => {
+                view.add_player(player);
+                view.update_matchup(&self.tournament)?;
                 Ok(Task::none())
             }
             MatchupMessage::SubmitGame => {

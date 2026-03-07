@@ -83,7 +83,12 @@ impl View<HomeState> for App {
             row![
                 container(self.view_home_leaderboard()).padding(10),
                 rule::vertical(2),
-                column![self.view(&self.home.matchup_view), rule::horizontal(2)].padding(10)
+                column![
+                    self.view(&self.home.matchup_view),
+                    rule::horizontal(2),
+                    self.view(&self.home.matchmaker)
+                ]
+                .padding(10)
             ]
         ]
         .into()
