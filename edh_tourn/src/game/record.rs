@@ -18,7 +18,7 @@ impl GameRecord {
             .map(MatchPlayer::id)
             .any(|i| i == winner);
         if !winner_in_matchup {
-            return Err(TournamentError::WinnerNotInMatch(winner));
+            return Err(TournamentError::PlayerNotInMatch(winner));
         }
 
         Ok(Self { matchup, winner })
@@ -35,6 +35,13 @@ impl GameRecord {
     #[must_use]
     pub const fn matchup(&self) -> &Matchup {
         &self.matchup
+    }
+
+    pub fn get_player(&self, id: u32) -> Result<&MatchPlayer, TournamentError> {
+        self.players()
+            .iter()
+            .find(|player| player.id() == id)
+            .ok_or(TournamentError::PlayerNotInMatch(id))
     }
 
     #[must_use]

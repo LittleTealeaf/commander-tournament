@@ -127,11 +127,11 @@ mod tests {
         let mut config = tourn.config.clone();
         config.starting_elo += 1500.0;
         tourn.set_config(config).unwrap();
-        let starting_elo = tourn.default_stats().elo;
+        let starting_elo = tourn.default_stats().elo();
 
         let serialized = ron::to_string(&tourn).unwrap();
         let de_tourn: Tournament = ron::from_str(&serialized).unwrap();
-        assert!((starting_elo - de_tourn.default_stats().elo) <= 1e-9);
+        assert!((starting_elo - de_tourn.default_stats().elo()) <= 1e-9);
     }
 
     #[test]

@@ -1,16 +1,24 @@
 use std::borrow::ToOwned;
 
 use edh_tourn::{
-    Tournament, error::TournamentError, player::color::MtgColor, player::info::PlayerInfo,
+    Tournament,
+    error::TournamentError,
+    game::record::GameRecord,
+    player::{color::MtgColor, info::PlayerInfo},
 };
 use iced::{
     Element, Length,
     alignment::{Horizontal, Vertical},
-    widget::{button, column, container, row, space, text, text_editor, text_input},
+    font,
+    widget::{
+        button, column, container, row, scrollable, space, table, text, text_editor, text_input,
+    },
 };
+use itertools::Itertools;
 
 use crate::{
     App,
+    fonts::default_font,
     logic::Message,
     traits::{HandleMessage, View},
     view::{Scene, confirm::ConfirmPrompt},
@@ -209,8 +217,11 @@ impl View<ViewPlayerScene> for App {
             let stats = self.tournament.get_player_or_default_stats(id);
 
             let view_stats = row![
-                column![text(format!("{} Elo", stats.elo().round())).size(25),]
-                    .align_x(Horizontal::Left),
+                column![
+                    text(format!("{} Elo", stats.elo().round())).size(25),
+                    text(format!("{} Peak", stats.elo_peak().round())).size(15)
+                ]
+                .align_x(Horizontal::Left),
                 space().width(Length::Fill),
                 column![
                     text(format!("Games Played: {}", stats.games())),
@@ -227,9 +238,62 @@ impl View<ViewPlayerScene> for App {
             .align_y(Vertical::Center)
             .spacing(20);
 
-            let games = self.tournament.get_player_games(id).into_iter().flatten();
+            let games = self
+                .tournament
+                .get_player_games(id)
+                .into_iter()
+                .flatten()
+                .collect_vec()
+                .into_iter()
+                .rev();
 
-            column![view_stats].spacing(30)
+            let view_games = scrollable(
+                table(
+                    [
+                        table::column("Competitors", |game: &GameRecord| {
+                            column(game.players().iter().map(|player| {
+                                let elo = player.stats().elo().round();
+                                text(self.tournament.get_player_name(&player.id()).map_or_else(
+                                    || format!("({elo}) {}", player.id()),
+                                    |name| format!("({elo}) {name}"),
+                                ))
+                                .font_maybe((player.id() == game.winner()).then_some(font::Font {
+                                    weight: font::Weight::Bold,
+                                    ..default_font()
+                                }))
+                                .into()
+                            }))
+                        }),
+                        table::column("Elo", |game: &GameRecord| {
+                            let elo_change = game.get_player_elo_change(id).unwrap_or_default();
+                            let elo_change_str = if elo_change >= 0f64 {
+                                format!("+{}", elo_change.round())
+                            } else {
+                                format!("{}", elo_change.round())
+                            };
+
+                            let old_elo = game.get_player(id).map_or_else(
+                                |_| self.tournament().default_stats().elo(),
+                                |player| player.stats().elo(),
+                            );
+
+                            let new_elo = (old_elo + elo_change).round();
+
+                            column![
+                                text(format!("{new_elo}")).size(20),
+                                text(elo_change_str).size(15)
+                            ]
+                            .spacing(5)
+                            .padding(5)
+                        }),
+                    ],
+                    games,
+                )
+                .width(Length::Fill),
+            )
+            .width(Length::Fill);
+
+            column![view_stats, view_games].spacing(30)
         });
 
         let content = match deck_progress {

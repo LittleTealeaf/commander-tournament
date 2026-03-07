@@ -1,11 +1,11 @@
-
 use crate::Tournament;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
 pub struct PlayerStats {
-    pub(crate) elo: f64,
-    pub(crate) games: u32,
-    pub(crate) wins: u32,
+    elo: f64,
+    games: u32,
+    wins: u32,
+    elo_peak: f64,
 }
 
 impl Default for PlayerStats {
@@ -14,6 +14,7 @@ impl Default for PlayerStats {
             elo: 0.0,
             games: 0,
             wins: 0,
+            elo_peak: 0.0,
         }
     }
 }
@@ -25,6 +26,7 @@ impl PlayerStats {
             elo,
             games: 0,
             wins: 0,
+            elo_peak: elo,
         }
     }
 
@@ -46,6 +48,28 @@ impl PlayerStats {
     #[must_use]
     pub fn wr(&self) -> Option<f64> {
         (self.games > 0).then(|| f64::from(self.wins) / f64::from(self.games))
+    }
+
+    #[must_use]
+    pub const fn elo_peak(&self) -> f64 {
+        self.elo_peak
+    }
+
+    pub fn add_win(&mut self, elo_change: f64) {
+        self.games += 1;
+        self.wins += 1;
+        self.elo += elo_change;
+        if self.elo > self.elo_peak {
+            self.elo_peak = self.elo;
+        }
+    }
+
+    pub fn add_loss(&mut self, elo_change: f64) {
+        self.games += 1;
+        self.elo -= elo_change;
+        if self.elo < 1.0f64 {
+            self.elo = 1.0f64;
+        }
     }
 }
 

@@ -8,6 +8,7 @@ pub mod logic;
 pub mod tests;
 pub mod traits;
 pub mod view;
+pub mod fonts;
 
 use crate::{
     logic::Message,
@@ -25,6 +26,12 @@ pub struct App {
 }
 
 impl App {
+
+    #[must_use]
+    pub fn boot() -> Self {
+        Self::default()
+    }
+
     pub fn updater(&mut self, message: Message) -> Task<Message> {
         match self.update(message) {
             Ok(task) => task,

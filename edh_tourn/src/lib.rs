@@ -84,11 +84,7 @@ impl Tournament {
 
     pub fn reload(&mut self) -> Result<(), TournamentError> {
         let version = self.snapshot;
-        self.default_stats = PlayerStats {
-            elo: self.config.starting_elo,
-            games: 0,
-            wins: 0,
-        };
+        self.default_stats = PlayerStats::new(self.config.starting_elo);
         // Update player_names to the player info
         self.player_names = self
             .players

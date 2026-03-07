@@ -34,14 +34,11 @@ impl Tournament {
                 .entry(player.id())
                 .or_insert_with(|| self.default_stats.clone());
 
-            stats.games += 1;
-
             if !winner_tracked && player.id() == record.winner() {
-                stats.wins += 1;
-                stats.elo += player.elo_win();
+                stats.add_win(*player.elo_win());
                 winner_tracked = true;
             } else {
-                stats.elo -= player.elo_loss();
+                stats.add_loss(*player.elo_loss());
             }
         }
 

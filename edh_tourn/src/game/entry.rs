@@ -14,7 +14,7 @@ pub struct GameEntry {
 impl GameEntry {
     pub fn new(players: [u32; 4], winner: u32) -> Result<Self, TournamentError> {
         if !players.contains(&winner) {
-            return Err(TournamentError::WinnerNotInMatch(winner));
+            return Err(TournamentError::PlayerNotInMatch(winner));
         }
         Ok(Self::new_unchecked(players, winner))
     }
