@@ -37,10 +37,10 @@ jobs:
     - name: Run rust-clippy
       run: cargo clippy --all --no-deps --all-features --message-format=json | sort | uniq | clippy-sarif | tee rust-clippy-results.sarif | sarif-fmt
       continue-on-error: true
+    - name: Run tests
+      run: cargo test --all
     - name: Upload analysis results to GitHub
       uses: github/codeql-action/upload-sarif@v4
       with:
         sarif_file: rust-clippy-results.sarif
         wait-for-processing: true
-    - name: Run tests
-      run: cargo test --all
