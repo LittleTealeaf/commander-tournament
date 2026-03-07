@@ -6,7 +6,7 @@ use edh_tourn::{
 use iced::{
     Alignment, Length, Task,
     alignment::Vertical,
-    widget::{button, column, container, pick_list, row, space, text},
+    widget::{button, column, table, container, pick_list, row, space, text},
 };
 use itertools::Itertools;
 
