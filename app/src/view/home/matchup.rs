@@ -47,6 +47,15 @@ impl MatchupView {
         }
     }
 
+    pub fn add_player(&mut self, id: u32) {
+        for player in MatchViewPlayer::PLAYERS {
+            if self.get_player(player).is_none() {
+                self.set_player(player, Some(id));
+                return;
+            }
+        }
+    }
+
     fn get_matchup_player(&self, position: MatchViewPlayer) -> Option<&MatchPlayer> {
         let [player_a, player_b, player_c, player_d] = self.matchup.as_ref()?.players();
         Some(match position {
@@ -188,7 +197,18 @@ impl View<MatchupView> for App {
             })
             .width(Length::Fill);
 
-            container(column![selector, player_info]).into()
+            container(column![
+                row![
+                    selector,
+                    button("").on_press_maybe(
+                        entry
+                            .and_then(|entry| entry.info().moxfield_goldfish_link())
+                            .map(Message::OpenLink)
+                    )
+                ],
+                player_info
+            ])
+            .into()
         });
 
         let players = column(match_players).spacing(15);
