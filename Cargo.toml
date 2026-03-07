@@ -1,16 +1,15 @@
-[package]
-name = "commander-tournament"
-version = "0.1.0"
-edition = "2024"
 
-[dependencies]
-anyhow = "1.0.100"
-iced = "0.14.0"
-itertools = "0.14.0"
-ron = "0.12.0"
-serde = {version="1.0.228", features=["derive"]}
-serde_json = "1.0.149"
-thiserror = "2.0.18"
+[workspace]
+members = ["app", "edh_tourn"]
+default-members = ["app"]
+resolver = "2"
+
+[workspace.package]
+authors = ["LittleTealeaf"]
+repository = "https://www.github.com/LittleTealeaf/commander-tournament"
+
+[workspace.lints.rust]
+dead_code = "allow"
 
 [workspace.lints.clippy]
 pedantic = {level = "warn", priority = -1}
@@ -36,7 +35,6 @@ mod_module_files = "warn"
 std_instead_of_core = "warn"
 str_to_string = "warn"
 string_lit_chars_any = "warn"
-string_to_string = "warn"
 unnecessary_self_imports = "warn"
 unneeded_field_pattern = "warn"
 unwrap_in_result = "warn"
@@ -46,3 +44,5 @@ renamed_function_params = "warn"
 too_many_lines = { level = "allow", priority = 1 }
 module_name_repetitions = { level = "allow", priority = 1 }
 needless_collect = { level = "allow", priority = 1 }
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
