@@ -31,5 +31,4 @@ mod tests {
         let _ = Tournament::from_compat_bytes(bytes)?;
         Ok(())
     }
-
 }

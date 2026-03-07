@@ -1,7 +1,7 @@
+pub mod config_matchmaker;
 pub mod confirm;
 pub mod home;
 pub mod player;
-pub mod config_matchmaker;
 
 use iced::{
     Alignment, Element, Length,

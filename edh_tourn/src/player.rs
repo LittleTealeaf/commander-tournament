@@ -6,8 +6,8 @@ use crate::{
     player::{info::PlayerInfo, stats::PlayerStats},
 };
 
-pub mod info;
 pub mod color;
+pub mod info;
 pub mod stats;
 
 #[derive(Clone, Copy, PartialEq, Debug)]
