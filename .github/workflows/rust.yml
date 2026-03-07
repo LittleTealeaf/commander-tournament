@@ -33,8 +33,6 @@ jobs:
       uses: baptiste0928/cargo-install@v3
       with:
         crate: sarif-fmt
-    - name: Check Formatting
-      uses: actions-rust-lang/rustfmt@v1
     - name: Run rust-clippy
       run: cargo clippy --all --no-deps --all-features --message-format=json | sort | uniq | clippy-sarif | tee rust-clippy-results.sarif | sarif-fmt
       continue-on-error: true
@@ -43,6 +41,8 @@ jobs:
       with:
         sarif_file: rust-clippy-results.sarif
         wait-for-processing: true
+    - name: Check Formatting
+      uses: actions-rust-lang/rustfmt@v1
 
   build:
     name: Build
