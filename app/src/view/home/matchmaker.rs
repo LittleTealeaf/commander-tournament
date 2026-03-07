@@ -1,6 +1,6 @@
 use core::fmt::Display;
 
-use edh_tourn::{Tournament, player::RegisteredPlayer};
+use edh_tourn::Tournament;
 use iced::{
     Length, Task,
     alignment::Horizontal,

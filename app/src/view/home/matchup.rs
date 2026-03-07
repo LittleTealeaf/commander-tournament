@@ -8,7 +8,7 @@ use iced::{
     alignment::Vertical,
     widget::{button, column, container, pick_list, row, space, text},
 };
-use itertools::{Itertools, chain};
+use itertools::Itertools;
 
 use crate::{
     App,
