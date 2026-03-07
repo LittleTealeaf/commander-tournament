@@ -1,186 +1,162 @@
 (
     players: {
-        "The First Sliver": (
-            elo: 1520.5188544385535,
-            games: 2,
-            wins: 1,
-        ),
-        "Aerith Gainsborough": (
-            elo: 1423.5325829615595,
-            games: 45,
-            wins: 9,
-        ),
-        "Neerdiv, Devious Diver": (
-            elo: 1463.7456554843973,
-            games: 19,
+        "Fae Dominion (Precon)": (
+            elo: 1398.7188205336893,
+            games: 29,
             wins: 3,
         ),
         "Aloy, Machine Master": (
-            elo: 1470.1117795464943,
+            elo: 1477.4644405560143,
             games: 57,
             wins: 15,
         ),
-        "Veryan, Voice of Duality": (
-            elo: 1485.0754167962994,
-            games: 37,
-            wins: 6,
-        ),
-        "The Devil Strahd": (
-            elo: 1529.836585698185,
-            games: 30,
-            wins: 9,
-        ),
-        "Yuna, Grand Summoner": (
-            elo: 1531.2999380730582,
-            games: 6,
-            wins: 2,
-        ),
-        "Vampiric Bloodline (Precon)": (
-            elo: 1465.41857057622,
-            games: 10,
-            wins: 0,
-        ),
-        "Bruna, Light of Alabaster": (
-            elo: 1605.4735775395886,
-            games: 26,
-            wins: 11,
-        ),
-        "Anim Pakal, Thousandth Moon": (
-            elo: 1498.8332750691754,
-            games: 51,
-            wins: 17,
-        ),
-        "Jeskai Striker (Precon)": (
-            elo: 1430.7365789313212,
-            games: 29,
-            wins: 2,
-        ),
         "Narset, Enlightened Master": (
-            elo: 1538.8011487506503,
+            elo: 1547.4828564607215,
             games: 53,
             wins: 15,
         ),
-        "Fae Dominion (Precon)": (
-            elo: 1395.8141393533006,
-            games: 28,
-            wins: 3,
-        ),
-        "Pantlaza, Sun-Favored": (
-            elo: 1615.8817862215672,
-            games: 61,
-            wins: 18,
-        ),
-        "Minwu, White Mage": (
-            elo: 1494.9960359082622,
-            games: 18,
-            wins: 6,
-        ),
-        "Emmara, Soul of the Accord": (
-            elo: 1449.6004546728918,
-            games: 51,
-            wins: 13,
-        ),
-        "Aurelia, the Warleader": (
-            elo: 1686.3850259493493,
-            games: 63,
-            wins: 22,
-        ),
-        "Balan, Wandering Knight": (
-            elo: 1501.0213765156598,
-            games: 50,
-            wins: 15,
-        ),
         "Rocksanne, Starfall Savant": (
-            elo: 1632.9959686252355,
+            elo: 1635.0942559951138,
             games: 50,
             wins: 19,
         ),
-        "Kemba, Kha Regent": (
-            elo: 1445.875657355948,
-            games: 47,
-            wins: 8,
+        "The First Sliver": (
+            elo: 1513.545240580444,
+            games: 7,
+            wins: 2,
         ),
-        "Explorers of the Deep (Precon)": (
-            elo: 1467.5454598954384,
-            games: 42,
-            wins: 8,
+        "Anim Pakal, Thousandth Moon": (
+            elo: 1467.4823809238358,
+            games: 52,
+            wins: 17,
         ),
-        "Tifa Lockhart": (
-            elo: 1645.3221958437855,
-            games: 54,
-            wins: 20,
-        ),
-        "Blight Curse (Precon)": (
-            elo: 1429.8803854466469,
-            games: 15,
-            wins: 1,
-        ),
-        "Lae\'zel, Master Chef": (
-            elo: 1367.0177866885865,
-            games: 36,
-            wins: 8,
-        ),
-        "Veloci-Ramp-Tor (Precon)": (
-            elo: 1497.1245266267135,
+        "The Devil Strahd": (
+            elo: 1554.3018083272186,
             games: 31,
+            wins: 10,
+        ),
+        "Pantlaza, Sun-Favored": (
+            elo: 1619.7180257414643,
+            games: 62,
+            wins: 18,
+        ),
+        "Aerith Gainsborough": (
+            elo: 1438.0604717684914,
+            games: 45,
+            wins: 9,
+        ),
+        "Minwu, White Mage": (
+            elo: 1499.554508775844,
+            games: 20,
+            wins: 7,
+        ),
+        "Yuna, Grand Summoner": (
+            elo: 1554.4775619977443,
+            games: 10,
             wins: 4,
         ),
+        "Jeskai Striker (Precon)": (
+            elo: 1417.7247085408142,
+            games: 30,
+            wins: 2,
+        ),
+        "Bre of Clan Stoutarm": (
+            elo: 1680.5664578960304,
+            games: 56,
+            wins: 17,
+        ),
         "Massacre Girl": (
-            elo: 1416.4142140715355,
+            elo: 1416.3734583338075,
             games: 51,
             wins: 11,
         ),
-        "Aphelia, Viper Whisperer": (
-            elo: 1360.7440014306708,
-            games: 26,
-            wins: 2,
+        "Tifa Lockhart": (
+            elo: 1620.0528521574042,
+            games: 56,
+            wins: 20,
         ),
-        "Lazav, the Multifarious": (
-            elo: 1417.3551230206779,
-            games: 33,
+        "Balan, Wandering Knight": (
+            elo: 1490.256779447195,
+            games: 50,
+            wins: 15,
+        ),
+        "Lae\'zel, Master Chef": (
+            elo: 1389.1861677610195,
+            games: 37,
+            wins: 9,
+        ),
+        "Vampiric Bloodline (Precon)": (
+            elo: 1452.3798659981298,
+            games: 10,
+            wins: 0,
+        ),
+        "Blight Curse (Precon)": (
+            elo: 1423.734306099147,
+            games: 16,
+            wins: 1,
+        ),
+        "Veloci-Ramp-Tor (Precon)": (
+            elo: 1479.8046425017928,
+            games: 31,
             wins: 4,
         ),
         "Hakbal of the Surging Soul": (
-            elo: 1517.626876478452,
-            games: 33,
+            elo: 1505.3411536076298,
+            games: 36,
             wins: 8,
         ),
-        "Bre of Clan Stoutarm": (
-            elo: 1695.015022029778,
-            games: 54,
-            wins: 17,
+        "Neerdiv, Devious Diver": (
+            elo: 1469.2672083066636,
+            games: 19,
+            wins: 3,
+        ),
+        "Explorers of the Deep (Precon)": (
+            elo: 1480.3958464622156,
+            games: 42,
+            wins: 8,
+        ),
+        "Veryan, Voice of Duality": (
+            elo: 1484.3730196380304,
+            games: 37,
+            wins: 6,
+        ),
+        "Kemba, Kha Regent": (
+            elo: 1455.222624987246,
+            games: 47,
+            wins: 8,
+        ),
+        "Aphelia, Viper Whisperer": (
+            elo: 1380.783908496693,
+            games: 26,
+            wins: 2,
+        ),
+        "Aurelia, the Warleader": (
+            elo: 1665.4312383580864,
+            games: 65,
+            wins: 22,
+        ),
+        "Lazav, the Multifarious": (
+            elo: 1413.1324295778752,
+            games: 33,
+            wins: 4,
+        ),
+        "Bruna, Light of Alabaster": (
+            elo: 1610.6843565323254,
+            games: 31,
+            wins: 13,
+        ),
+        "Emmara, Soul of the Accord": (
+            elo: 1459.3886036373115,
+            games: 51,
+            wins: 13,
         ),
     },
     player_details: {
-        "Hakbal of the Surging Soul": (
+        "Bre of Clan Stoutarm": (
             description: None,
-            moxfield_link: Some("https://moxfield.com/decks/a33o4PyMske_Igbm13UNsw/goldfish"),
+            moxfield_link: None,
             colors: [
-                Blue,
-                Black,
-            ],
-        ),
-        "Anim Pakal, Thousandth Moon": (
-            description: None,
-            moxfield_link: Some("https://moxfield.com/decks/HzZh254q_ka5vO_EY8GxHA/goldfish"),
-            colors: [
-                White,
                 Red,
-            ],
-        ),
-        "Blight Curse (Precon)": (
-            description: None,
-            moxfield_link: Some("https://moxfield.com/decks/lFr601x3kEiyVk9KjeQfMg/goldfish"),
-            colors: [
-                Black,
-                Red,
-                Green,
-            ],
-        ),
-        "Balan, Wandering Knight": (
-            description: None,
-            moxfield_link: Some("https://moxfield.com/decks/-6AhFOKbMkKDzXQAULhzGA/goldfish"),
-            colors: [
                 White,
             ],
         ),
@@ -192,6 +168,43 @@
                 Red,
             ],
         ),
+        "Yuna, Grand Summoner": (
+            description: None,
+            moxfield_link: Some("https://moxfield.com/decks/nVrSqguQK0SYbeAe6zLcPQ"),
+            colors: [
+                White,
+                Blue,
+                Green,
+            ],
+        ),
+        "Lazav, the Multifarious": (
+            description: None,
+            moxfield_link: None,
+            colors: [],
+        ),
+        "Anim Pakal, Thousandth Moon": (
+            description: None,
+            moxfield_link: Some("https://moxfield.com/decks/HzZh254q_ka5vO_EY8GxHA/goldfish"),
+            colors: [
+                White,
+                Red,
+            ],
+        ),
+        "Hakbal of the Surging Soul": (
+            description: None,
+            moxfield_link: Some("https://moxfield.com/decks/a33o4PyMske_Igbm13UNsw/goldfish"),
+            colors: [
+                Blue,
+                Black,
+            ],
+        ),
+        "Kemba, Kha Regent": (
+            description: None,
+            moxfield_link: Some("https://moxfield.com/decks/FNCLerboU0S8vGmKnDsatA/goldfish"),
+            colors: [
+                White,
+            ],
+        ),
         "Bruna, Light of Alabaster": (
             description: None,
             moxfield_link: Some("https://moxfield.com/decks/dT8630I5uUKoiTxNnCHAIg/goldfish"),
@@ -200,9 +213,26 @@
                 Blue,
             ],
         ),
-        "Kemba, Kha Regent": (
+        "Emmara, Soul of the Accord": (
             description: None,
-            moxfield_link: Some("https://moxfield.com/decks/FNCLerboU0S8vGmKnDsatA/goldfish"),
+            moxfield_link: Some("https://moxfield.com/decks/HJxWokLRaUeZ8I32rpPcEA/goldfish"),
+            colors: [
+                White,
+                Green,
+            ],
+        ),
+        "Blight Curse (Precon)": (
+            description: None,
+            moxfield_link: Some("https://moxfield.com/decks/lFr601x3kEiyVk9KjeQfMg/goldfish"),
+            colors: [
+                Black,
+                Red,
+                Green,
+            ],
+        ),
+        "Minwu, White Mage": (
+            description: None,
+            moxfield_link: Some("https://moxfield.com/decks/aYMM2PN-p06DcEN-SCOAxA"),
             colors: [
                 White,
             ],
@@ -215,27 +245,11 @@
                 Red,
             ],
         ),
-        "Emmara, Soul of the Accord": (
+        "Balan, Wandering Knight": (
             description: None,
-            moxfield_link: Some("https://moxfield.com/decks/HJxWokLRaUeZ8I32rpPcEA/goldfish"),
+            moxfield_link: Some("https://moxfield.com/decks/-6AhFOKbMkKDzXQAULhzGA/goldfish"),
             colors: [
                 White,
-                Green,
-            ],
-        ),
-        "Rocksanne, Starfall Savant": (
-            description: None,
-            moxfield_link: Some("https://moxfield.com/decks/7XHINMXT_EOtcbJ14-B7uQ/goldfish"),
-            colors: [
-                Green,
-                Red,
-            ],
-        ),
-        "Tifa Lockhart": (
-            description: None,
-            moxfield_link: Some("https://moxfield.com/decks/Y5NIIO3nbUKonydBwkvEaA/goldfish"),
-            colors: [
-                Green,
             ],
         ),
         "Neerdiv, Devious Diver": (
@@ -245,36 +259,12 @@
                 Blue,
             ],
         ),
-        "Lazav, the Multifarious": (
+        "Aurelia, the Warleader": (
             description: None,
-            moxfield_link: None,
-            colors: [],
-        ),
-        "The First Sliver": (
-            description: None,
-            moxfield_link: Some("https://moxfield.com/decks/J35yRjMBc0apKglKvnLXdA/goldfish"),
+            moxfield_link: Some("https://moxfield.com/decks/BtCcQ8eWg0uT8n4fFPK3Xg"),
             colors: [
-                White,
-                Blue,
-                Black,
-                Green,
                 Red,
-            ],
-        ),
-        "Minwu, White Mage": (
-            description: None,
-            moxfield_link: Some("https://moxfield.com/decks/aYMM2PN-p06DcEN-SCOAxA"),
-            colors: [
                 White,
-            ],
-        ),
-        "Yuna, Grand Summoner": (
-            description: None,
-            moxfield_link: Some("https://moxfield.com/decks/nVrSqguQK0SYbeAe6zLcPQ"),
-            colors: [
-                White,
-                Blue,
-                Green,
             ],
         ),
         "Pantlaza, Sun-Favored": (
@@ -286,20 +276,30 @@
                 Green,
             ],
         ),
-        "Aurelia, the Warleader": (
+        "Tifa Lockhart": (
             description: None,
-            moxfield_link: Some("https://moxfield.com/decks/BtCcQ8eWg0uT8n4fFPK3Xg"),
+            moxfield_link: Some("https://moxfield.com/decks/Y5NIIO3nbUKonydBwkvEaA/goldfish"),
             colors: [
-                Red,
-                White,
+                Green,
             ],
         ),
-        "Bre of Clan Stoutarm": (
+        "Rocksanne, Starfall Savant": (
             description: None,
-            moxfield_link: None,
+            moxfield_link: Some("https://moxfield.com/decks/7XHINMXT_EOtcbJ14-B7uQ/goldfish"),
             colors: [
+                Green,
                 Red,
+            ],
+        ),
+        "The First Sliver": (
+            description: None,
+            moxfield_link: Some("https://moxfield.com/decks/J35yRjMBc0apKglKvnLXdA/goldfish"),
+            colors: [
                 White,
+                Blue,
+                Black,
+                Green,
+                Red,
             ],
         ),
     },
@@ -1412,14 +1412,46 @@
             players: ("Balan, Wandering Knight", "Anim Pakal, Thousandth Moon", "Narset, Enlightened Master", "Minwu, White Mage"),
             winner: "Narset, Enlightened Master",
         ),
+        (
+            players: ("Bre of Clan Stoutarm", "Yuna, Grand Summoner", "The First Sliver", "Hakbal of the Surging Soul"),
+            winner: "Yuna, Grand Summoner",
+        ),
+        (
+            players: ("Aurelia, the Warleader", "The First Sliver", "Yuna, Grand Summoner", "Bruna, Light of Alabaster"),
+            winner: "Yuna, Grand Summoner",
+        ),
+        (
+            players: ("Bre of Clan Stoutarm", "The First Sliver", "Yuna, Grand Summoner", "Hakbal of the Surging Soul"),
+            winner: "The First Sliver",
+        ),
+        (
+            players: ("Aurelia, the Warleader", "Minwu, White Mage", "The First Sliver", "Bruna, Light of Alabaster"),
+            winner: "Minwu, White Mage",
+        ),
+        (
+            players: ("Bruna, Light of Alabaster", "The First Sliver", "Yuna, Grand Summoner", "Hakbal of the Surging Soul"),
+            winner: "Bruna, Light of Alabaster",
+        ),
+        (
+            players: ("Bruna, Light of Alabaster", "Pantlaza, Sun-Favored", "Minwu, White Mage", "Tifa Lockhart"),
+            winner: "Bruna, Light of Alabaster",
+        ),
+        (
+            players: ("Bruna, Light of Alabaster", "Tifa Lockhart", "The Devil Strahd", "Jeskai Striker (Precon)"),
+            winner: "The Devil Strahd",
+        ),
+        (
+            players: ("Lae\'zel, Master Chef", "Blight Curse (Precon)", "Fae Dominion (Precon)", "Anim Pakal, Thousandth Moon"),
+            winner: "Lae\'zel, Master Chef",
+        ),
     ],
     score_config: (
         starting_elo: 1500.0,
         game_points: 25.0,
-        elo_pow: 6.0,
-        wr_pow: 1.0,
-        elo_weight: 65.0,
-        wr_weight: 100.0,
+        elo_pow: 5.0,
+        wr_pow: 2.0,
+        elo_weight: 7.0,
+        wr_weight: 5.0,
     ),
     match_config: (
         weight_least_played: 6.0,
