@@ -158,7 +158,7 @@
             ],
         ),
         "Tifa Lockhart": (
-            description: None,
+            description: Some("This is a description"),
             moxfield_link: None,
             colors: [
                 Green,

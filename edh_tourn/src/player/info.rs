@@ -65,8 +65,18 @@ impl PlayerInfo {
         &self.description
     }
 
-    pub fn set_moxfield_id(&mut self, id: Option<String>) {
-        self.moxfield_id = id;
+    pub fn clear_moxfield_id(&mut self) {
+        self.moxfield_id = None;
+    }
+
+    pub fn set_moxfield_id(&mut self, id: String) {
+        const PATTERN: &str = "/decks/";
+        if let Some(index) = id.find(PATTERN) {
+            let start_index = PATTERN.len() + index;
+            self.moxfield_id = id[start_index..].split('/').next().map(str::to_owned);
+        } else {
+            self.moxfield_id = Some(id);
+        }
     }
 
     #[must_use]

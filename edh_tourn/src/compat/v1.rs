@@ -89,14 +89,18 @@ impl TryFrom<TournamentCompatV1> for Tournament {
                 }
 
                 if let Some(link) = &compat_info.moxfield_link {
-                    let pattern = "/decks/";
-                    if let Some(index) = link.find(pattern) {
-                        let start_index = pattern.len() + index;
-                        info.set_moxfield_id(
-                            link[start_index..].split('/').next().map(str::to_owned),
-                        );
-                    }
+                    info.set_moxfield_id(link.to_owned());
                 }
+
+                // if let Some(link) = &compat_info.moxfield_link {
+                //     let pattern = "/decks/";
+                //     if let Some(index) = link.find(pattern) {
+                //         let start_index = pattern.len() + index;
+                //         info.set_moxfield_id(
+                //             link[start_index..].split('/').next().map(str::to_owned),
+                //         );
+                //     }
+                // }
             }
 
             tournament.register_player_with_info(info)?;
@@ -136,5 +140,87 @@ impl TryFrom<TournamentCompatV1> for Tournament {
         }
 
         Ok(tournament)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const AURELIA: &str = "Aurelia, the Warleader";
+    const BRE: &str = "Bre of Clan Stoutarm";
+    const TIFA: &str = "Tifa Lockhart";
+    const MINWU: &str = "Minwu, White Mage";
+    const ROCKSANNE: &str = "Rocksanne, Starfall Savant";
+
+    fn parse_from_compat() -> Tournament {
+        let string = include_str!("../../../tests/compat-v1.ron");
+        let compat_v1: TournamentCompatV1 = ron::from_str(string).unwrap();
+        Tournament::try_from(compat_v1).unwrap()
+    }
+
+    #[test]
+    fn populates_games() {
+        let tourn = parse_from_compat();
+        assert!(!tourn.games().is_empty());
+    }
+
+    #[test]
+    fn test_decks_are_found() {
+        let test_decks = [AURELIA, BRE, TIFA, MINWU, ROCKSANNE];
+
+        let tourn = parse_from_compat();
+        for deck in test_decks {
+            let s = deck.to_owned();
+            tourn
+                .get_player_id(&s)
+                .unwrap_or_else(|| panic!("Could not find deck: {s}"));
+        }
+    }
+
+    #[test]
+    fn info_moxfield_id() {
+        let tourn = parse_from_compat();
+        let aurelia_id = tourn
+            .get_player_id(&String::from(AURELIA))
+            .expect("Expected Aurelia to be a player");
+        let info = tourn
+            .get_player_info(&aurelia_id)
+            .expect("Expected Player Info");
+
+        let moxfield = info
+            .moxfield_id()
+            .expect("Expected Moxfield ID to be filled in");
+        assert_eq!("BtCcQ8eWg0uT8n4fFPK3Xg", moxfield);
+    }
+
+    #[test]
+    fn info_colors() {
+        let tourn = parse_from_compat();
+
+        let trials = [
+            (ROCKSANNE, vec![MtgColor::Green, MtgColor::Red]),
+            (MINWU, vec![MtgColor::White]),
+            (TIFA, vec![MtgColor::Green]),
+            (BRE, vec![MtgColor::Red, MtgColor::White]),
+            (AURELIA, vec![MtgColor::Red, MtgColor::White]),
+        ];
+
+        for (deck, colors) in trials {
+            let id = tourn.get_player_id(&deck.to_owned()).unwrap();
+            let info = tourn.get_player_info(&id).unwrap();
+            let identity = info.color_identity();
+            for color in colors {
+                assert!(identity.has_color(color));
+            }
+        }
+    }
+
+    #[test]
+    fn info_description() {
+        let tourn = parse_from_compat();
+        let id = tourn.get_player_id(&TIFA.to_owned()).unwrap();
+        let info = tourn.get_player_info(&id).unwrap();
+        assert!(!info.description().is_empty());
     }
 }

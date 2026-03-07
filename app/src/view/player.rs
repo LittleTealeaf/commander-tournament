@@ -5,6 +5,7 @@ use edh_tourn::{
 };
 use iced::{
     Element, Length,
+    alignment::Horizontal,
     widget::{button, column, container, row, space, text, text_editor, text_input},
 };
 
@@ -102,7 +103,7 @@ impl HandleMessage<ViewPlayerMessage> for App {
             ViewPlayerMessage::SaveAndClose => {
                 scene.info.set_description(scene.edit_description.text());
                 if !scene.moxfield.is_empty() {
-                    scene.info.set_moxfield_id(Some(scene.moxfield.clone()));
+                    scene.info.set_moxfield_id(scene.moxfield.clone());
                 }
                 if let Some(id) = scene.player {
                     self.tournament.set_player_info(id, scene.info.clone())?;
@@ -175,7 +176,10 @@ impl View<ViewPlayerScene> for App {
                 .on_input(|text| ViewPlayerMessage::SetName(text).into());
 
             let edit_description = text_editor(&scene.edit_description)
+                .placeholder("Description...")
                 .on_action(|action| ViewPlayerMessage::EditDescription(action).into());
+
+            // let edit_moxfieldid = text_input("Moxfield ID", &scene.moxfield);
 
             let deck_colors = row(MtgColor::COLORS.map(|color| {
                 let style = if scene.info.color_identity().has_color(color) {
@@ -191,23 +195,27 @@ impl View<ViewPlayerScene> for App {
             }))
             .spacing(5);
 
-            column![edit_name, edit_description, deck_colors]
+            column![row![edit_name, deck_colors].spacing(20), edit_description]
+                .max_width(700)
+                .spacing(20)
         };
+
+        // let deck_progress = scene.player.map(|id| {
+        //     let stats = self.tournament.get_player_or_default_stats(id);
+        //
+        //     let view_stats = row![text(format!("Elo: {}", stats.elo()))];
+        //
+        //     column![view_stats]
+        // });
+        //
+        // let content = match deck_progress {
+        //     Some(view) => container(row![info_panel, view]),
+        //     None => container(info_panel),
+        // };
+
+        let content = container(info_panel).align_x(Horizontal::Center);
 
         let bottom_panel = { row![space().width(Length::Fill)] };
-
-        let deck_progress = scene.player.map(|id| {
-            let stats = self.tournament.get_player_or_default_stats(id);
-
-            let view_stats = row![text(format!("Elo: {}", stats.elo()))];
-
-            column![view_stats]
-        });
-
-        let content = match deck_progress {
-            Some(view) => container(row![info_panel, view]),
-            None => container(info_panel),
-        };
 
         container(column![menu_bar, title, content, bottom_panel].width(Length::Fill)).into()
     }
@@ -242,7 +250,6 @@ mod tests {
 
         for (id, info) in t.players().clone() {
             let scene = ViewPlayerScene::new(&t, Some(id)).unwrap();
-
             assert_eq!(Some(id), scene.player);
             assert_eq!(info, scene.info);
         }
