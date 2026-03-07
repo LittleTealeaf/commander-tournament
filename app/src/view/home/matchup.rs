@@ -6,7 +6,7 @@ use edh_tourn::{
 use iced::{
     Alignment, Length, Task,
     alignment::Vertical,
-    widget::{button, column, container, pick_list, row, space, table, text},
+    widget::{button, column, container, pick_list, row, space, text},
 };
 use itertools::Itertools;
 
@@ -227,8 +227,7 @@ impl View<MatchupView> for App {
         let current_players = MatchViewPlayer::PLAYERS
             .iter()
             .filter_map(|player| scene.get_player(*player).copied())
-            .map(|id| self.tournament().get_registered_player(id).ok())
-            .flatten()
+            .filter_map(|id| self.tournament().get_registered_player(id).ok())
             .collect_vec();
         let winner = scene
             .winner
