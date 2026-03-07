@@ -38,10 +38,14 @@ jobs:
       uses: actions-rust-lang/rustfmt@v1
       continue-on-error: true
     - name: Build
-      run: cargo build --all --verbose -Awarnings
+      env:
+        RUSTFLAGS: "-Awarnings"
+      run: cargo build --all --verbose
       continue-on-error: true
     - name: Run tests
-      run: cargo test --all --verbose -Awarnings
+      env:
+        RUSTFLAGS: "-Awarnings"
+      run: cargo test --all --verbose
     - name: Run rust-clippy
       run: cargo clippy --all --no-deps --all-features --message-format=json | sort | uniq | clippy-sarif | tee rust-clippy-results.sarif | sarif-fmt
       continue-on-error: true
