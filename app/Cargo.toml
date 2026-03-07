@@ -24,7 +24,7 @@ edh_tourn = {path = "../edh_tourn/"}
 [dev-dependencies]
 app = {path = ".", features = ["dev"]}
 tempfile = "3.19.1"
-tokio = {version = "1.49.0", features=["rt", "macros"]}
+tokio = {version = "1.50.0", features=["rt", "macros"]}
 edh_tourn = {path = "../edh_tourn/", features=["dev"]}
 
 [lints]
