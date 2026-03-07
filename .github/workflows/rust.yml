@@ -16,6 +16,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - uses: swatinem/rust-cache@v2
     - name: Check formatting
       run: cargo fmt --all -- --check
     - name: Build
