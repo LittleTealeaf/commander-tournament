@@ -208,7 +208,10 @@ impl View<MatchMakerView> for App {
                     .width(Length::Fill)
                     .align_x(Horizontal::Center),
                 pick_list(
-                    self.tournament().get_registered_players().collect_vec(),
+                    self.tournament()
+                        .get_registered_players()
+                        .sorted_by(|a, b| a.info().name().cmp(b.info().name()))
+                        .collect_vec(),
                     scene
                         .player
                         .and_then(|id| self.tournament().get_registered_player(id).ok()),

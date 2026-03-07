@@ -1,14 +1,17 @@
-use std::path::PathBuf;
+use std::{
+    fs::File,
+    path::{Path, PathBuf},
+};
 
 use edh_tourn::Tournament;
 use iced::Task;
 
+pub mod fonts;
 pub mod logic;
 #[cfg(feature = "dev")]
 pub mod tests;
 pub mod traits;
 pub mod view;
-pub mod fonts;
 
 use crate::{
     logic::Message,
@@ -26,9 +29,20 @@ pub struct App {
 }
 
 impl App {
-
     #[must_use]
     pub fn boot() -> Self {
+        if Path::new("game.ron").exists()
+            && let Ok(file) = File::open("game.ron")
+            && let Ok(tournament) = ron::de::from_reader(file)
+        {
+            return Self {
+                tournament,
+                file: Some(Path::new("game.ron").to_path_buf()),
+
+                ..Self::default()
+            };
+        }
+
         Self::default()
     }
 

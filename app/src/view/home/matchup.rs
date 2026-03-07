@@ -247,6 +247,8 @@ impl View<MatchupView> for App {
         .spacing(10)
         .align_y(Vertical::Center);
 
-        container(column![title, players, winner].spacing(10)).into()
+        container(column![title, players, winner].spacing(10))
+            .padding(10)
+            .into()
     }
 }
