@@ -37,8 +37,11 @@ where
 
 #[derive(serde::Deserialize)]
 pub struct SerdeTournament {
+    #[serde(alias = "c")]
     config: TournamentConfig,
+    #[serde(alias = "p")]
     players: HashMap<u32, PlayerInfo>,
+    #[serde(alias = "g")]
     games: Vec<GameEntry>,
 }
 

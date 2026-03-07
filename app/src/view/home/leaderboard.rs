@@ -79,9 +79,9 @@ impl App {
         });
 
         let ord_char = if self.home.leaderboard_sort_asc {
-            ""
+            "󰁅"
         } else {
-            ""
+            "󰁝"
         };
 
         let col_header = |label: &str, col: LeaderboardColumn| {

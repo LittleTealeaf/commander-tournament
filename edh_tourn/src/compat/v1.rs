@@ -115,7 +115,7 @@ impl TryFrom<TournamentCompatV1> for Tournament {
             game_wr_weight: value.score_config.wr_weight,
             match_weight_least_played: value.match_config.weight_least_played,
             match_weight_nemesis: value.match_config.weight_nemesis,
-            match_weight_neighbor: value.match_config.weight_neighbor,
+            match_weight_elo_neighbor: value.match_config.weight_neighbor,
             match_weight_wr_neighbor: value.match_config.weight_wr_neighbor,
             match_weight_lost_with: value.match_config.weight_lost_with,
             ..TournamentConfig::default()

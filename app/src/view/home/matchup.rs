@@ -242,7 +242,23 @@ impl View<MatchupView> for App {
             button("Submit").on_press_maybe(
                 (scene.matchup.is_some() && scene.winner.is_some())
                     .then_some(MatchupMessage::SubmitGame.into())
-            )
+            ),
+            button("󱄀").on_press_maybe({
+                let links = MatchViewPlayer::PLAYERS
+                    .into_iter()
+                    .filter_map(|position| {
+                        let id = scene.get_player(position)?;
+                        let info = self.tournament().get_player_info(id)?;
+                        let link = info.moxfield_goldfish_link()?;
+                        Some(Message::OpenLink(link))
+                    })
+                    .collect_vec();
+                if links.is_empty() {
+                    None
+                } else {
+                    Some(Message::Batch(links))
+                }
+            })
         ]
         .spacing(10)
         .align_y(Vertical::Center);

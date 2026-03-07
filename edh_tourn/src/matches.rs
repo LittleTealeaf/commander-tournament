@@ -237,7 +237,7 @@ impl Tournament {
             ),
             to_weight_rank(
                 self.rank_elo_neighbors(id)?,
-                self.config.match_weight_neighbor
+                self.config.match_weight_elo_neighbor
             ),
             to_weight_rank(self.rank_loss_with(id)?, self.config.match_weight_lost_with),
             to_weight_rank(

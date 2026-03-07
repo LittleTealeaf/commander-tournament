@@ -17,6 +17,7 @@ pub enum Message {
     None,
     ReloadTournament,
     RefreshTournament,
+    Batch(Vec<Self>),
     OpenLink(String),
     Error(Option<String>),
     File(FileMessage),
@@ -49,6 +50,13 @@ impl Message {
 impl HandleMessage<Message> for App {
     fn update(&mut self, msg: Message) -> anyhow::Result<iced::Task<Message>> {
         match msg {
+            Message::Batch(messages) => {
+                let mut tasks = Vec::new();
+                for message in messages {
+                    tasks.push(self.update(message)?);
+                }
+                Ok(Task::batch(tasks))
+            }
             Message::OpenLink(link) => {
                 open_browser(link)?;
                 Message::done()

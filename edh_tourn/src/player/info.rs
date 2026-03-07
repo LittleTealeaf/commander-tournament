@@ -6,15 +6,28 @@ use crate::{
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default, PartialEq, Eq)]
 pub struct PlayerInfo {
+    #[serde(rename = "n", alias = "name")]
     name: String,
-    #[serde(skip_serializing_if = "String::is_empty", default)]
+    #[serde(
+        skip_serializing_if = "String::is_empty",
+        default,
+        rename = "d",
+        alias = "description"
+    )]
     description: String,
     #[serde(
         skip_serializing_if = "ColorIdentity::is_colorless",
-        default = "ColorIdentity::default"
+        default = "ColorIdentity::default",
+        rename = "i",
+        alias = "identity"
     )]
     identity: ColorIdentity,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        default,
+        rename = "m",
+        alias = "moxfield_id"
+    )]
     moxfield_id: Option<String>,
 }
 

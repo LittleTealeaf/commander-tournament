@@ -27,7 +27,7 @@ impl Default for MatchMakerView {
             method: MatchMethod::default(),
             player: None,
             leaderboard: Vec::new(),
-            show_count: 5,
+            show_count: 7,
         }
     }
 }

@@ -19,12 +19,18 @@ pub struct TournamentConfig {
     pub match_weight_least_played: f64,
     #[serde(rename = "mwn", alias = "match_weight_nemesis")]
     pub match_weight_nemesis: f64,
-    #[serde(rename = "mwne", alias = "match_weight_neighbor")]
-    pub match_weight_neighbor: f64,
-    #[serde(rename = "mwwn", alias = "match_weight_wr_neighbor")]
-    pub match_weight_wr_neighbor: f64,
     #[serde(rename = "mwlw", alias = "match_weight_lost_with")]
     pub match_weight_lost_with: f64,
+    #[serde(
+        rename = "mwln",
+        alias = "match_weight_neighbor",
+        alias = "mwne",
+        alias = "match_weight_elo_neighbor"
+    )]
+    pub match_weight_elo_neighbor: f64,
+    #[serde(rename = "mwwn", alias = "match_weight_wr_neighbor")]
+    pub match_weight_wr_neighbor: f64,
+
     #[serde(rename = "mwen", alias = "match_weight_expected_neighbor")]
     pub match_weight_expected_neighbor: f64,
 }
@@ -40,7 +46,7 @@ impl Default for TournamentConfig {
             game_wr_weight: 35.0,
             match_weight_least_played: 6.0,
             match_weight_nemesis: 4.0,
-            match_weight_neighbor: 5.0,
+            match_weight_elo_neighbor: 5.0,
             match_weight_wr_neighbor: 3.0,
             match_weight_lost_with: 3.0,
             match_weight_expected_neighbor: 4.0,
