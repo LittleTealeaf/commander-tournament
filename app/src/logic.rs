@@ -49,6 +49,11 @@ impl Message {
     fn handle_option_fn<T, M: Into<Self>>(on_some: impl Fn(T) -> M) -> impl Fn(Option<T>) -> Self {
         move |option: Option<T>| option.map_or(Self::None, |value| on_some(value).into())
     }
+
+    #[must_use]
+    pub fn batch<I: IntoIterator<Item = Self>>(messages: I) -> Self {
+        Self::Batch(messages.into_iter().collect())
+    }
 }
 
 impl HandleMessage<Message> for App {

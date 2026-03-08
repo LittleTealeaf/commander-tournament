@@ -1,6 +1,6 @@
 use itertools::chain;
 
-use crate::{Tournament, error::TournamentError};
+use crate::{Tournament, config::TournamentConfig, error::TournamentError};
 
 impl Tournament {
     pub fn generate_tournament(player_count: usize, games: usize) -> Result<Self, TournamentError> {
@@ -42,11 +42,15 @@ impl Tournament {
         chain!(
             [Self::sample_game(), Self::new()],
             Self::sample_tsv_game(),
-            [0, 4, 8, 16, 32, 64].into_iter().flat_map(|a| {
-                [0, 4, 8, 16, 32, 64]
-                    .into_iter()
-                    .filter_map(move |b| Self::generate_tournament(a, b).ok())
-            })
+            [0, 4, 8, 16, 32, 64]
+                .into_iter()
+                .flat_map(|a| {
+                    [0, 4, 8, 16, 32, 64]
+                        .into_iter()
+                        .filter_map(move |b| Self::generate_tournament(a, b).ok())
+                })
+                .enumerate()
+                .flat_map(|(i, tourn)| tourn.with_config(TournamentConfig::random(i)))
         )
     }
 }

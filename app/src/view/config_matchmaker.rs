@@ -259,3 +259,25 @@ impl View<ViewMatchmakerConfig> for App {
         .into()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn config_value_sets_string() {
+        let config = ConfigValue::new(5.0);
+        assert!(!config.string.is_empty());
+    }
+
+    #[test]
+    fn invalid_value_doesnt_parse() {
+        const VAL: &str = "AOIWEJOWIJEF";
+        let mut config = ConfigValue::new(5.0);
+        config.set_value(VAL.to_owned());
+        assert_eq!(VAL, config.string);
+        assert!(config.value.is_none());
+        config.set_value("5.0".to_owned());
+        assert!(config.value.is_some());
+    }
+}
