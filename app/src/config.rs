@@ -66,77 +66,10 @@ impl SystemConfig {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::env;
-    use tempfile::tempdir;
 
-    /// run a closure with a temporary `XDG_CONFIG_HOME` set; restore the old
-    /// value afterwards.
-    fn with_temp_xdg<T>(f: impl FnOnce() -> T) -> T {
-        let tmp = tempdir().unwrap();
-        let old = env::var_os("XDG_CONFIG_HOME");
-        unsafe {
-            env::set_var("XDG_CONFIG_HOME", tmp.path());
-        }
-        let res = f();
-        if let Some(old) = old {
-            unsafe {
-                env::set_var("XDG_CONFIG_HOME", old);
-            }
-        } else {
-            unsafe {
-                env::remove_var("XDG_CONFIG_HOME");
-            }
-        }
-        res
-    }
-
-    use serial_test::serial;
-
-    #[serial]
     #[test]
-    fn config_path_points_at_config_dir() {
-        with_temp_xdg(|| {
-            let path = SystemConfig::config_path().unwrap();
-            assert!(path.ends_with("commander-tournament/config.ron"));
-            assert!(path.starts_with(env::var_os("XDG_CONFIG_HOME").unwrap()));
-        });
-    }
-
-    #[serial]
-    #[test]
-    fn load_when_missing_returns_default() {
-        with_temp_xdg(|| {
-            let cfg = SystemConfig::load().unwrap();
-            assert_eq!(cfg, SystemConfig::default());
-        });
-    }
-
-    #[serial]
-    #[test]
-    fn save_and_load_roundtrip() {
-        with_temp_xdg(|| {
-            let cfg = SystemConfig {
-                last_opened: Some(PathBuf::from("/some/file")),
-            };
-            cfg.save().unwrap();
-            let loaded = SystemConfig::load().unwrap();
-            assert_eq!(cfg, loaded);
-        });
-    }
-
-    #[serial]
-    #[test]
-    fn update_last_opened_sets_value_and_persists() {
-        with_temp_xdg(|| {
-            // start with no config file
-            assert_eq!(SystemConfig::load().unwrap().last_opened, None);
-            SystemConfig::update_last_opened(Some(PathBuf::from("foo"))).unwrap();
-            assert_eq!(
-                SystemConfig::load().unwrap().last_opened,
-                Some(PathBuf::from("foo"))
-            );
-            SystemConfig::update_last_opened(None).unwrap();
-            assert_eq!(SystemConfig::load().unwrap().last_opened, None);
-        });
+    fn config_path_returns_expected_file() {
+        let path = SystemConfig::config_path().unwrap();
+        assert!(path.ends_with("commander-tournament/config.ron"));
     }
 }

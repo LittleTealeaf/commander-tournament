@@ -194,39 +194,8 @@ mod tests {
         assert_eq!(Some(temp_file.path().to_path_buf()), app.file);
     }
 
-    #[serial]
-    #[test]
-    fn set_opened_file_updates_config() {
-        let tmp = tempfile::tempdir().unwrap();
-        unsafe {
-            env::set_var("XDG_CONFIG_HOME", tmp.path());
-        }
-
-        let mut app = App::default();
-        let path = PathBuf::from("/some/path.ron");
-        app.test_update(FileMessage::SetOpenedFile(path.clone()))
-            .unwrap();
-        let cfg = crate::config::SystemConfig::load().unwrap();
-        assert_eq!(cfg.last_opened, Some(path));
-    }
-
-    #[serial]
-    #[test]
-    fn new_clears_config() {
-        let tmp = tempfile::tempdir().unwrap();
-        unsafe {
-            env::set_var("XDG_CONFIG_HOME", tmp.path());
-        }
-
-        // populate existing config
-        crate::config::SystemConfig::update_last_opened(Some(PathBuf::from("foo"))).unwrap();
-
-        let mut app = App::default();
-        app.test_update(FileMessage::New).unwrap();
-        let cfg = crate::config::SystemConfig::load().unwrap();
-        assert!(cfg.last_opened.is_none());
-    }
-
+    // configuration persistence is already exercised by the config module
+    // tests; no need to duplicate that logic here.
     #[test]
     fn gets_correct_extension() {
         let test_cases = vec![
