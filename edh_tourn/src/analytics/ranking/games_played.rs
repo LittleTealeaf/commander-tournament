@@ -69,7 +69,7 @@ fn with_elo_tie_breaker(
 }
 
 impl Tournament {
-    fn get_games_played_entries(
+    pub fn get_player_games_played_against(
         &self,
         id: u32,
     ) -> Result<impl Iterator<Item = GamesPlayedRankedEntry<'_>>, TournamentError> {
@@ -112,7 +112,7 @@ impl Tournament {
         &self,
         id: u32,
     ) -> Result<impl Iterator<Item = GamesPlayedRankedEntry<'_>>, TournamentError> {
-        let iter = self.get_games_played_entries(id)?;
+        let iter = self.get_player_games_played_against(id)?;
         let elo_base = self.get_player_or_default_stats(id).elo();
         let sorted = iter.sorted_by(|player_a, player_b| {
             let total_games = player_a.games_played.max(player_b.games_played);
@@ -129,7 +129,7 @@ impl Tournament {
         &self,
         id: u32,
     ) -> Result<impl Iterator<Item = GamesPlayedRankedEntry<'_>>, TournamentError> {
-        let iter = self.get_games_played_entries(id)?;
+        let iter = self.get_player_games_played_against(id)?;
         let elo_base = self.get_player_or_default_stats(id).elo();
         let sorted = iter.sorted_by(|player_a, player_b| {
             let score_a = player_a.games_lost_with();
@@ -149,7 +149,7 @@ impl Tournament {
         &self,
         id: u32,
     ) -> Result<impl Iterator<Item = GamesPlayedRankedEntry<'_>>, TournamentError> {
-        let iter = self.get_games_played_entries(id)?;
+        let iter = self.get_player_games_played_against(id)?;
         let elo_base = self.get_player_or_default_stats(id).elo();
         let sorted = iter.sorted_by(|player_a, player_b| {
             let score_a = player_a.games_played();
@@ -171,7 +171,7 @@ mod tests {
             let ids = tourn.players().keys().copied();
             for id in ids {
                 let iter = tourn
-                    .get_games_played_entries(id)
+                    .get_player_games_played_against(id)
                     .expect("Expected Iter of Games Played");
 
                 for item in iter {
@@ -191,7 +191,7 @@ mod tests {
             let ids = tourn.players().keys().copied();
             for id in ids {
                 let iter = tourn
-                    .get_games_played_entries(id)
+                    .get_player_games_played_against(id)
                     .expect("Expected Iter of Games Played");
 
                 for item in iter {
