@@ -2,7 +2,7 @@ use edh_tourn::{Tournament, matches::RankMethod};
 use iced::{
     Length, Task,
     alignment::Horizontal,
-    widget::{button, column, container, pick_list, row, table, text},
+    widget::{button, column, container, pick_list, row, space, table, text},
 };
 use itertools::{Itertools, chain};
 
@@ -108,6 +108,37 @@ impl HandleMessage<MatchMakerMessage> for App {
     }
 }
 
+fn results_table(
+    results: Vec<u32>,
+    tournament: &Tournament,
+) -> iced::widget::table::Table<'_, Message> {
+    table(
+        [
+            table::column(text(""), |player: u32| {
+                text(
+                    tournament
+                        .get_player_name(&player)
+                        .cloned()
+                        .unwrap_or_default(),
+                )
+            }),
+            table::column(text(""), |player: u32| {
+                let stats = tournament.get_player_or_default_stats(player);
+                let elo = stats.elo().round();
+                let wr = stats.wr().map_or_else(
+                    || "--% WR".to_owned(),
+                    |wr| format!("{}% WR", (wr * 100.0).round()),
+                );
+                text(format!("{elo} Elo, {wr}"))
+            }),
+            table::column(text(""), |player: u32| {
+                button("+").on_press(MatchupMessage::AddPlayer(player).into())
+            }),
+        ],
+        results,
+    )
+}
+
 impl View<MatchMakerView> for App {
     fn view<'a>(&'a self, scene: &'a MatchMakerView) -> iced::Element<'a, Message> {
         container(
@@ -131,6 +162,7 @@ impl View<MatchMakerView> for App {
                     pick_list(RankMethod::VALUES, Some(scene.method), |method| {
                         MatchMakerMessage::Method(method).into()
                     }),
+                    space().width(Length::Fill),
                     button("Load Top 3").on_press_maybe(
                         scene
                             .player
@@ -140,17 +172,11 @@ impl View<MatchMakerView> for App {
                     button("⚙").on_press(MessageMatchmakerConfig::Open.into())
                 ]
                 .spacing(10),
-                table(
-                    [table::column(text(""), |player: u32| {
-                        text(
-                            self.tournament()
-                                .get_player_name(&player)
-                                .cloned()
-                                .unwrap_or_default(),
-                        )
-                    })],
-                    scene.get_leaderboard(self.tournament()).unwrap_or_default()
+                results_table(
+                    scene.get_leaderboard(self.tournament()).unwrap_or_default(),
+                    self.tournament()
                 )
+                .width(Length::Fill)
             ]
             .spacing(10),
         )
