@@ -28,6 +28,11 @@ impl Matchup {
     }
 
     #[must_use]
+    pub fn get_player(&self, id: u32) -> Option<&MatchPlayer> {
+        self.players.iter().find(|i| i.id() == id)
+    }
+
+    #[must_use]
     pub const fn ids(&self) -> [u32; 4] {
         let [player_a, player_b, player_c, player_d] = &self.players;
         [player_a.id(), player_b.id(), player_c.id(), player_d.id()]

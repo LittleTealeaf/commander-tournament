@@ -203,17 +203,20 @@ impl View<MatchupView> for App {
             })
             .width(Length::Fill);
 
-            container(column![
-                row![
-                    selector,
-                    button("").on_press_maybe(
-                        entry
-                            .and_then(|entry| entry.info().moxfield_goldfish_link())
-                            .map(Message::OpenLink)
-                    )
-                ],
-                player_info
-            ])
+            container(
+                column![
+                    row![
+                        selector,
+                        button("").on_press_maybe(
+                            entry
+                                .and_then(|entry| entry.info().moxfield_goldfish_link())
+                                .map(Message::OpenLink)
+                        )
+                    ],
+                    player_info
+                ]
+                .spacing(5),
+            )
             .into()
         });
 
@@ -229,20 +232,17 @@ impl View<MatchupView> for App {
             .filter_map(|player| scene.get_player(*player).copied())
             .filter_map(|id| self.tournament().get_registered_player(id).ok())
             .collect_vec();
+
         let winner = scene
             .winner
             .and_then(|id| self.tournament().get_registered_player(id).ok());
 
-        let winner = row![
+        let winner_selector = row![
             text("Winner: ").size(17),
             pick_list(current_players, winner, |picked| {
                 MatchupMessage::SetWinner(Some(picked.id())).into()
             })
             .width(Length::Fill),
-            button("Submit").on_press_maybe(
-                (scene.matchup.is_some() && scene.winner.is_some())
-                    .then_some(MatchupMessage::SubmitGame.into())
-            ),
             button("󱄀").on_press_maybe({
                 let links = MatchViewPlayer::PLAYERS
                     .into_iter()
@@ -263,7 +263,28 @@ impl View<MatchupView> for App {
         .spacing(10)
         .align_y(Vertical::Center);
 
-        container(column![title, players, winner].spacing(10))
+        let results_preview = scene.matchup.as_ref().and_then(|matchup| {
+            let winner = winner?;
+            let increase = matchup.get_player(winner.id())?.elo_win().round();
+            let elo = winner.stats().elo().round();
+            let elo_result = elo + increase;
+
+            Some(text(format!("Elo: {elo} + {increase} = {elo_result}")))
+        });
+
+        let submit = row![
+            space().width(Length::Fill),
+            results_preview,
+            button("Submit").on_press_maybe(
+                (scene.matchup.is_some() && scene.winner.is_some())
+                    .then_some(MatchupMessage::SubmitGame.into())
+            ),
+            button("󰜺").on_press(MatchupMessage::Clear.into()),
+        ]
+        .spacing(10)
+        .align_y(Vertical::Center);
+
+        container(column![title, players, winner_selector, submit].spacing(10))
             .padding(10)
             .into()
     }

@@ -1,16 +1,13 @@
-use iced::widget::{button, column, container, row, rule, space};
+use iced::widget::{button, column, container, row, rule};
 
 use crate::{
     App,
     logic::{Message, file::FileMessage},
     traits::{HandleMessage, View},
-    view::{
-        home::{
-            leaderboard::LeaderboardColumn,
-            matchmaker::{MatchMakerMessage, MatchMakerView},
-            matchup::{MatchupMessage, MatchupView},
-        },
-        player::ViewPlayerMessage,
+    view::home::{
+        leaderboard::LeaderboardColumn,
+        matchmaker::{MatchMakerMessage, MatchMakerView},
+        matchup::{MatchupMessage, MatchupView},
     },
 };
 
@@ -73,14 +70,13 @@ impl View<HomeState> for App {
     fn view<'a>(&'a self, _: &'a HomeState) -> iced::Element<'a, Message> {
         column![
             row![
-                button("New Player").on_press(ViewPlayerMessage::Open(None).into()),
-                space().width(15.0),
                 button("Open").on_press(FileMessage::OpenFile.into()),
                 button("Save").on_press(FileMessage::Save.into()),
                 button("Save As")
                     .on_press_maybe(self.file.is_some().then_some(FileMessage::SaveAs.into())),
                 button("New").on_press(FileMessage::New.into()),
-            ],
+            ]
+            .spacing(5),
             row![
                 container(self.view_home_leaderboard()).padding(10),
                 rule::vertical(2),

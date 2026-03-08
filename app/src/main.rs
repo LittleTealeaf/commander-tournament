@@ -1,12 +1,15 @@
 use app::{
     App,
-    fonts::{default_font, jetbrains_mono_bytes},
+    fonts::{FONT_BYTES, default_font},
 };
 use iced::application;
 
 pub fn main() -> iced::Result {
-    application(App::boot, App::updater, App::app_view)
-        .font(jetbrains_mono_bytes())
-        .default_font(default_font())
-        .run()
+    let mut app = application(App::boot, App::updater, App::app_view);
+
+    for font in FONT_BYTES {
+        app = app.font(font);
+    }
+
+    app.default_font(default_font()).run()
 }

@@ -106,6 +106,9 @@ impl HandleMessage<ViewPlayerMessage> for App {
 
         match msg {
             ViewPlayerMessage::Open(maybe_id) => {
+                if maybe_id.is_some() && maybe_id == scene.player {
+                    return Message::done();
+                }
                 self.scenes.push(Scene::Player(ViewPlayerScene::new(
                     &self.tournament,
                     maybe_id,
@@ -154,7 +157,7 @@ impl HandleMessage<ViewPlayerMessage> for App {
             }
             ViewPlayerMessage::Delete => {
                 let name = scene.name.clone().unwrap_or_default();
-                self.scenes.push(Scene::Confirm(ConfirmPrompt::new(format!(
+                self.scenes.push(Scene::Confirm(ConfirmPrompt::new(format!("Delete {name}?"),format!(
                     "Are you sure you want to delete {name}, including any games they participated in?"
                 ),
                     ViewPlayerMessage::ConfirmedDelete.into())));
@@ -173,13 +176,6 @@ impl HandleMessage<ViewPlayerMessage> for App {
 
 impl View<ViewPlayerScene> for App {
     fn view<'a>(&'a self, scene: &'a ViewPlayerScene) -> Element<'a, Message> {
-        let menu_bar = row![
-            space().width(Length::Fill),
-            button(text("Cancel")).on_press(ViewPlayerMessage::Close.into()),
-            button(text("Save")).on_press(ViewPlayerMessage::SaveAndClose.into()),
-        ]
-        .spacing(20);
-
         let title_text = scene
             .name
             .as_ref()
@@ -215,7 +211,7 @@ impl View<ViewPlayerScene> for App {
             column![
                 edit_name,
                 row![edit_moxfieldid, deck_colors].spacing(20),
-                edit_description
+                edit_description,
             ]
             .max_width(700)
             .spacing(20)
@@ -258,7 +254,7 @@ impl View<ViewPlayerScene> for App {
             let view_games = scrollable(
                 table(
                     [
-                        table::column("Competitors", |game: &GameRecord| {
+                        table::column("Games", |game: &GameRecord| {
                             column(game.players().iter().map(|player| {
                                 let elo = player.stats().elo().round();
                                 text(self.tournament.get_player_name(&player.id()).map_or_else(
@@ -299,19 +295,36 @@ impl View<ViewPlayerScene> for App {
                 )
                 .width(Length::Fill),
             )
-            .width(Length::Fill);
+            .width(Length::Fill)
+            .height(Length::Fill);
 
             column![view_stats, view_games].spacing(30)
         });
 
-        let content = match deck_progress {
-            Some(view) => container(row![info_panel, view].spacing(40)),
-            None => container(info_panel).align_x(Horizontal::Center),
-        };
+        let bottom_row = row![
+            scene.player.is_some().then_some(
+                button("Delete")
+                    .style(button::danger)
+                    .on_press(ViewPlayerMessage::Delete.into())
+            ),
+            space().width(Length::Fill),
+            button("Close").on_press(ViewPlayerMessage::Close.into()),
+            button("Save").on_press(ViewPlayerMessage::SaveAndClose.into())
+        ]
+        .spacing(20);
 
-        let bottom_panel = { row![space().width(Length::Fill)] };
-
-        container(column![menu_bar, title, content, bottom_panel].width(Length::Fill)).into()
+        container(
+            column![
+                title,
+                row![info_panel, deck_progress].spacing(40),
+                bottom_row
+            ]
+            .spacing(20)
+            .width(Length::Fill)
+            .height(Length::Fill),
+        )
+        .height(Length::Fill)
+        .into()
     }
 }
 
