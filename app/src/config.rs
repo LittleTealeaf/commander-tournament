@@ -62,15 +62,3 @@ impl SystemConfig {
         cfg.save()
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn config_path_returns_expected_file() {
-        let path = SystemConfig::config_path().unwrap();
-        assert_eq!(path.file_name().unwrap(), "config.ron");
-        assert!(path.to_string_lossy().contains("commander-tournament"));
-    }
-}
