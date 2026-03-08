@@ -106,6 +106,7 @@ impl Tournament {
             let expected =
                 (weight_wr / (wr_scaled + wr_t)).mul_add(wr_scaled, coef_elo * elo_scaled);
 
+            // Since this is a 1v1, the expected value is compared against 0.5, since this is a 1v1
             (player, abs_diff(expected, 0.5))
         });
 
