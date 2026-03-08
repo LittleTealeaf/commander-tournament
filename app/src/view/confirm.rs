@@ -21,7 +21,11 @@ pub struct ConfirmPrompt {
 impl ConfirmPrompt {
     #[must_use]
     pub const fn new(title: String, text: String, on_confirm: Message) -> Self {
-        Self { title, text, on_confirm }
+        Self {
+            title,
+            text,
+            on_confirm,
+        }
     }
 }
 
