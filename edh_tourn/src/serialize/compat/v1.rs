@@ -91,16 +91,6 @@ impl TryFrom<TournamentCompatV1> for Tournament {
                 if let Some(link) = &compat_info.moxfield_link {
                     info.set_moxfield_id(link.to_owned());
                 }
-
-                // if let Some(link) = &compat_info.moxfield_link {
-                //     let pattern = "/decks/";
-                //     if let Some(index) = link.find(pattern) {
-                //         let start_index = pattern.len() + index;
-                //         info.set_moxfield_id(
-                //             link[start_index..].split('/').next().map(str::to_owned),
-                //         );
-                //     }
-                // }
             }
 
             tournament.register_player_with_info(info)?;
@@ -154,7 +144,7 @@ mod tests {
     const ROCKSANNE: &str = "Rocksanne, Starfall Savant";
 
     fn parse_from_compat() -> Tournament {
-        let string = include_str!("../../../tests/compat-v1.ron");
+        let string = include_str!("../../../../tests/compat-v1.ron");
         let compat_v1: TournamentCompatV1 = ron::from_str(string).unwrap();
         Tournament::try_from(compat_v1).unwrap()
     }

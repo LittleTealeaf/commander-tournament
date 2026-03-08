@@ -2,7 +2,6 @@
 #[macro_use]
 extern crate approx;
 
-pub mod compat;
 pub mod config;
 #[cfg(feature = "dev")]
 pub mod dev;
@@ -10,7 +9,7 @@ pub mod error;
 pub mod game;
 pub mod matches;
 pub mod player;
-pub mod serialization;
+pub mod serialize;
 pub mod tsv;
 
 use std::collections::HashMap;
@@ -21,11 +20,11 @@ use crate::{
     game::{entry::GameEntry, record::GameRecord},
     player::info::PlayerInfo,
     player::stats::PlayerStats,
-    serialization::{convert_games, ordered_map},
+    serialize::{convert_games, ordered_map},
 };
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
-#[serde(try_from = "serialization::SerdeTournament")]
+#[serde(try_from = "serialize::deserialize::SerdeTournament")]
 pub struct Tournament {
     #[serde(rename = "c", alias = "config")]
     config: TournamentConfig,
