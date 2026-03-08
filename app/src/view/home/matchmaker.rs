@@ -20,7 +20,6 @@ use crate::{
 pub struct MatchMakerView {
     method: RankMethod,
     player: Option<u32>,
-    leaderboard: Vec<u32>,
     show_count: usize,
 }
 
@@ -29,7 +28,6 @@ impl Default for MatchMakerView {
         Self {
             method: RankMethod::default(),
             player: None,
-            leaderboard: Vec::new(),
             show_count: 7,
         }
     }
