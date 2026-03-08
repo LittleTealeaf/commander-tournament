@@ -32,7 +32,8 @@ pub struct PlayerInfo {
 }
 
 impl PlayerInfo {
-    pub(crate) const fn new(name: String) -> Self {
+    #[must_use]
+    pub const fn new(name: String) -> Self {
         Self {
             name,
             description: String::new(),

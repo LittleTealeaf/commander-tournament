@@ -7,171 +7,188 @@ use app::{
         player::ViewPlayerMessage,
     },
 };
-use edh_tourn::{Tournament, player::color::MtgColor};
+use edh_tourn::{
+    Tournament,
+    player::{color::MtgColor, info::PlayerInfo},
+};
 use iced::widget::text_editor::{Action, Edit};
 use itertools::chain;
 
-fn input_players(app: &mut App, tournament: &Tournament) -> anyhow::Result<()> {
-    let mut iter_players = tournament.players().values().cloned();
+#[test]
+fn create_and_update_player_info() -> anyhow::Result<()> {
+    const NAME: &str = "testing";
+    const DESCRIPTION: &str = "This is a Description";
+    const NEW_DESCRIPTION: &str = "This is a new description";
+    const MOXFIELD_ID: &str = "09j23fj0f23j023jf2";
+    const COLOR: MtgColor = MtgColor::Red;
+    let mut app = App::default();
 
-    if let Some(info) = iter_players.next() {
-        // Test with first setting a random text and then updating the info
-        const NAME: &str = "TESTING PLAYER A";
-        app.test_updates([
-            ViewPlayerMessage::Open(None),
-            ViewPlayerMessage::SetName(NAME.to_owned()),
-            ViewPlayerMessage::ToggleColor(MtgColor::Red),
-            ViewPlayerMessage::SaveAndClose,
-        ])?;
+    let mut info = PlayerInfo::new(NAME.to_owned());
+    info.set_description(DESCRIPTION.to_owned());
+    info.set_moxfield_id(MOXFIELD_ID.to_owned());
+    info.add_color(COLOR);
+    helpers::update_player(&mut app, None, &info)?;
 
-        let id = app
-            .tournament()
-            .get_player_id(&NAME.to_owned())
-            .ok_or_else(|| anyhow!("Player not found"))?;
+    let id = app
+        .tournament()
+        .get_player_id(&NAME.to_owned())
+        .ok_or_else(|| anyhow!("Could not find player"))?;
 
-        app.test_updates(chain!(
-            [
-                ViewPlayerMessage::Open(Some(id)),
-                ViewPlayerMessage::SetName(info.name().clone()),
-                ViewPlayerMessage::EditDescription(Action::Edit(Edit::Paste(
-                    info.description().to_owned().into()
-                ),)),
-                ViewPlayerMessage::SetMoxfieldId(info.moxfield_id().cloned().unwrap_or_default(),),
-                ViewPlayerMessage::ToggleColor(MtgColor::Red)
-            ],
-            info.color_identity()
-                .to_colors()
-                .map(ViewPlayerMessage::ToggleColor),
-            [ViewPlayerMessage::SaveAndClose]
-        ))?;
-
-        assert_eq!(
-            info,
-            app.tournament().get_player_info(&id).cloned().unwrap(),
-            "Expected Info to be updated accordingly"
-        );
-    }
-
-    for player in iter_players {
-        app.test_updates(chain!(
-            [
-                ViewPlayerMessage::Open(None),
-                ViewPlayerMessage::SetName(player.name().to_owned()),
-                ViewPlayerMessage::EditDescription(Action::Edit(Edit::Paste(
-                    player.description().to_owned().into()
-                ),)),
-                ViewPlayerMessage::SetMoxfieldId(player.moxfield_id().cloned().unwrap_or_default(),)
-            ],
-            player
-                .color_identity()
-                .to_colors()
-                .map(ViewPlayerMessage::ToggleColor),
-            [ViewPlayerMessage::SaveAndClose]
-        ))?;
-
-        let id = app
-            .tournament()
-            .get_player_id(player.name())
-            .expect("Expected Player to Exist");
-        let info = app
+    {
+        let fetched_info = app
             .tournament()
             .get_player_info(&id)
-            .expect("Expected Player Info");
-
-        assert_eq!(&player, info, "Expected info to be identical");
+            .expect("Expected ID to have Info");
+        assert_eq!(&info, fetched_info);
     }
 
-    Ok(())
-}
+    info.set_description(NEW_DESCRIPTION.to_owned());
 
-fn input_matchmaking_config(app: &mut App, tournament: &Tournament) -> anyhow::Result<()> {
-    let config = tournament.config();
-    app.test_update(Message::batch(
-        [
-            MessageMatchmakerConfig::Open,
-            MessageMatchmakerConfig::SetConfigValue(
-                MatchmakerConfigOption::LeastPlayed,
-                format!("{}", config.match_weight_least_played),
-            ),
-            MessageMatchmakerConfig::SetConfigValue(
-                MatchmakerConfigOption::Nemesis,
-                format!("{}", config.match_weight_nemesis),
-            ),
-            MessageMatchmakerConfig::SetConfigValue(
-                MatchmakerConfigOption::LostWith,
-                format!("{}", config.match_weight_lost_with),
-            ),
-            MessageMatchmakerConfig::SetConfigValue(
-                MatchmakerConfigOption::EloNeighbor,
-                format!("{}", config.match_weight_elo_neighbor),
-            ),
-            MessageMatchmakerConfig::SetConfigValue(
-                MatchmakerConfigOption::WRNeighbor,
-                format!("{}", config.match_weight_wr_neighbor),
-            ),
-            MessageMatchmakerConfig::SetConfigValue(
-                MatchmakerConfigOption::ExpectedNeighbor,
-                format!("{}", config.match_weight_expected_neighbor),
-            ),
-            MessageMatchmakerConfig::Save,
-        ]
-        .map(Into::into),
-    ))?;
-
-    let tourn = app.tournament();
-    let t_config = tourn.config();
-
-    let pairs = [
-        (
-            "Least Played",
-            config.match_weight_least_played,
-            t_config.match_weight_least_played,
-        ),
-        (
-            "Nemesis",
-            config.match_weight_nemesis,
-            t_config.match_weight_nemesis,
-        ),
-        (
-            "Lost With",
-            config.match_weight_lost_with,
-            t_config.match_weight_lost_with,
-        ),
-        (
-            "Elo Neighbor",
-            config.match_weight_elo_neighbor,
-            t_config.match_weight_elo_neighbor,
-        ),
-        (
-            "WR Neighbor",
-            config.match_weight_wr_neighbor,
-            t_config.match_weight_wr_neighbor,
-        ),
-        (
-            "Expected Neighbor",
-            config.match_weight_expected_neighbor,
-            t_config.match_weight_expected_neighbor,
-        ),
-    ];
-
-    for (name, expected, found) in pairs {
-        assert!(
-            approx::abs_diff_eq!(expected, found),
-            "{name} is different: {expected} to {found}"
-        );
+    helpers::update_player(&mut app, Some(id), &info)?;
+    {
+        let fetched_info = app
+            .tournament()
+            .get_player_info(&id)
+            .expect("Expected ID to have Info");
+        assert_eq!(&info, fetched_info);
     }
 
     Ok(())
 }
 
 #[test]
-fn test_loading_tournaments() -> anyhow::Result<()> {
+fn loading_tournaments() -> anyhow::Result<()> {
     for tourn in Tournament::test_tournaments() {
         let mut app = App::default();
-
-        input_matchmaking_config(&mut app, &tourn)?;
-        input_players(&mut app, &tourn)?;
+        helpers::input_matchmaking_config(&mut app, &tourn)?;
+        helpers::input_players(&mut app, &tourn)?;
     }
 
     Ok(())
+}
+
+mod helpers {
+    use super::*;
+
+    pub fn update_player(app: &mut App, id: Option<u32>, info: &PlayerInfo) -> anyhow::Result<()> {
+        app.test_update(Message::batch(
+            chain!(
+                [
+                    ViewPlayerMessage::Open(id),
+                    ViewPlayerMessage::SetName(info.name().clone()),
+                    ViewPlayerMessage::EditDescription(Action::SelectAll),
+                    ViewPlayerMessage::EditDescription(Action::Edit(Edit::Delete)),
+                    ViewPlayerMessage::EditDescription(Action::Edit(Edit::Paste(
+                        info.description().to_owned().into(),
+                    ))),
+                    ViewPlayerMessage::ClearColors,
+                ],
+                info.moxfield_id()
+                    .map(|id| ViewPlayerMessage::SetMoxfieldId(id.to_owned())),
+                info.color_identity()
+                    .to_colors()
+                    .map(ViewPlayerMessage::ToggleColor),
+                [ViewPlayerMessage::SaveAndClose]
+            )
+            .map(Into::into),
+        ))?;
+        Ok(())
+    }
+
+    pub fn input_players(app: &mut App, tournament: &Tournament) -> anyhow::Result<()> {
+        for player in tournament.players().values() {
+            update_player(app, None, player)?;
+            let id = app
+                .tournament()
+                .get_player_id(player.name())
+                .expect("Expected Player to Exist");
+            let info = app
+                .tournament()
+                .get_player_info(&id)
+                .expect("Expected Player Info");
+
+            assert_eq!(player, info, "Expected info to be identical");
+        }
+        Ok(())
+    }
+
+    pub fn input_matchmaking_config(app: &mut App, tournament: &Tournament) -> anyhow::Result<()> {
+        let config = tournament.config();
+        app.test_update(Message::batch(
+            [
+                MessageMatchmakerConfig::Open,
+                MessageMatchmakerConfig::SetConfigValue(
+                    MatchmakerConfigOption::LeastPlayed,
+                    format!("{}", config.match_weight_least_played),
+                ),
+                MessageMatchmakerConfig::SetConfigValue(
+                    MatchmakerConfigOption::Nemesis,
+                    format!("{}", config.match_weight_nemesis),
+                ),
+                MessageMatchmakerConfig::SetConfigValue(
+                    MatchmakerConfigOption::LostWith,
+                    format!("{}", config.match_weight_lost_with),
+                ),
+                MessageMatchmakerConfig::SetConfigValue(
+                    MatchmakerConfigOption::EloNeighbor,
+                    format!("{}", config.match_weight_elo_neighbor),
+                ),
+                MessageMatchmakerConfig::SetConfigValue(
+                    MatchmakerConfigOption::WRNeighbor,
+                    format!("{}", config.match_weight_wr_neighbor),
+                ),
+                MessageMatchmakerConfig::SetConfigValue(
+                    MatchmakerConfigOption::ExpectedNeighbor,
+                    format!("{}", config.match_weight_expected_neighbor),
+                ),
+                MessageMatchmakerConfig::Save,
+            ]
+            .map(Into::into),
+        ))?;
+
+        let tourn = app.tournament();
+        let t_config = tourn.config();
+
+        let pairs = [
+            (
+                "Least Played",
+                config.match_weight_least_played,
+                t_config.match_weight_least_played,
+            ),
+            (
+                "Nemesis",
+                config.match_weight_nemesis,
+                t_config.match_weight_nemesis,
+            ),
+            (
+                "Lost With",
+                config.match_weight_lost_with,
+                t_config.match_weight_lost_with,
+            ),
+            (
+                "Elo Neighbor",
+                config.match_weight_elo_neighbor,
+                t_config.match_weight_elo_neighbor,
+            ),
+            (
+                "WR Neighbor",
+                config.match_weight_wr_neighbor,
+                t_config.match_weight_wr_neighbor,
+            ),
+            (
+                "Expected Neighbor",
+                config.match_weight_expected_neighbor,
+                t_config.match_weight_expected_neighbor,
+            ),
+        ];
+
+        for (name, expected, found) in pairs {
+            assert!(
+                approx::abs_diff_eq!(expected, found),
+                "{name} is different: {expected} to {found}"
+            );
+        }
+
+        Ok(())
+    }
 }

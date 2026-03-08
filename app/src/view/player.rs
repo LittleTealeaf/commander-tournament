@@ -4,7 +4,10 @@ use edh_tourn::{
     Tournament,
     error::TournamentError,
     game::record::GameRecord,
-    player::{color::MtgColor, info::PlayerInfo},
+    player::{
+        color::{ColorIdentity, MtgColor},
+        info::PlayerInfo,
+    },
 };
 use iced::{
     Element, Length,
@@ -74,6 +77,7 @@ pub enum ViewPlayerMessage {
     SetName(String),
     EditDescription(text_editor::Action),
     SetMoxfieldId(String),
+    ClearColors,
     ToggleColor(MtgColor),
     ConfirmedDelete,
     Delete,
@@ -138,6 +142,10 @@ impl HandleMessage<ViewPlayerMessage> for App {
             }
             ViewPlayerMessage::SetMoxfieldId(text) => {
                 scene.moxfield = text;
+                Message::done()
+            }
+            ViewPlayerMessage::ClearColors => {
+                scene.info.set_color_identity(ColorIdentity::default());
                 Message::done()
             }
             ViewPlayerMessage::ToggleColor(color) => {
