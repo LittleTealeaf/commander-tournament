@@ -8,7 +8,10 @@ use crate::{
     App,
     logic::file::FileMessage,
     traits::HandleMessage,
-    view::{confirm::ConfirmPromptMessage, home::HomeMessage, player::ViewPlayerMessage},
+    view::{
+        config_matchmaker::MessageMatchmakerConfig, confirm::ConfirmPromptMessage,
+        home::HomeMessage, player::ViewPlayerMessage,
+    },
 };
 
 #[derive(Clone, Default)]
@@ -25,6 +28,7 @@ pub enum Message {
     Home(HomeMessage),
     ViewPlayer(ViewPlayerMessage),
     ConfirmationPrompt(ConfirmPromptMessage),
+    ViewMatchmakerConfig(MessageMatchmakerConfig),
 }
 
 impl Message {
@@ -82,6 +86,7 @@ impl HandleMessage<Message> for App {
                 Ok(Task::none())
             }
             Message::ConfirmationPrompt(msg) => self.update(msg),
+            Message::ViewMatchmakerConfig(msg) => self.update(msg),
         }
     }
 }
