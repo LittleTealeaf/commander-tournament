@@ -13,6 +13,7 @@ use crate::{
     view::{
         config_matchmaker::MessageMatchmakerConfig,
         home::{HomeMessage, matchup::MatchupMessage},
+        player::ViewPlayerMessage,
     },
 };
 
@@ -115,12 +116,14 @@ fn results_table(
     table(
         [
             table::column(text("Player"), |player: u32| {
-                text(
+                button(text(
                     tournament
                         .get_player_name(&player)
                         .cloned()
                         .unwrap_or_default(),
-                )
+                ))
+                .style(button::text)
+                .on_press(ViewPlayerMessage::Open(Some(player)).into())
             }),
             table::column(text("Stats"), |player: u32| {
                 let stats = tournament.get_player_or_default_stats(player);

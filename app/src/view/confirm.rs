@@ -27,6 +27,11 @@ impl ConfirmPrompt {
             on_confirm,
         }
     }
+
+    #[must_use]
+    pub fn title(&self) -> String {
+        self.title.clone()
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
