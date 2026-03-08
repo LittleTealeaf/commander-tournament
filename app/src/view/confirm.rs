@@ -28,8 +28,9 @@ impl ConfirmPrompt {
         }
     }
 
+    #[must_use]
     pub fn title(&self) -> String {
-        self.title.to_owned()
+        self.title.clone()
     }
 }
 

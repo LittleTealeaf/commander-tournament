@@ -29,9 +29,9 @@ pub enum Scene {
 impl Scene {
     pub fn title(&self) -> String {
         match self {
-            Scene::Player(view_player_scene) => view_player_scene.title(),
-            Scene::Confirm(confirm_prompt) => confirm_prompt.title(),
-            Scene::MatchmakerConfig(_) => "Matchmaker Configuration".to_owned(),
+            Self::Player(view_player_scene) => view_player_scene.title(),
+            Self::Confirm(confirm_prompt) => confirm_prompt.title(),
+            Self::MatchmakerConfig(_) => "Matchmaker Configuration".to_owned(),
         }
     }
 }
