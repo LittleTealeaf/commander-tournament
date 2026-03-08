@@ -18,6 +18,7 @@ use crate::{
     },
 };
 
+#[derive(Debug)]
 pub enum Scene {
     Player(ViewPlayerScene),
     Confirm(ConfirmPrompt),

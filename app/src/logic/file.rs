@@ -13,7 +13,7 @@ pub fn accepted_file_types() -> Vec<&'static str> {
     vec!["ron", "json", "toml"]
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum FileMessage {
     LoadFromFile(PathBuf),
     SaveToFile(PathBuf),

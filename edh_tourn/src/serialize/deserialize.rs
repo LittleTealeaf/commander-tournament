@@ -5,7 +5,7 @@ use crate::{
     player::info::PlayerInfo, player::stats::PlayerStats,
 };
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Debug)]
 pub struct SerdeTournament {
     #[serde(alias = "c")]
     config: TournamentConfig,

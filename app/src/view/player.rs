@@ -66,7 +66,7 @@ impl ViewPlayerScene {
         })
     }
 }
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum ViewPlayerMessage {
     Open(Option<u32>),
     SaveAndClose,
