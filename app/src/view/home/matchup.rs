@@ -203,17 +203,20 @@ impl View<MatchupView> for App {
             })
             .width(Length::Fill);
 
-            container(column![
-                row![
-                    selector,
-                    button("").on_press_maybe(
-                        entry
-                            .and_then(|entry| entry.info().moxfield_goldfish_link())
-                            .map(Message::OpenLink)
-                    )
-                ],
-                player_info
-            ])
+            container(
+                column![
+                    row![
+                        selector,
+                        button("").on_press_maybe(
+                            entry
+                                .and_then(|entry| entry.info().moxfield_goldfish_link())
+                                .map(Message::OpenLink)
+                        )
+                    ],
+                    player_info
+                ]
+                .spacing(5),
+            )
             .into()
         });
 

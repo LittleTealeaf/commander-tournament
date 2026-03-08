@@ -173,13 +173,6 @@ impl HandleMessage<ViewPlayerMessage> for App {
 
 impl View<ViewPlayerScene> for App {
     fn view<'a>(&'a self, scene: &'a ViewPlayerScene) -> Element<'a, Message> {
-        let menu_bar = row![
-            space().width(Length::Fill),
-            button(text("Cancel")).on_press(ViewPlayerMessage::Close.into()),
-            button(text("Save")).on_press(ViewPlayerMessage::SaveAndClose.into()),
-        ]
-        .spacing(20);
-
         let title_text = scene
             .name
             .as_ref()
@@ -215,7 +208,13 @@ impl View<ViewPlayerScene> for App {
             column![
                 edit_name,
                 row![edit_moxfieldid, deck_colors].spacing(20),
-                edit_description
+                edit_description,
+                row![
+                    space().width(Length::Fill),
+                    button("Close").on_press(ViewPlayerMessage::Close.into()),
+                    button("Save").on_press(ViewPlayerMessage::SaveAndClose.into())
+                ]
+                .spacing(20)
             ]
             .max_width(700)
             .spacing(20)
@@ -309,9 +308,7 @@ impl View<ViewPlayerScene> for App {
             None => container(info_panel).align_x(Horizontal::Center),
         };
 
-        let bottom_panel = { row![space().width(Length::Fill)] };
-
-        container(column![menu_bar, title, content, bottom_panel].width(Length::Fill)).into()
+        container(column![title, content].spacing(20).width(Length::Fill)).into()
     }
 }
 
