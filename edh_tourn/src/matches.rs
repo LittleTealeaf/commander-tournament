@@ -1,4 +1,4 @@
-use core::cmp::Ordering;
+use core::{cmp::Ordering, fmt::Display};
 use std::collections::HashMap;
 
 use itertools::{Itertools, chain};
@@ -9,6 +9,44 @@ use crate::{
     game::{match_player::MatchPlayer, record::GameRecord},
     player::stats::PlayerStats,
 };
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub enum RankMethod {
+    LeastPlayed,
+    LostWith,
+    Nemesis,
+    EloNeighbors,
+    WRNeighbors,
+    ExpectedNeighbors,
+    #[default]
+    Combined,
+}
+
+impl RankMethod {
+    pub const VALUES: [Self; 7] = [
+        Self::Combined,
+        Self::LeastPlayed,
+        Self::Nemesis,
+        Self::LostWith,
+        Self::EloNeighbors,
+        Self::WRNeighbors,
+        Self::ExpectedNeighbors,
+    ];
+}
+
+impl Display for RankMethod {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Self::LeastPlayed => write!(f, "Least Played"),
+            Self::LostWith => write!(f, "Lost With"),
+            Self::Nemesis => write!(f, "Nemesis"),
+            Self::EloNeighbors => write!(f, "Elo Neighbors"),
+            Self::WRNeighbors => write!(f, "WR Neighbors"),
+            Self::ExpectedNeighbors => write!(f, "Expected Neighbors"),
+            Self::Combined => write!(f, "Combined"),
+        }
+    }
+}
 
 fn with_tie_breaker(cmp: Ordering, tie_breaker: impl Fn() -> Ordering) -> Ordering {
     match cmp {
@@ -255,6 +293,24 @@ impl Tournament {
                 with_tie_breaker(p1_s.total_cmp(p2_s), || p1.cmp(p2))
             })
             .map(|(pid, _)| pid))
+    }
+}
+
+impl Tournament {
+    pub fn ranked_opponents(
+        &self,
+        id: u32,
+        method: RankMethod,
+    ) -> Result<Vec<u32>, TournamentError> {
+        Ok(match method {
+            RankMethod::LeastPlayed => self.rank_least_played(id)?.collect_vec(),
+            RankMethod::LostWith => self.rank_loss_with(id)?.collect_vec(),
+            RankMethod::Nemesis => self.rank_nemesis(id)?.collect_vec(),
+            RankMethod::EloNeighbors => self.rank_elo_neighbors(id)?.collect_vec(),
+            RankMethod::WRNeighbors => self.rank_wr_neighbors(id)?.collect_vec(),
+            RankMethod::ExpectedNeighbors => self.rank_expected_neighbors(id)?.collect_vec(),
+            RankMethod::Combined => self.rank_combined(id)?.collect_vec(),
+        })
     }
 }
 

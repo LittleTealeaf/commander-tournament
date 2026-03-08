@@ -1,6 +1,4 @@
-use core::fmt::Display;
-
-use edh_tourn::Tournament;
+use edh_tourn::{Tournament, matches::RankMethod};
 use iced::{
     Length, Task,
     alignment::Horizontal,
@@ -20,18 +18,16 @@ use crate::{
 
 #[derive(Debug)]
 pub struct MatchMakerView {
-    method: MatchMethod,
+    method: RankMethod,
     player: Option<u32>,
-    leaderboard: Vec<u32>,
     show_count: usize,
 }
 
 impl Default for MatchMakerView {
     fn default() -> Self {
         Self {
-            method: MatchMethod::default(),
+            method: RankMethod::default(),
             player: None,
-            leaderboard: Vec::new(),
             show_count: 7,
         }
     }
@@ -40,110 +36,21 @@ impl Default for MatchMakerView {
 impl MatchMakerView {
     fn get_leaderboard<'a>(&'a self, tournament: &'a Tournament) -> Option<Vec<u32>> {
         self.player.and_then(|id| {
-            Some(match &self.method {
-                MatchMethod::LeastPlayed => tournament
-                    .rank_least_played(id)
+            Some(
+                tournament
+                    .ranked_opponents(id, self.method)
                     .ok()?
+                    .into_iter()
                     .take(self.show_count)
-                    .collect_vec(),
-                MatchMethod::ExpectedNeighbors => tournament
-                    .rank_expected_neighbors(id)
-                    .ok()?
-                    .take(self.show_count)
-                    .collect_vec(),
-                MatchMethod::LossWith => tournament
-                    .rank_loss_with(id)
-                    .ok()?
-                    .take(self.show_count)
-                    .collect_vec(),
-                MatchMethod::Nemesis => tournament
-                    .rank_nemesis(id)
-                    .ok()?
-                    .take(self.show_count)
-                    .collect_vec(),
-                MatchMethod::EloNeighbors => tournament
-                    .rank_elo_neighbors(id)
-                    .ok()?
-                    .take(self.show_count)
-                    .collect_vec(),
-                MatchMethod::WRNeighbors => tournament
-                    .rank_wr_neighbors(id)
-                    .ok()?
-                    .take(self.show_count)
-                    .collect_vec(),
-                MatchMethod::Combined => tournament
-                    .rank_combined(id)
-                    .ok()?
-                    .take(self.show_count)
-                    .collect_vec(),
-            })
+                    .collect(),
+            )
         })
-    }
-
-    fn update(&mut self, tournament: &Tournament) -> anyhow::Result<()> {
-        let Some(id) = self.player else {
-            self.leaderboard = Vec::new();
-            return Ok(());
-        };
-
-        self.leaderboard = match &self.method {
-            MatchMethod::LeastPlayed => tournament.rank_least_played(id)?.collect_vec(),
-            MatchMethod::ExpectedNeighbors => tournament.rank_expected_neighbors(id)?.collect_vec(),
-            MatchMethod::LossWith => tournament.rank_loss_with(id)?.collect_vec(),
-            MatchMethod::Nemesis => tournament.rank_nemesis(id)?.collect_vec(),
-            MatchMethod::EloNeighbors => tournament.rank_elo_neighbors(id)?.collect_vec(),
-            MatchMethod::WRNeighbors => tournament.rank_wr_neighbors(id)?.collect_vec(),
-            MatchMethod::Combined => tournament.rank_combined(id)?.collect_vec(),
-        }
-        .into_iter()
-        .take(self.show_count)
-        .collect_vec();
-
-        Ok(())
-    }
-}
-
-#[derive(Clone, Default, Debug, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum MatchMethod {
-    LeastPlayed,
-    ExpectedNeighbors,
-    LossWith,
-    Nemesis,
-    EloNeighbors,
-    WRNeighbors,
-    #[default]
-    Combined,
-}
-
-impl MatchMethod {
-    pub const VALUES: [Self; 7] = [
-        Self::Combined,
-        Self::LeastPlayed,
-        Self::Nemesis,
-        Self::ExpectedNeighbors,
-        Self::EloNeighbors,
-        Self::WRNeighbors,
-        Self::LossWith,
-    ];
-}
-
-impl Display for MatchMethod {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        match self {
-            Self::LeastPlayed => write!(f, "Least Played"),
-            Self::ExpectedNeighbors => write!(f, "Expected Neighbors"),
-            Self::LossWith => write!(f, "Loss With"),
-            Self::Nemesis => write!(f, "Nemesis"),
-            Self::EloNeighbors => write!(f, "Elo Neighbors"),
-            Self::WRNeighbors => write!(f, "WR Neighbors"),
-            Self::Combined => write!(f, "Combined"),
-        }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum MatchMakerMessage {
-    Method(MatchMethod),
+    Method(RankMethod),
     Player(Option<u32>),
     ViewCount(usize),
     LoadTopThree,
@@ -164,17 +71,14 @@ impl HandleMessage<MatchMakerMessage> for App {
         match msg {
             MatchMakerMessage::Method(match_method) => {
                 view.method = match_method;
-                view.update(&self.tournament)?;
                 Message::done()
             }
             MatchMakerMessage::Player(player) => {
                 view.player = player;
-                view.update(&self.tournament)?;
                 Message::done()
             }
             MatchMakerMessage::ViewCount(count) => {
                 view.show_count = count;
-                view.update(&self.tournament)?;
                 Message::done()
             }
             MatchMakerMessage::LoadTopThree => {
@@ -184,10 +88,10 @@ impl HandleMessage<MatchMakerMessage> for App {
 
                 let matchup_updates = chain!(
                     [MatchupMessage::Clear, MatchupMessage::AddPlayer(id)],
-                    view.leaderboard
-                        .iter()
+                    view.get_leaderboard(&self.tournament)
+                        .unwrap_or_default()
+                        .into_iter()
                         .take(3)
-                        .copied()
                         .map(MatchupMessage::AddPlayer)
                 )
                 .collect_vec();
@@ -224,7 +128,7 @@ impl View<MatchMakerView> for App {
                 )
                 .width(Length::Fill),
                 row![
-                    pick_list(MatchMethod::VALUES, Some(scene.method), |method| {
+                    pick_list(RankMethod::VALUES, Some(scene.method), |method| {
                         MatchMakerMessage::Method(method).into()
                     }),
                     button("Load Top 3").on_press_maybe(

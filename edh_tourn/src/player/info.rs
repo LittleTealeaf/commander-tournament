@@ -32,7 +32,8 @@ pub struct PlayerInfo {
 }
 
 impl PlayerInfo {
-    pub(crate) const fn new(name: String) -> Self {
+    #[must_use]
+    pub const fn new(name: String) -> Self {
         Self {
             name,
             description: String::new(),
@@ -194,6 +195,40 @@ mod tests {
     use itertools::Itertools;
 
     use crate::{Tournament, error::TournamentError, player::info::PlayerInfo};
+
+    const TEST_MOXFIELD_ID: &str = "BtCcQ8eWg0uT8n4fFPK3Xg";
+
+    #[test]
+    fn accepts_moxfield_ids() {
+        let mut info = PlayerInfo::new("hi".to_owned());
+        info.set_moxfield_id(TEST_MOXFIELD_ID.to_owned());
+        assert_eq!(
+            TEST_MOXFIELD_ID,
+            info.moxfield_id().expect("Expected Moxfield ID to Exist")
+        );
+    }
+
+    #[test]
+    fn accepts_moxfield_deck_link() {
+        let mut info = PlayerInfo::new("hi".to_owned());
+        let link = format!("https://moxfield.com/decks/{TEST_MOXFIELD_ID}");
+        info.set_moxfield_id(link);
+        assert_eq!(
+            TEST_MOXFIELD_ID,
+            info.moxfield_id().expect("Expected Moxfield ID to Exist")
+        );
+    }
+
+    #[test]
+    fn accepts_moxfield_goldfish_link() {
+        let mut info = PlayerInfo::new("hi".to_owned());
+        let link = format!("https://moxfield.com/decks/{TEST_MOXFIELD_ID}/goldfish");
+        info.set_moxfield_id(link);
+        assert_eq!(
+            TEST_MOXFIELD_ID,
+            info.moxfield_id().expect("Expected Moxfield ID to Exist")
+        );
+    }
 
     #[test]
     fn set_info_invalid_id() {
