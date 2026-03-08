@@ -7,6 +7,7 @@ use crate::{
     view::Scene,
 };
 
+#[derive(Debug)]
 pub struct ConfirmPrompt {
     text: String,
     on_confirm: Message,

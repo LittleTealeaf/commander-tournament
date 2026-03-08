@@ -14,6 +14,7 @@ use crate::{
     view::Scene,
 };
 
+#[derive(Debug)]
 pub struct ConfigValue {
     value: Option<f64>,
     string: String,
@@ -34,7 +35,7 @@ impl ConfigValue {
     }
 }
 
-#[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub enum MatchmakerConfigOption {
     LeastPlayed,
     Nemesis,
@@ -68,6 +69,7 @@ impl MatchmakerConfigOption {
     ];
 }
 
+#[derive(Debug)]
 pub struct ViewMatchmakerConfig {
     config: TournamentConfig,
     least_played: ConfigValue,
@@ -140,7 +142,7 @@ impl ViewMatchmakerConfig {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum MessageMatchmakerConfig {
     Open,
     Save,

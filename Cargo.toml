@@ -10,6 +10,7 @@ repository = "https://www.github.com/LittleTealeaf/commander-tournament"
 
 [workspace.lints.rust]
 dead_code = "allow"
+missing_debug_implementations = "warn"
 
 [workspace.lints.clippy]
 pedantic = {level = "warn", priority = -1}

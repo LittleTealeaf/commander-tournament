@@ -19,7 +19,7 @@ use crate::{
     view::{Scene, home::HomeState},
 };
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct App {
     tournament: Tournament,
     error: Option<String>,

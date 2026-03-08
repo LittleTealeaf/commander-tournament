@@ -26,7 +26,7 @@ impl Player<'_> {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum LeaderboardColumn {
     Name,
     Elo,

@@ -18,6 +18,7 @@ mod leaderboard;
 mod matchmaker;
 mod matchup;
 
+#[derive(Debug)]
 pub struct HomeState {
     leaderboard_sort_column: LeaderboardColumn,
     leaderboard_sort_asc: bool,
@@ -36,7 +37,7 @@ impl Default for HomeState {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum HomeMessage {
     SortLeaderboardBy(LeaderboardColumn),
     MatchupMessage(MatchupMessage),

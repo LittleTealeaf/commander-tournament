@@ -18,12 +18,14 @@ use crate::{
     },
 };
 
+#[derive(Debug)]
 pub struct MatchMakerView {
     method: MatchMethod,
     player: Option<u32>,
     leaderboard: Vec<u32>,
     show_count: usize,
 }
+
 impl Default for MatchMakerView {
     fn default() -> Self {
         Self {

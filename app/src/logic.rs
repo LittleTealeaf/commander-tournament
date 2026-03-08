@@ -14,7 +14,7 @@ use crate::{
     },
 };
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Debug)]
 pub enum Message {
     #[default]
     None,

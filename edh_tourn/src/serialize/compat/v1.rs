@@ -10,13 +10,13 @@ use crate::{
     player::{color::MtgColor, info::PlayerInfo},
 };
 
-#[derive(Clone, serde::Deserialize)]
+#[derive(Clone, serde::Deserialize, Debug)]
 struct CompatGame {
     players: [String; 4],
     winner: String,
 }
 
-#[derive(Clone, serde::Deserialize)]
+#[derive(Clone, serde::Deserialize, Debug)]
 struct CompatScoreConfig {
     starting_elo: f64,
     game_points: f64,
@@ -26,7 +26,7 @@ struct CompatScoreConfig {
     wr_weight: f64,
 }
 
-#[derive(Clone, serde::Deserialize)]
+#[derive(Clone, serde::Deserialize, Debug)]
 #[allow(clippy::struct_field_names)]
 struct CompatMatchConfig {
     weight_least_played: f64,
@@ -37,21 +37,21 @@ struct CompatMatchConfig {
 }
 
 #[allow(dead_code)]
-#[derive(Clone, serde::Deserialize)]
+#[derive(Clone, serde::Deserialize, Debug)]
 struct CompatPlayerStats {
     elo: f64,
     games: u32,
     wins: u32,
 }
 
-#[derive(Clone, serde::Deserialize)]
+#[derive(Clone, serde::Deserialize, Debug)]
 struct CompatPlayerDetails {
     description: Option<String>,
     moxfield_link: Option<String>,
     colors: Vec<MtgColor>,
 }
 
-#[derive(Clone, serde::Deserialize)]
+#[derive(Clone, serde::Deserialize, Debug)]
 pub struct TournamentCompatV1 {
     players: HashMap<String, CompatPlayerStats>,
     player_details: HashMap<String, CompatPlayerDetails>,
