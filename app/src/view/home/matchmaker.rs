@@ -114,7 +114,7 @@ fn results_table(
 ) -> iced::widget::table::Table<'_, Message> {
     table(
         [
-            table::column(text(""), |player: u32| {
+            table::column(text("Player"), |player: u32| {
                 text(
                     tournament
                         .get_player_name(&player)
@@ -122,7 +122,7 @@ fn results_table(
                         .unwrap_or_default(),
                 )
             }),
-            table::column(text(""), |player: u32| {
+            table::column(text("Stats"), |player: u32| {
                 let stats = tournament.get_player_or_default_stats(player);
                 let elo = stats.elo().round();
                 let wr = stats.wr().map_or_else(
@@ -131,7 +131,7 @@ fn results_table(
                 );
                 text(format!("{elo} Elo, {wr}"))
             }),
-            table::column(text(""), |player: u32| {
+            table::column(text("Add"), |player: u32| {
                 button("+").on_press(MatchupMessage::AddPlayer(player).into())
             }),
         ],

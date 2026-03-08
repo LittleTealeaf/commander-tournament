@@ -157,7 +157,7 @@ impl HandleMessage<ViewPlayerMessage> for App {
             }
             ViewPlayerMessage::Delete => {
                 let name = scene.name.clone().unwrap_or_default();
-                self.scenes.push(Scene::Confirm(ConfirmPrompt::new(format!(
+                self.scenes.push(Scene::Confirm(ConfirmPrompt::new(format!("Delete {name}?"),format!(
                     "Are you sure you want to delete {name}, including any games they participated in?"
                 ),
                     ViewPlayerMessage::ConfirmedDelete.into())));
@@ -301,15 +301,12 @@ impl View<ViewPlayerScene> for App {
             column![view_stats, view_games].spacing(30)
         });
 
-        let content = match deck_progress {
-            Some(view) => container(row![info_panel, view].spacing(40)),
-            None => container(info_panel).align_x(Horizontal::Center),
-        };
-
         let bottom_row = row![
-            button("Delete")
-                .style(button::danger)
-                .on_press(ViewPlayerMessage::Delete.into()),
+            scene.player.is_some().then_some(
+                button("Delete")
+                    .style(button::danger)
+                    .on_press(ViewPlayerMessage::Delete.into())
+            ),
             space().width(Length::Fill),
             button("Close").on_press(ViewPlayerMessage::Close.into()),
             button("Save").on_press(ViewPlayerMessage::SaveAndClose.into())
@@ -317,10 +314,14 @@ impl View<ViewPlayerScene> for App {
         .spacing(20);
 
         container(
-            column![title, content, bottom_row]
-                .spacing(20)
-                .width(Length::Fill)
-                .height(Length::Fill),
+            column![
+                title,
+                row![info_panel, deck_progress].spacing(40),
+                bottom_row
+            ]
+            .spacing(20)
+            .width(Length::Fill)
+            .height(Length::Fill),
         )
         .height(Length::Fill)
         .into()

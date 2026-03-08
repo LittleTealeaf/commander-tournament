@@ -13,14 +13,15 @@ use crate::{
 
 #[derive(Debug)]
 pub struct ConfirmPrompt {
+    title: String,
     text: String,
     on_confirm: Message,
 }
 
 impl ConfirmPrompt {
     #[must_use]
-    pub const fn new(text: String, on_confirm: Message) -> Self {
-        Self { text, on_confirm }
+    pub const fn new(title: String, text: String, on_confirm: Message) -> Self {
+        Self { title, text, on_confirm }
     }
 }
 
@@ -60,7 +61,7 @@ impl View<ConfirmPrompt> for App {
     fn view<'a>(&'a self, scene: &'a ConfirmPrompt) -> iced::Element<'a, Message> {
         center(
             column![
-                text("Are you Sure?").size(25),
+                text(&scene.title).size(25),
                 text(&scene.text),
                 row![
                     button(text("No").align_x(Horizontal::Center))

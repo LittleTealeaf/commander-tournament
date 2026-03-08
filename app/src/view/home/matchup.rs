@@ -275,9 +275,8 @@ impl View<MatchupView> for App {
         let submit = row![
             space().width(Length::Fill),
             results_preview,
-            space().width(0),
             button("Submit").on_press_maybe(
-                (scene.matchup.as_ref().is_some() && scene.winner.is_some())
+                (scene.matchup.is_some() && scene.winner.is_some())
                     .then_some(MatchupMessage::SubmitGame.into())
             ),
             button("󰜺").on_press(MatchupMessage::Clear.into()),
