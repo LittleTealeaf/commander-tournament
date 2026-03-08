@@ -40,7 +40,7 @@ impl App {
             },
         );
 
-        container(screen).into()
+        container(screen).padding(10).into()
     }
 }
 

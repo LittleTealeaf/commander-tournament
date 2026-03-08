@@ -1,4 +1,8 @@
-use iced::widget::{button, center, column, row, text};
+use iced::{
+    Length,
+    alignment::Horizontal,
+    widget::{button, center, column, row, space, text},
+};
 
 use crate::{
     App,
@@ -54,13 +58,24 @@ impl HandleMessage<ConfirmPromptMessage> for App {
 
 impl View<ConfirmPrompt> for App {
     fn view<'a>(&'a self, scene: &'a ConfirmPrompt) -> iced::Element<'a, Message> {
-        center(column![
-            text(&scene.text),
-            row![
-                button("No").on_press(ConfirmPromptMessage::Deny.into()),
-                button("Yes").on_press(ConfirmPromptMessage::Confirm.into())
+        center(
+            column![
+                text("Are you Sure?").size(25),
+                text(&scene.text),
+                row![
+                    button(text("No").align_x(Horizontal::Center))
+                        .on_press(ConfirmPromptMessage::Deny.into())
+                        .width(200),
+                    space().width(Length::Fill),
+                    button(text("Yes").align_x(Horizontal::Center))
+                        .on_press(ConfirmPromptMessage::Confirm.into())
+                        .width(200)
+                ]
+                .width(Length::Fill)
             ]
-        ])
+            .spacing(20)
+            .width(Length::Shrink),
+        )
         .into()
     }
 }

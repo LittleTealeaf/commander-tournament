@@ -210,6 +210,9 @@ impl View<ViewPlayerScene> for App {
                 row![edit_moxfieldid, deck_colors].spacing(20),
                 edit_description,
                 row![
+                    button("Delete")
+                        .style(button::danger)
+                        .on_press(ViewPlayerMessage::Delete.into()),
                     space().width(Length::Fill),
                     button("Close").on_press(ViewPlayerMessage::Close.into()),
                     button("Save").on_press(ViewPlayerMessage::SaveAndClose.into())
