@@ -115,13 +115,7 @@ impl HandleMessage<MessageMatchmakerConfig> for App {
         };
 
         match msg {
-            MessageMatchmakerConfig::Open => {
-                self.scenes
-                    .push(Scene::MatchmakerConfig(ViewMatchmakerConfig::new(
-                        self.tournament().config().clone(),
-                    )));
-                Message::done()
-            }
+            MessageMatchmakerConfig::Open => Message::done(),
             MessageMatchmakerConfig::Save => {
                 let config = scene
                     .get_updated_config()
