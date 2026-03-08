@@ -57,11 +57,12 @@ impl App {
         let content = iter.next().map_or_else(
             || container(self.view(&self.home)),
             |scene| {
-                let nav = iter.rev().map(Scene::title).join("  ");
+                const BREADCRUMB: &str = "  ";
+                let nav = iter.rev().map(Scene::title).join(BREADCRUMB);
                 container(column![
                     (!nav.is_empty()).then_some(column![
                         row![
-                            text(format!("{nav}  {}", scene.title())),
+                            text(format!("{nav}{BREADCRUMB}{}", scene.title())),
                             space().width(Length::Fill),
                             button("Close All")
                                 .style(button::text)
