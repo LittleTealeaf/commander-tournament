@@ -74,21 +74,25 @@ impl HandleMessage<FileMessage> for App {
             ),
             FileMessage::SetOpenedFile(path_buf) => {
                 self.file = Some(path_buf.clone());
-                // persist the new value immediately; ignore failure, nothing we
-                // can do in the UI about it.
-                let _ = crate::config::SystemConfig::update_last_opened(Some(path_buf));
+                if let Err(e) = crate::config::SystemConfig::update_last_opened(Some(path_buf)) {
+                    eprintln!("Failed to update last opened file path: {e}");
+                }
                 Message::done()
             }
             FileMessage::LoadTournamentFromFile(path_buf, tournament) => {
                 self.tournament = *tournament;
                 self.file = Some(path_buf.clone());
-                let _ = crate::config::SystemConfig::update_last_opened(Some(path_buf));
+                if let Err(e) = crate::config::SystemConfig::update_last_opened(Some(path_buf)) {
+                    eprintln!("Failed to update last opened file path: {e}");
+                }
                 Message::done()
             }
             FileMessage::New => {
                 self.tournament = Tournament::default();
                 self.file = None;
-                let _ = crate::config::SystemConfig::update_last_opened(None);
+                if let Err(e) = crate::config::SystemConfig::update_last_opened(None) {
+                    eprintln!("Failed to clear last opened file path: {e}");
+                }
                 Message::done()
             }
         }
@@ -136,8 +140,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use serial_test::serial;
-    use std::{env, io::Write, path::PathBuf};
+    use std::{io::Write, path::PathBuf};
 
     use edh_tourn::Tournament;
     use tempfile::NamedTempFile;

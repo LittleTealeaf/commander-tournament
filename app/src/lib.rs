@@ -37,13 +37,29 @@ impl App {
         let mut app = Self::default();
 
         if let Ok(cfg) = config::SystemConfig::load()
-            && let Some(ref path) = cfg.last_opened
-            && let Ok(file) = File::open(path)
-            && let Ok(tournament) = ron::de::from_reader(&file)
+            && let Some(path) = cfg.last_opened
         {
-            app.tournament = tournament;
-            app.file = Some(path.clone());
-            return app;
+            match File::open(&path) {
+                Ok(file) => match ron::de::from_reader(file) {
+                    Ok(tournament) => {
+                        app.tournament = tournament;
+                        app.file = Some(path);
+                        return app;
+                    }
+                    Err(e) => {
+                        eprintln!(
+                            "Failed to deserialize last opened tournament from {}: {e}",
+                            path.display()
+                        );
+                    }
+                },
+                Err(e) => {
+                    eprintln!(
+                        "Failed to open last opened tournament from {}: {e}",
+                        path.display()
+                    );
+                }
+            }
         }
 
         // fall back to implicit "game.ron" in the current directory for backwards compatibility
