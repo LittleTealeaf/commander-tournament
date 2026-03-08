@@ -27,6 +27,10 @@ impl ConfirmPrompt {
             on_confirm,
         }
     }
+
+    pub fn title(&self) -> String {
+        self.title.to_owned()
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

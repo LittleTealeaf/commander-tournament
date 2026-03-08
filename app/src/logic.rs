@@ -29,6 +29,7 @@ pub enum Message {
     ViewPlayer(ViewPlayerMessage),
     ConfirmationPrompt(ConfirmPromptMessage),
     ViewMatchmakerConfig(MessageMatchmakerConfig),
+    CloseAllScenes,
 }
 
 impl Message {
@@ -92,6 +93,10 @@ impl HandleMessage<Message> for App {
             }
             Message::ConfirmationPrompt(msg) => self.update(msg),
             Message::ViewMatchmakerConfig(msg) => self.update(msg),
+            Message::CloseAllScenes => {
+                self.scenes = Vec::new();
+                Ok(Task::none())
+            }
         }
     }
 }

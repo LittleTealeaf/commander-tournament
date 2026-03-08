@@ -10,7 +10,7 @@ use edh_tourn::{
     },
 };
 use iced::{
-    Element, Length,
+    Element, Length, Padding,
     alignment::{Horizontal, Vertical},
     font,
     widget::{
@@ -67,6 +67,10 @@ impl ViewPlayerScene {
                 info: PlayerInfo::default(),
             },
         })
+    }
+
+    pub fn title(&self) -> String {
+        format!("Player: {}", self.info.name())
     }
 }
 #[derive(Clone, Debug)]
@@ -127,9 +131,7 @@ impl HandleMessage<ViewPlayerMessage> for App {
                         .register_player_with_info(scene.info.clone())?;
                 }
 
-                self.scenes.pop();
-
-                Message::done()
+                self.update(ViewPlayerMessage::Close)
             }
             ViewPlayerMessage::Close => {
                 self.scenes.pop();
@@ -257,14 +259,23 @@ impl View<ViewPlayerScene> for App {
                         table::column("Games", |game: &GameRecord| {
                             column(game.players().iter().map(|player| {
                                 let elo = player.stats().elo().round();
-                                text(self.tournament.get_player_name(&player.id()).map_or_else(
-                                    || format!("({elo}) {}", player.id()),
-                                    |name| format!("({elo}) {name}"),
-                                ))
-                                .font_maybe((player.id() == game.winner()).then_some(font::Font {
-                                    weight: font::Weight::Bold,
-                                    ..default_font()
-                                }))
+                                button(
+                                    text(
+                                        self.tournament.get_player_name(&player.id()).map_or_else(
+                                            || format!("({elo}) {}", player.id()),
+                                            |name| format!("({elo}) {name}"),
+                                        ),
+                                    )
+                                    .font_maybe(
+                                        (player.id() == game.winner()).then_some(font::Font {
+                                            weight: font::Weight::Bold,
+                                            ..default_font()
+                                        }),
+                                    ),
+                                )
+                                .padding(Padding::new(0.0))
+                                .style(button::text)
+                                .on_press(ViewPlayerMessage::Open(Some(player.id())).into())
                                 .into()
                             }))
                         }),
