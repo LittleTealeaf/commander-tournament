@@ -61,4 +61,8 @@ impl App {
     pub const fn tournament(&self) -> &Tournament {
         &self.tournament
     }
+
+    pub const fn tournament_mut(&mut self) -> &mut Tournament {
+        &mut self.tournament
+    }
 }

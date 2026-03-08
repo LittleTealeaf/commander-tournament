@@ -12,7 +12,10 @@ use crate::{
     App,
     logic::Message,
     traits::{HandleMessage, View},
-    view::home::{HomeMessage, matchup::MatchupMessage},
+    view::{
+        config_matchmaker::MessageMatchmakerConfig,
+        home::{HomeMessage, matchup::MatchupMessage},
+    },
 };
 
 pub struct MatchMakerView {
@@ -228,7 +231,7 @@ impl View<MatchMakerView> for App {
                             .is_some()
                             .then_some(MatchMakerMessage::LoadTopThree.into())
                     ),
-                    button("⚙")
+                    button("⚙").on_press(MessageMatchmakerConfig::Open.into())
                 ]
                 .spacing(10),
                 table(

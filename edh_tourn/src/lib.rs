@@ -136,10 +136,7 @@ impl Tournament {
     /// Moves all of the tournament data, systematically, into a new Tournament object.
     /// This is useful as a way around resetting player ids
     pub fn into_fresh(&self) -> Result<Self, TournamentError> {
-        let mut tourn = Self::new();
-
-        // Set Config
-        self.config.clone_into(&mut tourn.config);
+        let mut tourn = Self::new().with_config(self.config.clone())?;
         tourn.snapshot = 0;
 
         let mut id_map = HashMap::new();
@@ -290,7 +287,12 @@ mod tests {
                     continue;
                 };
 
-                assert!((stats.elo() - new_stats.elo()).abs() <= 1e-9);
+                assert!(
+                    (stats.elo() - new_stats.elo()).abs() <= 1e-9,
+                    "Elo Difference, from {} to {}",
+                    stats.elo(),
+                    new_stats.elo()
+                );
             }
         }
 

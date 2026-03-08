@@ -8,7 +8,10 @@ use crate::{
     App,
     logic::file::FileMessage,
     traits::HandleMessage,
-    view::{confirm::ConfirmPromptMessage, home::HomeMessage, player::ViewPlayerMessage},
+    view::{
+        config_matchmaker::MessageMatchmakerConfig, confirm::ConfirmPromptMessage,
+        home::HomeMessage, player::ViewPlayerMessage,
+    },
 };
 
 #[derive(Clone, Default)]
@@ -25,6 +28,7 @@ pub enum Message {
     Home(HomeMessage),
     ViewPlayer(ViewPlayerMessage),
     ConfirmationPrompt(ConfirmPromptMessage),
+    ViewMatchmakerConfig(MessageMatchmakerConfig),
 }
 
 impl Message {
@@ -44,6 +48,11 @@ impl Message {
 
     fn handle_option_fn<T, M: Into<Self>>(on_some: impl Fn(T) -> M) -> impl Fn(Option<T>) -> Self {
         move |option: Option<T>| option.map_or(Self::None, |value| on_some(value).into())
+    }
+
+    #[must_use]
+    pub fn batch<I: IntoIterator<Item = Self>>(messages: I) -> Self {
+        Self::Batch(messages.into_iter().collect())
     }
 }
 
@@ -82,6 +91,7 @@ impl HandleMessage<Message> for App {
                 Ok(Task::none())
             }
             Message::ConfirmationPrompt(msg) => self.update(msg),
+            Message::ViewMatchmakerConfig(msg) => self.update(msg),
         }
     }
 }

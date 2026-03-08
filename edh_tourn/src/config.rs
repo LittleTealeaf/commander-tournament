@@ -65,11 +65,50 @@ impl Tournament {
         self.reload()?;
         Ok(())
     }
+
+    pub fn with_config(mut self, config: TournamentConfig) -> Result<Self, TournamentError> {
+        self.config = config;
+        self.reload()?;
+        Ok(self)
+    }
+}
+
+#[cfg(feature = "dev")]
+impl TournamentConfig {
+    #[must_use]
+    pub fn random(seed: usize) -> Self {
+        use rand::{RngExt, SeedableRng};
+        use rand_chacha::ChaCha8Rng;
+
+        let mut seed_bytes = [0u8; 32];
+        let seed_data = seed.to_le_bytes();
+        seed_bytes
+            .get_mut(..seed_data.len())
+            .expect("Expected Seed Data to Work")
+            .copy_from_slice(&seed_data);
+
+        let mut rng = ChaCha8Rng::from_seed(seed_bytes);
+
+        Self {
+            starting_elo: rng.random_range(1000.0..5000.0),
+            game_points: rng.random_range(10.0..200.0),
+            game_elo_pow_scale: rng.random_range(1.0..5.0),
+            game_wr_pow_scale: rng.random_range(1.0..5.0),
+            game_elo_weight: rng.random_range(1.0..10.0),
+            game_wr_weight: rng.random_range(1.0..10.0),
+            match_weight_least_played: rng.random_range(1.0..20.0),
+            match_weight_nemesis: rng.random_range(1.0..20.0),
+            match_weight_lost_with: rng.random_range(1.0..20.0),
+            match_weight_elo_neighbor: rng.random_range(1.0..20.0),
+            match_weight_wr_neighbor: rng.random_range(1.0..20.0),
+            match_weight_expected_neighbor: rng.random_range(1.0..20.0),
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::Tournament;
+    use crate::{Tournament, config::TournamentConfig};
 
     #[test]
     fn updating_config_updates_stats() {
@@ -93,5 +132,12 @@ mod tests {
         tournament.set_config(config).unwrap();
         let new_version = tournament.snapshot;
         assert_eq!(version + 1, new_version);
+    }
+
+    #[test]
+    fn random_tournament_returns_tournament() {
+        for i in 0..100 {
+            let _ = TournamentConfig::random(i);
+        }
     }
 }

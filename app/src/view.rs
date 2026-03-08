@@ -13,12 +13,15 @@ use crate::{
     App,
     logic::Message,
     traits::View,
-    view::{confirm::ConfirmPrompt, player::ViewPlayerScene},
+    view::{
+        config_matchmaker::ViewMatchmakerConfig, confirm::ConfirmPrompt, player::ViewPlayerScene,
+    },
 };
 
 pub enum Scene {
     Player(ViewPlayerScene),
     Confirm(ConfirmPrompt),
+    MatchmakerConfig(ViewMatchmakerConfig),
 }
 
 impl App {
@@ -32,6 +35,7 @@ impl App {
             |scene| match scene {
                 Scene::Player(scene) => self.view(scene),
                 Scene::Confirm(prompt) => self.view(prompt),
+                Scene::MatchmakerConfig(scene) => self.view(scene),
             },
         );
 
