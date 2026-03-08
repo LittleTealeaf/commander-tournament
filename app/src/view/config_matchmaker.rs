@@ -1,3 +1,5 @@
+use core::fmt::Display;
+
 use anyhow::anyhow;
 use edh_tourn::config::TournamentConfig;
 use iced::{
@@ -26,10 +28,44 @@ impl ConfigValue {
         }
     }
 
-    fn update(&mut self, string: String) {
+    fn set_value(&mut self, string: String) {
         self.value = string.parse::<f64>().ok();
         self.string = string;
     }
+}
+
+#[derive(Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub enum MatchmakerConfigOption {
+    LeastPlayed,
+    Nemesis,
+    LostWith,
+    EloNeighbor,
+    WRNeighbor,
+    ExpectedNeighbor,
+}
+
+impl Display for MatchmakerConfigOption {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Self::LeastPlayed => write!(f, "Weight Least Played"),
+            Self::Nemesis => write!(f, "Weight Nemesis"),
+            Self::LostWith => write!(f, "Weight Lost With"),
+            Self::EloNeighbor => write!(f, "Weight Elo Neighbor"),
+            Self::WRNeighbor => write!(f, "Weight WR Neighbor"),
+            Self::ExpectedNeighbor => write!(f, "Weight Expected Neighbor"),
+        }
+    }
+}
+
+impl MatchmakerConfigOption {
+    const VALUES: [Self; 6] = [
+        Self::LeastPlayed,
+        Self::Nemesis,
+        Self::LostWith,
+        Self::EloNeighbor,
+        Self::WRNeighbor,
+        Self::ExpectedNeighbor,
+    ];
 }
 
 pub struct ViewMatchmakerConfig {
@@ -57,14 +93,38 @@ impl ViewMatchmakerConfig {
     }
 
     #[must_use]
+    const fn get_config_value(&self, option: MatchmakerConfigOption) -> &ConfigValue {
+        match option {
+            MatchmakerConfigOption::LeastPlayed => &self.least_played,
+            MatchmakerConfigOption::Nemesis => &self.nemesis,
+            MatchmakerConfigOption::LostWith => &self.lost_with,
+            MatchmakerConfigOption::EloNeighbor => &self.elo_neighbor,
+            MatchmakerConfigOption::WRNeighbor => &self.wr_neighbor,
+            MatchmakerConfigOption::ExpectedNeighbor => &self.expected_neighbor,
+        }
+    }
+
+    #[must_use]
+    const fn get_config_value_mut(&mut self, option: MatchmakerConfigOption) -> &mut ConfigValue {
+        match option {
+            MatchmakerConfigOption::LeastPlayed => &mut self.least_played,
+            MatchmakerConfigOption::Nemesis => &mut self.nemesis,
+            MatchmakerConfigOption::LostWith => &mut self.lost_with,
+            MatchmakerConfigOption::EloNeighbor => &mut self.elo_neighbor,
+            MatchmakerConfigOption::WRNeighbor => &mut self.wr_neighbor,
+            MatchmakerConfigOption::ExpectedNeighbor => &mut self.expected_neighbor,
+        }
+    }
+
+    #[must_use]
     pub fn get_updated_config(&self) -> Option<TournamentConfig> {
         Some(TournamentConfig {
             match_weight_least_played: self.least_played.value?,
-            match_weight_expected_neighbor: self.expected_neighbor.value?,
-            match_weight_wr_neighbor: self.wr_neighbor.value?,
-            match_weight_elo_neighbor: self.elo_neighbor.value?,
-            match_weight_lost_with: self.lost_with.value?,
             match_weight_nemesis: self.nemesis.value?,
+            match_weight_lost_with: self.lost_with.value?,
+            match_weight_elo_neighbor: self.elo_neighbor.value?,
+            match_weight_wr_neighbor: self.wr_neighbor.value?,
+            match_weight_expected_neighbor: self.expected_neighbor.value?,
             ..self.config
         })
     }
@@ -85,12 +145,7 @@ pub enum MessageMatchmakerConfig {
     Open,
     Save,
     Close,
-    SetLeastPlayed(String),
-    SetNemesis(String),
-    SetLostWith(String),
-    SetEloNeighbor(String),
-    SetWRNeighbor(String),
-    SetExpectedNeighbor(String),
+    SetConfigValue(MatchmakerConfigOption, String),
 }
 
 impl From<MessageMatchmakerConfig> for Message {
@@ -128,28 +183,9 @@ impl HandleMessage<MessageMatchmakerConfig> for App {
                 self.scenes.pop();
                 Message::done()
             }
-            MessageMatchmakerConfig::SetLeastPlayed(txt) => {
-                scene.least_played.update(txt);
-                Message::done()
-            }
-            MessageMatchmakerConfig::SetNemesis(txt) => {
-                scene.nemesis.update(txt);
-                Message::done()
-            }
-            MessageMatchmakerConfig::SetLostWith(txt) => {
-                scene.lost_with.update(txt);
-                Message::done()
-            }
-            MessageMatchmakerConfig::SetEloNeighbor(txt) => {
-                scene.elo_neighbor.update(txt);
-                Message::done()
-            }
-            MessageMatchmakerConfig::SetWRNeighbor(txt) => {
-                scene.wr_neighbor.update(txt);
-                Message::done()
-            }
-            MessageMatchmakerConfig::SetExpectedNeighbor(txt) => {
-                scene.expected_neighbor.update(txt);
+            MessageMatchmakerConfig::SetConfigValue(option, value) => {
+                let config = scene.get_config_value_mut(option);
+                config.set_value(value);
                 Message::done()
             }
         }
@@ -184,36 +220,21 @@ impl View<ViewMatchmakerConfig> for App {
                         .size(25),
                     space().height(20),
                     rule::horizontal(2),
-                    config_row(
-                        "Weight Least Played",
-                        &scene.least_played,
-                        MessageMatchmakerConfig::SetLeastPlayed
-                    ),
-                    config_row(
-                        "Weight Nemesis",
-                        &scene.nemesis,
-                        MessageMatchmakerConfig::SetNemesis
-                    ),
-                    config_row(
-                        "Weight Lost With",
-                        &scene.lost_with,
-                        MessageMatchmakerConfig::SetLostWith
-                    ),
-                    config_row(
-                        "Weight Elo Neighbor",
-                        &scene.elo_neighbor,
-                        MessageMatchmakerConfig::SetEloNeighbor
-                    ),
-                    config_row(
-                        "Weight WR Neighbor",
-                        &scene.wr_neighbor,
-                        MessageMatchmakerConfig::SetWRNeighbor
-                    ),
-                    config_row(
-                        "Weight Expected Neighbor",
-                        &scene.expected_neighbor,
-                        MessageMatchmakerConfig::SetExpectedNeighbor
-                    ),
+                    column(MatchmakerConfigOption::VALUES.map(|option| {
+                        let value = scene.get_config_value(option);
+                        row![
+                            text(format!("{option}"))
+                                .color_maybe(value.value.is_none().then_some(color!(0x0088_0808))),
+                            text_input("Config Value", value.string.as_str()).on_input(
+                                move |string| {
+                                    MessageMatchmakerConfig::SetConfigValue(option, string).into()
+                                }
+                            )
+                        ]
+                        .spacing(15)
+                        .align_y(Alignment::Center)
+                        .into()
+                    })),
                     row![
                         button("Cancel").on_press(MessageMatchmakerConfig::Close.into()),
                         space().width(Length::Fill),
