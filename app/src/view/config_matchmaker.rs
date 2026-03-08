@@ -197,21 +197,7 @@ impl View<ViewMatchmakerConfig> for App {
         &'a self,
         scene: &'a ViewMatchmakerConfig,
     ) -> iced::Element<'a, crate::logic::Message> {
-        fn config_row<'a>(
-            name: &'a str,
-            value: &ConfigValue,
-            on_submit: impl Fn(String) -> MessageMatchmakerConfig + 'a,
-        ) -> iced::Element<'a, crate::logic::Message> {
-            row![
-                text(name).color_maybe(value.value.is_none().then_some(color!(0x0088_0808))),
-                text_input("Config Value", value.string.as_str())
-                    .on_input(move |string| on_submit(string).into())
-            ]
-            .spacing(15)
-            .align_y(Alignment::Center)
-            .into()
-        }
-
+        const INVALID_INPUT_COLOR: iced::Color = color!(0x0088_0808);
         container(
             container(
                 column![
@@ -224,7 +210,7 @@ impl View<ViewMatchmakerConfig> for App {
                         let value = scene.get_config_value(option);
                         row![
                             text(format!("{option}"))
-                                .color_maybe(value.value.is_none().then_some(color!(0x0088_0808))),
+                                .color_maybe(value.value.is_none().then_some(INVALID_INPUT_COLOR)),
                             text_input("Config Value", value.string.as_str()).on_input(
                                 move |string| {
                                     MessageMatchmakerConfig::SetConfigValue(option, string).into()
