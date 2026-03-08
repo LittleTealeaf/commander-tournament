@@ -9,6 +9,7 @@ use crate::{
 pub mod color;
 pub mod info;
 pub mod stats;
+pub mod ranking;
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct RegisteredPlayer<'a> {

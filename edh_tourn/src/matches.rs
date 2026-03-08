@@ -6,7 +6,6 @@ use itertools::{Itertools, chain};
 use crate::{
     Tournament,
     error::TournamentError,
-    game::{match_player::MatchPlayer, record::GameRecord},
     player::stats::PlayerStats,
 };
 
@@ -74,51 +73,22 @@ fn to_weight_rank(
 }
 
 impl Tournament {
-    fn ensure_id_registered(&self, id: u32) -> Result<(), TournamentError> {
+    fn ensure_id_registered_old(&self, id: u32) -> Result<(), TournamentError> {
         if !self.is_id_registered(&id) {
             return Err(TournamentError::InvalidPlayerId(id));
         }
         Ok(())
     }
 
-    fn get_elo(&self, id: u32) -> f64 {
+    fn get_elo_old(&self, id: u32) -> f64 {
         self.get_player_stats(id)
             .map_or(self.config.starting_elo, PlayerStats::elo)
     }
 
-    fn get_wr(&self, id: u32) -> f64 {
+    fn get_wr_old(&self, id: u32) -> f64 {
         self.get_player_stats(id)
             .and_then(PlayerStats::wr)
             .unwrap_or(0.25)
-    }
-
-    pub fn rank_least_played(&self, id: u32) -> Result<impl Iterator<Item = u32>, TournamentError> {
-        self.ensure_id_registered(id)?;
-
-        let games = self.games().iter().filter(|game| game.has_player(id));
-
-        let players = games.flat_map(GameRecord::players);
-        let player_ids = players.map(MatchPlayer::id);
-        let mut counts = player_ids.counts();
-        for player in self.players.keys() {
-            if !counts.contains_key(player) {
-                counts.insert(*player, 0);
-            }
-        }
-
-        counts.remove(&id);
-
-        let cmp_elo = self.get_elo(id);
-
-        Ok(counts
-            .into_iter()
-            .map(|(id, count)| (id, count, (cmp_elo - self.get_elo(id)).abs()))
-            .sorted_by(|(id1, c1, elo1), (id2, c2, elo2)| {
-                with_tie_breaker(c1.cmp(c2), || {
-                    with_tie_breaker(elo1.total_cmp(elo2), || id1.cmp(id2))
-                })
-            })
-            .map(|(id, _, _)| id))
     }
 
     pub fn rank_expected_neighbors(
@@ -130,7 +100,7 @@ impl Tournament {
             wr: f64,
         }
 
-        self.ensure_id_registered(id)?;
+        self.ensure_id_registered_old(id)?;
 
         let mut players = HashMap::new();
 
@@ -167,7 +137,7 @@ impl Tournament {
     }
 
     pub fn rank_nemesis(&self, id: u32) -> Result<impl Iterator<Item = u32>, TournamentError> {
-        self.ensure_id_registered(id)?;
+        self.ensure_id_registered_old(id)?;
 
         let mut counts = self
             .players
@@ -188,7 +158,7 @@ impl Tournament {
 
         Ok(counts
             .into_iter()
-            .map(|(id, score)| (id, score, self.get_elo(id)))
+            .map(|(id, score)| (id, score, self.get_elo_old(id)))
             .sorted_by(|(id1, s1, e1), (id2, s2, e2)| {
                 with_tie_breaker(s1.cmp(s2), || {
                     with_tie_breaker(e1.total_cmp(e2), || id1.cmp(id2))
@@ -198,7 +168,7 @@ impl Tournament {
     }
 
     pub fn rank_loss_with(&self, id: u32) -> Result<impl Iterator<Item = u32>, TournamentError> {
-        self.ensure_id_registered(id)?;
+        self.ensure_id_registered_old(id)?;
 
         let mut counts = self
             .players
@@ -237,27 +207,27 @@ impl Tournament {
         &self,
         id: u32,
     ) -> Result<impl Iterator<Item = u32>, TournamentError> {
-        self.ensure_id_registered(id)?;
-        let elo = self.get_elo(id);
+        self.ensure_id_registered_old(id)?;
+        let elo = self.get_elo_old(id);
 
         Ok(self
             .players
             .keys()
             .filter(|pid| id != **pid)
-            .map(|pid| (*pid, (self.get_elo(*pid) - elo).abs()))
+            .map(|pid| (*pid, (self.get_elo_old(*pid) - elo).abs()))
             .sorted_by(|(i1, d1), (i2, d2)| with_tie_breaker(d1.total_cmp(d2), || i1.cmp(i2)))
             .map(|(i, _)| i))
     }
 
     pub fn rank_wr_neighbors(&self, id: u32) -> Result<impl Iterator<Item = u32>, TournamentError> {
-        self.ensure_id_registered(id)?;
-        let wr = self.get_wr(id);
+        self.ensure_id_registered_old(id)?;
+        let wr = self.get_wr_old(id);
 
         Ok(self
             .players
             .keys()
             .filter(|pid| id != **pid)
-            .map(|pid| (*pid, (self.get_wr(*pid) - wr).abs()))
+            .map(|pid| (*pid, (self.get_wr_old(*pid) - wr).abs()))
             .sorted_by(|(i1, d1), (i2, d2)| with_tie_breaker(d1.total_cmp(d2), || i1.cmp(i2)))
             .map(|(i, _)| i))
     }
@@ -265,7 +235,7 @@ impl Tournament {
     pub fn rank_combined(&self, id: u32) -> Result<impl Iterator<Item = u32>, TournamentError> {
         let scores = chain!(
             to_weight_rank(
-                self.rank_least_played(id)?,
+                self.ranked_least_played(id)?.map(Into::into),
                 self.config.match_weight_least_played
             ),
             to_weight_rank(self.rank_nemesis(id)?, self.config.match_weight_nemesis),
@@ -303,7 +273,7 @@ impl Tournament {
         method: RankMethod,
     ) -> Result<Vec<u32>, TournamentError> {
         Ok(match method {
-            RankMethod::LeastPlayed => self.rank_least_played(id)?.collect_vec(),
+            RankMethod::LeastPlayed => self.ranked_least_played(id)?.map(Into::into).collect_vec(),
             RankMethod::LostWith => self.rank_loss_with(id)?.collect_vec(),
             RankMethod::Nemesis => self.rank_nemesis(id)?.collect_vec(),
             RankMethod::EloNeighbors => self.rank_elo_neighbors(id)?.collect_vec(),
@@ -342,7 +312,6 @@ mod tests {
         };
     }
 
-    rank_tests!(rank_least_played);
     rank_tests!(rank_nemesis);
     rank_tests!(rank_loss_with);
     rank_tests!(rank_elo_neighbors);
