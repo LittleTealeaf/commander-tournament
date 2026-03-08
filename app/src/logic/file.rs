@@ -198,11 +198,14 @@ mod tests {
     #[test]
     fn set_opened_file_updates_config() {
         let tmp = tempfile::tempdir().unwrap();
-        unsafe { env::set_var("XDG_CONFIG_HOME", tmp.path()); }
+        unsafe {
+            env::set_var("XDG_CONFIG_HOME", tmp.path());
+        }
 
         let mut app = App::default();
         let path = PathBuf::from("/some/path.ron");
-        app.test_update(FileMessage::SetOpenedFile(path.clone())).unwrap();
+        app.test_update(FileMessage::SetOpenedFile(path.clone()))
+            .unwrap();
         let cfg = crate::config::SystemConfig::load().unwrap();
         assert_eq!(cfg.last_opened, Some(path));
     }
@@ -211,7 +214,9 @@ mod tests {
     #[test]
     fn new_clears_config() {
         let tmp = tempfile::tempdir().unwrap();
-        unsafe { env::set_var("XDG_CONFIG_HOME", tmp.path()); }
+        unsafe {
+            env::set_var("XDG_CONFIG_HOME", tmp.path());
+        }
 
         // populate existing config
         crate::config::SystemConfig::update_last_opened(Some(PathBuf::from("foo"))).unwrap();

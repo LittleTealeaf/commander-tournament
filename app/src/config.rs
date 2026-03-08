@@ -1,6 +1,6 @@
 use std::{fs, path::PathBuf};
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 
@@ -26,7 +26,7 @@ impl SystemConfig {
             .ok_or_else(|| anyhow!("unable to determine project directories"))?;
         let cfg_dir = proj.config_dir();
         fs::create_dir_all(cfg_dir)
-            .with_context(|| format!("creating config directory {:?}", cfg_dir))?;
+            .with_context(|| format!("creating config directory {}", cfg_dir.display()))?;
         Ok(cfg_dir.join("config.ron"))
     }
 
@@ -39,9 +39,9 @@ impl SystemConfig {
         }
 
         let file = fs::File::open(&path)
-            .with_context(|| format!("opening config file {:?}", path))?;
+            .with_context(|| format!("opening config file {}", path.display()))?;
         let cfg: Self = ron::de::from_reader(file)
-            .with_context(|| format!("deserializing config from {:?}", path))?;
+            .with_context(|| format!("deserializing config from {}", path.display()))?;
         Ok(cfg)
     }
 
@@ -49,10 +49,9 @@ impl SystemConfig {
     /// necessary.
     pub fn save(&self) -> Result<()> {
         let path = Self::config_path()?;
-        let serialized = ron::to_string(self)
-            .context("serializing system configuration")?;
+        let serialized = ron::to_string(self).context("serializing system configuration")?;
         fs::write(&path, serialized)
-            .with_context(|| format!("writing config file {:?}", path))?;
+            .with_context(|| format!("writing config file {}", path.display()))?;
         Ok(())
     }
 
@@ -70,17 +69,23 @@ mod tests {
     use std::env;
     use tempfile::tempdir;
 
-    /// run a closure with a temporary XDG_CONFIG_HOME set; restore the old
+    /// run a closure with a temporary `XDG_CONFIG_HOME` set; restore the old
     /// value afterwards.
     fn with_temp_xdg<T>(f: impl FnOnce() -> T) -> T {
         let tmp = tempdir().unwrap();
         let old = env::var_os("XDG_CONFIG_HOME");
-        unsafe { env::set_var("XDG_CONFIG_HOME", tmp.path()); }
+        unsafe {
+            env::set_var("XDG_CONFIG_HOME", tmp.path());
+        }
         let res = f();
         if let Some(old) = old {
-            unsafe { env::set_var("XDG_CONFIG_HOME", old); }
+            unsafe {
+                env::set_var("XDG_CONFIG_HOME", old);
+            }
         } else {
-            unsafe { env::remove_var("XDG_CONFIG_HOME"); }
+            unsafe {
+                env::remove_var("XDG_CONFIG_HOME");
+            }
         }
         res
     }
@@ -110,8 +115,9 @@ mod tests {
     #[test]
     fn save_and_load_roundtrip() {
         with_temp_xdg(|| {
-            let mut cfg = SystemConfig::default();
-            cfg.last_opened = Some(PathBuf::from("/some/file"));
+            let cfg = SystemConfig {
+                last_opened: Some(PathBuf::from("/some/file")),
+            };
             cfg.save().unwrap();
             let loaded = SystemConfig::load().unwrap();
             assert_eq!(cfg, loaded);
@@ -125,7 +131,10 @@ mod tests {
             // start with no config file
             assert_eq!(SystemConfig::load().unwrap().last_opened, None);
             SystemConfig::update_last_opened(Some(PathBuf::from("foo"))).unwrap();
-            assert_eq!(SystemConfig::load().unwrap().last_opened, Some(PathBuf::from("foo")));
+            assert_eq!(
+                SystemConfig::load().unwrap().last_opened,
+                Some(PathBuf::from("foo"))
+            );
             SystemConfig::update_last_opened(None).unwrap();
             assert_eq!(SystemConfig::load().unwrap().last_opened, None);
         });

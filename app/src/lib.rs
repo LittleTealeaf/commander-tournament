@@ -36,16 +36,14 @@ impl App {
         // attempt to load the last-opened file from the system config first
         let mut app = Self::default();
 
-        if let Ok(cfg) = config::SystemConfig::load() {
-            if let Some(ref path) = cfg.last_opened {
-                if let Ok(file) = File::open(path) {
-                    if let Ok(tournament) = ron::de::from_reader(&file) {
-                        app.tournament = tournament;
-                        app.file = Some(path.clone());
-                        return app;
-                    }
-                }
-            }
+        if let Ok(cfg) = config::SystemConfig::load()
+            && let Some(ref path) = cfg.last_opened
+            && let Ok(file) = File::open(path)
+            && let Ok(tournament) = ron::de::from_reader(&file)
+        {
+            app.tournament = tournament;
+            app.file = Some(path.clone());
+            return app;
         }
 
         // fall back to implicit "game.ron" in the current directory for backwards compatibility
@@ -94,7 +92,9 @@ mod boot_tests {
     fn boot_prefers_config() {
         // point config directory at a temp location
         let tmp = tempfile::tempdir().unwrap();
-        unsafe { env::set_var("XDG_CONFIG_HOME", tmp.path()); }
+        unsafe {
+            env::set_var("XDG_CONFIG_HOME", tmp.path());
+        }
 
         let tournament = Tournament::sample_game();
         let mut file = NamedTempFile::new().unwrap();
@@ -112,11 +112,13 @@ mod boot_tests {
         }
 
         // write a config that refers to our temp file
-        let cfg = config::SystemConfig { last_opened: Some(pathbuf.clone()) };
+        let cfg = config::SystemConfig {
+            last_opened: Some(pathbuf.clone()),
+        };
         cfg.save().unwrap();
 
         let app = App::boot();
-        assert_eq!(app.file, Some(pathbuf.clone()));
+        assert_eq!(app.file.as_ref(), Some(&pathbuf));
         assert_eq!(app.tournament, tournament);
     }
 }
