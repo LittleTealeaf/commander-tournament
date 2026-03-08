@@ -2,6 +2,7 @@
 #[macro_use]
 extern crate approx;
 
+pub mod analytics;
 pub mod config;
 #[cfg(feature = "dev")]
 pub mod dev;
@@ -10,7 +11,6 @@ pub mod game;
 pub mod player;
 pub mod serialize;
 pub mod tsv;
-pub mod analytics;
 
 use std::collections::HashMap;
 

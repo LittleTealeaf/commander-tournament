@@ -103,7 +103,8 @@ impl Tournament {
 
             let coef_elo = weight_elo / (elo_scaled + elo_t);
 
-            let expected = (weight_wr / (wr_scaled + wr_t)).mul_add(wr_scaled, coef_elo * elo_scaled);
+            let expected =
+                (weight_wr / (wr_scaled + wr_t)).mul_add(wr_scaled, coef_elo * elo_scaled);
 
             (player, abs_diff(expected, 0.5))
         });
