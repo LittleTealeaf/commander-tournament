@@ -1,4 +1,4 @@
-use edh_tourn::{Tournament, matches::RankMethod};
+use edh_tourn::{Tournament, analytics::ranking::RankingMethod, player::RegisteredPlayer};
 use iced::{
     Length, Task,
     alignment::Horizontal,
@@ -19,7 +19,7 @@ use crate::{
 
 #[derive(Debug)]
 pub struct MatchMakerView {
-    method: RankMethod,
+    method: RankingMethod,
     player: Option<u32>,
     show_count: usize,
 }
@@ -27,7 +27,7 @@ pub struct MatchMakerView {
 impl Default for MatchMakerView {
     fn default() -> Self {
         Self {
-            method: RankMethod::default(),
+            method: RankingMethod::default(),
             player: None,
             show_count: 7,
         }
@@ -35,11 +35,14 @@ impl Default for MatchMakerView {
 }
 
 impl MatchMakerView {
-    fn get_leaderboard<'a>(&'a self, tournament: &'a Tournament) -> Option<Vec<u32>> {
+    fn get_leaderboard<'a>(
+        &'a self,
+        tournament: &'a Tournament,
+    ) -> Option<Vec<RegisteredPlayer<'a>>> {
         self.player.and_then(|id| {
             Some(
                 tournament
-                    .ranked_opponents(id, self.method)
+                    .get_player_ranked(id, self.method)
                     .ok()?
                     .into_iter()
                     .take(self.show_count)
@@ -51,7 +54,7 @@ impl MatchMakerView {
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum MatchMakerMessage {
-    Method(RankMethod),
+    Method(RankingMethod),
     Player(Option<u32>),
     ViewCount(usize),
     LoadTopThree,
@@ -93,6 +96,7 @@ impl HandleMessage<MatchMakerMessage> for App {
                         .unwrap_or_default()
                         .into_iter()
                         .take(3)
+                        .map(|player| player.id())
                         .map(MatchupMessage::AddPlayer)
                 )
                 .collect_vec();
@@ -109,33 +113,24 @@ impl HandleMessage<MatchMakerMessage> for App {
     }
 }
 
-fn results_table(
-    results: Vec<u32>,
-    tournament: &Tournament,
-) -> iced::widget::table::Table<'_, Message> {
+fn results_table(results: Vec<RegisteredPlayer<'_>>) -> iced::widget::table::Table<'_, Message> {
     table(
         [
-            table::column(text("Player"), |player: u32| {
-                button(text(
-                    tournament
-                        .get_player_name(&player)
-                        .cloned()
-                        .unwrap_or_default(),
-                ))
-                .style(button::text)
-                .on_press(ViewPlayerMessage::Open(Some(player)).into())
+            table::column(text("Player"), |player: RegisteredPlayer<'_>| {
+                button(text(player.info().name().clone()))
+                    .style(button::text)
+                    .on_press(ViewPlayerMessage::Open(Some(player.id())).into())
             }),
-            table::column(text("Stats"), |player: u32| {
-                let stats = tournament.get_player_or_default_stats(player);
-                let elo = stats.elo().round();
-                let wr = stats.wr().map_or_else(
+            table::column(text("Stats"), |player: RegisteredPlayer<'_>| {
+                let elo = player.stats().elo().round();
+                let wr = player.stats().wr().map_or_else(
                     || "--% WR".to_owned(),
                     |wr| format!("{}% WR", (wr * 100.0).round()),
                 );
                 text(format!("{elo} Elo, {wr}"))
             }),
-            table::column(text("Add"), |player: u32| {
-                button("+").on_press(MatchupMessage::AddPlayer(player).into())
+            table::column(text("Add"), |player: RegisteredPlayer<'_>| {
+                button("+").on_press(MatchupMessage::AddPlayer(player.id()).into())
             }),
         ],
         results,
@@ -162,7 +157,7 @@ impl View<MatchMakerView> for App {
                 )
                 .width(Length::Fill),
                 row![
-                    pick_list(RankMethod::VALUES, Some(scene.method), |method| {
+                    pick_list(RankingMethod::VALUES, Some(scene.method), |method| {
                         MatchMakerMessage::Method(method).into()
                     }),
                     space().width(Length::Fill),
@@ -175,11 +170,8 @@ impl View<MatchMakerView> for App {
                     button("⚙").on_press(MessageMatchmakerConfig::Open.into())
                 ]
                 .spacing(10),
-                results_table(
-                    scene.get_leaderboard(self.tournament()).unwrap_or_default(),
-                    self.tournament()
-                )
-                .width(Length::Fill)
+                results_table(scene.get_leaderboard(self.tournament()).unwrap_or_default())
+                    .width(Length::Fill)
             ]
             .spacing(10),
         )

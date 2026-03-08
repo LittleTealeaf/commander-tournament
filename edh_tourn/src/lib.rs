@@ -2,12 +2,12 @@
 #[macro_use]
 extern crate approx;
 
+pub mod analytics;
 pub mod config;
 #[cfg(feature = "dev")]
 pub mod dev;
 pub mod error;
 pub mod game;
-pub mod matches;
 pub mod player;
 pub mod serialize;
 pub mod tsv;
