@@ -106,6 +106,9 @@ impl HandleMessage<ViewPlayerMessage> for App {
 
         match msg {
             ViewPlayerMessage::Open(maybe_id) => {
+                if maybe_id.is_some() && maybe_id == scene.player {
+                    return Message::done();
+                }
                 self.scenes.push(Scene::Player(ViewPlayerScene::new(
                     &self.tournament,
                     maybe_id,
@@ -209,15 +212,6 @@ impl View<ViewPlayerScene> for App {
                 edit_name,
                 row![edit_moxfieldid, deck_colors].spacing(20),
                 edit_description,
-                row![
-                    button("Delete")
-                        .style(button::danger)
-                        .on_press(ViewPlayerMessage::Delete.into()),
-                    space().width(Length::Fill),
-                    button("Close").on_press(ViewPlayerMessage::Close.into()),
-                    button("Save").on_press(ViewPlayerMessage::SaveAndClose.into())
-                ]
-                .spacing(20)
             ]
             .max_width(700)
             .spacing(20)
@@ -260,7 +254,7 @@ impl View<ViewPlayerScene> for App {
             let view_games = scrollable(
                 table(
                     [
-                        table::column("Competitors", |game: &GameRecord| {
+                        table::column("Games", |game: &GameRecord| {
                             column(game.players().iter().map(|player| {
                                 let elo = player.stats().elo().round();
                                 text(self.tournament.get_player_name(&player.id()).map_or_else(
@@ -301,7 +295,8 @@ impl View<ViewPlayerScene> for App {
                 )
                 .width(Length::Fill),
             )
-            .width(Length::Fill);
+            .width(Length::Fill)
+            .height(Length::Fill);
 
             column![view_stats, view_games].spacing(30)
         });
@@ -311,7 +306,24 @@ impl View<ViewPlayerScene> for App {
             None => container(info_panel).align_x(Horizontal::Center),
         };
 
-        container(column![title, content].spacing(20).width(Length::Fill)).into()
+        let bottom_row = row![
+            button("Delete")
+                .style(button::danger)
+                .on_press(ViewPlayerMessage::Delete.into()),
+            space().width(Length::Fill),
+            button("Close").on_press(ViewPlayerMessage::Close.into()),
+            button("Save").on_press(ViewPlayerMessage::SaveAndClose.into())
+        ]
+        .spacing(20);
+
+        container(
+            column![title, content, bottom_row]
+                .spacing(20)
+                .width(Length::Fill)
+                .height(Length::Fill),
+        )
+        .height(Length::Fill)
+        .into()
     }
 }
 
