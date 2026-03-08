@@ -73,17 +73,22 @@ impl HandleMessage<FileMessage> for App {
                     .map_or(FileMessage::SaveAs, FileMessage::SaveToFile),
             ),
             FileMessage::SetOpenedFile(path_buf) => {
-                self.file = Some(path_buf);
+                self.file = Some(path_buf.clone());
+                // persist the new value immediately; ignore failure, nothing we
+                // can do in the UI about it.
+                let _ = crate::config::SystemConfig::update_last_opened(Some(path_buf));
                 Message::done()
             }
             FileMessage::LoadTournamentFromFile(path_buf, tournament) => {
                 self.tournament = *tournament;
-                self.file = Some(path_buf);
+                self.file = Some(path_buf.clone());
+                let _ = crate::config::SystemConfig::update_last_opened(Some(path_buf));
                 Message::done()
             }
             FileMessage::New => {
                 self.tournament = Tournament::default();
                 self.file = None;
+                let _ = crate::config::SystemConfig::update_last_opened(None);
                 Message::done()
             }
         }
@@ -131,7 +136,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::{io::Write, path::PathBuf};
+    use serial_test::serial;
+    use std::{env, io::Write, path::PathBuf};
 
     use edh_tourn::Tournament;
     use tempfile::NamedTempFile;
@@ -186,6 +192,34 @@ mod tests {
         ))
         .unwrap();
         assert_eq!(Some(temp_file.path().to_path_buf()), app.file);
+    }
+
+    #[serial]
+    #[test]
+    fn set_opened_file_updates_config() {
+        let tmp = tempfile::tempdir().unwrap();
+        unsafe { env::set_var("XDG_CONFIG_HOME", tmp.path()); }
+
+        let mut app = App::default();
+        let path = PathBuf::from("/some/path.ron");
+        app.test_update(FileMessage::SetOpenedFile(path.clone())).unwrap();
+        let cfg = crate::config::SystemConfig::load().unwrap();
+        assert_eq!(cfg.last_opened, Some(path));
+    }
+
+    #[serial]
+    #[test]
+    fn new_clears_config() {
+        let tmp = tempfile::tempdir().unwrap();
+        unsafe { env::set_var("XDG_CONFIG_HOME", tmp.path()); }
+
+        // populate existing config
+        crate::config::SystemConfig::update_last_opened(Some(PathBuf::from("foo"))).unwrap();
+
+        let mut app = App::default();
+        app.test_update(FileMessage::New).unwrap();
+        let cfg = crate::config::SystemConfig::load().unwrap();
+        assert!(cfg.last_opened.is_none());
     }
 
     #[test]
