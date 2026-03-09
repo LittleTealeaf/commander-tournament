@@ -1,11 +1,9 @@
-use std::{
-    fs::File,
-    path::{Path, PathBuf},
-};
+use std::path::PathBuf;
 
 use edh_tourn::Tournament;
 use iced::Task;
 
+pub mod config;
 pub mod fonts;
 pub mod logic;
 #[cfg(feature = "dev")]
@@ -14,7 +12,8 @@ pub mod traits;
 pub mod view;
 
 use crate::{
-    logic::Message,
+    config::AppConfig,
+    logic::{Message, file::load_tournament_sync},
     traits::HandleMessage,
     view::{Scene, home::HomeState},
 };
@@ -26,24 +25,23 @@ pub struct App {
     file: Option<PathBuf>,
     home: HomeState,
     scenes: Vec<Scene>,
+    config: Option<AppConfig>,
 }
 
 impl App {
     #[must_use]
     pub fn boot() -> Self {
-        if Path::new("game.ron").exists()
-            && let Ok(file) = File::open("game.ron")
-            && let Ok(tournament) = ron::de::from_reader(file)
-        {
-            return Self {
-                tournament,
-                file: Some(Path::new("game.ron").to_path_buf()),
+        let config = AppConfig::load().ok();
+        let tourn = config.as_ref().and_then(|config| {
+            let path = config.last_opened()?;
+            load_tournament_sync(path).ok()
+        });
 
-                ..Self::default()
-            };
+        Self {
+            config,
+            tournament: tourn.unwrap_or_default(),
+            ..Self::default()
         }
-
-        Self::default()
     }
 
     pub fn updater(&mut self, message: Message) -> Task<Message> {

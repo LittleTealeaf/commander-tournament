@@ -20,6 +20,7 @@ ron = "0.12.0"
 toml = "1.0.6"
 thiserror = "2.0.18"
 edh_tourn = {path = "../edh_tourn/"}
+directories = "6.0.0"
 
 [dev-dependencies]
 app = {path = ".", features = ["dev"]}

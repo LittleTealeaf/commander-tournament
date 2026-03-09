@@ -1,4 +1,7 @@
-use std::path::{Path, PathBuf};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 use anyhow::anyhow;
 use edh_tourn::{Tournament, serialize::compat::v1::TournamentCompatV1};
@@ -35,7 +38,7 @@ impl HandleMessage<FileMessage> for App {
     fn update(&mut self, msg: FileMessage) -> anyhow::Result<iced::Task<super::Message>> {
         match msg {
             FileMessage::LoadFromFile(path_buf) => Ok(Task::perform(
-                load_file(path_buf.clone()),
+                load_tournament_async(path_buf.clone()),
                 Message::handle_error_fn(move |t: Tournament| {
                     FileMessage::LoadTournamentFromFile(path_buf.clone(), t.into())
                 }),
@@ -73,7 +76,10 @@ impl HandleMessage<FileMessage> for App {
                     .map_or(FileMessage::SaveAs, FileMessage::SaveToFile),
             ),
             FileMessage::SetOpenedFile(path_buf) => {
-                self.file = Some(path_buf);
+                self.file = Some(path_buf.clone());
+                if let Some(config) = &mut self.config {
+                    config.set_last_opened(path_buf)?;
+                }
                 Message::done()
             }
             FileMessage::LoadTournamentFromFile(path_buf, tournament) => {
@@ -90,12 +96,22 @@ impl HandleMessage<FileMessage> for App {
     }
 }
 
-async fn load_file(path: PathBuf) -> anyhow::Result<Tournament> {
+async fn load_tournament_async(path: PathBuf) -> anyhow::Result<Tournament> {
     let extension = get_extension(&path).ok_or_else(|| anyhow!("Invalid File Extension"))?;
     let data = async_fs::read_to_string(&path).await?;
+    try_parse_tournament(&data, extension)
+}
 
-    deserialize_by_extension(&data, extension).or_else(|error| {
-        deserialize_by_extension::<TournamentCompatV1>(&data, extension)
+pub fn load_tournament_sync(path: &PathBuf) -> anyhow::Result<Tournament> {
+    let extension = get_extension(path).ok_or_else(|| anyhow!("Invalid File Extension"))?;
+    let data = fs::read_to_string(path)?;
+    try_parse_tournament(&data, extension)
+}
+
+fn try_parse_tournament(data: &str, extension: &str) -> anyhow::Result<Tournament> {
+    // TODO: Move this into the compat library
+    deserialize_by_extension(data, extension).or_else(|error| {
+        deserialize_by_extension::<TournamentCompatV1>(data, extension)
             .and_then(|tourn| Ok(Tournament::try_from(tourn)?))
             .map_err(|_| error)
     })
@@ -105,7 +121,7 @@ fn get_extension(path: &Path) -> Option<&str> {
     path.extension()?.to_str()
 }
 
-fn deserialize_by_extension<'a, T>(data: &'a str, extension: &str) -> anyhow::Result<T>
+pub fn deserialize_by_extension<'a, T>(data: &'a str, extension: &str) -> anyhow::Result<T>
 where
     T: Deserialize<'a>,
 {
@@ -117,7 +133,7 @@ where
     })
 }
 
-fn serialize_by_extension<T>(data: &T, extension: &str) -> anyhow::Result<String>
+pub fn serialize_by_extension<T>(data: &T, extension: &str) -> anyhow::Result<String>
 where
     T: Serialize,
 {
@@ -141,7 +157,7 @@ mod tests {
         logic::{
             Message,
             file::{
-                FileMessage, deserialize_by_extension, get_extension, load_file,
+                FileMessage, deserialize_by_extension, get_extension, load_tournament_async,
                 serialize_by_extension,
             },
         },
@@ -172,7 +188,9 @@ mod tests {
         let compat_str = include_bytes!("../../../tests/compat-v1.ron");
         let mut file = NamedTempFile::with_suffix(".ron").unwrap();
         file.write_all(compat_str).unwrap();
-        load_file(file.path().to_path_buf()).await.unwrap();
+        load_tournament_async(file.path().to_path_buf())
+            .await
+            .unwrap();
     }
 
     #[test]
@@ -246,14 +264,28 @@ mod tests {
                 }
 
                 #[tokio::test]
-                async fn parse_from_file() {
+                async fn async_parse_from_file() {
                     let tournament = edh_tourn::Tournament::sample_game();
                     let serialized = ($serialize)(&tournament);
                     let mut file =
                         tempfile::NamedTempFile::with_suffix(format!(".{}", $ext)).unwrap();
                     file.write_all(serialized.as_bytes()).unwrap();
                     let path = file.path().to_path_buf();
-                    let res = crate::logic::file::load_file(path).await.unwrap();
+                    let res = crate::logic::file::load_tournament_async(path)
+                        .await
+                        .unwrap();
+                    assert_eq!(tournament, res);
+                }
+
+                #[test]
+                fn sync_parse_from_file() {
+                    let tournament = edh_tourn::Tournament::sample_game();
+                    let serialized = ($serialize)(&tournament);
+                    let mut file =
+                        tempfile::NamedTempFile::with_suffix(format!(".{}", $ext)).unwrap();
+                    file.write_all(serialized.as_bytes()).unwrap();
+                    let path = file.path().to_path_buf();
+                    let res = crate::logic::file::load_tournament_sync(&path).unwrap();
                     assert_eq!(tournament, res);
                 }
             }
