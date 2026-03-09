@@ -6,7 +6,7 @@ use std::{
 
 use directories::ProjectDirs;
 
-const QUALIFIER: &str = "";
+const QUALIFIER: &str = "io.github.littletealeaf";
 const ORGANIZATION: &str = "LittleTealeaf";
 const APPLICATION: &str = "commander-tournament";
 
@@ -42,7 +42,7 @@ impl AppConfig {
     }
 
     fn load_from_path(path: PathBuf) -> anyhow::Result<Self> {
-        let mut config: Self = ron::de::from_reader(File::open(path.clone())?)?;
+        let mut config: Self = ron::de::from_reader(File::open(&path)?)?;
         config.save_path = path;
         Ok(config)
     }

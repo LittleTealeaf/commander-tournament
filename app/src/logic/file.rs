@@ -277,6 +277,7 @@ mod tests {
                     assert_eq!(tournament, res);
                 }
 
+                #[test]
                 fn sync_parse_from_file() {
                     let tournament = edh_tourn::Tournament::sample_game();
                     let serialized = ($serialize)(&tournament);
