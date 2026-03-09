@@ -32,13 +32,13 @@ impl App {
     #[must_use]
     pub fn boot() -> Self {
         let config = AppConfig::load().ok();
-        let tourn = config.as_ref().and_then(|config| {
-            let path = config.last_opened()?;
-            load_tournament_sync(path).ok()
-        });
+        let last_opened = config.as_ref().and_then(|config| config.last_opened());
+        let tourn = last_opened.and_then(|path| load_tournament_sync(path).ok());
+        let last_opened = tourn.is_some().then_some(last_opened).flatten().cloned();
 
         Self {
             config,
+            file: last_opened,
             tournament: tourn.unwrap_or_default(),
             ..Self::default()
         }
