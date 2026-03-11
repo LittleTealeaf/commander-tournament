@@ -1,6 +1,7 @@
-use std::{collections::HashMap, iter::once};
+use core::iter::once;
+use std::collections::HashMap;
 
-use itertools::{chain, Itertools};
+use itertools::{Itertools, chain};
 use serde::Deserialize;
 
 use crate::{

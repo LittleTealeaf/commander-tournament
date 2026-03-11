@@ -27,17 +27,16 @@ use crate::{
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
 #[serde(try_from = "serialization::SerializedTournament")]
 pub struct Tournament {
-    #[serde(rename = "c", alias = "config")]
     config: TournamentConfig,
     #[serde(skip)]
     stats: HashMap<u32, PlayerStats>,
     #[serde(skip)]
     default_stats: PlayerStats,
-    #[serde(serialize_with = "ordered_map", rename = "p", alias = "players")]
+    #[serde(serialize_with = "ordered_map")]
     players: HashMap<u32, PlayerInfo>,
     #[serde(skip)]
     player_names: HashMap<String, u32>,
-    #[serde(serialize_with = "convert_games", rename = "g", alias = "games")]
+    #[serde(serialize_with = "convert_games")]
     games: Vec<GameRecord>,
     #[serde(skip)]
     snapshot: usize,
