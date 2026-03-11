@@ -117,6 +117,10 @@ impl PlayerInfo {
             self.identity.add_color(color);
         }
     }
+
+    pub fn colors(&self) -> impl Iterator<Item = MtgColor> {
+        self.identity.into_colors()
+    }
 }
 
 impl Tournament {
