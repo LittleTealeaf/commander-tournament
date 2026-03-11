@@ -288,7 +288,7 @@ impl View<ViewPlayerScene> for App {
                             };
 
                             let old_elo = game.get_player(id).map_or_else(
-                                |_| self.tournament().default_stats().elo(),
+                                || self.tournament().default_stats().elo(),
                                 |player| player.stats().elo(),
                             );
 

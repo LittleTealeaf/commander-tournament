@@ -101,10 +101,8 @@ impl Tournament {
             let wr_scaled = wr.powf(self.config.game_wr_pow_scale);
             let elo_scaled = player.stats().elo().powf(self.config.game_elo_pow_scale);
 
-            let coef_elo = weight_elo / (elo_scaled + elo_t);
-
-            let expected =
-                (weight_wr / (wr_scaled + wr_t)).mul_add(wr_scaled, coef_elo * elo_scaled);
+            let expected = (weight_wr / (wr_scaled + wr_t))
+                .mul_add(wr_scaled, weight_elo / (elo_scaled + elo_t) * elo_scaled);
 
             // Since this is a 1v1, the expected value is compared against 0.5 instead of 0.25
             (player, abs_diff(expected, 0.5))
