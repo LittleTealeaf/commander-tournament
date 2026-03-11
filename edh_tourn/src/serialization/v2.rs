@@ -24,16 +24,10 @@ impl TryFrom<PlayersVariant> for HashMap<u32, PlayerInfo> {
     fn try_from(value: PlayersVariant) -> Result<Self, Self::Error> {
         match value {
             PlayersVariant::Integer(map) => Ok(map),
-            PlayersVariant::String(str_map) => {
-                let mut map = Self::with_capacity(str_map.keys().len());
-
-                for (key, val) in str_map {
-                    let id = key.parse::<u32>()?;
-                    map.insert(id, val);
-                }
-
-                Ok(map)
-            }
+            PlayersVariant::String(map) => map
+                .into_iter()
+                .map(|(key, val)| key.parse().map(|id| (id, val)))
+                .collect(),
         }
     }
 }
