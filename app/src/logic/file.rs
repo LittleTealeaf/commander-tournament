@@ -4,7 +4,7 @@ use std::{
 };
 
 use anyhow::anyhow;
-use edh_tourn::{Tournament, serialize::compat::v1::TournamentCompatV1};
+use edh_tourn::{Tournament, serialize_old::compat::v1::TournamentCompatV1};
 use iced::{Task, futures::FutureExt};
 use rfd::AsyncFileDialog;
 use serde::{Deserialize, Serialize};

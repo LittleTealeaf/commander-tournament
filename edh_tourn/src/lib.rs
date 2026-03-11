@@ -9,8 +9,9 @@ pub mod dev;
 pub mod error;
 pub mod game;
 pub mod player;
-pub mod serialize;
+pub mod serialize_old;
 pub mod tsv;
+mod serialization;
 
 use std::collections::HashMap;
 
@@ -20,11 +21,11 @@ use crate::{
     game::{entry::GameEntry, record::GameRecord},
     player::info::PlayerInfo,
     player::stats::PlayerStats,
-    serialize::{convert_games, ordered_map},
+    serialize_old::{convert_games, ordered_map},
 };
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
-#[serde(try_from = "serialize::deserialize::SerdeTournament")]
+#[serde(try_from = "serialization::SerializedTournament")]
 pub struct Tournament {
     #[serde(rename = "c", alias = "config")]
     config: TournamentConfig,
