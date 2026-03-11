@@ -35,7 +35,7 @@ impl Tournament {
         id: u32,
     ) -> Result<impl Iterator<Item = (RegisteredPlayer<'_>, MatchPerformance)>, TournamentError>
     {
-        let iter = self.player_get_player_match_performance(id)?;
+        let iter = self.get_player_player_match_performance(id)?;
         let elo_base = self.get_player_or_default_stats(id).elo();
         let sorted = iter.sorted_by(|(player_a, perf_a), (player_b, perf_b)| {
             let total_games = perf_a.played().max(perf_b.played());
@@ -53,7 +53,7 @@ impl Tournament {
         id: u32,
     ) -> Result<impl Iterator<Item = (RegisteredPlayer<'_>, MatchPerformance)>, TournamentError>
     {
-        let iter = self.player_get_player_match_performance(id)?;
+        let iter = self.get_player_player_match_performance(id)?;
         let elo_base = self.get_player_or_default_stats(id).elo();
         let sorted = iter.sorted_by(|(player_a, perf_a), (player_b, perf_b)| {
             let score_a = perf_a.draws();
@@ -74,7 +74,7 @@ impl Tournament {
         id: u32,
     ) -> Result<impl Iterator<Item = (RegisteredPlayer<'_>, MatchPerformance)>, TournamentError>
     {
-        let iter = self.player_get_player_match_performance(id)?;
+        let iter = self.get_player_player_match_performance(id)?;
         let elo_base = self.get_player_or_default_stats(id).elo();
         let sorted = iter.sorted_by(|(player_a, perf_a), (player_b, perf_b)| {
             let score_a = perf_a.played();

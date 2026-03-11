@@ -4,8 +4,6 @@ use core::{
 };
 use std::collections::HashMap;
 
-use itertools::Itertools;
-
 use crate::{
     Tournament,
     error::TournamentError,
@@ -86,7 +84,7 @@ impl MatchPerformance {
 }
 
 impl Tournament {
-    pub fn player_get_player_match_performance(
+    fn internal_player_get_player_match_performance(
         &self,
         id: u32,
     ) -> Result<impl Iterator<Item = (RegisteredPlayer<'_>, MatchPerformance)>, TournamentError>
@@ -105,6 +103,9 @@ impl Tournament {
             if winner == id {
                 for player in losers {
                     records.entry(player).and_modify(|(_, perf)| {
+                        if player == id {
+                            perf.add_loss();
+                        }
                         perf.add_win();
                     });
                 }
@@ -122,35 +123,59 @@ impl Tournament {
                 }
             }
         }
-        records.remove(&id);
 
         Ok(records.into_values())
     }
 
-    pub fn player_get_identity_match_performance(
+    pub fn get_player_player_match_performance(
+        &self,
+        id: u32,
+    ) -> Result<impl Iterator<Item = (RegisteredPlayer<'_>, MatchPerformance)>, TournamentError>
+    {
+        Ok(self
+            .internal_player_get_player_match_performance(id)?
+            .filter(move |(player, _)| player.id() != id))
+    }
+
+    pub fn get_player_identity_match_performance(
         &self,
         id: u32,
     ) -> Result<HashMap<ColorIdentity, MatchPerformance>, TournamentError> {
-        let players = self.player_get_player_match_performance(id)?;
-        let identities = players.map(|(player, perf)| (*player.info().color_identity(), perf));
-        let aggregated = identities.into_grouping_map().sum();
-        Ok(aggregated)
+        let players = self.internal_player_get_player_match_performance(id)?;
+
+        let mut identities = HashMap::from(
+            ColorIdentity::IDENTITIES.map(|identity| (identity, MatchPerformance::default())),
+        );
+
+        for (player, performance) in players {
+            identities
+                .entry(*player.info().color_identity())
+                .and_modify(|entry| {
+                    *entry += performance;
+                });
+        }
+
+        Ok(identities)
     }
 
-    pub fn player_get_color_match_performance(
+    pub fn get_player_color_match_performance(
         &self,
         id: u32,
     ) -> Result<HashMap<MtgColor, MatchPerformance>, TournamentError> {
-        let players = self.player_get_player_match_performance(id)?;
-        let colors = players.flat_map(|(player, perf)| {
-            player
-                .info()
-                .color_identity()
-                .into_colors()
-                .map(move |color| (color, perf))
-        });
-        let aggregated = colors.into_grouping_map().sum();
-        Ok(aggregated)
+        let players = self.internal_player_get_player_match_performance(id)?;
+
+        let mut colors =
+            HashMap::from_iter(MtgColor::COLORS.map(|color| (color, MatchPerformance::default())));
+
+        for (player, performance) in players {
+            for color in player.info().colors() {
+                colors.entry(color).and_modify(|entry| {
+                    *entry += performance;
+                });
+            }
+        }
+
+        Ok(colors)
     }
 }
 
@@ -159,12 +184,38 @@ mod tests {
     use super::*;
 
     #[test]
-    fn player_does_not_return_self() {
+    fn player_player_does_not_return_self() {
         for tourn in Tournament::test_tournaments() {
             for id in tourn.players().keys() {
-                let iter = tourn.player_get_player_match_performance(*id).unwrap();
-                for (player, _) in iter {
+                let values = tourn.get_player_player_match_performance(*id).unwrap();
+                for (player, _) in values {
                     assert_ne!(*id, player.id());
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn player_identity_returns_all_identities() {
+        for tourn in Tournament::test_tournaments() {
+            for player in tourn.players().keys() {
+                let values = tourn
+                    .get_player_identity_match_performance(*player)
+                    .unwrap();
+                for identity in ColorIdentity::IDENTITIES {
+                    assert!(values.contains_key(&identity));
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn player_color_returns_all_colors() {
+        for tourn in Tournament::test_tournaments() {
+            for player in tourn.players().keys() {
+                let values = tourn.get_player_color_match_performance(*player).unwrap();
+                for identity in MtgColor::COLORS {
+                    assert!(values.contains_key(&identity));
                 }
             }
         }
