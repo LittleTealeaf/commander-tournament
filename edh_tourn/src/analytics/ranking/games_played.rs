@@ -11,7 +11,7 @@ fn with_elo_tie_breaker(
     cmp: Ordering,
     elo: f64,
     player_a: &RegisteredPlayer<'_>,
-    player_b: &RegisteredPlayer<'_>,
+    player_b: &RegisteredPlayer<'_>
 ) -> Ordering {
     let Ordering::Equal = cmp else {
         return cmp;

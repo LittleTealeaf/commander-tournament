@@ -68,13 +68,6 @@ fn to_weight_rank<T>(
 }
 
 impl Tournament {
-    fn ensure_id_registered(&self, id: u32) -> Result<(), TournamentError> {
-        if !self.is_id_registered(&id) {
-            return Err(TournamentError::InvalidPlayerId(id));
-        }
-        Ok(())
-    }
-
     fn get_elo(&self, id: u32) -> f64 {
         self.get_player_stats(id)
             .map_or(self.config.starting_elo, PlayerStats::elo)
@@ -90,7 +83,7 @@ impl Tournament {
         &self,
         id: u32,
     ) -> Result<impl Iterator<Item = RegisteredPlayer<'_>>, TournamentError> {
-        self.ensure_id_registered(id)?;
+        self.require_id_registered(id)?;
 
         let games_played_ranked = chain!(
             to_weight_rank(
