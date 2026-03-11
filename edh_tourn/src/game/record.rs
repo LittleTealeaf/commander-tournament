@@ -59,6 +59,19 @@ impl GameRecord {
         self.winner
     }
 
+    pub fn losers(&self) -> [u32; 3] {
+        let [a, b, c, d] = self.ids();
+        if a == self.winner {
+            [b, c, d]
+        } else if b == self.winner {
+            [a, c, d]
+        } else if c == self.winner {
+            [a, b, d]
+        } else {
+            [a, b, c]
+        }
+    }
+
     pub fn get_player_elo_change(&self, id: u32) -> Result<f64, TournamentError> {
         let mut score = 0.0;
         let mut won = false;
