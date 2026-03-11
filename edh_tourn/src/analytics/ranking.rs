@@ -106,7 +106,7 @@ impl Tournament {
                 self.config.match_weight_lost_with
             ),
         )
-        .map(|(player, score)| (player.into(), score));
+        .map(|((player, _), score)| (player, score));
 
         let neighbors_ranked = chain!(
             to_weight_rank(
@@ -150,15 +150,15 @@ impl Tournament {
         Ok(match method {
             RankingMethod::LeastPlayed => self
                 .get_player_ranked_least_played(id)?
-                .map(Into::into)
+                .map(|(player, _)| player)
                 .collect(),
             RankingMethod::LostWith => self
                 .get_player_ranked_lost_with(id)?
-                .map(Into::into)
+                .map(|(player, _)| player)
                 .collect(),
             RankingMethod::Nemesis => self
                 .get_player_ranked_nemesis(id)?
-                .map(Into::into)
+                .map(|(player, _)| player)
                 .collect(),
             RankingMethod::EloNeighbors => self.get_player_ranked_elo_neighbors(id)?.collect(),
             RankingMethod::WRNeighbors => self.get_player_ranked_wr_neighbors(id)?.collect(),

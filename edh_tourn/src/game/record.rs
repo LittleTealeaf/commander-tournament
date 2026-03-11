@@ -59,7 +59,8 @@ impl GameRecord {
         self.winner
     }
 
-    pub fn losers(&self) -> [u32; 3] {
+    #[must_use]
+    pub const fn losers(&self) -> [u32; 3] {
         let [a, b, c, d] = self.ids();
         if a == self.winner {
             [b, c, d]
