@@ -3,35 +3,29 @@ use crate::{Tournament, error::TournamentError};
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
 #[serde(default = "Default::default")]
 pub struct TournamentConfig {
-    #[serde(rename = "se", alias = "starting_elo")]
+    #[serde(alias = "se")]
     pub starting_elo: f64,
-    #[serde(rename = "gp", alias = "game_points")]
+    #[serde(alias = "gp")]
     pub game_points: f64,
-    #[serde(rename = "geps", alias = "game_elo_pow_scale")]
+    #[serde(alias = "geps")]
     pub game_elo_pow_scale: f64,
-    #[serde(rename = "gwps", alias = "game_wr_pow_scale")]
+    #[serde(alias = "gwps")]
     pub game_wr_pow_scale: f64,
-    #[serde(rename = "gew", alias = "game_elo_weight")]
+    #[serde(alias = "gew")]
     pub game_elo_weight: f64,
-    #[serde(rename = "gww", alias = "game_wr_weight")]
+    #[serde(alias = "gww")]
     pub game_wr_weight: f64,
-    #[serde(rename = "mwlp", alias = "match_weight_least_played")]
+    #[serde(alias = "mwlp")]
     pub match_weight_least_played: f64,
-    #[serde(rename = "mwn", alias = "match_weight_nemesis")]
+    #[serde(alias = "mwn")]
     pub match_weight_nemesis: f64,
-    #[serde(rename = "mwlw", alias = "match_weight_lost_with")]
+    #[serde(alias = "mwlw")]
     pub match_weight_lost_with: f64,
-    #[serde(
-        rename = "mwln",
-        alias = "match_weight_neighbor",
-        alias = "mwne",
-        alias = "match_weight_elo_neighbor"
-    )]
+    #[serde(alias = "mwln", alias = "match_weight_neighbor", alias = "mwne")]
     pub match_weight_elo_neighbor: f64,
-    #[serde(rename = "mwwn", alias = "match_weight_wr_neighbor")]
+    #[serde(alias = "mwwn")]
     pub match_weight_wr_neighbor: f64,
-
-    #[serde(rename = "mwen", alias = "match_weight_expected_neighbor")]
+    #[serde(alias = "mwen")]
     pub match_weight_expected_neighbor: f64,
 }
 

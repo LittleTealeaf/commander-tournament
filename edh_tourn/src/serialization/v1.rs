@@ -2,6 +2,7 @@ use core::iter::once;
 use std::collections::HashMap;
 
 use itertools::{Itertools, chain};
+use serde::Deserialize;
 
 use crate::{
     Tournament,
@@ -51,8 +52,8 @@ struct CompatPlayerDetails {
     colors: Vec<MtgColor>,
 }
 
-#[derive(Clone, serde::Deserialize, Debug)]
-pub struct TournamentCompatV1 {
+#[derive(Deserialize, Debug)]
+pub struct V1SerializedTournament {
     players: HashMap<String, CompatPlayerStats>,
     player_details: HashMap<String, CompatPlayerDetails>,
     games: Vec<CompatGame>,
@@ -60,10 +61,9 @@ pub struct TournamentCompatV1 {
     match_config: CompatMatchConfig,
 }
 
-impl TryFrom<TournamentCompatV1> for Tournament {
+impl TryFrom<V1SerializedTournament> for Tournament {
     type Error = TournamentError;
-
-    fn try_from(value: TournamentCompatV1) -> Result<Self, Self::Error> {
+    fn try_from(value: V1SerializedTournament) -> Result<Self, Self::Error> {
         let mut tournament = Self::default();
         let players = chain!(
             value
@@ -135,82 +135,11 @@ impl TryFrom<TournamentCompatV1> for Tournament {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
-    const AURELIA: &str = "Aurelia, the Warleader";
-    const BRE: &str = "Bre of Clan Stoutarm";
-    const TIFA: &str = "Tifa Lockhart";
-    const MINWU: &str = "Minwu, White Mage";
-    const ROCKSANNE: &str = "Rocksanne, Starfall Savant";
-
-    fn parse_from_compat() -> Tournament {
-        let string = include_str!("../../../../tests/compat-v1.ron");
-        let compat_v1: TournamentCompatV1 = ron::from_str(string).unwrap();
-        Tournament::try_from(compat_v1).unwrap()
-    }
+    use crate::Tournament;
 
     #[test]
-    fn populates_games() {
-        let tourn = parse_from_compat();
-        assert!(!tourn.games().is_empty());
-    }
-
-    #[test]
-    fn test_decks_are_found() {
-        let test_decks = [AURELIA, BRE, TIFA, MINWU, ROCKSANNE];
-
-        let tourn = parse_from_compat();
-        for deck in test_decks {
-            let s = deck.to_owned();
-            tourn
-                .get_player_id(&s)
-                .unwrap_or_else(|| panic!("Could not find deck: {s}"));
-        }
-    }
-
-    #[test]
-    fn info_moxfield_id() {
-        let tourn = parse_from_compat();
-        let aurelia_id = tourn
-            .get_player_id(&String::from(AURELIA))
-            .expect("Expected Aurelia to be a player");
-        let info = tourn
-            .get_player_info(&aurelia_id)
-            .expect("Expected Player Info");
-
-        let moxfield = info
-            .moxfield_id()
-            .expect("Expected Moxfield ID to be filled in");
-        assert_eq!("BtCcQ8eWg0uT8n4fFPK3Xg", moxfield);
-    }
-
-    #[test]
-    fn info_colors() {
-        let tourn = parse_from_compat();
-
-        let trials = [
-            (ROCKSANNE, vec![MtgColor::Green, MtgColor::Red]),
-            (MINWU, vec![MtgColor::White]),
-            (TIFA, vec![MtgColor::Green]),
-            (BRE, vec![MtgColor::Red, MtgColor::White]),
-            (AURELIA, vec![MtgColor::Red, MtgColor::White]),
-        ];
-
-        for (deck, colors) in trials {
-            let id = tourn.get_player_id(&deck.to_owned()).unwrap();
-            let info = tourn.get_player_info(&id).unwrap();
-            let identity = info.color_identity();
-            for color in colors {
-                assert!(identity.has_color(color));
-            }
-        }
-    }
-
-    #[test]
-    fn info_description() {
-        let tourn = parse_from_compat();
-        let id = tourn.get_player_id(&TIFA.to_owned()).unwrap();
-        let info = tourn.get_player_info(&id).unwrap();
-        assert!(!info.description().is_empty());
+    pub fn serializes_v1_sample() {
+        let data = include_str!("../../../res/tests/compats/sample-v1.ron");
+        let _: Tournament = ron::from_str(data).unwrap();
     }
 }

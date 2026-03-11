@@ -9,7 +9,7 @@ pub mod dev;
 pub mod error;
 pub mod game;
 pub mod player;
-pub mod serialize;
+mod serialization;
 pub mod tsv;
 
 use std::collections::HashMap;
@@ -20,23 +20,21 @@ use crate::{
     game::{entry::GameEntry, record::GameRecord},
     player::info::PlayerInfo,
     player::stats::PlayerStats,
-    serialize::{convert_games, ordered_map},
 };
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
-#[serde(try_from = "serialize::deserialize::SerdeTournament")]
+#[serde(try_from = "serialization::SerializedTournament")]
 pub struct Tournament {
-    #[serde(rename = "c", alias = "config")]
     config: TournamentConfig,
     #[serde(skip)]
     stats: HashMap<u32, PlayerStats>,
     #[serde(skip)]
     default_stats: PlayerStats,
-    #[serde(serialize_with = "ordered_map", rename = "p", alias = "players")]
+    #[serde(serialize_with = "serialization::ordered_map")]
     players: HashMap<u32, PlayerInfo>,
     #[serde(skip)]
     player_names: HashMap<String, u32>,
-    #[serde(serialize_with = "convert_games", rename = "g", alias = "games")]
+    #[serde(serialize_with = "serialization::convert_games")]
     games: Vec<GameRecord>,
     #[serde(skip)]
     snapshot: usize,

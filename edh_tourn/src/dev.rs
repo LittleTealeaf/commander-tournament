@@ -31,7 +31,7 @@ impl Tournament {
 
     #[must_use]
     pub fn sample_game() -> Self {
-        ron::from_str(include_str!("../../tests/sample-game.ron")).unwrap()
+        ron::from_str(include_str!("../../res/tests/compats/sample-v2.ron")).unwrap()
     }
 
     pub fn sample_tsv_game() -> Result<Self, TournamentError> {
