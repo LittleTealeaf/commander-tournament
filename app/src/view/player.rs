@@ -7,6 +7,7 @@ use edh_tourn::{
     player::{
         color::{ColorIdentity, MtgColor},
         info::PlayerInfo,
+        stats::PlayerStats,
     },
 };
 use iced::{
@@ -176,53 +177,44 @@ impl HandleMessage<ViewPlayerMessage> for App {
     }
 }
 
-impl View<ViewPlayerScene> for App {
-    fn view<'a>(&'a self, scene: &'a ViewPlayerScene) -> Element<'a, Message> {
-        let title_text = scene
-            .name
-            .as_ref()
-            .map_or_else(|| "Create New Player".to_owned(), ToOwned::to_owned);
+impl ViewPlayerScene {
+    fn view_info_panel(&self) -> iced::widget::Column<'_, Message> {
+        let edit_name = text_input("Player Name...", self.info.name())
+            .on_input(|text| ViewPlayerMessage::SetName(text).into());
 
-        let title = text(title_text).width(Length::Fill).center().size(50);
+        let edit_description = text_editor(&self.edit_description)
+            .placeholder("Description...")
+            .on_action(|action| ViewPlayerMessage::EditDescription(action).into());
 
-        let info_panel = {
-            let edit_name = text_input("Player Name...", scene.info.name())
-                .on_input(|text| ViewPlayerMessage::SetName(text).into());
+        let edit_moxfieldid = text_input("Moxfield ID", &self.moxfield)
+            .on_input(|text| ViewPlayerMessage::SetMoxfieldId(text).into());
 
-            let edit_description = text_editor(&scene.edit_description)
-                .placeholder("Description...")
-                .on_action(|action| ViewPlayerMessage::EditDescription(action).into());
+        let deck_colors = row(MtgColor::COLORS.map(|color| {
+            let style = if self.info.color_identity().has_color(color) {
+                button::primary
+            } else {
+                button::secondary
+            };
 
-            let edit_moxfieldid = text_input("Moxfield ID", &scene.moxfield)
-                .on_input(|text| ViewPlayerMessage::SetMoxfieldId(text).into());
+            button(color.letter())
+                .on_press(ViewPlayerMessage::ToggleColor(color).into())
+                .style(style)
+                .into()
+        }))
+        .spacing(5);
 
-            let deck_colors = row(MtgColor::COLORS.map(|color| {
-                let style = if scene.info.color_identity().has_color(color) {
-                    button::primary
-                } else {
-                    button::secondary
-                };
+        column![
+            edit_name,
+            row![edit_moxfieldid, deck_colors].spacing(20),
+            edit_description,
+        ]
+        .max_width(700)
+        .spacing(20)
+    }
 
-                button(color.letter())
-                    .on_press(ViewPlayerMessage::ToggleColor(color).into())
-                    .style(style)
-                    .into()
-            }))
-            .spacing(5);
-
-            column![
-                edit_name,
-                row![edit_moxfieldid, deck_colors].spacing(20),
-                edit_description,
-            ]
-            .max_width(700)
-            .spacing(20)
-        };
-
-        let deck_progress = scene.player.map(|id| {
-            let stats = self.tournament.get_player_or_default_stats(id);
-
-            let view_stats = row![
+    fn view_stats(stats: &PlayerStats) -> iced::widget::Container<'_, Message> {
+        container(
+            row![
                 column![
                     text(format!("{} Elo", stats.elo().round())).size(25),
                     text(format!("{} Peak", stats.elo_peak().round())).size(15)
@@ -242,30 +234,31 @@ impl View<ViewPlayerScene> for App {
                 .align_x(Horizontal::Right)
             ]
             .align_y(Vertical::Center)
-            .spacing(20);
+            .spacing(20),
+        )
+    }
 
-            let games = self
-                .tournament
-                .get_player_games(id)
-                .into_iter()
-                .flatten()
-                .collect_vec()
-                .into_iter()
-                .rev();
+    fn view_game_history(tournament: &Tournament, id: u32) -> iced::widget::Container<'_, Message> {
+        let games = tournament
+            .get_player_games(id)
+            .into_iter()
+            .flatten()
+            .collect_vec()
+            .into_iter()
+            .rev();
 
-            let view_games = scrollable(
+        container(
+            scrollable(
                 table(
                     [
                         table::column("Games", |game: &GameRecord| {
                             column(game.players().iter().map(|player| {
                                 let elo = player.stats().elo().round();
                                 button(
-                                    text(
-                                        self.tournament.get_player_name(&player.id()).map_or_else(
-                                            || format!("({elo}) {}", player.id()),
-                                            |name| format!("({elo}) {name}"),
-                                        ),
-                                    )
+                                    text(tournament.get_player_name(&player.id()).map_or_else(
+                                        || format!("({elo}) {}", player.id()),
+                                        |name| format!("({elo}) {name}"),
+                                    ))
                                     .font_maybe(
                                         (player.id() == game.winner()).then_some(font::Font {
                                             weight: font::Weight::Bold,
@@ -288,7 +281,7 @@ impl View<ViewPlayerScene> for App {
                             };
 
                             let old_elo = game.get_player(id).map_or_else(
-                                || self.tournament().default_stats().elo(),
+                                || tournament.default_stats().elo(),
                                 |player| player.stats().elo(),
                             );
 
@@ -307,9 +300,28 @@ impl View<ViewPlayerScene> for App {
                 .width(Length::Fill),
             )
             .width(Length::Fill)
-            .height(Length::Fill);
+            .height(Length::Fill),
+        )
+    }
+}
 
-            column![view_stats, view_games].spacing(30)
+impl View<ViewPlayerScene> for App {
+    fn view<'a>(&'a self, scene: &'a ViewPlayerScene) -> Element<'a, Message> {
+        let title_text = scene
+            .name
+            .as_ref()
+            .map_or_else(|| "Create New Player".to_owned(), ToOwned::to_owned);
+
+        let title = text(title_text).width(Length::Fill).center().size(50);
+
+        let info_panel = scene.view_info_panel();
+
+        let deck_progress = scene.player.map(|id| {
+            column![
+                ViewPlayerScene::view_stats(self.tournament().get_player_or_default_stats(id)),
+                ViewPlayerScene::view_game_history(self.tournament(), id)
+            ]
+            .spacing(30)
         });
 
         let bottom_row = row![
