@@ -119,7 +119,7 @@ impl PlayerInfo {
     }
 
     pub fn colors(&self) -> impl Iterator<Item = MtgColor> {
-        self.identity.into_colors()
+        self.identity.colors()
     }
 }
 
