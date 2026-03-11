@@ -28,7 +28,7 @@ directories = "6.0.0"
 
 [dev-dependencies]
 app = {path = ".", features = ["dev"]}
-tempfile = "3.26.0"
+tempfile = "3.27.0"
 tokio = {version = "1.50.0", features=["rt", "macros"]}
 edh_tourn = {path = "../edh_tourn/", features=["dev"]}
 approx = "0.5.1"
