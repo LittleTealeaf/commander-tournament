@@ -1,4 +1,7 @@
+use core::num::ParseIntError;
 use std::collections::HashMap;
+
+use serde::{Deserialize, Deserializer};
 
 use crate::{
     Tournament,
@@ -8,11 +11,48 @@ use crate::{
     player::{info::PlayerInfo, stats::PlayerStats},
 };
 
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+enum PlayersVariant {
+    Integer(HashMap<u32, PlayerInfo>),
+    String(HashMap<String, PlayerInfo>),
+}
+
+#[allow(clippy::implicit_hasher)]
+impl TryFrom<PlayersVariant> for HashMap<u32, PlayerInfo> {
+    type Error = ParseIntError;
+    fn try_from(value: PlayersVariant) -> Result<Self, Self::Error> {
+        match value {
+            PlayersVariant::Integer(map) => Ok(map),
+            PlayersVariant::String(str_map) => {
+                let mut map = Self::with_capacity(str_map.keys().len());
+
+                for (key, val) in str_map {
+                    let id = key.parse::<u32>()?;
+                    map.insert(id, val);
+                }
+
+                Ok(map)
+            }
+        }
+    }
+}
+
+fn deserialize_players<'de, D>(deserializer: D) -> Result<HashMap<u32, PlayerInfo>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let variant = PlayersVariant::deserialize(deserializer)?;
+
+    // Map the TryFrom error to a Serde de::Error
+    variant.try_into().map_err(serde::de::Error::custom)
+}
+
 #[derive(serde::Deserialize, Debug)]
 pub struct V2SerializedTournament {
     #[serde(alias = "c")]
     config: TournamentConfig,
-    #[serde(alias = "p")]
+    #[serde(alias = "p", deserialize_with = "deserialize_players")]
     players: HashMap<u32, PlayerInfo>,
     #[serde(alias = "g")]
     games: Vec<GameEntry>,
@@ -44,5 +84,16 @@ impl TryFrom<V2SerializedTournament> for Tournament {
         tournament.snapshot = 0;
 
         Ok(tournament)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::Tournament;
+
+    #[test]
+    fn serialize_v2() {
+        let data = include_str!("../../../res/tests/compats/sample-v2.ron");
+        let _: Tournament = ron::from_str(data).unwrap();
     }
 }

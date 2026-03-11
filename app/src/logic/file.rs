@@ -4,7 +4,7 @@ use std::{
 };
 
 use anyhow::anyhow;
-use edh_tourn::{Tournament, serialize_old::compat::v1::TournamentCompatV1};
+use edh_tourn::Tournament;
 use iced::{Task, futures::FutureExt};
 use rfd::AsyncFileDialog;
 use serde::{Deserialize, Serialize};
@@ -99,22 +99,13 @@ impl HandleMessage<FileMessage> for App {
 async fn load_tournament_async(path: PathBuf) -> anyhow::Result<Tournament> {
     let extension = get_extension(&path).ok_or_else(|| anyhow!("Invalid File Extension"))?;
     let data = async_fs::read_to_string(&path).await?;
-    try_parse_tournament(&data, extension)
+    deserialize_by_extension(&data, extension)
 }
 
 pub fn load_tournament_sync(path: &PathBuf) -> anyhow::Result<Tournament> {
     let extension = get_extension(path).ok_or_else(|| anyhow!("Invalid File Extension"))?;
     let data = fs::read_to_string(path)?;
-    try_parse_tournament(&data, extension)
-}
-
-fn try_parse_tournament(data: &str, extension: &str) -> anyhow::Result<Tournament> {
-    // TODO: Move this into the compat library
-    deserialize_by_extension(data, extension).or_else(|error| {
-        deserialize_by_extension::<TournamentCompatV1>(data, extension)
-            .and_then(|tourn| Ok(Tournament::try_from(tourn)?))
-            .map_err(|_| error)
-    })
+    deserialize_by_extension(&data, extension)
 }
 
 fn get_extension(path: &Path) -> Option<&str> {

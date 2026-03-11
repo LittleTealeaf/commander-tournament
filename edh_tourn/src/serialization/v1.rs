@@ -132,3 +132,14 @@ impl TryFrom<V1SerializedTournament> for Tournament {
         Ok(tournament)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::Tournament;
+
+    #[test]
+    pub fn serializes_v1_sample() {
+        let data = include_str!("../../../res/tests/compats/sample-v1.ron");
+        let _: Tournament = ron::from_str(data).unwrap();
+    }
+}
