@@ -155,12 +155,12 @@ pub enum MtgColor {
     White = 1,
     #[serde(rename = "u", alias = "Blue")]
     Blue = 2,
-    #[serde(rename = "g", alias = "Green")]
-    Green = 16,
-    #[serde(rename = "r", alias = "Red")]
-    Red = 8,
     #[serde(rename = "b", alias = "Black")]
     Black = 4,
+    #[serde(rename = "r", alias = "Red")]
+    Red = 8,
+    #[serde(rename = "g", alias = "Green")]
+    Green = 16,
 }
 
 impl MtgColor {
