@@ -21,7 +21,7 @@ pub struct ColorIdentity(pub(crate) u8);
 
 impl ColorIdentity {
     #[allow(clippy::cast_possible_truncation, clippy::indexing_slicing)]
-    const IDENTITIES: [Self; 32] = {
+    pub const IDENTITIES: [Self; 32] = {
         let mut arr = [Self(0); 32];
         let mut i = 0;
         while i < 32 {
@@ -36,7 +36,14 @@ impl ColorIdentity {
         self.0 == 0
     }
 
-    pub fn into_colors(&self) -> impl Iterator<Item = MtgColor> {
+    pub fn into_colors(self) -> impl Iterator<Item = MtgColor> {
+        MtgColor::COLORS
+            .map(|color| self.has_color(color).then_some(color))
+            .into_iter()
+            .flatten()
+    }
+
+    pub fn colors(&self) -> impl Iterator<Item = MtgColor> {
         MtgColor::COLORS
             .into_iter()
             .filter(|color| self.has_color(*color))
@@ -188,7 +195,7 @@ mod tests {
     fn color_conversions() {
         for i in 0..32 {
             let color = ColorIdentity(i);
-            let values = color.into_colors().collect_vec();
+            let values = color.colors().collect_vec();
             let new_color: ColorIdentity = values.into_iter().collect();
             assert_eq!(color, new_color);
         }

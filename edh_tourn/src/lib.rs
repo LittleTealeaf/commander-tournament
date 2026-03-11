@@ -158,6 +158,13 @@ impl Tournament {
 
         Ok(tourn)
     }
+
+    fn require_id_registered(&self, id: u32) -> Result<(), TournamentError> {
+        if !self.is_id_registered(&id) {
+            return Err(TournamentError::InvalidPlayerId(id));
+        }
+        Ok(())
+    }
 }
 
 impl FromIterator<Self> for Tournament {

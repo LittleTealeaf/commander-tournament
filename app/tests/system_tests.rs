@@ -86,7 +86,7 @@ mod helpers {
                 info.moxfield_id()
                     .map(|id| ViewPlayerMessage::SetMoxfieldId(id.to_owned())),
                 info.color_identity()
-                    .into_colors()
+                    .colors()
                     .map(ViewPlayerMessage::ToggleColor),
                 [ViewPlayerMessage::SaveAndClose]
             )

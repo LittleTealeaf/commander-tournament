@@ -11,13 +11,9 @@ pub struct GameRecord {
 }
 
 impl GameRecord {
-    pub fn new(matchup: Matchup, winner: u32) -> Result<Self, TournamentError> {
-        let winner_in_matchup = matchup
-            .players()
-            .iter()
-            .map(MatchPlayer::id)
-            .any(|i| i == winner);
-        if !winner_in_matchup {
+    pub const fn new(matchup: Matchup, winner: u32) -> Result<Self, TournamentError> {
+        let [a, b, c, d] = matchup.ids();
+        if a != winner && b != winner && c != winner && d != winner {
             return Err(TournamentError::PlayerNotInMatch(winner));
         }
 
@@ -25,11 +21,8 @@ impl GameRecord {
     }
 
     #[must_use]
-    pub fn has_player(&self, id: u32) -> bool {
-        self.matchup
-            .players()
-            .iter()
-            .any(|player| player.id() == id)
+    pub const fn has_player(&self, id: u32) -> bool {
+        self.get_player(id).is_some()
     }
 
     #[must_use]
@@ -37,11 +30,9 @@ impl GameRecord {
         &self.matchup
     }
 
-    pub fn get_player(&self, id: u32) -> Result<&MatchPlayer, TournamentError> {
-        self.players()
-            .iter()
-            .find(|player| player.id() == id)
-            .ok_or(TournamentError::PlayerNotInMatch(id))
+    #[must_use]
+    pub const fn get_player(&self, id: u32) -> Option<&MatchPlayer> {
+        self.matchup().get_player(id)
     }
 
     #[must_use]
@@ -57,6 +48,20 @@ impl GameRecord {
     #[must_use]
     pub const fn winner(&self) -> u32 {
         self.winner
+    }
+
+    #[must_use]
+    pub const fn losers(&self) -> [u32; 3] {
+        let [a, b, c, d] = self.ids();
+        if a == self.winner {
+            [b, c, d]
+        } else if b == self.winner {
+            [a, c, d]
+        } else if c == self.winner {
+            [a, b, d]
+        } else {
+            [a, b, c]
+        }
     }
 
     pub fn get_player_elo_change(&self, id: u32) -> Result<f64, TournamentError> {

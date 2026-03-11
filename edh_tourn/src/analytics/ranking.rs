@@ -68,13 +68,6 @@ fn to_weight_rank<T>(
 }
 
 impl Tournament {
-    fn ensure_id_registered(&self, id: u32) -> Result<(), TournamentError> {
-        if !self.is_id_registered(&id) {
-            return Err(TournamentError::InvalidPlayerId(id));
-        }
-        Ok(())
-    }
-
     fn get_elo(&self, id: u32) -> f64 {
         self.get_player_stats(id)
             .map_or(self.config.starting_elo, PlayerStats::elo)
@@ -90,7 +83,7 @@ impl Tournament {
         &self,
         id: u32,
     ) -> Result<impl Iterator<Item = RegisteredPlayer<'_>>, TournamentError> {
-        self.ensure_id_registered(id)?;
+        self.require_id_registered(id)?;
 
         let games_played_ranked = chain!(
             to_weight_rank(
@@ -106,7 +99,7 @@ impl Tournament {
                 self.config.match_weight_lost_with
             ),
         )
-        .map(|(player, score)| (player.into(), score));
+        .map(|((player, _), score)| (player, score));
 
         let neighbors_ranked = chain!(
             to_weight_rank(
@@ -150,15 +143,15 @@ impl Tournament {
         Ok(match method {
             RankingMethod::LeastPlayed => self
                 .get_player_ranked_least_played(id)?
-                .map(Into::into)
+                .map(|(player, _)| player)
                 .collect(),
             RankingMethod::LostWith => self
                 .get_player_ranked_lost_with(id)?
-                .map(Into::into)
+                .map(|(player, _)| player)
                 .collect(),
             RankingMethod::Nemesis => self
                 .get_player_ranked_nemesis(id)?
-                .map(Into::into)
+                .map(|(player, _)| player)
                 .collect(),
             RankingMethod::EloNeighbors => self.get_player_ranked_elo_neighbors(id)?.collect(),
             RankingMethod::WRNeighbors => self.get_player_ranked_wr_neighbors(id)?.collect(),

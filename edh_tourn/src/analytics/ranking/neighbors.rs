@@ -27,7 +27,7 @@ impl Tournament {
         &self,
         id: u32,
     ) -> Result<impl Iterator<Item = RegisteredPlayer<'_>>, TournamentError> {
-        self.ensure_id_registered(id)?;
+        self.require_id_registered(id)?;
 
         let players = self
             .get_registered_players()
@@ -52,7 +52,7 @@ impl Tournament {
         &self,
         id: u32,
     ) -> Result<impl Iterator<Item = RegisteredPlayer<'_>>, TournamentError> {
-        self.ensure_id_registered(id)?;
+        self.require_id_registered(id)?;
 
         let players = self
             .get_registered_players()
@@ -79,7 +79,7 @@ impl Tournament {
     ) -> Result<impl Iterator<Item = RegisteredPlayer<'_>>, TournamentError> {
         // This is going to function by the following: Assuming a 1v1, grab the list of people who
         // have the closest to a 50% expected winrate against the player
-        self.ensure_id_registered(id)?;
+        self.require_id_registered(id)?;
 
         let players = self
             .get_registered_players()
@@ -101,12 +101,10 @@ impl Tournament {
             let wr_scaled = wr.powf(self.config.game_wr_pow_scale);
             let elo_scaled = player.stats().elo().powf(self.config.game_elo_pow_scale);
 
-            let coef_elo = weight_elo / (elo_scaled + elo_t);
+            let expected = (weight_wr / (wr_scaled + wr_t))
+                .mul_add(wr_scaled, weight_elo / (elo_scaled + elo_t) * elo_scaled);
 
-            let expected =
-                (weight_wr / (wr_scaled + wr_t)).mul_add(wr_scaled, coef_elo * elo_scaled);
-
-            // Since this is a 1v1, the expected value is compared against 0.5, since this is a 1v1
+            // Since this is a 1v1, the expected value is compared against 0.5 instead of 0.25
             (player, abs_diff(expected, 0.5))
         });
 

@@ -28,8 +28,24 @@ impl Matchup {
     }
 
     #[must_use]
-    pub fn get_player(&self, id: u32) -> Option<&MatchPlayer> {
-        self.players.iter().find(|i| i.id() == id)
+    pub const fn has_player(&self, id: u32) -> bool {
+        self.get_player(id).is_some()
+    }
+
+    #[must_use]
+    pub const fn get_player(&self, id: u32) -> Option<&MatchPlayer> {
+        let [a, b, c, d] = &self.players();
+        if a.id() == id {
+            Some(a)
+        } else if b.id() == id {
+            Some(b)
+        } else if c.id() == id {
+            Some(c)
+        } else if d.id() == id {
+            Some(d)
+        } else {
+            None
+        }
     }
 
     #[must_use]
@@ -38,7 +54,7 @@ impl Matchup {
         [player_a.id(), player_b.id(), player_c.id(), player_d.id()]
     }
 
-    pub fn record(self, winner: u32) -> Result<GameRecord, TournamentError> {
+    pub const fn record(self, winner: u32) -> Result<GameRecord, TournamentError> {
         GameRecord::new(self, winner)
     }
 }

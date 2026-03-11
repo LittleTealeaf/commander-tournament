@@ -12,11 +12,13 @@ pub struct GameEntry {
 }
 
 impl GameEntry {
-    pub fn new(players: [u32; 4], winner: u32) -> Result<Self, TournamentError> {
-        if !players.contains(&winner) {
+    pub const fn new(players: [u32; 4], winner: u32) -> Result<Self, TournamentError> {
+        let [a, b, c, d] = players;
+        if a != winner && b != winner && c != winner && d != winner {
             return Err(TournamentError::PlayerNotInMatch(winner));
         }
-        Ok(Self::new_unchecked(players, winner))
+
+        Ok(Self::new_unchecked([a, b, c, d], winner))
     }
 
     #[must_use]
