@@ -303,6 +303,27 @@ impl ViewPlayerScene {
             .height(Length::Fill),
         )
     }
+
+    fn view_player_matchup_stats(tournament: &Tournament, id: u32) {
+        const N_PLAYERS: usize = 3;
+        const N_IDENTITIES: usize = 3;
+        let player_matchups = tournament
+            .get_player_player_match_performance(id)
+            .into_iter()
+            .flatten()
+            .collect::<Vec<_>>();
+
+        let identity_matchups = tournament
+            .get_player_identity_match_performance(id)
+            .unwrap_or_default();
+
+        let color_matchups = tournament
+            .get_player_color_match_performance(id)
+            .unwrap_or_default()
+            .into_iter()
+            .sorted_by_key(|&(_, perf)| perf)
+            .collect::<Vec<_>>();
+    }
 }
 
 impl View<ViewPlayerScene> for App {
