@@ -12,14 +12,7 @@ const fn abs_diff(a: f64, b: f64) -> f64 {
 fn ordered_by_proximity(score_a: f64, score_b: f64, target: f64, id_a: u32, id_b: u32) -> Ordering {
     let diff_a = abs_diff(score_a, target);
     let diff_b = abs_diff(score_b, target);
-
-    let cmp = diff_a.total_cmp(&diff_b);
-
-    let Ordering::Equal = cmp else {
-        return cmp;
-    };
-
-    id_a.cmp(&id_b)
+    diff_a.total_cmp(&diff_b).then_with(|| id_a.cmp(&id_b))
 }
 
 impl Tournament {
@@ -110,13 +103,9 @@ impl Tournament {
 
         let sorted = players_calc
             .sorted_by(|(player_a, score_a), (player_b, score_b)| {
-                let cmp = score_a.total_cmp(score_b);
-
-                let Ordering::Equal = cmp else {
-                    return cmp;
-                };
-
-                player_a.id().cmp(&player_b.id())
+                score_a
+                    .total_cmp(score_b)
+                    .then_with(|| player_a.id().cmp(&player_b.id()))
             })
             .map(|(player, _)| player);
 

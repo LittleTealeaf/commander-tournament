@@ -1,4 +1,5 @@
 use core::{
+    cmp::Ordering,
     iter::Sum,
     ops::{Add, AddAssign},
 };
@@ -20,6 +21,33 @@ pub struct MatchPerformance {
     played: usize,
     won: usize,
     lost: usize,
+}
+
+impl PartialOrd for MatchPerformance {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for MatchPerformance {
+    fn cmp(&self, other: &Self) -> Ordering {
+        // // First, person with the highest win-rate
+        let left = self.wins() * other.played();
+        let right = other.wins() * self.played();
+        let cmp = left.cmp(&right);
+
+        cmp.then_with(|| {
+            // Second, person with the lowest lose-rate
+            let left = self.losses() * other.played();
+            let right = other.losses() * self.played();
+            let cmp = left.cmp(&right);
+
+            cmp.then_with(|| {
+                // Third, the person with the highest wins
+                self.wins().cmp(&other.wins())
+            })
+        })
+    }
 }
 
 impl Add<Self> for MatchPerformance {

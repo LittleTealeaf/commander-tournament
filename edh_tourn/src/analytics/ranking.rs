@@ -11,13 +11,6 @@ use crate::{
     player::{RegisteredPlayer, stats::PlayerStats},
 };
 
-fn with_tie_breaker(cmp: Ordering, tie_breaker: impl Fn() -> Ordering) -> Ordering {
-    match cmp {
-        Ordering::Equal => tie_breaker(),
-        cmp => cmp,
-    }
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum RankingMethod {
     LeastPlayed,
