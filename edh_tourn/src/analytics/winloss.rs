@@ -40,7 +40,7 @@ impl Ord for MatchPerformance {
             // Second, person with the lowest lose-rate
             let left = self.losses() * other.played();
             let right = other.losses() * self.played();
-            let cmp = left.cmp(&right);
+            let cmp = left.cmp(&right).reverse();
 
             cmp.then_with(|| {
                 // Third, the person with the highest wins
@@ -210,6 +210,60 @@ impl Tournament {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    mod match_performance {
+        use super::*;
+
+        #[test]
+        fn highest_wr_accounted_first() {
+            let left = MatchPerformance {
+                played: 10,
+                won: 5,
+                lost: 4,
+            };
+
+            let right = MatchPerformance {
+                played: 10,
+                won: 4,
+                lost: 4,
+            };
+
+            assert_eq!(Ordering::Greater, left.cmp(&right));
+        }
+
+        #[test]
+        fn highest_loss_rate_accounted_second() {
+            let left = MatchPerformance {
+                played: 10,
+                won: 5,
+                lost: 4,
+            };
+
+            let right = MatchPerformance {
+                played: 10,
+                won: 5,
+                lost: 3,
+            };
+
+            assert_eq!(Ordering::Less, left.cmp(&right));
+        }
+
+        #[test]
+        fn highest_win_count_accounted_third() {
+            let left = MatchPerformance {
+                played: 10,
+                won: 5,
+                lost: 5,
+            };
+            let right = MatchPerformance {
+                played: 20,
+                won: 10,
+                lost: 10,
+            };
+
+            assert_eq!(Ordering::Less, left.cmp(&right));
+        }
+    }
 
     #[test]
     fn player_player_does_not_return_self() {
