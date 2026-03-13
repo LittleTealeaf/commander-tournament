@@ -182,7 +182,7 @@ impl MtgColor {
     pub const COLORS: [Self; 5] = [Self::White, Self::Blue, Self::Green, Self::Red, Self::Black];
 
     #[must_use]
-    pub const fn letter(&self) -> &'static str {
+    pub const fn letter(self) -> &'static str {
         match self {
             Self::White => "W",
             Self::Blue => "U",

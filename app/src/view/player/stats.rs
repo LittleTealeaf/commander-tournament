@@ -47,6 +47,11 @@ pub fn view_player_matchups(tournament: &Tournament, id: u32) -> Option<Containe
     let matchups = tournament
         .get_player_player_match_performance(id)
         .ok()?
+        .sorted_by(|(player_a, perf_a), (player_b, perf_b)| {
+            perf_a
+                .cmp(perf_b)
+                .then_with(|| player_a.stats().elo().total_cmp(&player_b.stats().elo()))
+        })
         .sorted_by_key(|&(_, key)| key)
         .rev();
 
@@ -55,14 +60,13 @@ pub fn view_player_matchups(tournament: &Tournament, id: u32) -> Option<Containe
             table(
                 [
                     table::column("Player", |(player, _): RowType| {
-                        button(text(format!(
-                            "{} ({})",
-                            player.info().name(),
-                            player.info().color_identity()
-                        )))
-                        .style(button::text)
-                        .padding(Padding::new(0.0))
-                        .on_press(ViewPlayerMessage::Open(Some(player.id())).into())
+                        button(text(player.info().name().to_owned()))
+                            .style(button::text)
+                            .padding(Padding::new(0.0))
+                            .on_press(ViewPlayerMessage::Open(Some(player.id())).into())
+                    }),
+                    table::column("Identity", |(player, _): RowType| {
+                        text(player.info().color_identity().to_string())
                     }),
                     table::column("Wins", |(_, perf): RowType| {
                         text(format!("{}", perf.wins()))
@@ -98,6 +102,9 @@ pub fn view_identity_matchups(tournament: &Tournament, id: u32) -> Option<Contai
                 [
                     table::column("Color Identity", |(identity, _): RowType| {
                         text(format!("{identity}"))
+                    }),
+                    table::column("Colors", |(identity, _): RowType| {
+                        text(identity.into_colors().map(MtgColor::letter).join(""))
                     }),
                     table::column("Wins", |(_, perf): RowType| {
                         text(format!("{}", perf.wins()))
