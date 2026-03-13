@@ -172,26 +172,27 @@ impl Tournament {
 
         for game in self.get_player_games(id)? {
             let winner = game.winner();
-            let losers = game.losers();
+            let [loser_a, loser_b, loser_c] = game.losers();
 
             if winner == id {
-                for player in losers {
-                    let entry = records.entry(player).or_default();
-                    if player == id {
-                        entry.add_loss();
-                    }
-                    entry.add_win();
-                }
-            } else {
-                let winner = records.entry(winner).or_default();
-                winner.add_loss();
-                for player in losers {
-                    if player == id {
-                        continue;
-                    }
-                    let player = records.entry(player).or_default();
-                    player.add_draw();
-                }
+                records.entry(loser_a).or_default().add_win();
+                records.entry(loser_b).or_default().add_win();
+                records.entry(loser_c).or_default().add_win();
+            }
+            if loser_a == id {
+                records.entry(winner).or_default().add_loss();
+                records.entry(loser_b).or_default().add_draw();
+                records.entry(loser_c).or_default().add_draw();
+            }
+            if loser_b == id {
+                records.entry(winner).or_default().add_loss();
+                records.entry(loser_a).or_default().add_draw();
+                records.entry(loser_c).or_default().add_draw();
+            }
+            if loser_c == id {
+                records.entry(winner).or_default().add_loss();
+                records.entry(loser_a).or_default().add_draw();
+                records.entry(loser_b).or_default().add_draw();
             }
         }
 
