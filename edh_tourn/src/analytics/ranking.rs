@@ -37,15 +37,15 @@ impl RankingMethod {
 
 impl Display for RankingMethod {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        match self {
-            Self::LeastPlayed => write!(f, "Least Played"),
-            Self::LostWith => write!(f, "Lost With"),
-            Self::Nemesis => write!(f, "Nemesis"),
-            Self::EloNeighbors => write!(f, "Elo Neighbors"),
-            Self::WRNeighbors => write!(f, "WR Neighbors"),
-            Self::ExpectedNeighbors => write!(f, "Expected Neighbors"),
-            Self::Combined => write!(f, "Combined"),
-        }
+        f.write_str(match self {
+            Self::LeastPlayed => "Least Played",
+            Self::LostWith => "Lost With",
+            Self::Nemesis => "Nemesis",
+            Self::EloNeighbors => "Elo Neighbors",
+            Self::WRNeighbors => "WR Neighbors",
+            Self::ExpectedNeighbors => "Expected Neighbors",
+            Self::Combined => "Combined",
+        })
     }
 }
 

@@ -1,31 +1,40 @@
+mod game_history;
+mod info;
+mod stats;
+
+use core::fmt::{Display, Formatter};
 use std::borrow::ToOwned;
 
 use edh_tourn::{
     Tournament,
     error::TournamentError,
-    game::record::GameRecord,
     player::{
         color::{ColorIdentity, MtgColor},
         info::PlayerInfo,
-        stats::PlayerStats,
     },
 };
 use iced::{
-    Element, Length, Padding,
-    alignment::{Horizontal, Vertical},
-    font,
-    widget::{
-        button, column, container, row, scrollable, space, table, text, text_editor, text_input,
-    },
+    Alignment, Element, Length,
+    widget::{button, column, container, row, space, text, text_editor},
 };
-use itertools::Itertools;
+use iced_aw::{TabBar, TabLabel};
 
 use crate::{
     App,
-    fonts::default_font,
     logic::Message,
     traits::{HandleMessage, View},
-    view::{Scene, confirm::ConfirmPrompt},
+    view::{
+        Scene,
+        confirm::ConfirmPrompt,
+        player::{
+            game_history::view_game_history,
+            info::view_info_panel,
+            stats::{
+                view_color_matchups, view_identity_matchups, view_player_matchups,
+                view_stats_summary,
+            },
+        },
+    },
 };
 
 #[derive(Clone, Debug)]
@@ -35,6 +44,7 @@ pub struct ViewPlayerScene {
     edit_description: text_editor::Content,
     moxfield: String,
     info: PlayerInfo,
+    stats_tab: StatsTab,
 }
 
 impl From<ViewPlayerScene> for Scene {
@@ -57,6 +67,7 @@ impl ViewPlayerScene {
                     moxfield: info.moxfield_id().cloned().unwrap_or_default(),
                     name: Some(info.name().to_owned()),
                     edit_description: text_editor::Content::with_text(info.description()),
+                    stats_tab: StatsTab::default(),
                     info,
                 }
             }
@@ -64,6 +75,7 @@ impl ViewPlayerScene {
                 player: None,
                 name: None,
                 edit_description: text_editor::Content::new(),
+                stats_tab: StatsTab::default(),
                 moxfield: String::new(),
                 info: PlayerInfo::default(),
             },
@@ -74,6 +86,31 @@ impl ViewPlayerScene {
         format!("Player: {}", self.info.name())
     }
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum StatsTab {
+    #[default]
+    Games,
+    Players,
+    Identities,
+    Colors,
+}
+
+impl StatsTab {
+    pub const VALUES: [Self; 4] = [Self::Games, Self::Players, Self::Identities, Self::Colors];
+}
+
+impl Display for StatsTab {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        f.write_str(match self {
+            Self::Games => "Games",
+            Self::Players => "Players",
+            Self::Identities => "Identities",
+            Self::Colors => "Colors",
+        })
+    }
+}
+
 #[derive(Clone, Debug)]
 pub enum ViewPlayerMessage {
     Open(Option<u32>),
@@ -85,6 +122,7 @@ pub enum ViewPlayerMessage {
     ClearColors,
     ToggleColor(MtgColor),
     ConfirmedDelete,
+    SetStatsTab(StatsTab),
     Delete,
 }
 
@@ -173,156 +211,11 @@ impl HandleMessage<ViewPlayerMessage> for App {
                 self.scenes.pop();
                 Message::done()
             }
+            ViewPlayerMessage::SetStatsTab(tab) => {
+                scene.stats_tab = tab;
+                Message::done()
+            }
         }
-    }
-}
-
-impl ViewPlayerScene {
-    fn view_info_panel(&self) -> iced::widget::Column<'_, Message> {
-        let edit_name = text_input("Player Name...", self.info.name())
-            .on_input(|text| ViewPlayerMessage::SetName(text).into());
-
-        let edit_description = text_editor(&self.edit_description)
-            .placeholder("Description...")
-            .on_action(|action| ViewPlayerMessage::EditDescription(action).into());
-
-        let edit_moxfieldid = text_input("Moxfield ID", &self.moxfield)
-            .on_input(|text| ViewPlayerMessage::SetMoxfieldId(text).into());
-
-        let deck_colors = row(MtgColor::COLORS.map(|color| {
-            let style = if self.info.color_identity().has_color(color) {
-                button::primary
-            } else {
-                button::secondary
-            };
-
-            button(color.letter())
-                .on_press(ViewPlayerMessage::ToggleColor(color).into())
-                .style(style)
-                .into()
-        }))
-        .spacing(5);
-
-        column![
-            edit_name,
-            row![edit_moxfieldid, deck_colors].spacing(20),
-            edit_description,
-        ]
-        .max_width(700)
-        .spacing(20)
-    }
-
-    fn view_stats(stats: &PlayerStats) -> iced::widget::Container<'_, Message> {
-        container(
-            row![
-                column![
-                    text(format!("{} Elo", stats.elo().round())).size(25),
-                    text(format!("{} Peak", stats.elo_peak().round())).size(15)
-                ]
-                .align_x(Horizontal::Left),
-                space().width(Length::Fill),
-                column![
-                    text(format!("Games Played: {}", stats.games())),
-                    text(format!("Games Won: {}", stats.wins())),
-                    {
-                        stats.wr().map_or_else(
-                            || text("--% WR"),
-                            |wr| text(format!("{}% WR", (wr * 100.0).round())),
-                        )
-                    }
-                ]
-                .align_x(Horizontal::Right)
-            ]
-            .align_y(Vertical::Center)
-            .spacing(20),
-        )
-    }
-
-    fn view_game_history(tournament: &Tournament, id: u32) -> iced::widget::Container<'_, Message> {
-        let games = tournament
-            .get_player_games(id)
-            .into_iter()
-            .flatten()
-            .collect_vec()
-            .into_iter()
-            .rev();
-
-        container(
-            scrollable(
-                table(
-                    [
-                        table::column("Games", |game: &GameRecord| {
-                            column(game.players().iter().map(|player| {
-                                let elo = player.stats().elo().round();
-                                button(
-                                    text(tournament.get_player_name(&player.id()).map_or_else(
-                                        || format!("({elo}) {}", player.id()),
-                                        |name| format!("({elo}) {name}"),
-                                    ))
-                                    .font_maybe(
-                                        (player.id() == game.winner()).then_some(font::Font {
-                                            weight: font::Weight::Bold,
-                                            ..default_font()
-                                        }),
-                                    ),
-                                )
-                                .padding(Padding::new(0.0))
-                                .style(button::text)
-                                .on_press(ViewPlayerMessage::Open(Some(player.id())).into())
-                                .into()
-                            }))
-                        }),
-                        table::column("Elo", |game: &GameRecord| {
-                            let elo_change = game.get_player_elo_change(id).unwrap_or_default();
-                            let elo_change_str = if elo_change >= 0f64 {
-                                format!("+{}", elo_change.round())
-                            } else {
-                                format!("{}", elo_change.round())
-                            };
-
-                            let old_elo = game.get_player(id).map_or_else(
-                                || tournament.default_stats().elo(),
-                                |player| player.stats().elo(),
-                            );
-
-                            let new_elo = (old_elo + elo_change).round();
-
-                            column![
-                                text(format!("{new_elo}")).size(20),
-                                text(elo_change_str).size(15)
-                            ]
-                            .spacing(5)
-                            .padding(5)
-                        }),
-                    ],
-                    games,
-                )
-                .width(Length::Fill),
-            )
-            .width(Length::Fill)
-            .height(Length::Fill),
-        )
-    }
-
-    fn view_player_matchup_stats(tournament: &Tournament, id: u32) {
-        const N_PLAYERS: usize = 3;
-        const N_IDENTITIES: usize = 3;
-        let player_matchups = tournament
-            .get_player_player_match_performance(id)
-            .into_iter()
-            .flatten()
-            .collect::<Vec<_>>();
-
-        let identity_matchups = tournament
-            .get_player_identity_match_performance(id)
-            .unwrap_or_default();
-
-        let color_matchups = tournament
-            .get_player_color_match_performance(id)
-            .unwrap_or_default()
-            .into_iter()
-            .sorted_by_key(|&(_, perf)| perf)
-            .collect::<Vec<_>>();
     }
 }
 
@@ -335,12 +228,34 @@ impl View<ViewPlayerScene> for App {
 
         let title = text(title_text).width(Length::Fill).center().size(50);
 
-        let info_panel = scene.view_info_panel();
+        let info_panel = view_info_panel(scene).max_width(700);
 
         let deck_progress = scene.player.map(|id| {
             column![
-                ViewPlayerScene::view_stats(self.tournament().get_player_or_default_stats(id)),
-                ViewPlayerScene::view_game_history(self.tournament(), id)
+                view_stats_summary(self.tournament().get_player_or_default_stats(id)),
+                StatsTab::VALUES
+                    .into_iter()
+                    .fold(
+                        TabBar::new(|tab| ViewPlayerMessage::SetStatsTab(tab).into()),
+                        |tab_bar, tab| { tab_bar.push(tab, TabLabel::Text(format!("{tab}"))) }
+                    )
+                    .set_active_tab(&scene.stats_tab),
+                match scene.stats_tab {
+                    StatsTab::Games => view_game_history(self.tournament(), id),
+                    StatsTab::Players => view_player_matchups(self.tournament(), id),
+                    StatsTab::Identities => view_identity_matchups(self.tournament(), id),
+                    StatsTab::Colors => view_color_matchups(self.tournament(), id),
+                }
+                .unwrap_or_else(|| {
+                    container(
+                        text("No Stats Available")
+                            .size(25)
+                            .width(Length::Fill)
+                            .align_x(Alignment::Center),
+                    )
+                })
+                .width(Length::Fill)
+                .height(Length::Fill)
             ]
             .spacing(30)
         });
@@ -360,7 +275,9 @@ impl View<ViewPlayerScene> for App {
         container(
             column![
                 title,
-                row![info_panel, deck_progress].spacing(40),
+                row![info_panel, deck_progress]
+                    .height(Length::Fill)
+                    .spacing(40),
                 bottom_row
             ]
             .spacing(20)
