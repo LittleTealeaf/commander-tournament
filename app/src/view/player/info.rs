@@ -1,5 +1,5 @@
 use edh_tourn::player::color::MtgColor;
-use iced::widget::{button, column, container, row, text_editor, text_input};
+use iced::widget::{button, column, container, row, text, text_editor, text_input};
 
 use crate::{
     logic::Message,
@@ -31,9 +31,11 @@ pub fn view_info_panel(scene: &ViewPlayerScene) -> iced::widget::Container<'_, M
     }))
     .spacing(5);
 
+    let text_identity = text(scene.info.color_identity().to_string());
+
     container(
         column![
-            edit_name,
+            row![edit_name, text_identity].spacing(20),
             row![edit_moxfieldid, deck_colors].spacing(20),
             edit_description,
         ]
