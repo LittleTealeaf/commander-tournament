@@ -1,117 +1,80 @@
-use crate::{Tournament, error::TournamentError};
+use crate::{
+    Tournament,
+    config::{game::GameConfig, ranking::RankingConfig},
+    error::TournamentError,
+};
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
-#[serde(default = "Default::default")]
+pub mod game;
+pub mod ranking;
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Default)]
 pub struct TournamentConfig {
-    #[serde(alias = "se")]
-    pub starting_elo: f64,
-    #[serde(alias = "gp")]
-    pub game_points: f64,
-    #[serde(alias = "geps")]
-    pub game_elo_pow_scale: f64,
-    #[serde(alias = "gwps")]
-    pub game_wr_pow_scale: f64,
-    #[serde(alias = "gew")]
-    pub game_elo_weight: f64,
-    #[serde(alias = "gww")]
-    pub game_wr_weight: f64,
-    #[serde(alias = "mwlp")]
-    pub match_weight_least_played: f64,
-    #[serde(alias = "mwn")]
-    pub match_weight_nemesis: f64,
-    #[serde(alias = "mwlw")]
-    pub match_weight_lost_with: f64,
-    #[serde(alias = "mwln", alias = "match_weight_neighbor", alias = "mwne")]
-    pub match_weight_elo_neighbor: f64,
-    #[serde(alias = "mwwn")]
-    pub match_weight_wr_neighbor: f64,
-    #[serde(alias = "mwen")]
-    pub match_weight_expected_neighbor: f64,
+    pub(crate) game: GameConfig,
+    pub(crate) ranking: RankingConfig,
 }
 
-impl Default for TournamentConfig {
-    fn default() -> Self {
-        Self {
-            starting_elo: 1500.0,
-            game_points: 25.0,
-            game_elo_pow_scale: 6.0,
-            game_wr_pow_scale: 1.0,
-            game_elo_weight: 65.0,
-            game_wr_weight: 35.0,
-            match_weight_least_played: 6.0,
-            match_weight_nemesis: 4.0,
-            match_weight_elo_neighbor: 5.0,
-            match_weight_wr_neighbor: 3.0,
-            match_weight_lost_with: 3.0,
-            match_weight_expected_neighbor: 4.0,
-        }
+impl TournamentConfig {
+    #[must_use]
+    pub const fn game_config(&self) -> &GameConfig {
+        &self.game
+    }
+
+    #[must_use]
+    pub const fn ranking_config(&self) -> &RankingConfig {
+        &self.ranking
     }
 }
 
 impl Tournament {
     #[must_use]
-    pub const fn config(&self) -> &TournamentConfig {
-        &self.config
+    pub const fn game_config(&self) -> &GameConfig {
+        &self.config.game
     }
 
-    pub fn set_config(&mut self, config: TournamentConfig) -> Result<(), TournamentError> {
-        self.config = config;
+    #[must_use]
+    pub const fn ranking_config(&self) -> &RankingConfig {
+        &self.config.ranking
+    }
+
+    pub fn set_game_config(&mut self, config: GameConfig) -> Result<(), TournamentError> {
+        self.config.game = config;
         self.reload()?;
         Ok(())
     }
 
-    pub fn with_config(mut self, config: TournamentConfig) -> Result<Self, TournamentError> {
-        self.config = config;
-        self.reload()?;
+    pub const fn set_ranking_config(&mut self, config: RankingConfig) {
+        self.config.ranking = config;
+    }
+
+    pub fn with_game_config(mut self, config: GameConfig) -> Result<Self, TournamentError> {
+        self.set_game_config(config)?;
         Ok(self)
     }
-}
 
-#[cfg(feature = "dev")]
-impl TournamentConfig {
     #[must_use]
-    pub fn random(seed: usize) -> Self {
-        use rand::{RngExt, SeedableRng};
-        use rand_chacha::ChaCha8Rng;
-
-        let mut seed_bytes = [0u8; 32];
-        let seed_data = seed.to_le_bytes();
-        seed_bytes
-            .get_mut(..seed_data.len())
-            .expect("Expected Seed Data to Work")
-            .copy_from_slice(&seed_data);
-
-        let mut rng = ChaCha8Rng::from_seed(seed_bytes);
-
+    pub fn with_ranking_config(self, config: RankingConfig) -> Self {
         Self {
-            starting_elo: rng.random_range(1000.0..5000.0),
-            game_points: rng.random_range(10.0..200.0),
-            game_elo_pow_scale: rng.random_range(1.0..5.0),
-            game_wr_pow_scale: rng.random_range(1.0..5.0),
-            game_elo_weight: rng.random_range(1.0..10.0),
-            game_wr_weight: rng.random_range(1.0..10.0),
-            match_weight_least_played: rng.random_range(1.0..20.0),
-            match_weight_nemesis: rng.random_range(1.0..20.0),
-            match_weight_lost_with: rng.random_range(1.0..20.0),
-            match_weight_elo_neighbor: rng.random_range(1.0..20.0),
-            match_weight_wr_neighbor: rng.random_range(1.0..20.0),
-            match_weight_expected_neighbor: rng.random_range(1.0..20.0),
+            config: TournamentConfig {
+                ranking: config,
+                ..self.config
+            },
+            ..self
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{Tournament, config::TournamentConfig};
+    use crate::Tournament;
 
     #[test]
     fn updating_config_updates_stats() {
         let mut tournament = Tournament::generate_tournament(4, 1).unwrap();
         let id = *tournament.players.keys().next().unwrap();
         let elo_start = tournament.get_player_stats(id).unwrap().elo();
-        let mut config = tournament.config().clone();
+        let mut config = tournament.game_config().clone();
         config.starting_elo += 1500.0;
-        tournament.set_config(config).unwrap();
+        tournament.set_game_config(config).unwrap();
         let elo_end = tournament.get_player_stats(id).unwrap().elo();
         assert!(elo_start.total_cmp(&elo_end).is_ne());
     }
@@ -119,19 +82,12 @@ mod tests {
     #[test]
     fn updating_config_updates_version() {
         let mut tournament = Tournament::generate_tournament(4, 1).unwrap();
-        let mut config = tournament.config().clone();
+        let mut config = tournament.game_config().clone();
         config.starting_elo += 1500.0;
 
         let version = tournament.snapshot;
-        tournament.set_config(config).unwrap();
+        tournament.set_game_config(config).unwrap();
         let new_version = tournament.snapshot;
         assert_eq!(version + 1, new_version);
-    }
-
-    #[test]
-    fn random_tournament_returns_tournament() {
-        for i in 0..100 {
-            let _ = TournamentConfig::random(i);
-        }
     }
 }

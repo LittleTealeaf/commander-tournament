@@ -82,17 +82,20 @@ impl Tournament {
         let wr_t = stats
             .wr()
             .unwrap_or(0.25)
-            .powf(self.config.game_wr_pow_scale);
-        let elo_t = stats.elo().powf(self.config.game_elo_pow_scale);
+            .powf(self.game_config().game_wr_pow_scale);
+        let elo_t = stats.elo().powf(self.game_config().game_elo_pow_scale);
 
-        let weight_total = self.config.game_wr_weight + self.config.game_elo_weight;
-        let weight_wr = self.config.game_wr_weight / weight_total;
-        let weight_elo = self.config.game_elo_weight / weight_total;
+        let weight_total = self.game_config().game_wr_weight + self.game_config().game_elo_weight;
+        let weight_wr = self.game_config().game_wr_weight / weight_total;
+        let weight_elo = self.game_config().game_elo_weight / weight_total;
 
         let players_calc = players.map(|player| {
             let wr = player.stats().wr().unwrap_or(0.25);
-            let wr_scaled = wr.powf(self.config.game_wr_pow_scale);
-            let elo_scaled = player.stats().elo().powf(self.config.game_elo_pow_scale);
+            let wr_scaled = wr.powf(self.game_config().game_wr_pow_scale);
+            let elo_scaled = player
+                .stats()
+                .elo()
+                .powf(self.game_config().game_elo_pow_scale);
 
             let expected = (weight_wr / (wr_scaled + wr_t))
                 .mul_add(wr_scaled, weight_elo / (elo_scaled + elo_t) * elo_scaled);

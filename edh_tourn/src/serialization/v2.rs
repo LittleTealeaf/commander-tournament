@@ -1,83 +1,102 @@
-use core::num::ParseIntError;
 use std::collections::HashMap;
 
-use serde::{Deserialize, Deserializer};
-
 use crate::{
-    Tournament,
-    config::TournamentConfig,
-    error::TournamentError,
+    config::{TournamentConfig, game::GameConfig, ranking::RankingConfig},
     game::entry::GameEntry,
-    player::{info::PlayerInfo, stats::PlayerStats},
+    player::info::PlayerInfo,
+    serialization::{utils::DeserializableMap, v3::V3Tournament},
 };
 
-#[derive(Debug, Deserialize)]
-#[serde(untagged)]
-enum PlayersVariant {
-    Integer(HashMap<u32, PlayerInfo>),
-    String(HashMap<String, PlayerInfo>),
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
+#[serde(default = "Default::default")]
+pub(super) struct V2TournamentConfig {
+    #[serde(alias = "se")]
+    pub starting_elo: f64,
+    #[serde(alias = "gp")]
+    pub game_points: f64,
+    #[serde(alias = "geps")]
+    pub game_elo_pow_scale: f64,
+    #[serde(alias = "gwps")]
+    pub game_wr_pow_scale: f64,
+    #[serde(alias = "gew")]
+    pub game_elo_weight: f64,
+    #[serde(alias = "gww")]
+    pub game_wr_weight: f64,
+    #[serde(alias = "mwlp")]
+    pub match_weight_least_played: f64,
+    #[serde(alias = "mwn")]
+    pub match_weight_nemesis: f64,
+    #[serde(alias = "mwlw")]
+    pub match_weight_lost_with: f64,
+    #[serde(alias = "mwln", alias = "match_weight_neighbor", alias = "mwne")]
+    pub match_weight_elo_neighbor: f64,
+    #[serde(alias = "mwwn")]
+    pub match_weight_wr_neighbor: f64,
+    #[serde(alias = "mwen")]
+    pub match_weight_expected_neighbor: f64,
 }
 
-#[allow(clippy::implicit_hasher)]
-impl TryFrom<PlayersVariant> for HashMap<u32, PlayerInfo> {
-    type Error = ParseIntError;
-    fn try_from(value: PlayersVariant) -> Result<Self, Self::Error> {
-        match value {
-            PlayersVariant::Integer(map) => Ok(map),
-            PlayersVariant::String(map) => map
-                .into_iter()
-                .map(|(key, val)| key.parse().map(|id| (id, val)))
-                .collect(),
+impl Default for V2TournamentConfig {
+    fn default() -> Self {
+        Self {
+            starting_elo: 1500.0,
+            game_points: 25.0,
+            game_elo_pow_scale: 6.0,
+            game_wr_pow_scale: 1.0,
+            game_elo_weight: 65.0,
+            game_wr_weight: 35.0,
+            match_weight_least_played: 6.0,
+            match_weight_nemesis: 4.0,
+            match_weight_elo_neighbor: 5.0,
+            match_weight_wr_neighbor: 3.0,
+            match_weight_lost_with: 3.0,
+            match_weight_expected_neighbor: 4.0,
         }
     }
 }
 
-fn deserialize_players<'de, D>(deserializer: D) -> Result<HashMap<u32, PlayerInfo>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let variant = PlayersVariant::deserialize(deserializer)?;
-
-    // Map the TryFrom error to a Serde de::Error
-    variant.try_into().map_err(serde::de::Error::custom)
-}
-
 #[derive(serde::Deserialize, Debug)]
-pub struct V2SerializedTournament {
+pub struct V2Tournament {
     #[serde(alias = "c")]
-    config: TournamentConfig,
-    #[serde(alias = "p", deserialize_with = "deserialize_players")]
-    players: HashMap<u32, PlayerInfo>,
+    pub(super) config: V2TournamentConfig,
+    #[serde(
+        alias = "p",
+        deserialize_with = "DeserializableMap::deserialize_to_map"
+    )]
+    pub(super) players: HashMap<u32, PlayerInfo>,
     #[serde(alias = "g")]
-    games: Vec<GameEntry>,
+    pub(super) games: Vec<GameEntry>,
 }
 
-impl TryFrom<V2SerializedTournament> for Tournament {
-    type Error = TournamentError;
-    fn try_from(value: V2SerializedTournament) -> Result<Self, TournamentError> {
-        let player_names = value
-            .players
-            .iter()
-            .map(|(id, info)| (info.name().to_owned(), *id))
-            .collect();
-
-        let mut tournament = Self {
-            default_stats: PlayerStats::new(value.config.starting_elo),
-            config: value.config,
-            stats: HashMap::new(),
-            players: value.players,
-            player_names,
-            games: Vec::new(),
-            snapshot: 0,
+#[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+impl From<V2Tournament> for V3Tournament {
+    fn from(value: V2Tournament) -> Self {
+        let game_config = GameConfig {
+            starting_elo: value.config.starting_elo,
+            game_points: value.config.game_points,
+            game_elo_pow_scale: value.config.game_elo_pow_scale,
+            game_wr_pow_scale: value.config.game_wr_pow_scale,
+            game_elo_weight: value.config.game_elo_weight,
+            game_wr_weight: value.config.game_wr_weight,
         };
 
-        for game in value.games {
-            tournament.register_entry(game)?;
+        let ranking_config = RankingConfig {
+            least_played: value.config.match_weight_least_played.round() as usize,
+            nemesis: value.config.match_weight_nemesis.round() as usize,
+            lost_with: value.config.match_weight_lost_with.round() as usize,
+            elo_neighbor: value.config.match_weight_elo_neighbor.round() as usize,
+            wr_neighbor: value.config.match_weight_wr_neighbor.round() as usize,
+            expected_neighbor: value.config.match_weight_expected_neighbor.round() as usize,
+        };
+
+        Self {
+            config: TournamentConfig {
+                game: game_config,
+                ranking: ranking_config,
+            },
+            players: value.players,
+            games: value.games,
         }
-
-        tournament.snapshot = 0;
-
-        Ok(tournament)
     }
 }
 

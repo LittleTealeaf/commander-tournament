@@ -1,15 +1,16 @@
+use core::iter::once;
 use std::collections::HashMap;
 
+use itertools::{Itertools, chain};
 use serde::Deserialize;
 
 use crate::{
-    Tournament,
-    config::TournamentConfig,
-    error::TournamentError,
+    game::entry::GameEntry,
     player::{
         color::{ColorIdentity, MtgColor},
         info::PlayerInfo,
     },
+    serialization::v2::{V2Tournament, V2TournamentConfig},
 };
 
 #[derive(Clone, serde::Deserialize, Debug)]
@@ -54,7 +55,7 @@ struct CompatPlayerDetails {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct V1SerializedTournament {
+pub struct V1Tournament {
     players: HashMap<String, CompatPlayerStats>,
     player_details: HashMap<String, CompatPlayerDetails>,
     games: Vec<CompatGame>,
@@ -62,26 +63,9 @@ pub struct V1SerializedTournament {
     match_config: CompatMatchConfig,
 }
 
-impl TryFrom<V1SerializedTournament> for Tournament {
-    type Error = TournamentError;
-    fn try_from(value: V1SerializedTournament) -> Result<Self, Self::Error> {
-        let mut tournament = Self::default();
-
-        // Register any player with info
-        for (name, details) in value.player_details {
-            let mut info = PlayerInfo::new(name);
-            if let Some(description) = details.description {
-                info.set_description(description);
-            }
-            info.set_color_identity(ColorIdentity::from_iter(details.colors));
-
-            if let Some(link) = details.moxfield_link {
-                info.set_moxfield_id(link);
-            }
-            tournament.register_player_with_info(info)?;
-        }
-
-        let config = TournamentConfig {
+impl From<V1Tournament> for V2Tournament {
+    fn from(value: V1Tournament) -> Self {
+        let config = V2TournamentConfig {
             starting_elo: value.score_config.starting_elo,
             game_points: value.score_config.game_points,
             game_elo_pow_scale: value.score_config.elo_pow,
@@ -93,28 +77,66 @@ impl TryFrom<V1SerializedTournament> for Tournament {
             match_weight_elo_neighbor: value.match_config.weight_neighbor,
             match_weight_wr_neighbor: value.match_config.weight_wr_neighbor,
             match_weight_lost_with: value.match_config.weight_lost_with,
-            ..TournamentConfig::default()
+            ..V2TournamentConfig::default()
         };
 
-        tournament.set_config(config)?;
+        let player_names = chain!(
+            value.players.keys(),
+            value.player_details.keys(),
+            value
+                .games
+                .iter()
+                .flat_map(|game| { chain!(&game.players, once(&game.winner)) }),
+        )
+        .unique()
+        .cloned();
 
-        for game in value.games {
-            let [player_a, player_b, player_c, player_d] = game.players;
-            let winner = game.winner;
+        let mut players = HashMap::new();
+        for (i, player) in (0_u32..).zip(player_names) {
+            let mut info = PlayerInfo::new(player.clone());
+            if let Some(details) = value.player_details.get(&player) {
+                info.set_color_identity(ColorIdentity::from_iter(details.colors.clone()));
+                if let Some(description) = &details.description {
+                    info.set_description(description.clone());
+                }
+                if let Some(moxfield) = &details.moxfield_link {
+                    info.set_moxfield_id(moxfield.clone());
+                }
+            }
 
-            let players = [
-                tournament.get_or_register_player(player_a)?,
-                tournament.get_or_register_player(player_b)?,
-                tournament.get_or_register_player(player_c)?,
-                tournament.get_or_register_player(player_d)?,
-            ];
-
-            let winner = tournament.get_or_register_player(winner)?;
-
-            tournament.register_record(tournament.create_match(players)?.record(winner)?)?;
+            players.insert(i, info);
         }
 
-        Ok(tournament)
+        let id_map = players
+            .iter()
+            .map(|(id, info)| (info.name().clone(), *id))
+            .collect::<HashMap<_, _>>();
+
+        let games = value
+            .games
+            .into_iter()
+            .filter_map(|game| {
+                let [str_a, str_b, str_c, str_d] = game.players;
+                let str_w = game.winner;
+                // let id_a = id_map.get()
+                GameEntry::new(
+                    [
+                        *id_map.get(&str_a)?,
+                        *id_map.get(&str_b)?,
+                        *id_map.get(&str_c)?,
+                        *id_map.get(&str_d)?,
+                    ],
+                    *id_map.get(&str_w)?,
+                )
+                .ok()
+            })
+            .collect();
+
+        Self {
+            config,
+            players,
+            games,
+        }
     }
 }
 
