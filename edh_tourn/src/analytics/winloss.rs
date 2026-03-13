@@ -5,7 +5,7 @@ use core::{
 };
 use std::collections::HashMap;
 
-use itertools::Itertools;
+use itertools::{Itertools, chain};
 
 use crate::{
     Tournament,
@@ -30,6 +30,24 @@ impl MatchPerformance {
     const fn new(played: usize, won: usize, lost: usize) -> Self {
         Self { played, won, lost }
     }
+
+    const WIN: Self = Self {
+        played: 1,
+        won: 1,
+        lost: 0,
+    };
+
+    const LOSS: Self = Self {
+        played: 1,
+        lost: 1,
+        won: 0,
+    };
+
+    const DRAW: Self = Self {
+        played: 1,
+        won: 0,
+        lost: 0,
+    };
 }
 
 impl PartialOrd for MatchPerformance {
@@ -168,35 +186,38 @@ impl Tournament {
     {
         self.require_id_registered(id)?;
 
-        let mut records: HashMap<u32, MatchPerformance> = HashMap::new();
+        Ok(self
+            .get_player_games(id)?
+            .flat_map(|game| {
+                let winner = game.winner();
+                let [loser_a, loser_b, loser_c] = game.losers();
 
-        for game in self.get_player_games(id)? {
-            let winner = game.winner();
-            let [loser_a, loser_b, loser_c] = game.losers();
-
-            if winner == id {
-                records.entry(loser_a).or_default().add_win();
-                records.entry(loser_b).or_default().add_win();
-                records.entry(loser_c).or_default().add_win();
-            }
-            if loser_a == id {
-                records.entry(winner).or_default().add_loss();
-                records.entry(loser_b).or_default().add_draw();
-                records.entry(loser_c).or_default().add_draw();
-            }
-            if loser_b == id {
-                records.entry(winner).or_default().add_loss();
-                records.entry(loser_a).or_default().add_draw();
-                records.entry(loser_c).or_default().add_draw();
-            }
-            if loser_c == id {
-                records.entry(winner).or_default().add_loss();
-                records.entry(loser_a).or_default().add_draw();
-                records.entry(loser_b).or_default().add_draw();
-            }
-        }
-
-        Ok(records
+                chain!(
+                    (winner == id).then_some([
+                        (loser_a, MatchPerformance::WIN),
+                        (loser_b, MatchPerformance::WIN),
+                        (loser_c, MatchPerformance::WIN)
+                    ]),
+                    (loser_a == id).then_some([
+                        (winner, MatchPerformance::LOSS),
+                        (loser_b, MatchPerformance::DRAW),
+                        (loser_c, MatchPerformance::DRAW)
+                    ]),
+                    (loser_b == id).then_some([
+                        (winner, MatchPerformance::LOSS),
+                        (loser_a, MatchPerformance::DRAW),
+                        (loser_c, MatchPerformance::DRAW)
+                    ]),
+                    (loser_c == id).then_some([
+                        (winner, MatchPerformance::LOSS),
+                        (loser_a, MatchPerformance::DRAW),
+                        (loser_b, MatchPerformance::DRAW)
+                    ])
+                )
+                .flatten()
+            })
+            .into_grouping_map()
+            .sum()
             .into_iter()
             .filter_map(|(id, perf)| Some((self.get_registered_player(id).ok()?, perf))))
     }
