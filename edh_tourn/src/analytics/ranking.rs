@@ -81,7 +81,7 @@ impl Tournament {
         let games_played_ranked = chain!(
             to_weight_rank(
                 self.get_player_ranked_least_played(id)?,
-                self.ranking_config().least_played // self.match.match_weight_least_played
+                self.ranking_config().least_played
             ),
             to_weight_rank(
                 self.get_player_ranked_nemesis(id)?,
