@@ -96,7 +96,7 @@ pub fn view_identity_matchups(tournament: &Tournament, id: u32) -> Option<Contai
         scrollable(
             table(
                 [
-                    table::column("Identity", |(identity, _): RowType| {
+                    table::column("Color Identity", |(identity, _): RowType| {
                         text(format!("{identity}"))
                     }),
                     table::column("Wins", |(_, perf): RowType| {
@@ -131,9 +131,7 @@ pub fn view_color_matchups(tournament: &Tournament, id: u32) -> Option<Container
         scrollable(
             table(
                 [
-                    table::column("Color Identity", |(identity, _): RowType| {
-                        text(format!("{identity}"))
-                    }),
+                    table::column("Color", |(color, _): RowType| text(format!("{color}"))),
                     table::column("Wins", |(_, perf): RowType| {
                         text(format!("{}", perf.wins()))
                     }),
