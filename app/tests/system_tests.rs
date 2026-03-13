@@ -113,33 +113,33 @@ mod helpers {
     }
 
     pub fn input_matchmaking_config(app: &mut App, tournament: &Tournament) -> anyhow::Result<()> {
-        let config = tournament.config();
+        let config = tournament.ranking_config();
         app.test_update(Message::batch(
             [
                 MessageMatchmakerConfig::Open,
                 MessageMatchmakerConfig::SetConfigValue(
                     MatchmakerConfigOption::LeastPlayed,
-                    format!("{}", config.match_weight_least_played),
+                    format!("{}", config.least_played),
                 ),
                 MessageMatchmakerConfig::SetConfigValue(
                     MatchmakerConfigOption::Nemesis,
-                    format!("{}", config.match_weight_nemesis),
+                    format!("{}", config.nemesis),
                 ),
                 MessageMatchmakerConfig::SetConfigValue(
                     MatchmakerConfigOption::LostWith,
-                    format!("{}", config.match_weight_lost_with),
+                    format!("{}", config.lost_with),
                 ),
                 MessageMatchmakerConfig::SetConfigValue(
                     MatchmakerConfigOption::EloNeighbor,
-                    format!("{}", config.match_weight_elo_neighbor),
+                    format!("{}", config.elo_neighbor),
                 ),
                 MessageMatchmakerConfig::SetConfigValue(
                     MatchmakerConfigOption::WRNeighbor,
-                    format!("{}", config.match_weight_wr_neighbor),
+                    format!("{}", config.wr_neighbor),
                 ),
                 MessageMatchmakerConfig::SetConfigValue(
                     MatchmakerConfigOption::ExpectedNeighbor,
-                    format!("{}", config.match_weight_expected_neighbor),
+                    format!("{}", config.expected_neighbor),
                 ),
                 MessageMatchmakerConfig::Save,
             ]
@@ -147,38 +147,18 @@ mod helpers {
         ))?;
 
         let tourn = app.tournament();
-        let t_config = tourn.config();
+        let t_config = tourn.ranking_config();
 
         let pairs = [
-            (
-                "Least Played",
-                config.match_weight_least_played,
-                t_config.match_weight_least_played,
-            ),
-            (
-                "Nemesis",
-                config.match_weight_nemesis,
-                t_config.match_weight_nemesis,
-            ),
-            (
-                "Lost With",
-                config.match_weight_lost_with,
-                t_config.match_weight_lost_with,
-            ),
-            (
-                "Elo Neighbor",
-                config.match_weight_elo_neighbor,
-                t_config.match_weight_elo_neighbor,
-            ),
-            (
-                "WR Neighbor",
-                config.match_weight_wr_neighbor,
-                t_config.match_weight_wr_neighbor,
-            ),
+            ("Least Played", config.least_played, t_config.least_played),
+            ("Nemesis", config.nemesis, t_config.nemesis),
+            ("Lost With", config.lost_with, t_config.lost_with),
+            ("Elo Neighbor", config.elo_neighbor, t_config.elo_neighbor),
+            ("WR Neighbor", config.wr_neighbor, t_config.wr_neighbor),
             (
                 "Expected Neighbor",
-                config.match_weight_expected_neighbor,
-                t_config.match_weight_expected_neighbor,
+                config.expected_neighbor,
+                t_config.expected_neighbor,
             ),
         ];
 

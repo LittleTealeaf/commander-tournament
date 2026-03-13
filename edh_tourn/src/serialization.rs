@@ -1,46 +1,21 @@
+pub mod utils;
 pub mod v1;
 pub mod v2;
+pub mod v3;
 
-use core::hash::BuildHasher;
-use std::collections::{BTreeMap, HashMap};
-
-use serde::{Deserialize, Serialize, Serializer};
+use serde::Deserialize;
 
 use crate::{
     Tournament,
     error::TournamentError,
-    game::{entry::GameEntry, record::GameRecord},
-    serialization::{v1::V1SerializedTournament, v2::V2SerializedTournament},
+    serialization::{v1::V1Tournament, v2::V2Tournament, v3::V3Tournament},
 };
-
-/// For use with serde's ``serialize_with`` attribute
-pub fn ordered_map<S, K, V, HS>(value: &HashMap<K, V, HS>, serializer: S) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-    HS: BuildHasher,
-    V: Serialize,
-    K: Ord + Serialize,
-{
-    let ordered: BTreeMap<_, _> = value.iter().collect();
-    ordered.serialize(serializer)
-}
-
-pub fn convert_games<S>(items: &[GameRecord], serializer: S) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    let values = items
-        .iter()
-        .flat_map(|record| GameEntry::new(record.ids(), record.winner()))
-        .collect::<Vec<_>>();
-    values.serialize(serializer)
-}
-
 #[derive(Deserialize, Debug)]
 #[serde(untagged)]
 pub enum SerializedTournament {
-    V2(V2SerializedTournament),
-    V1(V1SerializedTournament),
+    V3(V3Tournament),
+    V2(V2Tournament),
+    V1(V1Tournament),
 }
 
 impl TryFrom<SerializedTournament> for Tournament {
@@ -48,8 +23,9 @@ impl TryFrom<SerializedTournament> for Tournament {
 
     fn try_from(value: SerializedTournament) -> Result<Self, Self::Error> {
         match value {
-            SerializedTournament::V2(v2) => v2.try_into(), // Uses V2 logic
-            SerializedTournament::V1(v1) => v1.try_into(), // Uses V1 migration logic
+            SerializedTournament::V3(v3) => v3.try_into(),
+            SerializedTournament::V2(v2) => SerializedTournament::V3(v2.into()).try_into(),
+            SerializedTournament::V1(v1) => SerializedTournament::V2(v1.into()).try_into(),
         }
     }
 }
@@ -107,9 +83,9 @@ mod tests {
     #[test]
     fn deserialize_configures_default_stats() {
         let mut tourn = Tournament::sample_game();
-        let mut config = tourn.config.clone();
+        let mut config = tourn.game_config().clone();
         config.starting_elo += 1500.0;
-        tourn.set_config(config).unwrap();
+        tourn.set_game_config(config).unwrap();
         let starting_elo = tourn.default_stats().elo();
 
         let serialized = ron::to_string(&tourn).unwrap();

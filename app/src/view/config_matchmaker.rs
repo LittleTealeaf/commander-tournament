@@ -1,7 +1,7 @@
 use core::fmt::Display;
 
 use anyhow::anyhow;
-use edh_tourn::config::TournamentConfig;
+use edh_tourn::config::ranking::RankingConfig;
 use iced::{
     Alignment, Length, color,
     widget::{button, column, container, row, rule, space, text, text_input},
@@ -16,21 +16,21 @@ use crate::{
 
 #[derive(Debug)]
 pub struct ConfigValue {
-    value: Option<f64>,
+    value: Option<usize>,
     string: String,
 }
 
 impl ConfigValue {
     #[must_use]
-    fn new(value: f64) -> Self {
+    fn new(value: usize) -> Self {
         Self {
-            string: format!("{value:.2}"),
+            string: format!("{value}"),
             value: Some(value),
         }
     }
 
     fn set_value(&mut self, string: String) {
-        self.value = string.parse::<f64>().ok();
+        self.value = string.parse::<usize>().ok();
         self.string = string;
     }
 }
@@ -71,7 +71,7 @@ impl MatchmakerConfigOption {
 
 #[derive(Debug)]
 pub struct ViewMatchmakerConfig {
-    config: TournamentConfig,
+    config: RankingConfig,
     least_played: ConfigValue,
     nemesis: ConfigValue,
     lost_with: ConfigValue,
@@ -82,14 +82,14 @@ pub struct ViewMatchmakerConfig {
 
 impl ViewMatchmakerConfig {
     #[must_use]
-    pub fn new(config: TournamentConfig) -> Self {
+    pub fn new(config: RankingConfig) -> Self {
         Self {
-            least_played: ConfigValue::new(config.match_weight_least_played),
-            nemesis: ConfigValue::new(config.match_weight_nemesis),
-            lost_with: ConfigValue::new(config.match_weight_lost_with),
-            elo_neighbor: ConfigValue::new(config.match_weight_elo_neighbor),
-            wr_neighbor: ConfigValue::new(config.match_weight_wr_neighbor),
-            expected_neighbor: ConfigValue::new(config.match_weight_expected_neighbor),
+            least_played: ConfigValue::new(config.least_played),
+            nemesis: ConfigValue::new(config.nemesis),
+            lost_with: ConfigValue::new(config.lost_with),
+            elo_neighbor: ConfigValue::new(config.elo_neighbor),
+            wr_neighbor: ConfigValue::new(config.wr_neighbor),
+            expected_neighbor: ConfigValue::new(config.expected_neighbor),
             config,
         }
     }
@@ -119,15 +119,14 @@ impl ViewMatchmakerConfig {
     }
 
     #[must_use]
-    pub fn get_updated_config(&self) -> Option<TournamentConfig> {
-        Some(TournamentConfig {
-            match_weight_least_played: self.least_played.value?,
-            match_weight_nemesis: self.nemesis.value?,
-            match_weight_lost_with: self.lost_with.value?,
-            match_weight_elo_neighbor: self.elo_neighbor.value?,
-            match_weight_wr_neighbor: self.wr_neighbor.value?,
-            match_weight_expected_neighbor: self.expected_neighbor.value?,
-            ..self.config
+    pub fn get_updated_config(&self) -> Option<RankingConfig> {
+        Some(RankingConfig {
+            least_played: self.least_played.value?,
+            nemesis: self.nemesis.value?,
+            lost_with: self.lost_with.value?,
+            elo_neighbor: self.elo_neighbor.value?,
+            wr_neighbor: self.wr_neighbor.value?,
+            expected_neighbor: self.expected_neighbor.value?,
         })
     }
 
@@ -165,7 +164,7 @@ impl HandleMessage<MessageMatchmakerConfig> for App {
             if matches!(msg, MessageMatchmakerConfig::Open) {
                 self.scenes
                     .push(Scene::MatchmakerConfig(ViewMatchmakerConfig::new(
-                        self.tournament().config().clone(),
+                        self.tournament().ranking_config().clone(),
                     )));
             }
             return Message::done();
@@ -177,7 +176,7 @@ impl HandleMessage<MessageMatchmakerConfig> for App {
                 let config = scene
                     .get_updated_config()
                     .ok_or_else(|| anyhow!("One or more invalid values"))?;
-                self.tournament_mut().set_config(config)?;
+                self.tournament_mut().set_ranking_config(config);
                 self.scenes.pop();
                 Message::done()
             }
@@ -254,18 +253,18 @@ mod tests {
 
     #[test]
     fn config_value_sets_string() {
-        let config = ConfigValue::new(5.0);
+        let config = ConfigValue::new(5);
         assert!(!config.string.is_empty());
     }
 
     #[test]
     fn invalid_value_doesnt_parse() {
         const VAL: &str = "AOIWEJOWIJEF";
-        let mut config = ConfigValue::new(5.0);
+        let mut config = ConfigValue::new(5);
         config.set_value(VAL.to_owned());
         assert_eq!(VAL, config.string);
         assert!(config.value.is_none());
-        config.set_value("5.0".to_owned());
+        config.set_value("5".to_owned());
         assert!(config.value.is_some());
     }
 }

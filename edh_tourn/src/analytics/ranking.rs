@@ -52,18 +52,18 @@ impl Display for RankingMethod {
 #[allow(clippy::cast_precision_loss)]
 fn to_weight_rank<T>(
     ranking: impl IntoIterator<Item = T>,
-    weight: f64,
-) -> impl Iterator<Item = (T, f64)> {
+    weight: usize,
+) -> impl Iterator<Item = (T, usize)> {
     ranking
         .into_iter()
         .enumerate()
-        .map(move |(score, val)| (val, (score as u64) as f64 * weight))
+        .map(move |(score, val)| (val, score * weight))
 }
 
 impl Tournament {
     fn get_elo(&self, id: u32) -> f64 {
         self.get_player_stats(id)
-            .map_or(self.config.starting_elo, PlayerStats::elo)
+            .map_or_else(|| self.game_config().starting_elo, PlayerStats::elo)
     }
 
     fn get_wr(&self, id: u32) -> f64 {
@@ -81,15 +81,15 @@ impl Tournament {
         let games_played_ranked = chain!(
             to_weight_rank(
                 self.get_player_ranked_least_played(id)?,
-                self.config.match_weight_least_played
+                self.ranking_config().least_played
             ),
             to_weight_rank(
                 self.get_player_ranked_nemesis(id)?,
-                self.config.match_weight_nemesis
+                self.ranking_config().nemesis
             ),
             to_weight_rank(
                 self.get_player_ranked_lost_with(id)?,
-                self.config.match_weight_lost_with
+                self.ranking_config().lost_with
             ),
         )
         .map(|((player, _), score)| (player, score));
@@ -97,15 +97,15 @@ impl Tournament {
         let neighbors_ranked = chain!(
             to_weight_rank(
                 self.get_player_ranked_elo_neighbors(id)?,
-                self.config.match_weight_elo_neighbor
+                self.ranking_config().elo_neighbor
             ),
             to_weight_rank(
                 self.get_player_ranked_wr_neighbors(id)?,
-                self.config.match_weight_wr_neighbor
+                self.ranking_config().wr_neighbor
             ),
             to_weight_rank(
                 self.get_player_ranked_expected_neighbors(id)?,
-                self.config.match_weight_expected_neighbor
+                self.ranking_config().expected_neighbor
             ),
         );
 
@@ -119,7 +119,7 @@ impl Tournament {
             .filter_map(|(id, score)| Some((self.get_registered_player(id).ok()?, score)));
 
         let sorted = players.sorted_by(|(player_a, score_a), (player_b, score_b)| {
-            match score_a.total_cmp(score_b) {
+            match score_a.cmp(score_b) {
                 Ordering::Equal => player_a.id().cmp(&player_b.id()),
                 cmp => cmp,
             }

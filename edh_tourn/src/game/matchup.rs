@@ -89,8 +89,8 @@ impl Tournament {
             scaled_wr: stats
                 .wr()
                 .unwrap_or(0.25)
-                .powf(self.config.game_wr_pow_scale),
-            scaled_elo: stats.elo().powf(self.config.game_elo_pow_scale),
+                .powf(self.game_config().game_wr_pow_scale),
+            scaled_elo: stats.elo().powf(self.game_config().game_elo_pow_scale),
             stats,
             id,
         }
@@ -109,15 +109,16 @@ impl Tournament {
         let sum_elo = players.iter().map(|player| player.scaled_elo).sum::<f64>();
         let sum_wr = players.iter().map(|player| player.scaled_wr).sum::<f64>();
 
-        let weight_total = self.config.game_wr_weight + self.config.game_elo_weight;
-        let weight_wr = self.config.game_wr_weight / weight_total;
-        let weight_elo = self.config.game_elo_weight / weight_total;
+        let weight_total = self.game_config().game_wr_weight + self.game_config().game_elo_weight;
+        let weight_wr = self.game_config().game_wr_weight / weight_total;
+        let weight_elo = self.game_config().game_elo_weight / weight_total;
 
         let coef_wr = weight_wr / sum_wr;
         let coef_elo = weight_elo / sum_elo;
 
-        let match_players = players
-            .map(|player| player.into_match_player(self.config.game_points, coef_elo, coef_wr));
+        let match_players = players.map(|player| {
+            player.into_match_player(self.game_config().game_points, coef_elo, coef_wr)
+        });
 
         Ok(Matchup::new(match_players, self.snapshot))
     }

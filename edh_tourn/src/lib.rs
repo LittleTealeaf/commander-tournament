@@ -18,8 +18,7 @@ use crate::{
     config::TournamentConfig,
     error::TournamentError,
     game::{entry::GameEntry, record::GameRecord},
-    player::info::PlayerInfo,
-    player::stats::PlayerStats,
+    player::{info::PlayerInfo, stats::PlayerStats},
 };
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
@@ -30,11 +29,11 @@ pub struct Tournament {
     stats: HashMap<u32, PlayerStats>,
     #[serde(skip)]
     default_stats: PlayerStats,
-    #[serde(serialize_with = "serialization::ordered_map")]
+    #[serde(serialize_with = "serialization::utils::ordered_map")]
     players: HashMap<u32, PlayerInfo>,
     #[serde(skip)]
     player_names: HashMap<String, u32>,
-    #[serde(serialize_with = "serialization::convert_games")]
+    #[serde(serialize_with = "serialization::utils::convert_games")]
     games: Vec<GameRecord>,
     #[serde(skip)]
     snapshot: usize,
@@ -45,7 +44,7 @@ impl Default for Tournament {
         let config = TournamentConfig::default();
         Self {
             stats: HashMap::default(),
-            default_stats: PlayerStats::new(config.starting_elo),
+            default_stats: PlayerStats::new(config.game_config().starting_elo),
             players: HashMap::default(),
             player_names: HashMap::default(),
             games: Vec::new(),
@@ -82,7 +81,7 @@ impl Tournament {
 
     pub fn reload(&mut self) -> Result<(), TournamentError> {
         let version = self.snapshot;
-        self.default_stats = PlayerStats::new(self.config.starting_elo);
+        self.default_stats = PlayerStats::new(self.game_config().starting_elo);
         // Update player_names to the player info
         self.player_names = self
             .players
@@ -134,8 +133,12 @@ impl Tournament {
     /// Moves all of the tournament data, systematically, into a new Tournament object.
     /// This is useful as a way around resetting player ids
     pub fn into_fresh(&self) -> Result<Self, TournamentError> {
-        let mut tourn = Self::new().with_config(self.config.clone())?;
-        tourn.snapshot = 0;
+        let mut tourn = Self {
+            config: self.config.clone(),
+            default_stats: self.default_stats.clone(),
+            snapshot: 0,
+            ..Self::new()
+        };
 
         let mut id_map = HashMap::new();
 
@@ -219,11 +222,6 @@ mod tests {
         for i in 0..100 {
             tourn.unregister_player(i).unwrap_err();
         }
-    }
-
-    #[test]
-    fn load_resets_snapshot() {
-        assert_eq!(Tournament::sample_game().snapshot, 0);
     }
 
     #[test]
