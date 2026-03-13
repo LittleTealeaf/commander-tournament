@@ -1,14 +1,15 @@
-use core::iter::once;
 use std::collections::HashMap;
 
-use itertools::{Itertools, chain};
 use serde::Deserialize;
 
 use crate::{
     Tournament,
     config::TournamentConfig,
     error::TournamentError,
-    player::{color::MtgColor, info::PlayerInfo},
+    player::{
+        color::{ColorIdentity, MtgColor},
+        info::PlayerInfo,
+    },
 };
 
 #[derive(Clone, serde::Deserialize, Debug)]
@@ -65,34 +66,18 @@ impl TryFrom<V1SerializedTournament> for Tournament {
     type Error = TournamentError;
     fn try_from(value: V1SerializedTournament) -> Result<Self, Self::Error> {
         let mut tournament = Self::default();
-        let players = chain!(
-            value
-                .games
-                .iter()
-                .cloned()
-                .flat_map(|game| chain!(game.players, once(game.winner))),
-            value.players.keys().cloned(),
-            value.player_details.keys().cloned(),
-        )
-        .unique()
-        .collect_vec();
 
-        for player in players {
-            let mut info = PlayerInfo::new(player.clone());
-
-            if let Some(compat_info) = value.player_details.get(&player) {
-                if let Some(description) = &compat_info.description {
-                    info.set_description(description.to_owned());
-                }
-                for color in &compat_info.colors {
-                    info.toggle_color(*color);
-                }
-
-                if let Some(link) = &compat_info.moxfield_link {
-                    info.set_moxfield_id(link.to_owned());
-                }
+        // Register any player with info
+        for (name, details) in value.player_details {
+            let mut info = PlayerInfo::new(name);
+            if let Some(description) = details.description {
+                info.set_description(description);
             }
+            info.set_color_identity(ColorIdentity::from_iter(details.colors));
 
+            if let Some(link) = details.moxfield_link {
+                info.set_moxfield_id(link);
+            }
             tournament.register_player_with_info(info)?;
         }
 

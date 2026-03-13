@@ -52,7 +52,6 @@ pub fn view_player_matchups(tournament: &Tournament, id: u32) -> Option<Containe
                 .cmp(perf_b)
                 .then_with(|| player_a.stats().elo().total_cmp(&player_b.stats().elo()))
         })
-        .sorted_by_key(|&(_, key)| key)
         .rev();
 
     Some(container(
