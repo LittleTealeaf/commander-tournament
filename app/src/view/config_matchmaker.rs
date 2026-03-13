@@ -47,14 +47,14 @@ pub enum MatchmakerConfigOption {
 
 impl Display for MatchmakerConfigOption {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        match self {
-            Self::LeastPlayed => write!(f, "Weight Least Played"),
-            Self::Nemesis => write!(f, "Weight Nemesis"),
-            Self::LostWith => write!(f, "Weight Lost With"),
-            Self::EloNeighbor => write!(f, "Weight Elo Neighbor"),
-            Self::WRNeighbor => write!(f, "Weight WR Neighbor"),
-            Self::ExpectedNeighbor => write!(f, "Weight Expected Neighbor"),
-        }
+        f.write_str(match self {
+            Self::LeastPlayed => "Weight Least Played",
+            Self::Nemesis => "Weight Nemesis",
+            Self::LostWith => "Weight Lost With",
+            Self::EloNeighbor => "Weight Elo Neighbor",
+            Self::WRNeighbor => "Weight WR Neighbor",
+            Self::ExpectedNeighbor => "Weight Expected Neighbor",
+        })
     }
 }
 

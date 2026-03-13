@@ -7,26 +7,17 @@ use crate::{
     player::RegisteredPlayer,
 };
 
-fn with_elo_tie_breaker(
-    cmp: Ordering,
+fn closest_elo(
     elo: f64,
     player_a: &RegisteredPlayer<'_>,
     player_b: &RegisteredPlayer<'_>,
 ) -> Ordering {
-    let Ordering::Equal = cmp else {
-        return cmp;
-    };
-
     let elo_diff_a = (elo - player_a.stats().elo()).abs();
     let elo_diff_b = (elo - player_b.stats().elo()).abs();
 
     let cmp = elo_diff_a.total_cmp(&elo_diff_b);
 
-    let Ordering::Equal = cmp else {
-        return cmp;
-    };
-
-    player_a.id().cmp(&player_b.id())
+    cmp.then_with(|| player_a.id().cmp(&player_b.id()))
 }
 
 impl Tournament {
@@ -42,7 +33,9 @@ impl Tournament {
             let score_a = total_games + perf_a.wins() - perf_a.losses();
             let score_b = total_games + perf_b.wins() - perf_b.losses();
 
-            with_elo_tie_breaker(score_a.cmp(&score_b), elo_base, player_a, player_b)
+            score_a
+                .cmp(&score_b)
+                .then_with(|| closest_elo(elo_base, player_a, player_b))
         });
 
         Ok(sorted)
@@ -59,12 +52,10 @@ impl Tournament {
             let score_a = perf_a.draws();
             let score_b = perf_b.draws();
 
-            with_elo_tie_breaker(
-                score_a.cmp(&score_b).reverse(),
-                elo_base,
-                player_a,
-                player_b,
-            )
+            score_a
+                .cmp(&score_b)
+                .reverse()
+                .then_with(|| closest_elo(elo_base, player_a, player_b))
         });
         Ok(sorted)
     }
@@ -80,7 +71,9 @@ impl Tournament {
             let score_a = perf_a.played();
             let score_b = perf_b.played();
 
-            with_elo_tie_breaker(score_a.cmp(&score_b), elo_base, player_a, player_b)
+            score_a
+                .cmp(&score_b)
+                .then_with(|| closest_elo(elo_base, player_a, player_b))
         });
         Ok(sorted)
     }

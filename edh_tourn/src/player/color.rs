@@ -67,45 +67,41 @@ impl ColorIdentity {
 
 impl Display for ColorIdentity {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self.0 {
-                0 => "Colorless",
-                1 => "White",
-                2 => "Blue",
-                3 => "Azorius",
-                4 => "Black",
-                5 => "Orzhov",
-                6 => "Dimir",
-                7 => "Esper",
-                8 => "Red",
-                9 => "Boros",
-                10 => "Izzet",
-                11 => "Jeskai",
-                12 => "Rakdos",
-                13 => "Mardu",
-                14 => "Grixis",
-                15 => "Yore",
-                16 => "Green",
-                17 => "Selesnya",
-                18 => "Simic",
-                19 => "Bant",
-                20 => "Golgari",
-                21 => "Abzan",
-                22 => "Sultai",
-                23 => "Witch",
-                24 => "Gruul",
-                25 => "Naya",
-                26 => "Temur",
-                27 => "Ink",
-                28 => "Jund",
-                29 => "Dune",
-                30 => "Glint",
-                31 => "WUBRG",
-                _ => "Unknown",
-            }
-        )
+        f.write_str(match self.0 {
+            0 => "Colorless",
+            1 => "White",
+            2 => "Blue",
+            3 => "Azorius",
+            4 => "Black",
+            5 => "Orzhov",
+            6 => "Dimir",
+            7 => "Esper",
+            8 => "Red",
+            9 => "Boros",
+            10 => "Izzet",
+            11 => "Jeskai",
+            12 => "Rakdos",
+            13 => "Mardu",
+            14 => "Grixis",
+            15 => "Yore",
+            16 => "Green",
+            17 => "Selesnya",
+            18 => "Simic",
+            19 => "Bant",
+            20 => "Golgari",
+            21 => "Abzan",
+            22 => "Sultai",
+            23 => "Witch",
+            24 => "Gruul",
+            25 => "Naya",
+            26 => "Temur",
+            27 => "Ink",
+            28 => "Jund",
+            29 => "Dune",
+            30 => "Glint",
+            31 => "WUBRG",
+            _ => "Unknown",
+        })
     }
 }
 
@@ -168,6 +164,18 @@ pub enum MtgColor {
     Red = 8,
     #[serde(rename = "g", alias = "Green")]
     Green = 16,
+}
+
+impl Display for MtgColor {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str(match self {
+            Self::White => "White",
+            Self::Blue => "Blue",
+            Self::Black => "Black",
+            Self::Red => "Red",
+            Self::Green => "Green",
+        })
+    }
 }
 
 impl MtgColor {

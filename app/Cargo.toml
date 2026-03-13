@@ -25,6 +25,7 @@ toml = "1.0.6"
 thiserror = "2.0.18"
 edh_tourn = {path = "../edh_tourn/"}
 directories = "6.0.0"
+iced_aw = { version = "0.13.1", features = ["tab_bar", "tabs"] }
 
 [dev-dependencies]
 app = {path = ".", features = ["dev"]}
