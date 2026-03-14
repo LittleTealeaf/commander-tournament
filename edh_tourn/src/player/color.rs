@@ -179,7 +179,7 @@ impl Display for MtgColor {
 }
 
 impl MtgColor {
-    pub const COLORS: [Self; 5] = [Self::White, Self::Blue, Self::Black, Self::Green, Self::Red];
+    pub const COLORS: [Self; 5] = [Self::White, Self::Blue, Self::Black, Self::Red, Self::Green];
 
     #[must_use]
     pub const fn letter(self) -> &'static str {
