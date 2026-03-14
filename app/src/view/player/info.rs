@@ -31,12 +31,14 @@ pub fn view_info_panel(scene: &ViewPlayerScene) -> iced::widget::Container<'_, M
     }))
     .spacing(5);
 
+    let button_link = button("").on_press_maybe(scene.info.moxfield_link().map(Message::OpenLink));
+
     let text_identity = text(scene.info.color_identity().to_string());
 
     container(
         column![
             row![edit_name, text_identity].spacing(20),
-            row![edit_moxfieldid, deck_colors].spacing(20),
+            row![edit_moxfieldid, button_link, deck_colors].spacing(20),
             edit_description,
         ]
         .spacing(20),

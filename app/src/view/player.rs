@@ -186,6 +186,7 @@ impl HandleMessage<ViewPlayerMessage> for App {
             }
             ViewPlayerMessage::SetMoxfieldId(text) => {
                 scene.moxfield = text;
+                scene.info.set_moxfield_id(scene.moxfield.clone());
                 Message::done()
             }
             ViewPlayerMessage::ClearColors => {
