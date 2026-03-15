@@ -10,6 +10,13 @@ pub struct GameConfig {
 
 impl Default for GameConfig {
     fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl GameConfig {
+    #[must_use]
+    pub const fn new() -> Self {
         Self {
             starting_elo: 1500.0,
             game_points: 25.0,

@@ -6,12 +6,12 @@ use core::fmt::{Display, Formatter};
 use std::borrow::ToOwned;
 
 use edh_tourn::{
-    Tournament,
     error::TournamentError,
     player::{
         color::{ColorIdentity, MtgColor},
         info::PlayerInfo,
     },
+    tournament::Tournament,
 };
 use iced::{
     Alignment, Element, Length,
@@ -292,7 +292,7 @@ impl View<ViewPlayerScene> for App {
 
 #[cfg(test)]
 mod tests {
-    use edh_tourn::Tournament;
+    use edh_tourn::tournament::Tournament;
     use itertools::Itertools;
 
     use crate::view::player::ViewPlayerScene;

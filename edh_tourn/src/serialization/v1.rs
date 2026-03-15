@@ -142,7 +142,7 @@ impl From<V1Tournament> for V2Tournament {
 
 #[cfg(test)]
 mod tests {
-    use crate::Tournament;
+    use crate::tournament::Tournament;
 
     #[test]
     pub fn serializes_v1_sample() {

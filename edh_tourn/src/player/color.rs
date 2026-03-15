@@ -1,7 +1,50 @@
 use core::fmt::Display;
-use core::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign};
+use core::ops::{Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, Sub, SubAssign};
 
 use itertools::Itertools;
+
+#[derive(
+    Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash, Copy,
+)]
+pub enum MtgColor {
+    #[serde(rename = "w", alias = "White")]
+    White = 1 << 0,
+    #[serde(rename = "u", alias = "Blue")]
+    Blue = 1 << 1,
+    #[serde(rename = "b", alias = "Black")]
+    Black = 1 << 2,
+    #[serde(rename = "r", alias = "Red")]
+    Red = 1 << 3,
+    #[serde(rename = "g", alias = "Green")]
+    Green = 1 << 4,
+}
+
+impl Display for MtgColor {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str(match self {
+            Self::White => "White",
+            Self::Blue => "Blue",
+            Self::Black => "Black",
+            Self::Red => "Red",
+            Self::Green => "Green",
+        })
+    }
+}
+
+impl MtgColor {
+    pub const COLORS: [Self; 5] = [Self::White, Self::Blue, Self::Black, Self::Red, Self::Green];
+
+    #[must_use]
+    pub const fn letter(self) -> &'static str {
+        match self {
+            Self::White => "W",
+            Self::Blue => "U",
+            Self::Green => "G",
+            Self::Red => "R",
+            Self::Black => "B",
+        }
+    }
+}
 
 #[derive(
     Default,
@@ -17,7 +60,7 @@ use itertools::Itertools;
     Copy,
 )]
 #[serde(transparent)]
-pub struct ColorIdentity(pub(crate) u8);
+pub struct ColorIdentity(u8);
 
 impl ColorIdentity {
     #[must_use]
@@ -30,6 +73,11 @@ impl ColorIdentity {
             .map(|color| self.has_color(color).then_some(color))
             .into_iter()
             .flatten()
+    }
+
+    #[must_use]
+    pub const fn num_colors(&self) -> u32 {
+        self.0.count_ones()
     }
 
     pub fn colors(&self) -> impl Iterator<Item = MtgColor> {
@@ -48,61 +96,55 @@ impl ColorIdentity {
     }
 
     pub const fn remove_color(&mut self, color: MtgColor) {
-        if self.has_color(color) {
-            self.0 -= color as u8;
-        }
+        self.add_color(color);
+        self.0 -= color as u8;
     }
 }
 
-impl ColorIdentity {
-    #[allow(clippy::cast_possible_truncation, clippy::indexing_slicing)]
-    pub const IDENTITIES: [Self; 32] = {
-        let mut arr = [Self(0); 32];
-        let mut i = 0;
-        while i < 32 {
-            arr[i] = Self(i as u8);
-            i += 1;
-        }
-        arr
+macro_rules! identity_const {
+    // 1. The Entry Point: Accepts the starting ID and the list of colors
+    (
+        $start_id:expr, [$($color:ident),+]
+    ) => {
+        // Generate the individual constants
+        identity_const!(@expand $start_id, $($color),+);
+
+        // Generate the aggregate array
+        pub const IDENTITIES: [Self; identity_const!(@count $($color),+)] = [
+            $(Self::$color),+
+        ];
     };
 
-    pub const COLORLESS: Self = Self(0);
-    pub const WHITE: Self = Self(1);
-    pub const BLUE: Self = Self(2);
-    pub const AZORIUS: Self = Self(3);
-    pub const BLACK: Self = Self(4);
-    pub const ORZHOV: Self = Self(5);
-    pub const DIMIR: Self = Self(6);
-    pub const ESPER: Self = Self(7);
-    pub const RED: Self = Self(8);
-    pub const BOROS: Self = Self(9);
-    pub const IZZET: Self = Self(10);
-    pub const JESKAI: Self = Self(11);
-    pub const RAKDOS: Self = Self(12);
-    pub const MARDU: Self = Self(13);
-    pub const GRIXIS: Self = Self(14);
-    pub const YORE: Self = Self(15);
-    pub const GREEN: Self = Self(16);
-    pub const SELESNYA: Self = Self(17);
-    pub const SIMIC: Self = Self(18);
-    pub const BANT: Self = Self(19);
-    pub const GOLGARI: Self = Self(20);
-    pub const ABZAN: Self = Self(21);
-    pub const SULTAI: Self = Self(22);
-    pub const WITCH: Self = Self(23);
-    pub const GRUUL: Self = Self(24);
-    pub const NAYA: Self = Self(25);
-    pub const TEMUR: Self = Self(26);
-    pub const INK: Self = Self(27);
-    pub const JUND: Self = Self(28);
-    pub const DUNE: Self = Self(29);
-    pub const GLINT: Self = Self(30);
-    pub const WUBRG: Self = Self(31);
+    // 2. Helper: Recursive expansion for individual constants
+    (@expand $id:expr, $color:ident) => {
+        pub const $color: Self = Self($id);
+    };
+    (@expand $id:expr, $color:ident, $($rest:ident),+) => {
+        pub const $color: Self = Self($id);
+        identity_const!(@expand $id + 1, $($rest),+);
+    };
+
+    // 3. Helper: Purely for counting the number of elements for the array size
+    (@count $t1:ident $(, $t:ident)*) => {
+        1 $(+ identity_const!(@count $t))*
+    };
+    (@count) => { 0 };
+}
+
+impl ColorIdentity {
+    identity_const!(
+        0,
+        [
+            COLORLESS, WHITE, BLUE, AZORIUS, BLACK, ORZHOV, DIMIR, ESPER, RED, BOROS, IZZET,
+            JESKAI, RAKDOS, MARDU, GRIXIS, YORE, GREEN, SELESNYA, SIMIC, BANT, GOLGARI, ABZAN,
+            SULTAI, WITCH, GRUUL, NAYA, TEMUR, INK, JUND, DUNE, GLINT, WUBRG
+        ]
+    );
 }
 
 impl Display for ColorIdentity {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.write_str(match self.0 {
+        f.write_str(match self.0 & 0b11111 {
             0 => "Colorless",
             1 => "White",
             2 => "Blue",
@@ -135,7 +177,7 @@ impl Display for ColorIdentity {
             29 => "Dune",
             30 => "Glint",
             31 => "WUBRG",
-            _ => "Unknown",
+            _ => unreachable!("Unreachable"),
         })
     }
 }
@@ -154,6 +196,35 @@ impl FromIterator<MtgColor> for ColorIdentity {
 impl From<MtgColor> for ColorIdentity {
     fn from(value: MtgColor) -> Self {
         Self(value as u8)
+    }
+}
+
+impl Add<MtgColor> for ColorIdentity {
+    type Output = Self;
+    #[allow(clippy::suspicious_arithmetic_impl)]
+    fn add(self, rhs: MtgColor) -> Self::Output {
+        Self(self.0 | rhs as u8)
+    }
+}
+
+impl AddAssign<MtgColor> for ColorIdentity {
+    #[allow(clippy::suspicious_op_assign_impl)]
+    fn add_assign(&mut self, rhs: MtgColor) {
+        self.0 |= rhs as u8;
+    }
+}
+
+impl Sub<MtgColor> for ColorIdentity {
+    type Output = Self;
+    fn sub(self, rhs: MtgColor) -> Self::Output {
+        Self((self.0 | rhs as u8) - rhs as u8)
+    }
+}
+
+impl SubAssign<MtgColor> for ColorIdentity {
+    fn sub_assign(&mut self, rhs: MtgColor) {
+        *self += rhs;
+        self.0 -= rhs as u8;
     }
 }
 
@@ -185,49 +256,6 @@ impl BitOrAssign for ColorIdentity {
     }
 }
 
-#[derive(
-    Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash, Copy,
-)]
-pub enum MtgColor {
-    #[serde(rename = "w", alias = "White")]
-    White = 1,
-    #[serde(rename = "u", alias = "Blue")]
-    Blue = 2,
-    #[serde(rename = "b", alias = "Black")]
-    Black = 4,
-    #[serde(rename = "r", alias = "Red")]
-    Red = 8,
-    #[serde(rename = "g", alias = "Green")]
-    Green = 16,
-}
-
-impl Display for MtgColor {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.write_str(match self {
-            Self::White => "White",
-            Self::Blue => "Blue",
-            Self::Black => "Black",
-            Self::Red => "Red",
-            Self::Green => "Green",
-        })
-    }
-}
-
-impl MtgColor {
-    pub const COLORS: [Self; 5] = [Self::White, Self::Blue, Self::Black, Self::Red, Self::Green];
-
-    #[must_use]
-    pub const fn letter(self) -> &'static str {
-        match self {
-            Self::White => "W",
-            Self::Blue => "U",
-            Self::Green => "G",
-            Self::Red => "R",
-            Self::Black => "B",
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use std::collections::HashSet;
@@ -255,6 +283,15 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::cast_possible_truncation)]
+    fn identities_range_valid() {
+        for i in 0..32 {
+            let value = ColorIdentity::IDENTITIES.get(i).unwrap();
+            assert!(value.0 == i as u8);
+        }
+    }
+
+    #[test]
     fn identities_are_all_colors() {
         for identity in ColorIdentity::IDENTITIES {
             assert_ne!("Unknown", identity.to_string());
@@ -277,7 +314,26 @@ mod tests {
         for color in MtgColor::COLORS {
             let identity: ColorIdentity = color.into();
             assert!(identity.has_color(color));
+            assert_eq!(1, identity.num_colors());
         }
+    }
+
+    #[test]
+    fn add_color() {
+        let mut ident = ColorIdentity::WHITE;
+        ident.add_color(MtgColor::Blue);
+        assert_eq!(ColorIdentity::AZORIUS, ident);
+        ident.add_color(MtgColor::Blue);
+        assert_eq!(ColorIdentity::AZORIUS, ident);
+    }
+
+    #[test]
+    fn remove_color() {
+        let mut color = ColorIdentity::JESKAI;
+        color.remove_color(MtgColor::Blue);
+        assert_eq!(ColorIdentity::BOROS, color);
+        color.remove_color(MtgColor::Blue);
+        assert_eq!(ColorIdentity::BOROS, color);
     }
 
     #[test]

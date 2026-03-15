@@ -4,7 +4,7 @@ use std::{
 };
 
 use anyhow::anyhow;
-use edh_tourn::Tournament;
+use edh_tourn::tournament::Tournament;
 use iced::{Task, futures::FutureExt};
 use rfd::AsyncFileDialog;
 use serde::{Deserialize, Serialize};
@@ -140,7 +140,7 @@ where
 mod tests {
     use std::{io::Write, path::PathBuf};
 
-    use edh_tourn::Tournament;
+    use edh_tourn::tournament::Tournament;
     use tempfile::NamedTempFile;
 
     use crate::{
@@ -237,7 +237,7 @@ mod tests {
 
                 #[test]
                 fn serialize() {
-                    let tournament = edh_tourn::Tournament::sample_game();
+                    let tournament = edh_tourn::tournament::Tournament::sample_game();
                     let serialized_tournament =
                         crate::logic::file::serialize_by_extension(&tournament, $ext).unwrap();
                     let deserialized_tournament = ($deserialize)(&serialized_tournament);
@@ -246,7 +246,7 @@ mod tests {
 
                 #[test]
                 fn deserialize() {
-                    let tournament = edh_tourn::Tournament::sample_game();
+                    let tournament = edh_tourn::tournament::Tournament::sample_game();
                     let serialized_tournament = ($serialize)(&tournament);
                     let deserialized_tournament =
                         crate::logic::file::deserialize_by_extension(&serialized_tournament, $ext)
@@ -256,7 +256,7 @@ mod tests {
 
                 #[tokio::test]
                 async fn async_parse_from_file() {
-                    let tournament = edh_tourn::Tournament::sample_game();
+                    let tournament = edh_tourn::tournament::Tournament::sample_game();
                     let serialized = ($serialize)(&tournament);
                     let mut file =
                         tempfile::NamedTempFile::with_suffix(format!(".{}", $ext)).unwrap();
@@ -270,7 +270,7 @@ mod tests {
 
                 #[test]
                 fn sync_parse_from_file() {
-                    let tournament = edh_tourn::Tournament::sample_game();
+                    let tournament = edh_tourn::tournament::Tournament::sample_game();
                     let serialized = ($serialize)(&tournament);
                     let mut file =
                         tempfile::NamedTempFile::with_suffix(format!(".{}", $ext)).unwrap();

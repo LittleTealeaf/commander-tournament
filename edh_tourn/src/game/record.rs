@@ -1,7 +1,7 @@
 use crate::{
-    Tournament,
     error::TournamentError,
-    game::{entry::GameEntry, match_player::MatchPlayer, matchup::Matchup},
+    game::{match_player::MatchPlayer, matchup::Matchup},
+    tournament::Tournament,
 };
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
@@ -87,11 +87,5 @@ impl GameRecord {
 impl Tournament {
     pub fn update_record(&self, record: GameRecord) -> Result<GameRecord, TournamentError> {
         self.update_match(record.matchup)?.record(record.winner)
-    }
-}
-
-impl From<GameRecord> for GameEntry {
-    fn from(value: GameRecord) -> Self {
-        Self::new_unchecked(value.ids(), value.winner)
     }
 }

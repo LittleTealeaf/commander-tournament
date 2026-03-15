@@ -1,7 +1,7 @@
 use edh_tourn::{
-    Tournament,
     error::TournamentError,
     game::{match_player::MatchPlayer, matchup::Matchup},
+    tournament::Tournament,
 };
 use iced::{
     Alignment, Length, Task,
@@ -9,6 +9,7 @@ use iced::{
     widget::{button, column, container, pick_list, row, space, text},
 };
 use itertools::Itertools;
+use nerd_font_symbols::md::{MD_CANCEL, MD_LINK_VARIANT, MD_LINK_VARIANT_PLUS};
 
 use crate::{
     App,
@@ -169,7 +170,7 @@ impl View<MatchupView> for App {
 
         let match_players = MatchViewPlayer::PLAYERS.map(|position| {
             let id = scene.get_player(position).copied();
-            let entry = id.and_then(|id| self.tournament.get_registered_player(id).ok());
+            let entry = id.and_then(|id| self.tournament.get_registered_player(id));
 
             let text_stats = entry.map(|p| {
                 let stats = p.stats();
@@ -207,7 +208,7 @@ impl View<MatchupView> for App {
                 column![
                     row![
                         selector,
-                        button("").on_press_maybe(
+                        button(MD_LINK_VARIANT).on_press_maybe(
                             entry
                                 .and_then(|entry| entry.info().moxfield_goldfish_link())
                                 .map(Message::OpenLink)
@@ -230,12 +231,12 @@ impl View<MatchupView> for App {
         let current_players = MatchViewPlayer::PLAYERS
             .iter()
             .filter_map(|player| scene.get_player(*player).copied())
-            .filter_map(|id| self.tournament().get_registered_player(id).ok())
+            .filter_map(|id| self.tournament().get_registered_player(id))
             .collect_vec();
 
         let winner = scene
             .winner
-            .and_then(|id| self.tournament().get_registered_player(id).ok());
+            .and_then(|id| self.tournament().get_registered_player(id));
 
         let winner_selector = row![
             text("Winner: ").size(17),
@@ -243,7 +244,7 @@ impl View<MatchupView> for App {
                 MatchupMessage::SetWinner(Some(picked.id())).into()
             })
             .width(Length::Fill),
-            button("󱄀").on_press_maybe({
+            button(MD_LINK_VARIANT_PLUS).on_press_maybe({
                 let links = MatchViewPlayer::PLAYERS
                     .into_iter()
                     .filter_map(|position| {
@@ -279,7 +280,7 @@ impl View<MatchupView> for App {
                 (scene.matchup.is_some() && scene.winner.is_some())
                     .then_some(MatchupMessage::SubmitGame.into())
             ),
-            button("󰜺").on_press(MatchupMessage::Clear.into()),
+            button(MD_CANCEL).on_press(MatchupMessage::Clear.into()),
         ]
         .spacing(10)
         .align_y(Vertical::Center);

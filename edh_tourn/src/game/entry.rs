@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{Tournament, error::TournamentError, game::record::GameRecord};
+use crate::{error::TournamentError, game::record::GameRecord, tournament::Tournament};
 
 /// Stores only the player IDs and the winner ID. Primarily used for serialization or conversions
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default, PartialEq, Copy, Eq)]
@@ -22,7 +22,7 @@ impl GameEntry {
     }
 
     #[must_use]
-    pub(crate) const fn new_unchecked(players: [u32; 4], winner: u32) -> Self {
+    const fn new_unchecked(players: [u32; 4], winner: u32) -> Self {
         Self { players, winner }
     }
 
@@ -47,6 +47,18 @@ impl GameEntry {
             .ok_or(TournamentError::InvalidPlayerId(self.winner))?;
 
         Self::new([*a, *b, *c, *d], *winner)
+    }
+}
+
+impl From<GameRecord> for GameEntry {
+    fn from(value: GameRecord) -> Self {
+        Self::new_unchecked(value.ids(), value.winner())
+    }
+}
+
+impl From<&GameRecord> for GameEntry {
+    fn from(value: &GameRecord) -> Self {
+        Self::new_unchecked(value.ids(), value.winner())
     }
 }
 

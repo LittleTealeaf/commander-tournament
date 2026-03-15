@@ -2,7 +2,7 @@ use core::cmp::Ordering;
 
 use itertools::Itertools;
 
-use crate::{Tournament, error::TournamentError, player::RegisteredPlayer};
+use crate::{error::TournamentError, player::RegisteredPlayer, tournament::Tournament};
 
 #[must_use]
 const fn abs_diff(a: f64, b: f64) -> f64 {

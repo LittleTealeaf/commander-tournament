@@ -1,10 +1,6 @@
-use crate::{
-    Tournament,
-    error::TournamentError,
-    player::color::{ColorIdentity, MtgColor},
-};
+use crate::player::color::{ColorIdentity, MtgColor};
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default, PartialEq, Eq, Hash)]
 pub struct PlayerInfo {
     #[serde(rename = "n", alias = "name")]
     name: String,
@@ -37,7 +33,7 @@ impl PlayerInfo {
         Self {
             name,
             description: String::new(),
-            identity: ColorIdentity(0),
+            identity: ColorIdentity::COLORLESS,
             moxfield_id: None,
         }
     }
@@ -102,6 +98,14 @@ impl PlayerInfo {
     }
 
     #[must_use]
+    pub fn with_moxfield_id(self, moxfield_id: String) -> Self {
+        Self {
+            moxfield_id: Some(moxfield_id),
+            ..self
+        }
+    }
+
+    #[must_use]
     pub const fn color_identity(&self) -> &ColorIdentity {
         &self.identity
     }
@@ -134,169 +138,80 @@ impl PlayerInfo {
     pub fn colors(&self) -> impl Iterator<Item = MtgColor> {
         self.identity.colors()
     }
-}
-
-impl Tournament {
-    pub fn get_or_register_player(&mut self, name: String) -> Result<u32, TournamentError> {
-        match self.register_player(name) {
-            Ok(id) | Err(TournamentError::PlayerAlreadyRegistered(_, id)) => Ok(id),
-            Err(err) => Err(err),
-        }
-    }
-
-    #[cfg(feature = "dev")]
-    pub fn register_debug_player(&mut self) -> Result<u32, TournamentError> {
-        let id = self.players().keys().max().copied().map_or(0, |i| i + 1);
-        self.register_player(format!("debug-{id}"))
-    }
-
-    pub fn register_player(&mut self, name: String) -> Result<u32, TournamentError> {
-        self.register_player_with_info(PlayerInfo::new(name))
-    }
-
-    pub fn register_player_with_info(&mut self, info: PlayerInfo) -> Result<u32, TournamentError> {
-        if info.name.is_empty() {
-            return Err(TournamentError::InvalidPlayerName(info.name));
-        }
-
-        if let Some(id) = self.player_names.get(&info.name) {
-            return Err(TournamentError::PlayerAlreadyRegistered(info.name, *id));
-        }
-
-        let id = self.players.keys().max().map_or(0, |i| i + 1);
-
-        self.player_names.insert(info.name.clone(), id);
-        self.players.insert(id, info);
-
-        Ok(id)
-    }
-
-    pub fn set_player_info(
-        &mut self,
-        player: u32,
-        info: PlayerInfo,
-    ) -> Result<(), TournamentError> {
-        let saved_info = self
-            .players
-            .get_mut(&player)
-            .ok_or(TournamentError::InvalidPlayerId(player))?;
-
-        if !saved_info.name().eq(info.name()) {
-            if info.name().is_empty() {
-                return Err(TournamentError::InvalidPlayerName(info.name().to_owned()));
-            }
-
-            if let Some(old_id) = self.player_names.get(info.name()) {
-                return Err(TournamentError::PlayerAlreadyRegistered(
-                    info.name().to_owned(),
-                    *old_id,
-                ));
-            }
-
-            self.player_names.remove(saved_info.name());
-            self.player_names.insert(info.name().to_owned(), player);
-        }
-
-        *saved_info = info;
-
-        Ok(())
-    }
 
     #[must_use]
-    pub fn get_player_info(&self, id: &u32) -> Option<&PlayerInfo> {
-        self.players().get(id)
-    }
-
-    #[must_use]
-    pub fn get_player_name(&self, id: &u32) -> Option<&String> {
-        self.get_player_info(id).map(PlayerInfo::name)
+    pub fn into_name(self) -> String {
+        self.name
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use itertools::Itertools;
-
-    use crate::{Tournament, error::TournamentError, player::info::PlayerInfo};
+    use super::*;
 
     const TEST_MOXFIELD_ID: &str = "BtCcQ8eWg0uT8n4fFPK3Xg";
 
+    fn new_player_info() -> PlayerInfo {
+        PlayerInfo::new("test".to_owned())
+    }
+
     #[test]
-    fn accepts_moxfield_ids() {
-        let mut info = PlayerInfo::new("hi".to_owned());
+    fn moxfield_id_none_by_default() {
+        assert!(new_player_info().moxfield_id().is_none());
+    }
+
+    #[test]
+    fn moxfield_link_returns_none() {
+        assert!(new_player_info().moxfield_link().is_none());
+    }
+
+    #[test]
+    fn moxfield_goldfish_returns_none() {
+        assert!(new_player_info().moxfield_goldfish_link().is_none());
+    }
+
+    #[test]
+    fn set_moxfield_accepts_ids() {
+        let mut info = new_player_info();
         info.set_moxfield_id(TEST_MOXFIELD_ID.to_owned());
-        assert_eq!(
-            TEST_MOXFIELD_ID,
-            info.moxfield_id().expect("Expected Moxfield ID to Exist")
-        );
+        assert!(info.moxfield_id().is_some());
     }
 
     #[test]
-    fn accepts_moxfield_deck_link() {
-        let mut info = PlayerInfo::new("hi".to_owned());
-        let link = format!("https://moxfield.com/decks/{TEST_MOXFIELD_ID}");
-        info.set_moxfield_id(link);
-        assert_eq!(
-            TEST_MOXFIELD_ID,
-            info.moxfield_id().expect("Expected Moxfield ID to Exist")
-        );
+    fn set_moxfield_accepts_deck_links() {
+        let mut info = new_player_info();
+        info.set_moxfield_id(format!("https://moxfield.com/decks/{TEST_MOXFIELD_ID}"));
+        assert!(info.moxfield_id().is_some());
     }
 
     #[test]
-    fn accepts_moxfield_goldfish_link() {
-        let mut info = PlayerInfo::new("hi".to_owned());
-        let link = format!("https://moxfield.com/decks/{TEST_MOXFIELD_ID}/goldfish");
-        info.set_moxfield_id(link);
-        assert_eq!(
-            TEST_MOXFIELD_ID,
-            info.moxfield_id().expect("Expected Moxfield ID to Exist")
-        );
-    }
-
-    #[test]
-    fn set_info_invalid_id() {
-        let mut t = Tournament::new();
-        assert!(!t.players().keys().contains(&283));
-        assert!(matches!(
-            t.set_player_info(283, PlayerInfo::new(String::new())),
-            Err(TournamentError::InvalidPlayerId(283))
+    fn set_moxfield_accepts_goldfish_links() {
+        let mut info = new_player_info();
+        info.set_moxfield_id(format!(
+            "https://moxfield.com/decks/{TEST_MOXFIELD_ID}/goldfish"
         ));
+        assert!(info.moxfield_id().is_some());
     }
 
     #[test]
-    fn set_info_duplicate_name() {
-        let mut t = Tournament::new();
-        let name = "Test".to_owned();
-        let _ = t.register_player(name.clone()).unwrap();
-        let id_2 = t.register_player("Test 2".to_owned()).unwrap();
-        assert!(t.set_player_info(id_2, PlayerInfo::new(name)).is_err());
+    fn get_moxfield_link_returns_link() {
+        let mut info = new_player_info();
+        info.set_moxfield_id(format!("https://moxfield.com/decks/{TEST_MOXFIELD_ID}"));
+        assert!(info.moxfield_link().is_some());
     }
 
     #[test]
-    fn set_info_invalid_name() {
-        let mut t = Tournament::new();
-        let id = t.register_player(String::from("hi")).unwrap();
-        let res = t.set_player_info(id, PlayerInfo::new(String::new()));
-        assert!(matches!(res, Err(TournamentError::InvalidPlayerName(_))));
+    fn get_moxfield_goldfish_returns_link() {
+        let mut info = new_player_info();
+        info.set_moxfield_id(format!("https://moxfield.com/decks/{TEST_MOXFIELD_ID}"));
+        assert!(info.moxfield_goldfish_link().is_some());
     }
 
     #[test]
-    fn register_invalid_name() {
-        let mut t = Tournament::new();
-
-        let res = t.register_player(String::new());
-        assert!(matches!(res, Err(TournamentError::InvalidPlayerName(_))));
-    }
-
-    #[test]
-    fn register_duplicate_name() {
-        let mut t = Tournament::new();
-        let s = "hi".to_owned();
-        let _ = t.register_player(s.clone()).unwrap();
-        let res = t.register_player(s);
-        assert!(matches!(
-            res,
-            Err(TournamentError::PlayerAlreadyRegistered(_, _))
-        ));
+    fn toggle_color() {
+        let mut info = new_player_info();
+        info.toggle_color(MtgColor::Blue);
+        info.toggle_color(MtgColor::Blue);
+        assert_eq!(ColorIdentity::COLORLESS, *info.color_identity());
     }
 }

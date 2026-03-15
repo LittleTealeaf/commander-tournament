@@ -3,8 +3,8 @@ use core::cmp::Ordering;
 use itertools::Itertools;
 
 use crate::{
-    Tournament, analytics::winloss::MatchPerformance, error::TournamentError,
-    player::RegisteredPlayer,
+    analytics::winloss::MatchPerformance, error::TournamentError, player::RegisteredPlayer,
+    tournament::Tournament,
 };
 
 fn closest_elo(

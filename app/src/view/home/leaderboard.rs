@@ -1,30 +1,21 @@
 use core::cmp::Ordering;
 
-use edh_tourn::{player::info::PlayerInfo, player::stats::PlayerStats};
+use edh_tourn::player::RegisteredPlayer;
 use iced::{
     Element, Padding,
     widget::{button, container, row, scrollable, space, table, text},
 };
 use itertools::Itertools;
+use nerd_font_symbols::md::{MD_ARROW_DOWN, MD_ARROW_UP, MD_PLAYLIST_PLUS};
 
 use crate::{
     App,
     logic::Message,
-    view::{home::HomeMessage, player::ViewPlayerMessage},
+    view::{
+        home::{HomeMessage, matchmaker::MatchMakerMessage},
+        player::ViewPlayerMessage,
+    },
 };
-
-#[derive(Clone)]
-struct Player<'a> {
-    id: u32,
-    info: &'a PlayerInfo,
-    stats: Option<&'a PlayerStats>,
-}
-
-impl Player<'_> {
-    fn get_stats<'b>(&'b self, default: &'b PlayerStats) -> &'b PlayerStats {
-        self.stats.unwrap_or(default)
-    }
-}
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum LeaderboardColumn {
@@ -36,52 +27,35 @@ pub enum LeaderboardColumn {
 }
 
 impl App {
-    #[must_use]
-    pub fn view_home_leaderboard(&self) -> Element<'_, Message> {
-        let default_stats = self.tournament.default_stats();
-
-        let players = self
-            .tournament
-            .players()
-            .iter()
-            .map(move |(id, info)| Player {
-                id: *id,
-                info,
-                stats: self.tournament.get_player_stats(*id),
-            });
-
-        let sorted_players = players.sorted_by(|a, b| {
+    fn get_sorted_players(&self) -> impl Iterator<Item = RegisteredPlayer<'_>> {
+        self.tournament.get_registered_players().sorted_by(|a, b| {
             let sort = match self.home.leaderboard_sort_column {
-                LeaderboardColumn::Name => a.info.name().cmp(b.info.name()),
-                LeaderboardColumn::Elo => a
-                    .get_stats(default_stats)
-                    .elo()
-                    .total_cmp(&b.get_stats(default_stats).elo()),
+                LeaderboardColumn::Name => a.info().name().cmp(b.info().name()),
+                LeaderboardColumn::Elo => a.stats().elo().total_cmp(&b.stats().elo()),
                 LeaderboardColumn::WR => a
-                    .get_stats(default_stats)
+                    .stats()
                     .wr()
-                    .partial_cmp(&b.get_stats(default_stats).wr())
+                    .partial_cmp(&b.stats().wr())
                     .unwrap_or(Ordering::Equal),
-                LeaderboardColumn::Games => a
-                    .get_stats(default_stats)
-                    .games()
-                    .cmp(&b.get_stats(default_stats).games()),
-                LeaderboardColumn::Wins => a
-                    .get_stats(default_stats)
-                    .wins()
-                    .cmp(&b.get_stats(default_stats).wins()),
+                LeaderboardColumn::Games => a.stats().games().cmp(&b.stats().games()),
+                LeaderboardColumn::Wins => a.stats().wins().cmp(&b.stats().wins()),
             };
             if self.home.leaderboard_sort_asc {
                 sort
             } else {
                 sort.reverse()
             }
-        });
+        })
+    }
+
+    #[must_use]
+    pub fn view_home_leaderboard(&self) -> Element<'_, Message> {
+        let players = self.get_sorted_players();
 
         let ord_char = if self.home.leaderboard_sort_asc {
-            "󰁅"
+            MD_ARROW_DOWN
         } else {
-            "󰁝"
+            MD_ARROW_UP
         };
 
         let col_header = |label: &str, col: LeaderboardColumn| {
@@ -98,44 +72,46 @@ impl App {
             [
                 table::column(
                     col_header("Name", LeaderboardColumn::Name),
-                    |p: Player<'_>| {
-                        button(text(p.info.name()).size(12))
+                    |p: RegisteredPlayer<'_>| {
+                        button(text(p.info().name().clone()).size(12))
                             .style(button::text)
-                            .on_press(ViewPlayerMessage::Open(Some(p.id)).into())
+                            .on_press(ViewPlayerMessage::Open(Some(p.id())).into())
                     },
                 ),
                 table::column(
                     col_header("Elo", LeaderboardColumn::Elo),
-                    |p: Player<'_>| {
-                        text(format!("{:.0}", p.stats.unwrap_or(default_stats).elo())).size(12)
-                    },
+                    |p: RegisteredPlayer<'_>| text(format!("{:.0}", p.stats().elo())).size(12),
                 ),
                 table::column(
                     col_header("Games", LeaderboardColumn::Games),
-                    |p: Player<'_>| text(p.stats.unwrap_or(default_stats).games()).size(12),
+                    |p: RegisteredPlayer<'_>| text(p.stats().games()).size(12),
                 ),
                 table::column(
                     col_header("Wins", LeaderboardColumn::Wins),
-                    |p: Player<'_>| text(p.stats.unwrap_or(default_stats).wins()).size(12),
+                    |p: RegisteredPlayer<'_>| text(p.stats().wins()).size(12),
                 ),
-                table::column(col_header("WR", LeaderboardColumn::WR), |p: Player<'_>| {
-                    text(
-                        p.stats
-                            .unwrap_or(default_stats)
-                            .wr()
-                            .map(|wr| format!("{:.1}%", wr * 100.0))
-                            .unwrap_or_default(),
-                    )
-                    .size(12)
-                }),
+                table::column(
+                    col_header("WR", LeaderboardColumn::WR),
+                    |p: RegisteredPlayer<'_>| {
+                        text(
+                            p.stats()
+                                .wr()
+                                .map(|wr| format!("{:.1}%", wr * 100.0))
+                                .unwrap_or_default(),
+                        )
+                        .size(12)
+                    },
+                ),
                 table::column(
                     button("+").on_press(ViewPlayerMessage::Open(None).into()),
-                    |p: Player<'_>| {
-                        button("").on_press_maybe(p.info.moxfield_link().map(Message::OpenLink))
+                    |p: RegisteredPlayer<'_>| {
+                        button(MD_PLAYLIST_PLUS)
+                            .style(button::text)
+                            .on_press(MatchMakerMessage::Player(Some(p.id())).into())
                     },
                 ),
             ],
-            sorted_players,
+            players,
         );
 
         container(scrollable(row![tbl, space().width(15)]))

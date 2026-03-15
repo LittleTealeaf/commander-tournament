@@ -1,6 +1,6 @@
 use itertools::chain;
 
-use crate::{Tournament, config::game::GameConfig, error::TournamentError};
+use crate::{config::game::GameConfig, error::TournamentError, tournament::Tournament};
 
 impl Tournament {
     pub fn generate_tournament(player_count: usize, games: usize) -> Result<Self, TournamentError> {
@@ -31,11 +31,11 @@ impl Tournament {
 
     #[must_use]
     pub fn sample_game() -> Self {
-        ron::from_str(include_str!("../../res/tests/compats/sample-v2.ron")).unwrap()
+        ron::from_str(include_str!("../../../res/tests/compats/sample-v2.ron")).unwrap()
     }
 
     pub fn sample_tsv_game() -> Result<Self, TournamentError> {
-        Self::from_tsv_games(include_str!("../../tests/sample-tsv.tsv"))
+        Self::from_tsv_games(include_str!("../../../tests/sample-tsv.tsv"))
     }
 
     pub fn test_tournaments() -> impl Iterator<Item = Self> {
@@ -52,6 +52,11 @@ impl Tournament {
                 .enumerate()
                 .flat_map(|(i, tourn)| tourn.with_game_config(GameConfig::random(i)))
         )
+    }
+
+    pub fn register_debug_player(&mut self) -> Result<u32, TournamentError> {
+        let id = self.players().keys().max().copied().map_or(0, |i| i + 1);
+        self.register_player(format!("debug-{id}"))
     }
 }
 
