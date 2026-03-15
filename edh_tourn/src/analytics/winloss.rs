@@ -261,6 +261,8 @@ impl Tournament {
 
 #[cfg(test)]
 mod tests {
+    use crate::game::entry::GameEntry;
+
     use super::*;
 
     mod match_performance {
@@ -327,5 +329,35 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn player_identities_includes_self() {
+        let mut tourn = Tournament::new();
+        let id = tourn.register_debug_player().unwrap();
+        tourn
+            .register_entry(GameEntry::new([id; 4], id).unwrap())
+            .unwrap();
+        assert!(
+            !tourn
+                .get_player_identity_match_performance(id)
+                .unwrap()
+                .is_empty()
+        );
+    }
+
+    #[test]
+    fn player_colors_include_self() {
+        let mut tourn = Tournament::new();
+        let id = tourn.register_debug_player().unwrap();
+        tourn
+            .register_entry(GameEntry::new([id; 4], id).unwrap())
+            .unwrap();
+        assert!(
+            !tourn
+                .get_player_color_match_performance(id)
+                .unwrap()
+                .is_empty()
+        );
     }
 }

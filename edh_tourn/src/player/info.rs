@@ -131,6 +131,12 @@ impl Tournament {
         }
     }
 
+    #[cfg(feature = "dev")]
+    pub fn register_debug_player(&mut self) -> Result<u32, TournamentError> {
+        let id = *self.players().keys().max().unwrap_or(&0);
+        self.register_player(format!("debug-{id}"))
+    }
+
     pub fn register_player(&mut self, name: String) -> Result<u32, TournamentError> {
         self.register_player_with_info(PlayerInfo::new(name))
     }
