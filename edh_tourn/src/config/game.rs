@@ -14,7 +14,6 @@ impl Default for GameConfig {
     }
 }
 
-#[cfg(feature = "dev")]
 impl GameConfig {
     #[must_use]
     pub const fn new() -> Self {
@@ -27,7 +26,10 @@ impl GameConfig {
             game_wr_weight: 35.0,
         }
     }
+}
 
+#[cfg(feature = "dev")]
+impl GameConfig {
     #[must_use]
     pub fn random(seed: usize) -> Self {
         use rand::{RngExt, SeedableRng};
