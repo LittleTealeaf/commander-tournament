@@ -76,7 +76,10 @@ impl Tournament {
             scaled_wr: f64,
         }
 
-        let base_chance = (0..T).map(|_| 1.0).sum::<f64>().powi(-1);
+        #[allow(clippy::cast_precision_loss)]
+        let base_chance = 1.0 / (T as f64);
+
+        // let base_chance = (0..T).map(|_| 1.0).sum::<f64>().powi(-1);
         let config = self.game_config();
 
         let id_stats = players.map(|id| {
@@ -92,13 +95,8 @@ impl Tournament {
             }
         });
 
-        let mut sum_wr = 0.0;
-        let mut sum_elo = 0.0;
-
-        for player in &id_stats {
-            sum_wr += player.scaled_wr;
-            sum_elo += player.scaled_elo;
-        }
+        let sum_wr: f64 = id_stats.iter().map(|p| p.scaled_wr).sum();
+        let sum_elo: f64 = id_stats.iter().map(|p| p.scaled_elo).sum();
 
         let weight_total = config.game_wr_weight + config.game_elo_weight;
         let coef_wr = config.game_wr_weight / (weight_total * sum_wr);
