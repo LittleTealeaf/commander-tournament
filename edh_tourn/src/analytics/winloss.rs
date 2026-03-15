@@ -261,7 +261,7 @@ impl Tournament {
 
 #[cfg(test)]
 mod tests {
-    use crate::game::entry::GameEntry;
+    use crate::{game::entry::GameEntry, player::info::PlayerInfo};
 
     use super::*;
 
@@ -349,15 +349,15 @@ mod tests {
     #[test]
     fn player_colors_include_self() {
         let mut tourn = Tournament::new();
-        let id = tourn.register_debug_player().unwrap();
+        let id = tourn
+            .register_player_with_info(
+                PlayerInfo::new("debug".to_owned()).with_color_identity(ColorIdentity::AZORIUS),
+            )
+            .unwrap();
         tourn
             .register_entry(GameEntry::new([id; 4], id).unwrap())
             .unwrap();
-        assert!(
-            !tourn
-                .get_player_color_match_performance(id)
-                .unwrap()
-                .is_empty()
-        );
+        let ranking = tourn.get_player_color_match_performance(id).unwrap();
+        assert!(!ranking.is_empty());
     }
 }

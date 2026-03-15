@@ -79,6 +79,14 @@ impl PlayerInfo {
         &self.description
     }
 
+    #[must_use]
+    pub fn with_description(self, description: String) -> Self {
+        Self {
+            description,
+            ..self
+        }
+    }
+
     pub fn clear_moxfield_id(&mut self) {
         self.moxfield_id = None;
     }
@@ -96,6 +104,11 @@ impl PlayerInfo {
     #[must_use]
     pub const fn color_identity(&self) -> &ColorIdentity {
         &self.identity
+    }
+
+    #[must_use]
+    pub fn with_color_identity(self, identity: ColorIdentity) -> Self {
+        Self { identity, ..self }
     }
 
     pub const fn set_color_identity(&mut self, identity: ColorIdentity) {

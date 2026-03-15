@@ -20,17 +20,6 @@ use itertools::Itertools;
 pub struct ColorIdentity(pub(crate) u8);
 
 impl ColorIdentity {
-    #[allow(clippy::cast_possible_truncation, clippy::indexing_slicing)]
-    pub const IDENTITIES: [Self; 32] = {
-        let mut arr = [Self(0); 32];
-        let mut i = 0;
-        while i < 32 {
-            arr[i] = Self(i as u8);
-            i += 1;
-        }
-        arr
-    };
-
     #[must_use]
     pub const fn is_colorless(&self) -> bool {
         self.0 == 0
@@ -63,6 +52,52 @@ impl ColorIdentity {
             self.0 -= color as u8;
         }
     }
+}
+
+impl ColorIdentity {
+    #[allow(clippy::cast_possible_truncation, clippy::indexing_slicing)]
+    pub const IDENTITIES: [Self; 32] = {
+        let mut arr = [Self(0); 32];
+        let mut i = 0;
+        while i < 32 {
+            arr[i] = Self(i as u8);
+            i += 1;
+        }
+        arr
+    };
+
+    pub const COLORLESS: Self = Self(0);
+    pub const WHITE: Self = Self(1);
+    pub const BLUE: Self = Self(2);
+    pub const AZORIUS: Self = Self(3);
+    pub const BLACK: Self = Self(4);
+    pub const ORZHOV: Self = Self(5);
+    pub const DIMIR: Self = Self(6);
+    pub const ESPER: Self = Self(7);
+    pub const RED: Self = Self(8);
+    pub const BOROS: Self = Self(9);
+    pub const IZZET: Self = Self(10);
+    pub const JESKAI: Self = Self(11);
+    pub const RAKDOS: Self = Self(12);
+    pub const MARDU: Self = Self(13);
+    pub const GRIXIS: Self = Self(14);
+    pub const YORE: Self = Self(15);
+    pub const GREEN: Self = Self(16);
+    pub const SELESNYA: Self = Self(17);
+    pub const SIMIC: Self = Self(18);
+    pub const BANT: Self = Self(19);
+    pub const GOLGARI: Self = Self(20);
+    pub const ABZAN: Self = Self(21);
+    pub const SULTAI: Self = Self(22);
+    pub const WITCH: Self = Self(23);
+    pub const GRUUL: Self = Self(24);
+    pub const NAYA: Self = Self(25);
+    pub const TEMUR: Self = Self(26);
+    pub const INK: Self = Self(27);
+    pub const JUND: Self = Self(28);
+    pub const DUNE: Self = Self(29);
+    pub const GLINT: Self = Self(30);
+    pub const WUBRG: Self = Self(31);
 }
 
 impl Display for ColorIdentity {
