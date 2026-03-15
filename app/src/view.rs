@@ -9,6 +9,7 @@ use iced::{
     widget::{button, column, container, row, rule, space, text},
 };
 use itertools::Itertools;
+use nerd_font_symbols::md::MD_CHEVRON_RIGHT;
 
 use crate::{
     App,
@@ -57,12 +58,12 @@ impl App {
         let content = iter.next().map_or_else(
             || container(self.view(&self.home)),
             |scene| {
-                const BREADCRUMB: &str = "  ";
-                let nav = iter.rev().map(Scene::title).join(BREADCRUMB);
+                let sep = format!(" {MD_CHEVRON_RIGHT} ");
+                let nav = iter.rev().map(Scene::title).join(&sep);
                 container(column![
                     (!nav.is_empty()).then_some(column![
                         row![
-                            text(format!("{nav}{BREADCRUMB}{}", scene.title())),
+                            text(format!("{nav}{sep}{}", scene.title())),
                             space().width(Length::Fill),
                             button("Close All")
                                 .style(button::text)
