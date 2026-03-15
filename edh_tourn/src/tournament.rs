@@ -83,3 +83,20 @@ impl Tournament {
         Ok(tourn)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn new_tournament_snapshot_is_0() {
+        let tourn = Tournament::new();
+        assert_eq!(0, tourn.snapshot);
+    }
+    #[test]
+    fn into_fresh_resets_snapshot() {
+        let mut game = Tournament::new();
+        game.snapshot = 5;
+        let new_game = game.into_fresh().unwrap();
+        assert_eq!(0, new_game.snapshot);
+    }
+}
