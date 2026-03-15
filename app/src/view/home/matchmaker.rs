@@ -7,7 +7,7 @@ use iced::{
     widget::{button, column, container, pick_list, row, space, table, text},
 };
 use itertools::{Itertools, chain};
-use nerd_font_symbols::oct::OCT_GEAR;
+use nerd_font_symbols::{md::MD_CARDS, oct::OCT_GEAR};
 
 use crate::{
     App,
@@ -160,7 +160,7 @@ impl View<MatchMakerView> for App {
                         |player| MatchMakerMessage::Player(Some(player.id())).into()
                     )
                     .width(Length::Fill),
-                    button("󰘸").on_press_maybe(
+                    button(MD_CARDS).on_press_maybe(
                         scene
                             .player
                             .map(|id| ViewPlayerMessage::Open(Some(id)).into())
