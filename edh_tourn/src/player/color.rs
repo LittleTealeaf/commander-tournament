@@ -2,6 +2,54 @@ use core::fmt::Display;
 use core::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign};
 
 use itertools::Itertools;
+use serde::{Deserialize, Serialize};
+
+#[derive(
+    Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default,
+)]
+#[repr(u8)]
+pub enum ColorIdentityEnum {
+    #[default]
+    Colorless = 0,
+    White = 1,
+    Blue = 2,
+    Azorius = 3,
+    Black = 4,
+    Orzhov = 5,
+    Dimir = 6,
+    Esper = 7,
+    Red = 8,
+    Boros = 9,
+    Izzet = 10,
+    Jeskai = 11,
+    Rakdos = 12,
+    Mardu = 13,
+    Grixis = 14,
+    Yore = 15,
+    Green = 16,
+    Selesnya = 17,
+    Simic = 18,
+    Bant = 19,
+    Golgari = 20,
+    Abzan = 21,
+    Sultai = 22,
+    Witch = 23,
+    Gruul = 24,
+    Naya = 25,
+    Temur = 26,
+    Ink = 27,
+    Jund = 28,
+    Dune = 29,
+    Glint = 30,
+    WUBRG = 31,
+}
+
+impl ColorIdentityEnum {
+    #[must_use]
+    pub const fn has_color(&self, color: MtgColor) -> bool {
+        (*self as u8) & (color as u8) == (color as u8)
+    }
+}
 
 #[derive(
     Default,
