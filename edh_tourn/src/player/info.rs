@@ -37,7 +37,7 @@ impl PlayerInfo {
         Self {
             name,
             description: String::new(),
-            identity: ColorIdentity(0),
+            identity: ColorIdentity::COLORLESS,
             moxfield_id: None,
         }
     }
