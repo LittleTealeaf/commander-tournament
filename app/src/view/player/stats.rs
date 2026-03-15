@@ -1,11 +1,11 @@
 use edh_tourn::{
-    tournament::Tournament,
     analytics::winloss::MatchPerformance,
     player::{
         RegisteredPlayer,
         color::{ColorIdentity, MtgColor},
         stats::PlayerStats,
     },
+    tournament::Tournament,
 };
 use iced::{
     Length, Padding,

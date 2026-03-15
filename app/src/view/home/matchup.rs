@@ -1,7 +1,7 @@
 use edh_tourn::{
-    tournament::Tournament,
     error::TournamentError,
     game::{match_player::MatchPlayer, matchup::Matchup},
+    tournament::Tournament,
 };
 use iced::{
     Alignment, Length, Task,

@@ -1,4 +1,4 @@
-use crate::{tournament::Tournament, error::TournamentError, player::stats::PlayerStats};
+use crate::{error::TournamentError, player::stats::PlayerStats, tournament::Tournament};
 
 impl Tournament {
     pub fn recalcualte_stats(&mut self) -> Result<(), TournamentError> {

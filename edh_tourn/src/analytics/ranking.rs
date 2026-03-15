@@ -6,9 +6,9 @@ use core::fmt::Display;
 use itertools::{Itertools, chain};
 
 use crate::{
-    tournament::Tournament,
     error::TournamentError,
     player::{RegisteredPlayer, stats::PlayerStats},
+    tournament::Tournament,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]

@@ -1,4 +1,4 @@
-use edh_tourn::{tournament::Tournament, game::record::GameRecord};
+use edh_tourn::{game::record::GameRecord, tournament::Tournament};
 use iced::{
     Length, Padding, font,
     widget::{Container, button, column, container, scrollable, table, text},

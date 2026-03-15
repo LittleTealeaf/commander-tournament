@@ -1,9 +1,9 @@
 mod config;
+#[cfg(feature = "dev")]
+mod dev;
 mod matches;
 mod players;
 mod stats;
-#[cfg(feature="dev")]
-mod dev;
 
 use std::collections::HashMap;
 
@@ -54,7 +54,6 @@ impl Tournament {
             config,
         }
     }
-
 
     pub fn reload(&mut self) -> Result<(), TournamentError> {
         self.update_player_names();

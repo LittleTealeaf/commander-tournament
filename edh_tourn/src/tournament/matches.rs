@@ -1,8 +1,8 @@
 use crate::{
-    tournament::Tournament,
     error::TournamentError,
     game::{entry::GameEntry, match_player::MatchPlayer, matchup::Matchup, record::GameRecord},
     player::stats::PlayerStats,
+    tournament::Tournament,
 };
 
 impl Tournament {

@@ -6,12 +6,12 @@ use core::fmt::{Display, Formatter};
 use std::borrow::ToOwned;
 
 use edh_tourn::{
-    tournament::Tournament,
     error::TournamentError,
     player::{
         color::{ColorIdentity, MtgColor},
         info::PlayerInfo,
     },
+    tournament::Tournament,
 };
 use iced::{
     Alignment, Element, Length,

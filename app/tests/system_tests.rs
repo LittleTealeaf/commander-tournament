@@ -8,8 +8,8 @@ use app::{
     },
 };
 use edh_tourn::{
-    tournament::Tournament,
     player::{color::MtgColor, info::PlayerInfo},
+    tournament::Tournament,
 };
 use iced::widget::text_editor::{Action, Edit};
 use itertools::chain;

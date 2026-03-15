@@ -25,6 +25,5 @@ impl RankingConfig {
             wr_neighbor: 3,
             expected_neighbor: 4,
         }
-
     }
 }

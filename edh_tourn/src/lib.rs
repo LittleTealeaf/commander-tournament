@@ -10,7 +10,6 @@ mod serialization;
 pub mod tournament;
 pub mod tsv;
 
-
 // impl Tournament {
 //     #[must_use]
 //     pub fn new() -> Self {
