@@ -13,7 +13,7 @@ pub mod view;
 
 use crate::{
     config::AppConfig,
-    logic::{Message, file::load_tournament_sync},
+    logic::{Message, file::FileMessage},
     traits::HandleMessage,
     view::{Scene, home::HomeState},
 };
@@ -29,19 +29,22 @@ pub struct App {
 }
 
 impl App {
-    #[must_use]
-    pub fn boot() -> Self {
-        let config = AppConfig::load().ok();
-        let last_opened = config.as_ref().and_then(|config| config.last_opened());
-        let tourn = last_opened.and_then(|path| load_tournament_sync(path).ok());
-        let last_opened = tourn.is_some().then_some(last_opened).flatten().cloned();
-
-        Self {
-            config,
-            file: last_opened,
-            tournament: tourn.unwrap_or_default(),
+    pub fn boot() -> (Self, Task<Message>) {
+        let mut app = Self {
+            config: AppConfig::load().ok(),
             ..Self::default()
-        }
+        };
+
+        let task = app
+            .config
+            .as_ref()
+            .and_then(|config| config.last_opened())
+            .cloned()
+            .map_or_else(Task::none, |path| {
+                app.updater(FileMessage::LoadFromFile(path).into())
+            });
+
+        (app, task)
     }
 
     pub fn updater(&mut self, message: Message) -> Task<Message> {
