@@ -136,6 +136,7 @@ impl App {
                     button("+").on_press(ViewPlayerMessage::Open(None).into()),
                     |p: Player<'_>| {
                         button(MD_PLAYLIST_PLUS)
+                            .style(button::text)
                             .on_press(MatchMakerMessage::Player(Some(p.id)).into())
                     },
                 ),
