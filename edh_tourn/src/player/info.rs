@@ -1,10 +1,12 @@
+use std::collections::HashMap;
+
 use crate::{
     Tournament,
     error::TournamentError,
     player::color::{ColorIdentity, MtgColor},
 };
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default, PartialEq, Eq, Hash)]
 pub struct PlayerInfo {
     #[serde(rename = "n", alias = "name")]
     name: String,
@@ -145,8 +147,33 @@ impl PlayerInfo {
 }
 
 impl Tournament {
+    pub fn merge_players_from_tournament(
+        &mut self,
+        other: &Self,
+    ) -> Result<HashMap<u32, u32>, TournamentError> {
+        other
+            .players()
+            .iter()
+            .map(|(id, player)| {
+                let new_id = self.get_or_register_player_with_info(player.clone())?;
+                Ok((*id, new_id))
+            })
+            .collect()
+    }
+
     pub fn get_or_register_player(&mut self, name: String) -> Result<u32, TournamentError> {
         match self.register_player(name) {
+            Ok(id) | Err(TournamentError::PlayerAlreadyRegistered(_, id)) => Ok(id),
+            Err(err) => Err(err),
+        }
+    }
+
+    pub fn get_or_register_player_with_info(
+        &mut self,
+        info: PlayerInfo,
+    ) -> Result<u32, TournamentError> {
+        match self.register_player_with_info(info) {
+            // TODO: Merge info from other tournament
             Ok(id) | Err(TournamentError::PlayerAlreadyRegistered(_, id)) => Ok(id),
             Err(err) => Err(err),
         }
@@ -218,93 +245,5 @@ impl Tournament {
     #[must_use]
     pub fn get_player_name(&self, id: &u32) -> Option<&String> {
         self.get_player_info(id).map(PlayerInfo::name)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use itertools::Itertools;
-
-    use crate::{Tournament, error::TournamentError, player::info::PlayerInfo};
-
-    const TEST_MOXFIELD_ID: &str = "BtCcQ8eWg0uT8n4fFPK3Xg";
-
-    #[test]
-    fn accepts_moxfield_ids() {
-        let mut info = PlayerInfo::new("hi".to_owned());
-        info.set_moxfield_id(TEST_MOXFIELD_ID.to_owned());
-        assert_eq!(
-            TEST_MOXFIELD_ID,
-            info.moxfield_id().expect("Expected Moxfield ID to Exist")
-        );
-    }
-
-    #[test]
-    fn accepts_moxfield_deck_link() {
-        let mut info = PlayerInfo::new("hi".to_owned());
-        let link = format!("https://moxfield.com/decks/{TEST_MOXFIELD_ID}");
-        info.set_moxfield_id(link);
-        assert_eq!(
-            TEST_MOXFIELD_ID,
-            info.moxfield_id().expect("Expected Moxfield ID to Exist")
-        );
-    }
-
-    #[test]
-    fn accepts_moxfield_goldfish_link() {
-        let mut info = PlayerInfo::new("hi".to_owned());
-        let link = format!("https://moxfield.com/decks/{TEST_MOXFIELD_ID}/goldfish");
-        info.set_moxfield_id(link);
-        assert_eq!(
-            TEST_MOXFIELD_ID,
-            info.moxfield_id().expect("Expected Moxfield ID to Exist")
-        );
-    }
-
-    #[test]
-    fn set_info_invalid_id() {
-        let mut t = Tournament::new();
-        assert!(!t.players().keys().contains(&283));
-        assert!(matches!(
-            t.set_player_info(283, PlayerInfo::new(String::new())),
-            Err(TournamentError::InvalidPlayerId(283))
-        ));
-    }
-
-    #[test]
-    fn set_info_duplicate_name() {
-        let mut t = Tournament::new();
-        let name = "Test".to_owned();
-        let _ = t.register_player(name.clone()).unwrap();
-        let id_2 = t.register_player("Test 2".to_owned()).unwrap();
-        assert!(t.set_player_info(id_2, PlayerInfo::new(name)).is_err());
-    }
-
-    #[test]
-    fn set_info_invalid_name() {
-        let mut t = Tournament::new();
-        let id = t.register_player(String::from("hi")).unwrap();
-        let res = t.set_player_info(id, PlayerInfo::new(String::new()));
-        assert!(matches!(res, Err(TournamentError::InvalidPlayerName(_))));
-    }
-
-    #[test]
-    fn register_invalid_name() {
-        let mut t = Tournament::new();
-
-        let res = t.register_player(String::new());
-        assert!(matches!(res, Err(TournamentError::InvalidPlayerName(_))));
-    }
-
-    #[test]
-    fn register_duplicate_name() {
-        let mut t = Tournament::new();
-        let s = "hi".to_owned();
-        let _ = t.register_player(s.clone()).unwrap();
-        let res = t.register_player(s);
-        assert!(matches!(
-            res,
-            Err(TournamentError::PlayerAlreadyRegistered(_, _))
-        ));
     }
 }

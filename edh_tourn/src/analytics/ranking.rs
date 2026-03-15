@@ -1,7 +1,7 @@
 pub mod games_played;
 pub mod neighbors;
 
-use core::{cmp::Ordering, fmt::Display};
+use core::fmt::Display;
 
 use itertools::{Itertools, chain};
 
@@ -71,13 +71,11 @@ impl Tournament {
             .unwrap_or(0.25)
     }
 
-    pub fn get_player_ranked_combined(
+    fn get_player_games_played_ranked_combined(
         &self,
         id: u32,
-    ) -> Result<impl Iterator<Item = RegisteredPlayer<'_>>, TournamentError> {
-        self.require_id_registered(id)?;
-
-        let games_played_ranked = chain!(
+    ) -> Result<impl Iterator<Item = (RegisteredPlayer<'_>, usize)>, TournamentError> {
+        Ok(chain!(
             to_weight_rank(
                 self.get_player_ranked_least_played(id)?,
                 self.ranking_config().least_played
@@ -91,9 +89,14 @@ impl Tournament {
                 self.ranking_config().lost_with
             ),
         )
-        .map(|((player, _), score)| (player, score));
+        .map(|((player, _), score)| (player, score)))
+    }
 
-        let neighbors_ranked = chain!(
+    fn get_player_neigbhors_ranked_combined(
+        &self,
+        id: u32,
+    ) -> Result<impl Iterator<Item = (RegisteredPlayer<'_>, usize)>, TournamentError> {
+        Ok(chain!(
             to_weight_rank(
                 self.get_player_ranked_elo_neighbors(id)?,
                 self.ranking_config().elo_neighbor
@@ -106,22 +109,29 @@ impl Tournament {
                 self.get_player_ranked_expected_neighbors(id)?,
                 self.ranking_config().expected_neighbor
             ),
-        );
+        ))
+    }
 
-        let combined = chain!(games_played_ranked, neighbors_ranked)
-            .map(|(player, score)| (player.id(), score));
+    pub fn get_player_ranked_combined(
+        &self,
+        id: u32,
+    ) -> Result<impl Iterator<Item = RegisteredPlayer<'_>>, TournamentError> {
+        self.require_id_registered(id)?;
 
-        let scores = combined.into_grouping_map().sum();
+        let games_played_ranked = self.get_player_games_played_ranked_combined(id)?;
+        let neighbors_ranked = self.get_player_neigbhors_ranked_combined(id)?;
+        let combined = chain!(games_played_ranked, neighbors_ranked);
 
-        let players = scores
-            .into_iter()
-            .filter_map(|(id, score)| Some((self.get_registered_player(id).ok()?, score)));
+        let grouped = combined.into_grouping_map_by(|(player, _)| player.id());
+        let scores = grouped.aggregate(|acc, _, (player, score)| {
+            Some((player, acc.map_or(0, |(_, val)| val) + score))
+        });
 
+        let players = scores.into_values();
         let sorted = players.sorted_by(|(player_a, score_a), (player_b, score_b)| {
-            match score_a.cmp(score_b) {
-                Ordering::Equal => player_a.id().cmp(&player_b.id()),
-                cmp => cmp,
-            }
+            score_a
+                .cmp(score_b)
+                .then_with(|| player_a.id().cmp(&player_b.id()))
         });
 
         Ok(sorted.map(|(player, _)| player))

@@ -11,6 +11,7 @@ pub mod game;
 pub mod player;
 mod serialization;
 pub mod tsv;
+pub mod tournament;
 
 use std::collections::HashMap;
 
@@ -79,25 +80,30 @@ impl Tournament {
         Ok(())
     }
 
-    pub fn reload(&mut self) -> Result<(), TournamentError> {
-        let version = self.snapshot;
-        self.default_stats = PlayerStats::new(self.game_config().starting_elo);
-        // Update player_names to the player info
+    pub fn update_player_names(&mut self) {
         self.player_names = self
             .players
             .iter()
             .map(|(id, info)| (info.name().to_owned(), *id))
             .collect();
+    }
 
+    pub fn recalcualte_stats(&mut self) -> Result<(), TournamentError> {
+        let version = self.snapshot;
+        self.default_stats = PlayerStats::new(self.game_config().starting_elo);
         self.stats.clear();
-
         let mut games = Vec::new();
         core::mem::swap(&mut self.games, &mut games);
         for record in games {
             self.register_entry(record.into())?;
         }
         self.snapshot = version + 1;
+        Ok(())
+    }
 
+    pub fn reload(&mut self) -> Result<(), TournamentError> {
+        self.update_player_names();
+        self.recalcualte_stats()?;
         Ok(())
     }
 
@@ -109,22 +115,10 @@ impl Tournament {
     /// Merges with another tournament. If decks from either game have the same name, they are
     /// merged. Games are added to the end of the base tournament.
     pub fn merge(&mut self, other: &Self) -> Result<(), TournamentError> {
-        let mut id_map = HashMap::new();
-
-        for (old_id, info) in &other.players {
-            id_map.insert(
-                *old_id,
-                match self.get_player_id(info.name()) {
-                    Some(id) => id,
-                    None => self.register_player_with_info(info.clone())?,
-                },
-            );
-        }
+        let id_map = self.merge_players_from_tournament(other)?;
 
         for game in &other.games {
-            let entry = GameEntry::new(game.ids(), game.winner())?;
-            let entry_mapped = entry.map_ids(&id_map)?;
-            self.register_entry(entry_mapped)?;
+            self.register_entry(GameEntry::from(game).map_ids(&id_map)?)?;
         }
 
         Ok(())
@@ -139,24 +133,8 @@ impl Tournament {
             snapshot: 0,
             ..Self::new()
         };
-
-        let mut id_map = HashMap::new();
-
-        // Register players
-        for (old_id, info) in &self.players {
-            let id = tourn.register_player_with_info(info.clone())?;
-            id_map.insert(*old_id, id);
-        }
-
-        // Register Games
-        for game in &self.games {
-            let entry = GameEntry::new(game.ids(), game.winner())?;
-            let mapped = entry.map_ids(&id_map)?;
-            tourn.register_entry(mapped)?;
-        }
-
+        tourn.merge(self)?;
         tourn.snapshot = 0;
-
         Ok(tourn)
     }
 
