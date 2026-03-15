@@ -157,11 +157,3 @@ impl Tournament {
         self.get_player_info(id).map(PlayerInfo::name)
     }
 }
-
-#[cfg(feature = "dev")]
-impl Tournament {
-    pub fn register_debug_player(&mut self) -> Result<u32, TournamentError> {
-        let id = self.players().keys().max().copied().map_or(0, |i| i + 1);
-        self.register_player(format!("debug-{id}"))
-    }
-}

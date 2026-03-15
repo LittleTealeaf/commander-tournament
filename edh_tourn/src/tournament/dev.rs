@@ -53,6 +53,11 @@ impl Tournament {
                 .flat_map(|(i, tourn)| tourn.with_game_config(GameConfig::random(i)))
         )
     }
+
+    pub fn register_debug_player(&mut self) -> Result<u32, TournamentError> {
+        let id = self.players().keys().max().copied().map_or(0, |i| i + 1);
+        self.register_player(format!("debug-{id}"))
+    }
 }
 
 mod tests {
