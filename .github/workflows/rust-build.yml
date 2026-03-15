@@ -1,0 +1,39 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "main" ]
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Build Release Artifact
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest, windows-11-arm]
+
+    runs-on: ${{ matrix.os }}
+    env:
+      RUSTFLAGS: "-A warnings"
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Rust
+      uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: stable
+        
+    - name: Build
+      run: cargo build --all --release --verbose
+      
+    - name: Upload Executable
+      uses: actions/upload-artifact@v4
+      with:
+        # Fixed the missing brackets around matrix.os
+        name: "commander-tournaemnt-${{ matrix.os }}"
+        # Define both potential binary names; upload-artifact will grab whichever exists
+        path: |
+          target/release/commander-tournaemnt
+          target/release/commander-tournaemnt.exe
