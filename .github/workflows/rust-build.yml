@@ -1,4 +1,4 @@
-name: Rust
+name: Rust Build
 
 on:
   push:
@@ -35,5 +35,5 @@ jobs:
         name: "commander-tournaemnt-${{ matrix.os }}"
         # Define both potential binary names; upload-artifact will grab whichever exists
         path: |
-          target/release/commander-tournaemnt
-          target/release/commander-tournaemnt.exe
+          target/release/commander-tournament
+          target/release/commander-tournament.exe
