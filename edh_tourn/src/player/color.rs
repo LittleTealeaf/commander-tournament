@@ -144,7 +144,7 @@ impl ColorIdentity {
 
 impl Display for ColorIdentity {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.write_str(match self.0 & 0b1111 {
+        f.write_str(match self.0 & 0b11111 {
             0 => "Colorless",
             1 => "White",
             2 => "Blue",
