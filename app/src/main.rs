@@ -2,7 +2,7 @@ use app::{
     App,
     fonts::{FONT_BYTES, default_font},
 };
-use iced::application;
+use iced::{Theme, application};
 
 pub fn main() -> iced::Result {
     let mut app = application(App::boot, App::updater, App::app_view);
@@ -11,5 +11,7 @@ pub fn main() -> iced::Result {
         app = app.font(font);
     }
 
-    app.default_font(default_font()).run()
+    app.theme(Theme::CatppuccinMocha)
+        .default_font(default_font())
+        .run()
 }
