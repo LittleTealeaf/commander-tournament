@@ -92,8 +92,12 @@ pub fn view_identity_matchups(tournament: &Tournament, id: u32) -> Option<Contai
         .get_player_identity_match_performance(id)
         .ok()?
         .into_iter()
-        .sorted_by_key(|&(_, key)| key)
-        .rev();
+        .sorted_by(|(player_a, perf_a), (player_b, perf_b)| {
+            perf_a
+                .cmp(perf_b)
+                .reverse()
+                .then_with(|| player_a.cmp(player_b))
+        });
 
     Some(container(
         scrollable(
@@ -130,8 +134,12 @@ pub fn view_color_matchups(tournament: &Tournament, id: u32) -> Option<Container
         .get_player_color_match_performance(id)
         .ok()?
         .into_iter()
-        .sorted_by_key(|&(_, key)| key)
-        .rev();
+        .sorted_by(|(color_a, perf_a), (color_b, perf_b)| {
+            perf_a
+                .cmp(perf_b)
+                .reverse()
+                .then_with(|| color_a.cmp(color_b))
+        });
 
     Some(container(
         scrollable(

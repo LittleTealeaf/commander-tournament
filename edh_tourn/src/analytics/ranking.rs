@@ -49,7 +49,6 @@ impl Display for RankingMethod {
     }
 }
 
-#[allow(clippy::cast_precision_loss)]
 fn to_weight_rank<T>(
     ranking: impl IntoIterator<Item = T>,
     weight: usize,

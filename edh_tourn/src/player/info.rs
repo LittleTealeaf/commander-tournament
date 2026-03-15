@@ -79,6 +79,14 @@ impl PlayerInfo {
         &self.description
     }
 
+    #[must_use]
+    pub fn with_description(self, description: String) -> Self {
+        Self {
+            description,
+            ..self
+        }
+    }
+
     pub fn clear_moxfield_id(&mut self) {
         self.moxfield_id = None;
     }
@@ -96,6 +104,11 @@ impl PlayerInfo {
     #[must_use]
     pub const fn color_identity(&self) -> &ColorIdentity {
         &self.identity
+    }
+
+    #[must_use]
+    pub fn with_color_identity(self, identity: ColorIdentity) -> Self {
+        Self { identity, ..self }
     }
 
     pub const fn set_color_identity(&mut self, identity: ColorIdentity) {
@@ -129,6 +142,12 @@ impl Tournament {
             Ok(id) | Err(TournamentError::PlayerAlreadyRegistered(_, id)) => Ok(id),
             Err(err) => Err(err),
         }
+    }
+
+    #[cfg(feature = "dev")]
+    pub fn register_debug_player(&mut self) -> Result<u32, TournamentError> {
+        let id = self.players().keys().max().copied().map_or(0, |i| i + 1);
+        self.register_player(format!("debug-{id}"))
     }
 
     pub fn register_player(&mut self, name: String) -> Result<u32, TournamentError> {

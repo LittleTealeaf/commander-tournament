@@ -74,44 +74,18 @@ impl Tournament {
         // have the closest to a 50% expected winrate against the player
         self.require_id_registered(id)?;
 
-        let players = self
+        Ok(self
             .get_registered_players()
-            .filter(|player| player.id() != id);
-
-        let stats = self.get_player_or_default_stats(id);
-        let wr_t = stats
-            .wr()
-            .unwrap_or(0.25)
-            .powf(self.game_config().game_wr_pow_scale);
-        let elo_t = stats.elo().powf(self.game_config().game_elo_pow_scale);
-
-        let weight_total = self.game_config().game_wr_weight + self.game_config().game_elo_weight;
-        let weight_wr = self.game_config().game_wr_weight / weight_total;
-        let weight_elo = self.game_config().game_elo_weight / weight_total;
-
-        let players_calc = players.map(|player| {
-            let wr = player.stats().wr().unwrap_or(0.25);
-            let wr_scaled = wr.powf(self.game_config().game_wr_pow_scale);
-            let elo_scaled = player
-                .stats()
-                .elo()
-                .powf(self.game_config().game_elo_pow_scale);
-
-            let expected = (weight_wr / (wr_scaled + wr_t))
-                .mul_add(wr_scaled, weight_elo / (elo_scaled + elo_t) * elo_scaled);
-
-            // Since this is a 1v1, the expected value is compared against 0.5 instead of 0.25
-            (player, abs_diff(expected, 0.5))
-        });
-
-        let sorted = players_calc
+            .filter(|player| player.id() != id)
+            .map(|player| {
+                let [_, match_player] = self.create_match_players([id, player.id()]);
+                (player, abs_diff(*match_player.expected(), 0.5))
+            })
             .sorted_by(|(player_a, score_a), (player_b, score_b)| {
                 score_a
                     .total_cmp(score_b)
                     .then_with(|| player_a.id().cmp(&player_b.id()))
             })
-            .map(|(player, _)| player);
-
-        Ok(sorted)
+            .map(|(player, _)| player))
     }
 }
