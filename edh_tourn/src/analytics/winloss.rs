@@ -8,12 +8,12 @@ use std::collections::HashMap;
 use itertools::{Itertools, chain};
 
 use crate::{
-    Tournament,
     error::TournamentError,
     player::{
         RegisteredPlayer,
         color::{ColorIdentity, MtgColor},
     },
+    tournament::Tournament,
 };
 
 #[derive(
@@ -219,7 +219,7 @@ impl Tournament {
             .into_grouping_map()
             .sum()
             .into_iter()
-            .filter_map(|(id, perf)| Some((self.get_registered_player(id).ok()?, perf))))
+            .filter_map(|(id, perf)| Some((self.get_registered_player(id)?, perf))))
     }
 
     pub fn get_player_player_match_performance(

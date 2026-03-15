@@ -6,9 +6,9 @@ pub mod v3;
 use serde::Deserialize;
 
 use crate::{
-    Tournament,
     error::TournamentError,
     serialization::{v1::V1Tournament, v2::V2Tournament, v3::V3Tournament},
+    tournament::Tournament,
 };
 #[derive(Deserialize, Debug)]
 #[serde(untagged)]
@@ -32,7 +32,7 @@ impl TryFrom<SerializedTournament> for Tournament {
 
 #[cfg(test)]
 mod tests {
-    use crate::Tournament;
+    use crate::tournament::Tournament;
 
     #[test]
     fn ron_serialize_loop() {

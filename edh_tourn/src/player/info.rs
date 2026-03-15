@@ -1,10 +1,4 @@
-use std::collections::HashMap;
-
-use crate::{
-    Tournament,
-    error::TournamentError,
-    player::color::{ColorIdentity, MtgColor},
-};
+use crate::player::color::{ColorIdentity, MtgColor};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default, PartialEq, Eq, Hash)]
 pub struct PlayerInfo {
@@ -144,106 +138,9 @@ impl PlayerInfo {
     pub fn colors(&self) -> impl Iterator<Item = MtgColor> {
         self.identity.colors()
     }
-}
-
-impl Tournament {
-    pub fn merge_players_from_tournament(
-        &mut self,
-        other: &Self,
-    ) -> Result<HashMap<u32, u32>, TournamentError> {
-        other
-            .players()
-            .iter()
-            .map(|(id, player)| {
-                let new_id = self.get_or_register_player_with_info(player.clone())?;
-                Ok((*id, new_id))
-            })
-            .collect()
-    }
-
-    pub fn get_or_register_player(&mut self, name: String) -> Result<u32, TournamentError> {
-        match self.register_player(name) {
-            Ok(id) | Err(TournamentError::PlayerAlreadyRegistered(_, id)) => Ok(id),
-            Err(err) => Err(err),
-        }
-    }
-
-    pub fn get_or_register_player_with_info(
-        &mut self,
-        info: PlayerInfo,
-    ) -> Result<u32, TournamentError> {
-        match self.register_player_with_info(info) {
-            // TODO: Merge info from other tournament
-            Ok(id) | Err(TournamentError::PlayerAlreadyRegistered(_, id)) => Ok(id),
-            Err(err) => Err(err),
-        }
-    }
-
-    #[cfg(feature = "dev")]
-    pub fn register_debug_player(&mut self) -> Result<u32, TournamentError> {
-        let id = self.players().keys().max().copied().map_or(0, |i| i + 1);
-        self.register_player(format!("debug-{id}"))
-    }
-
-    pub fn register_player(&mut self, name: String) -> Result<u32, TournamentError> {
-        self.register_player_with_info(PlayerInfo::new(name))
-    }
-
-    pub fn register_player_with_info(&mut self, info: PlayerInfo) -> Result<u32, TournamentError> {
-        if info.name.is_empty() {
-            return Err(TournamentError::InvalidPlayerName(info.name));
-        }
-
-        if let Some(id) = self.player_names.get(&info.name) {
-            return Err(TournamentError::PlayerAlreadyRegistered(info.name, *id));
-        }
-
-        let id = self.players.keys().max().map_or(0, |i| i + 1);
-
-        self.player_names.insert(info.name.clone(), id);
-        self.players.insert(id, info);
-
-        Ok(id)
-    }
-
-    pub fn set_player_info(
-        &mut self,
-        player: u32,
-        info: PlayerInfo,
-    ) -> Result<(), TournamentError> {
-        let saved_info = self
-            .players
-            .get_mut(&player)
-            .ok_or(TournamentError::InvalidPlayerId(player))?;
-
-        if !saved_info.name().eq(info.name()) {
-            if info.name().is_empty() {
-                return Err(TournamentError::InvalidPlayerName(info.name().to_owned()));
-            }
-
-            if let Some(old_id) = self.player_names.get(info.name()) {
-                return Err(TournamentError::PlayerAlreadyRegistered(
-                    info.name().to_owned(),
-                    *old_id,
-                ));
-            }
-
-            self.player_names.remove(saved_info.name());
-            self.player_names.insert(info.name().to_owned(), player);
-        }
-
-        *saved_info = info;
-
-        Ok(())
-    }
 
     #[must_use]
-    pub fn get_player_info(&self, id: &u32) -> Option<&PlayerInfo> {
-        self.players().get(id)
-    }
-
-    #[must_use]
-    pub fn get_player_name(&self, id: &u32) -> Option<&String> {
-        self.get_player_info(id).map(PlayerInfo::name)
+    pub fn into_name(self) -> String {
+        self.name
     }
 }

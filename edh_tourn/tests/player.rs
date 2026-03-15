@@ -1,7 +1,7 @@
 //! Tests for Player, Player Registration, Player Info
 
 use edh_tourn::{
-    Tournament,
+    tournament::Tournament,
     player::{
         color::{ColorIdentity, MtgColor},
         info::PlayerInfo,

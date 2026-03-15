@@ -3,7 +3,7 @@ use core::cmp::Ordering;
 use itertools::Itertools;
 
 use crate::{
-    Tournament, analytics::winloss::MatchPerformance, error::TournamentError,
+    tournament::Tournament, analytics::winloss::MatchPerformance, error::TournamentError,
     player::RegisteredPlayer,
 };
 

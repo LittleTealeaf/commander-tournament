@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use edh_tourn::Tournament;
+use edh_tourn::tournament::Tournament;
 use iced::Task;
 
 pub mod config;

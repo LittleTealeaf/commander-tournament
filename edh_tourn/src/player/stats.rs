@@ -1,5 +1,3 @@
-use crate::Tournament;
-
 const MINIMUM_ELO: f64 = 1.0;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
@@ -72,23 +70,6 @@ impl PlayerStats {
         if self.elo < MINIMUM_ELO {
             self.elo = MINIMUM_ELO;
         }
-    }
-}
-
-impl Tournament {
-    #[must_use]
-    pub const fn default_stats(&self) -> &PlayerStats {
-        &self.default_stats
-    }
-
-    #[must_use]
-    pub fn get_player_or_default_stats(&self, player: u32) -> &PlayerStats {
-        self.get_player_stats(player).unwrap_or(&self.default_stats)
-    }
-
-    #[must_use]
-    pub fn get_player_stats(&self, player: u32) -> Option<&PlayerStats> {
-        self.stats.get(&player)
     }
 }
 

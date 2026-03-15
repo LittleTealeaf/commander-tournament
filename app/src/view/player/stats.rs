@@ -1,5 +1,5 @@
 use edh_tourn::{
-    Tournament,
+    tournament::Tournament,
     analytics::winloss::MatchPerformance,
     player::{
         RegisteredPlayer,

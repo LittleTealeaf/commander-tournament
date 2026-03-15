@@ -6,7 +6,7 @@ use core::fmt::Display;
 use itertools::{Itertools, chain};
 
 use crate::{
-    Tournament,
+    tournament::Tournament,
     error::TournamentError,
     player::{RegisteredPlayer, stats::PlayerStats},
 };

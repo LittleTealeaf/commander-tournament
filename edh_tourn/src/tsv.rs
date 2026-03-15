@@ -1,5 +1,5 @@
 use crate::{
-    Tournament,
+    tournament::Tournament,
     error::{TournResult, TournamentError},
     game::entry::GameEntry,
 };
@@ -36,7 +36,7 @@ impl Tournament {
 
 #[cfg(test)]
 mod tests {
-    use crate::Tournament;
+    use super::*;
 
     #[test]
     fn parse_tsv_game_count() {

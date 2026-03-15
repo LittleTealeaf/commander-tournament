@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use serde::Deserialize;
 
-use crate::Tournament;
+use crate::tournament::Tournament;
 use crate::error::TournamentError;
 use crate::game::entry::GameEntry;
 use crate::serialization::utils::DeserializableMap;

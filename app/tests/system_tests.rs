@@ -8,7 +8,7 @@ use app::{
     },
 };
 use edh_tourn::{
-    Tournament,
+    tournament::Tournament,
     player::{color::MtgColor, info::PlayerInfo},
 };
 use iced::widget::text_editor::{Action, Edit};

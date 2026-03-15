@@ -1,6 +1,6 @@
 pub mod file;
 
-use edh_tourn::Tournament;
+use edh_tourn::tournament::Tournament;
 use iced::Task;
 use opener::open_browser;
 
@@ -109,7 +109,7 @@ impl From<()> for Message {
 
 #[cfg(test)]
 mod tests {
-    use edh_tourn::Tournament;
+    use super::*;
 
     use crate::{App, logic::Message, traits::HandleMessage};
 

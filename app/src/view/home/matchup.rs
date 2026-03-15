@@ -1,5 +1,5 @@
 use edh_tourn::{
-    Tournament,
+    tournament::Tournament,
     error::TournamentError,
     game::{match_player::MatchPlayer, matchup::Matchup},
 };
@@ -170,7 +170,7 @@ impl View<MatchupView> for App {
 
         let match_players = MatchViewPlayer::PLAYERS.map(|position| {
             let id = scene.get_player(position).copied();
-            let entry = id.and_then(|id| self.tournament.get_registered_player(id).ok());
+            let entry = id.and_then(|id| self.tournament.get_registered_player(id));
 
             let text_stats = entry.map(|p| {
                 let stats = p.stats();
@@ -231,12 +231,12 @@ impl View<MatchupView> for App {
         let current_players = MatchViewPlayer::PLAYERS
             .iter()
             .filter_map(|player| scene.get_player(*player).copied())
-            .filter_map(|id| self.tournament().get_registered_player(id).ok())
+            .filter_map(|id| self.tournament().get_registered_player(id))
             .collect_vec();
 
         let winner = scene
             .winner
-            .and_then(|id| self.tournament().get_registered_player(id).ok());
+            .and_then(|id| self.tournament().get_registered_player(id));
 
         let winner_selector = row![
             text("Winner: ").size(17),

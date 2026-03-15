@@ -102,7 +102,7 @@ impl From<V2Tournament> for V3Tournament {
 
 #[cfg(test)]
 mod tests {
-    use crate::Tournament;
+    use crate::tournament::Tournament;
 
     #[test]
     fn serialize_v2() {

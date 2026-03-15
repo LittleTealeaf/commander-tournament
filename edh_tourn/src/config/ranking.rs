@@ -10,6 +10,13 @@ pub struct RankingConfig {
 
 impl Default for RankingConfig {
     fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl RankingConfig {
+    #[must_use]
+    pub const fn new() -> Self {
         Self {
             least_played: 6,
             nemesis: 4,
@@ -18,5 +25,6 @@ impl Default for RankingConfig {
             wr_neighbor: 3,
             expected_neighbor: 4,
         }
+
     }
 }

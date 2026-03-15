@@ -1,5 +1,5 @@
 use crate::{
-    Tournament,
+    tournament::Tournament,
     error::TournamentError,
     game::{match_player::MatchPlayer, matchup::Matchup},
 };

@@ -10,6 +10,14 @@ pub struct GameConfig {
 
 impl Default for GameConfig {
     fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[cfg(feature = "dev")]
+impl GameConfig {
+    #[must_use]
+    pub const fn new() -> Self {
         Self {
             starting_elo: 1500.0,
             game_points: 25.0,
@@ -19,10 +27,7 @@ impl Default for GameConfig {
             game_wr_weight: 35.0,
         }
     }
-}
 
-#[cfg(feature = "dev")]
-impl GameConfig {
     #[must_use]
     pub fn random(seed: usize) -> Self {
         use rand::{RngExt, SeedableRng};

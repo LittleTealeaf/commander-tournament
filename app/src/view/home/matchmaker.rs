@@ -1,4 +1,4 @@
-use edh_tourn::{Tournament, analytics::ranking::RankingMethod, player::RegisteredPlayer};
+use edh_tourn::{tournament::Tournament, analytics::ranking::RankingMethod, player::RegisteredPlayer};
 use iced::{
     Length, Task,
     alignment::Horizontal,
@@ -154,7 +154,7 @@ impl View<MatchMakerView> for App {
                             .collect_vec(),
                         scene
                             .player
-                            .and_then(|id| self.tournament().get_registered_player(id).ok()),
+                            .and_then(|id| self.tournament().get_registered_player(id)),
                         |player| MatchMakerMessage::Player(Some(player.id())).into()
                     )
                     .width(Length::Fill),
