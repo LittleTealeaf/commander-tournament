@@ -1,5 +1,6 @@
 use edh_tourn::player::color::MtgColor;
 use iced::widget::{button, column, container, row, text, text_editor, text_input};
+use nerd_font_symbols::md::MD_LINK_VARIANT;
 
 use crate::{
     logic::Message,
@@ -31,7 +32,8 @@ pub fn view_info_panel(scene: &ViewPlayerScene) -> iced::widget::Container<'_, M
     }))
     .spacing(5);
 
-    let button_link = button("").on_press_maybe(scene.info.moxfield_link().map(Message::OpenLink));
+    let button_link =
+        button(MD_LINK_VARIANT).on_press_maybe(scene.info.moxfield_link().map(Message::OpenLink));
 
     let text_identity = text(scene.info.color_identity().to_string());
 

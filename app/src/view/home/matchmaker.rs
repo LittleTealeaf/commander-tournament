@@ -5,6 +5,7 @@ use iced::{
     widget::{button, column, container, pick_list, row, space, table, text},
 };
 use itertools::{Itertools, chain};
+use nerd_font_symbols::oct::OCT_GEAR;
 
 use crate::{
     App,
@@ -145,17 +146,26 @@ impl View<MatchMakerView> for App {
                     .size(18)
                     .width(Length::Fill)
                     .align_x(Horizontal::Center),
-                pick_list(
-                    self.tournament()
-                        .get_registered_players()
-                        .sorted_by(|a, b| a.info().name().cmp(b.info().name()))
-                        .collect_vec(),
-                    scene
-                        .player
-                        .and_then(|id| self.tournament().get_registered_player(id).ok()),
-                    |player| MatchMakerMessage::Player(Some(player.id())).into()
-                )
-                .width(Length::Fill),
+                row![
+                    pick_list(
+                        self.tournament()
+                            .get_registered_players()
+                            .sorted_by(|a, b| a.info().name().cmp(b.info().name()))
+                            .collect_vec(),
+                        scene
+                            .player
+                            .and_then(|id| self.tournament().get_registered_player(id).ok()),
+                        |player| MatchMakerMessage::Player(Some(player.id())).into()
+                    )
+                    .width(Length::Fill),
+                    button("󰘸").on_press_maybe(
+                        scene
+                            .player
+                            .map(|id| ViewPlayerMessage::Open(Some(id)).into())
+                    )
+                ]
+                .width(Length::Fill)
+                .spacing(10),
                 row![
                     pick_list(RankingMethod::VALUES, Some(scene.method), |method| {
                         MatchMakerMessage::Method(method).into()
@@ -167,7 +177,7 @@ impl View<MatchMakerView> for App {
                             .is_some()
                             .then_some(MatchMakerMessage::LoadTopThree.into())
                     ),
-                    button("⚙").on_press(MessageMatchmakerConfig::Open.into())
+                    button(OCT_GEAR).on_press(MessageMatchmakerConfig::Open.into())
                 ]
                 .spacing(10),
                 results_table(scene.get_leaderboard(self.tournament()).unwrap_or_default())

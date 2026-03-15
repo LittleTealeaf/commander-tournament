@@ -6,11 +6,15 @@ use iced::{
     widget::{button, container, row, scrollable, space, table, text},
 };
 use itertools::Itertools;
+use nerd_font_symbols::md::{MD_ARROW_DOWN, MD_ARROW_UP, MD_PLAYLIST_PLUS};
 
 use crate::{
     App,
     logic::Message,
-    view::{home::HomeMessage, player::ViewPlayerMessage},
+    view::{
+        home::{HomeMessage, matchmaker::MatchMakerMessage},
+        player::ViewPlayerMessage,
+    },
 };
 
 #[derive(Clone)]
@@ -79,9 +83,9 @@ impl App {
         });
 
         let ord_char = if self.home.leaderboard_sort_asc {
-            "󰁅"
+            MD_ARROW_DOWN
         } else {
-            "󰁝"
+            MD_ARROW_UP
         };
 
         let col_header = |label: &str, col: LeaderboardColumn| {
@@ -131,7 +135,8 @@ impl App {
                 table::column(
                     button("+").on_press(ViewPlayerMessage::Open(None).into()),
                     |p: Player<'_>| {
-                        button("").on_press_maybe(p.info.moxfield_link().map(Message::OpenLink))
+                        button(MD_PLAYLIST_PLUS)
+                            .on_press(MatchMakerMessage::Player(Some(p.id)).into())
                     },
                 ),
             ],

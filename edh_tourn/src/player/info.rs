@@ -102,6 +102,14 @@ impl PlayerInfo {
     }
 
     #[must_use]
+    pub fn with_moxfield_id(self, moxfield_id: String) -> Self {
+        Self {
+            moxfield_id: Some(moxfield_id),
+            ..self
+        }
+    }
+
+    #[must_use]
     pub const fn color_identity(&self) -> &ColorIdentity {
         &self.identity
     }

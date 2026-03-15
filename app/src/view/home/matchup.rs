@@ -9,6 +9,7 @@ use iced::{
     widget::{button, column, container, pick_list, row, space, text},
 };
 use itertools::Itertools;
+use nerd_font_symbols::md::{MD_CANCEL, MD_LINK_VARIANT, MD_LINK_VARIANT_PLUS};
 
 use crate::{
     App,
@@ -207,7 +208,7 @@ impl View<MatchupView> for App {
                 column![
                     row![
                         selector,
-                        button("").on_press_maybe(
+                        button(MD_LINK_VARIANT).on_press_maybe(
                             entry
                                 .and_then(|entry| entry.info().moxfield_goldfish_link())
                                 .map(Message::OpenLink)
@@ -243,7 +244,7 @@ impl View<MatchupView> for App {
                 MatchupMessage::SetWinner(Some(picked.id())).into()
             })
             .width(Length::Fill),
-            button("󱄀").on_press_maybe({
+            button(MD_LINK_VARIANT_PLUS).on_press_maybe({
                 let links = MatchViewPlayer::PLAYERS
                     .into_iter()
                     .filter_map(|position| {
@@ -279,7 +280,7 @@ impl View<MatchupView> for App {
                 (scene.matchup.is_some() && scene.winner.is_some())
                     .then_some(MatchupMessage::SubmitGame.into())
             ),
-            button("󰜺").on_press(MatchupMessage::Clear.into()),
+            button(MD_CANCEL).on_press(MatchupMessage::Clear.into()),
         ]
         .spacing(10)
         .align_y(Vertical::Center);
