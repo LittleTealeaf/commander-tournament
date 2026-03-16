@@ -5,7 +5,8 @@ use app::{
 use iced::{Theme, application};
 
 pub fn main() -> iced::Result {
-    let mut app = application(App::boot, App::updater, App::app_view);
+    let mut app = application(App::boot, App::updater, App::app_view)
+        .subscription(App::autosave_subscription);
 
     for font in FONT_BYTES {
         app = app.font(font);
