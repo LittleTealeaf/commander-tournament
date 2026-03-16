@@ -1,7 +1,8 @@
+use core::time::Duration;
 use std::path::PathBuf;
 
 use edh_tourn::tournament::Tournament;
-use iced::Task;
+use iced::{Subscription, Task};
 
 pub mod config;
 pub mod fonts;
@@ -17,6 +18,8 @@ use crate::{
     traits::HandleMessage,
     view::{Scene, home::HomeState},
 };
+
+const SAVE_INTERVAL: u64 = 5 * 60;
 
 #[derive(Default, Debug)]
 pub struct App {
@@ -65,5 +68,9 @@ impl App {
 
     pub const fn tournament_mut(&mut self) -> &mut Tournament {
         &mut self.tournament
+    }
+
+    pub fn autosave_subscription(&self) -> Subscription<Message> {
+        iced::time::every(Duration::from_secs(5 * 60)).map(|_| FileMessage::Save.into())
     }
 }

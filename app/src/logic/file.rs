@@ -22,6 +22,7 @@ pub enum FileMessage {
     SaveToFile(PathBuf),
     OpenFile,
     SaveAs,
+    AutoSave,
     Save,
     New,
     SetOpenedFile(PathBuf),
@@ -91,6 +92,13 @@ impl HandleMessage<FileMessage> for App {
                 self.tournament = Tournament::default();
                 self.file = None;
                 Message::done()
+            }
+            FileMessage::AutoSave => {
+                if let Some(file) = &self.file {
+                    self.update(FileMessage::SaveToFile(file.clone()))
+                } else {
+                    Message::done()
+                }
             }
         }
     }
