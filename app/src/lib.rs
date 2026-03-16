@@ -71,6 +71,6 @@ impl App {
     }
 
     pub fn autosave_subscription(&self) -> Subscription<Message> {
-        iced::time::every(Duration::from_secs(5 * 60)).map(|_| FileMessage::Save.into())
+        iced::time::every(Duration::from_secs(SAVE_INTERVAL)).map(|_| FileMessage::Save.into())
     }
 }
