@@ -98,7 +98,7 @@ impl Tournament {
 
     pub fn register_player_with_info(&mut self, info: PlayerInfo) -> Result<u32, TournamentError> {
         if info.name().is_empty() {
-            return Err(TournamentError::InvalidPlayerName(info.into_name()));
+            return Err(TournamentError::InvalidPlayerName(String::new()));
         }
 
         if let Some(id) = self.player_names.get(info.name()) {
