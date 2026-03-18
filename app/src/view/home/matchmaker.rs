@@ -1,6 +1,4 @@
-use edh_tourn::{
-    analytics::ranking::RankingMethod, player::RegisteredPlayer, tournament::Tournament,
-};
+use edh_tourn::{player::RegisteredPlayer, ranking::RankingMethod, tournament::Tournament};
 use iced::{
     Length, Task,
     alignment::Horizontal,

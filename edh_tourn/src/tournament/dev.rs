@@ -1,29 +1,50 @@
+use core::hash::{Hash, Hasher};
+use std::hash::DefaultHasher;
+
 use itertools::chain;
 
-use crate::{config::game::GameConfig, error::TournamentError, tournament::Tournament};
+use crate::{
+    config::game::GameConfig, error::TournamentError, game::entry::GameEntry,
+    tournament::Tournament,
+};
+use rand::{RngExt, SeedableRng, seq::IndexedRandom};
+use rand_chacha::ChaCha8Rng;
+
+fn hash_to_u64<T>(value: T) -> u64
+where
+    T: Hash,
+{
+    let mut hasher = DefaultHasher::new();
+    value.hash(&mut hasher);
+
+    hasher.finish()
+}
 
 impl Tournament {
     pub fn generate_tournament(player_count: usize, games: usize) -> Result<Self, TournamentError> {
         if games > 0 && player_count < 4 {
             return Err(TournamentError::NotEnoughPlayers);
         }
+
         let mut tournament = Self::default();
-        let mut ids = Vec::new();
-        for name in 0..player_count {
-            let id = tournament.register_player(format!("{name}"))?;
-            ids.push(id);
-        }
 
-        let len = ids.len();
-        for i in 0..games {
-            let ids = [0, 1, 2, 3].map(|n| ids.get((i + n) % len).copied());
-            let [Some(a), Some(b), Some(c), Some(d)] = ids else {
-                return Err(TournamentError::NotEnoughPlayers);
-            };
-            let players = [a, b, c, d];
-            let winner = players.get(i % 4).copied().unwrap_or_default();
+        let ids: Vec<u32> = (0..player_count)
+            .map(|_| tournament.register_debug_player())
+            .collect::<Result<Vec<_>, _>>()?;
 
-            tournament.register_record(tournament.create_match(players)?.record(winner)?)?;
+        let mut rng = ChaCha8Rng::seed_from_u64(hash_to_u64((player_count, games)));
+
+        for _ in 0..games {
+            let mut iter = ids.sample(&mut rng, 4).copied();
+            let player_a = iter.next().unwrap();
+            let player_b = iter.next().unwrap();
+            let player_c = iter.next().unwrap();
+            let player_d = iter.next().unwrap();
+            let players = [player_a, player_b, player_c, player_d];
+            let winner = *players.choose(&mut rng).unwrap();
+
+            let entry = GameEntry::new(players, winner)?;
+            tournament.register_entry(entry)?;
         }
 
         Ok(tournament)

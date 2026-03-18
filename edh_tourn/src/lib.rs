@@ -9,3 +9,4 @@ pub mod player;
 mod serialization;
 pub mod tournament;
 pub mod tsv;
+pub mod ranking;

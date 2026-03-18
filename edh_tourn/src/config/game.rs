@@ -35,14 +35,7 @@ impl GameConfig {
         use rand::{RngExt, SeedableRng};
         use rand_chacha::ChaCha8Rng;
 
-        let mut seed_bytes = [0u8; 32];
-        let seed_data = seed.to_le_bytes();
-        seed_bytes
-            .get_mut(..seed_data.len())
-            .expect("Expected Seed Data to Work")
-            .copy_from_slice(&seed_data);
-
-        let mut rng = ChaCha8Rng::from_seed(seed_bytes);
+        let mut rng = ChaCha8Rng::seed_from_u64(seed as u64);
 
         Self {
             starting_elo: rng.random_range(1000.0..5000.0),

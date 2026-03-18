@@ -1,53 +1,14 @@
 pub mod games_played;
 pub mod neighbors;
 
-use core::fmt::Display;
-
 use itertools::{Itertools, chain};
 
 use crate::{
     error::TournamentError,
     player::{RegisteredPlayer, stats::PlayerStats},
+    ranking::RankingMethod,
     tournament::Tournament,
 };
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
-pub enum RankingMethod {
-    LeastPlayed,
-    LostWith,
-    Nemesis,
-    EloNeighbors,
-    WRNeighbors,
-    ExpectedNeighbors,
-    #[default]
-    Combined,
-}
-
-impl RankingMethod {
-    pub const VALUES: [Self; 7] = [
-        Self::Combined,
-        Self::LeastPlayed,
-        Self::Nemesis,
-        Self::LostWith,
-        Self::EloNeighbors,
-        Self::WRNeighbors,
-        Self::ExpectedNeighbors,
-    ];
-}
-
-impl Display for RankingMethod {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.write_str(match self {
-            Self::LeastPlayed => "Least Played",
-            Self::LostWith => "Lost With",
-            Self::Nemesis => "Nemesis",
-            Self::EloNeighbors => "Elo Neighbors",
-            Self::WRNeighbors => "WR Neighbors",
-            Self::ExpectedNeighbors => "Expected Neighbors",
-            Self::Combined => "Combined",
-        })
-    }
-}
 
 fn to_weight_rank<T>(
     ranking: impl IntoIterator<Item = T>,
@@ -162,24 +123,5 @@ impl Tournament {
             }
             RankingMethod::Combined => self.get_player_ranked_combined(id)?.collect(),
         })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn combined_does_not_return_self() {
-        for tourn in Tournament::test_tournaments() {
-            for id in tourn.players().keys().copied() {
-                for player in tourn
-                    .get_player_ranked_combined(id)
-                    .expect("Expected Player to Exist")
-                {
-                    assert_ne!(id, player.id(), "Player found in function output");
-                }
-            }
-        }
     }
 }

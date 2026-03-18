@@ -3,7 +3,9 @@ mod config;
 mod dev;
 mod matches;
 mod players;
+mod ranking;
 mod stats;
+mod analytics;
 
 use std::collections::HashMap;
 
@@ -59,6 +61,11 @@ impl Tournament {
         self.update_player_names();
         self.recalcualte_stats()?;
         Ok(())
+    }
+
+    pub fn union(mut self, other: &Self) -> Result<Self, TournamentError> {
+        self.merge(other)?;
+        Ok(self)
     }
 
     pub fn merge(&mut self, other: &Self) -> Result<(), TournamentError> {

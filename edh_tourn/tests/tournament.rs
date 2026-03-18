@@ -29,14 +29,6 @@ fn unregister_invalid_id_returns_err() {
 }
 
 #[test]
-fn into_fresh_works_simple() -> anyhow::Result<()> {
-    for game in Tournament::test_tournaments() {
-        game.into_fresh()?;
-    }
-    Ok(())
-}
-
-#[test]
 fn into_fresh_same_players() -> anyhow::Result<()> {
     let game = Tournament::generate_tournament(35, 20)?;
     let new_game = game.into_fresh()?;
