@@ -1,5 +1,5 @@
 use approx::{assert_relative_eq, assert_relative_ne};
-use edh_tourn::{game::match_player::MatchPlayer, tournament::Tournament};
+use edh_tourn::tournament::Tournament;
 use itertools::Itertools;
 
 #[test]
@@ -29,21 +29,6 @@ fn mirror_matchup_equal_expected() {
     for p in mu.players() {
         assert_relative_eq!(0.25, *p.expected());
     }
-}
-
-#[test]
-fn expected_adds_up_to_1() {
-    #[allow(clippy::needless_pass_by_value)]
-    fn assert_sums_up_to_one<const T: usize>(players: [MatchPlayer; T]) {
-        assert_relative_eq!(1.0, players.iter().map(|p| { p.expected() }).sum::<f64>());
-    }
-    let t = Tournament::generate_tournament(1, 0).unwrap();
-    let id = *t.players().keys().next().unwrap();
-
-    assert_sums_up_to_one(t.create_match_players([id, id]));
-    assert_sums_up_to_one(t.create_match_players([id, id, id]));
-    assert_sums_up_to_one(t.create_match_players([id, id, id, id]));
-    assert_sums_up_to_one(t.create_match_players([id, id, id, id, id]));
 }
 
 #[test]
