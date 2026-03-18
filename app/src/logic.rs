@@ -9,11 +9,8 @@ use crate::{
     logic::file::FileMessage,
     traits::HandleMessage,
     view::{
-        config_matchmaker::MessageMatchmakerConfig,
-        confirm::ConfirmPromptMessage,
-        home::HomeMessage,
-        player::ViewPlayerMessage,
-        tourn_stats::{TournamentStatsMessage, TournamentStatsView},
+        config_matchmaker::MessageMatchmakerConfig, confirm::ConfirmPromptMessage,
+        home::HomeMessage, player::ViewPlayerMessage, tourn_stats::TournamentStatsMessage,
     },
 };
 

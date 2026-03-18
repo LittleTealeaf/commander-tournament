@@ -2,3 +2,4 @@
 
 pub mod ranking;
 pub mod winloss;
+pub mod aggregate;

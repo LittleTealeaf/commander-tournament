@@ -5,7 +5,7 @@ use core::{
 };
 use std::collections::HashMap;
 
-use itertools::{Itertools, chain};
+use itertools::Itertools;
 
 use crate::{
     error::TournamentError,
@@ -192,30 +192,31 @@ impl Tournament {
                 let winner = game.winner();
                 let [loser_a, loser_b, loser_c] = game.losers();
 
-                chain!(
+                [
                     (winner == id).then_some([
                         (loser_a, MatchPerformance::WIN),
                         (loser_b, MatchPerformance::WIN),
-                        (loser_c, MatchPerformance::WIN)
+                        (loser_c, MatchPerformance::WIN),
                     ]),
                     (loser_a == id).then_some([
                         (winner, MatchPerformance::LOSS),
                         (loser_b, MatchPerformance::DRAW),
-                        (loser_c, MatchPerformance::DRAW)
+                        (loser_c, MatchPerformance::DRAW),
                     ]),
                     (loser_b == id).then_some([
                         (winner, MatchPerformance::LOSS),
                         (loser_a, MatchPerformance::DRAW),
-                        (loser_c, MatchPerformance::DRAW)
+                        (loser_c, MatchPerformance::DRAW),
                     ]),
                     (loser_c == id).then_some([
                         (winner, MatchPerformance::LOSS),
                         (loser_a, MatchPerformance::DRAW),
-                        (loser_b, MatchPerformance::DRAW)
-                    ])
-                )
-                .flatten()
+                        (loser_b, MatchPerformance::DRAW),
+                    ]),
+                ]
             })
+            .flatten()
+            .flatten()
             .into_grouping_map()
             .sum()
             .into_iter()

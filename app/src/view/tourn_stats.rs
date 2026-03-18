@@ -22,7 +22,7 @@ impl From<TournamentStatsMessage> for Message {
 
 impl HandleMessage<TournamentStatsMessage> for App {
     fn update(&mut self, msg: TournamentStatsMessage) -> anyhow::Result<iced::Task<Message>> {
-        let Some(Scene::TournamentStats(scene)) = self.scenes.pop() else {
+        let Some(Scene::TournamentStats(_scene)) = self.scenes.pop() else {
             if matches!(msg, TournamentStatsMessage::Open) {
                 self.scenes
                     .push(Scene::TournamentStats(TournamentStatsView));
@@ -37,7 +37,7 @@ impl HandleMessage<TournamentStatsMessage> for App {
 impl View<TournamentStatsView> for App {
     fn view<'a>(
         &'a self,
-        scene: &'a TournamentStatsView,
+        _scene: &'a TournamentStatsView,
     ) -> iced::Element<'a, crate::logic::Message> {
         todo!()
     }
