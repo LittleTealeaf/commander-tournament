@@ -5,7 +5,7 @@ use crate::player::stats::PlayerStats;
 #[derive(Debug, Clone)]
 pub struct AggregateStats {
     sum_elos: f64,
-    record_count_f64: f64,
+    count: u32,
     games: u32,
     wins: u32,
 }
@@ -28,7 +28,7 @@ impl AggregateStats {
 
     #[must_use]
     pub fn avg_elo(&self) -> f64 {
-        self.sum_elos / self.record_count_f64
+        self.sum_elos / f64::from(self.count)
     }
 
     #[must_use]
@@ -41,7 +41,7 @@ impl From<&PlayerStats> for AggregateStats {
     fn from(value: &PlayerStats) -> Self {
         Self {
             sum_elos: value.elo(),
-            record_count_f64: 1f64,
+            count: 1,
             games: value.games(),
             wins: value.wins(),
         }
@@ -51,7 +51,7 @@ impl From<&PlayerStats> for AggregateStats {
 impl AddAssign for AggregateStats {
     fn add_assign(&mut self, rhs: Self) {
         self.sum_elos += rhs.sum_elos;
-        self.record_count_f64 += rhs.record_count_f64;
+        self.count += rhs.count;
         self.wins += rhs.wins;
         self.games += rhs.games;
     }
@@ -62,7 +62,7 @@ impl Add for AggregateStats {
     fn add(self, rhs: Self) -> Self::Output {
         Self {
             sum_elos: self.sum_elos + rhs.sum_elos,
-            record_count_f64: self.record_count_f64 + rhs.record_count_f64,
+            count: self.count + rhs.count,
             games: self.games + rhs.games,
             wins: self.wins + rhs.wins,
         }
