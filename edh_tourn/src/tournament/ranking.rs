@@ -4,9 +4,7 @@ pub mod neighbors;
 use itertools::{Itertools, chain};
 
 use crate::{
-    error::TournamentError,
-    player::{RegisteredPlayer, stats::PlayerStats},
-    ranking::RankingMethod,
+    error::TournamentError, player::RegisteredPlayer, ranking::RankingMethod,
     tournament::Tournament,
 };
 
@@ -21,17 +19,6 @@ fn to_weight_rank<T>(
 }
 
 impl Tournament {
-    fn get_elo(&self, id: u32) -> f64 {
-        self.get_player_stats(id)
-            .map_or_else(|| self.game_config().starting_elo, PlayerStats::elo)
-    }
-
-    fn get_wr(&self, id: u32) -> f64 {
-        self.get_player_stats(id)
-            .and_then(PlayerStats::wr)
-            .unwrap_or(0.25)
-    }
-
     fn get_player_games_played_ranked_combined(
         &self,
         id: u32,
