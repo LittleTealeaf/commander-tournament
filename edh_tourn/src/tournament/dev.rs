@@ -7,7 +7,7 @@ use crate::{
     config::game::GameConfig, error::TournamentError, game::entry::GameEntry,
     tournament::Tournament,
 };
-use rand::{RngExt, SeedableRng, seq::IndexedRandom};
+use rand::{SeedableRng, seq::IndexedRandom};
 use rand_chacha::ChaCha8Rng;
 
 fn hash_to_u64<T>(value: T) -> u64
