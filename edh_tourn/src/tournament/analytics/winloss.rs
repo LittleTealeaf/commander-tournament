@@ -73,7 +73,7 @@ impl Tournament {
     ) -> Result<HashMap<ColorIdentity, MatchPerformance>, TournamentError> {
         Ok(self
             .player_get_all_players_match_performance(id)?
-            .map(|(player, perf)| (*player.info().color_identity(), perf))
+            .map(|(player, perf)| (player.info().color_identity(), perf))
             .into_grouping_map()
             .sum())
     }
@@ -88,7 +88,7 @@ impl Tournament {
                 player
                     .info()
                     .color_identity()
-                    .into_colors()
+                    .colors()
                     .map(move |color| (color, perf))
             })
             .into_grouping_map()

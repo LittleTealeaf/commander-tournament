@@ -18,6 +18,7 @@ impl Tournament {
         &self,
         players: [u32; T],
     ) -> [MatchPlayer; T] {
+        #[derive(Debug)]
         struct TempMatchPlayer<'a> {
             id: u32,
             stats: &'a PlayerStats,
@@ -43,8 +44,8 @@ impl Tournament {
             }
         });
 
-        let sum_wr: f64 = id_stats.iter().map(|p| p.scaled_wr).sum();
-        let sum_elo: f64 = id_stats.iter().map(|p| p.scaled_elo).sum();
+        let sum_wr = id_stats.iter().map(|p| p.scaled_wr).sum::<f64>().max(1.0);
+        let sum_elo = id_stats.iter().map(|p| p.scaled_elo).sum::<f64>();
 
         let weight_total = config.game_wr_weight + config.game_elo_weight;
         let coef_wr = config.game_wr_weight / (weight_total * sum_wr);

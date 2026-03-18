@@ -68,22 +68,16 @@ impl ColorIdentity {
         self.0 == 0
     }
 
-    pub fn into_colors(self) -> impl Iterator<Item = MtgColor> {
-        MtgColor::COLORS
-            .map(|color| self.has_color(color).then_some(color))
-            .into_iter()
-            .flatten()
-    }
-
     #[must_use]
     pub const fn num_colors(&self) -> u32 {
         self.0.count_ones()
     }
 
-    pub fn colors(&self) -> impl Iterator<Item = MtgColor> {
+    pub fn colors(self) -> impl Iterator<Item = MtgColor> {
         MtgColor::COLORS
+            .map(|color| self.has_color(color).then_some(color))
             .into_iter()
-            .filter(|color| self.has_color(*color))
+            .flatten()
     }
 
     #[must_use]
@@ -271,7 +265,7 @@ mod tests {
                 [$(crate::player::color::MtgColor::$color),+].into_iter().rev().collect()
             );
 
-            let colors = identity.into_colors().collect::<Vec<_>>();
+            let colors = identity.colors().collect::<Vec<_>>();
             $(
                 let color = crate::player::color::MtgColor::$color;
                 assert!(colors.contains(&color), "Expected {color} to be found in {identity}");
@@ -333,7 +327,7 @@ mod tests {
     #[test]
     fn identity_color_counts() {
         for identity in ColorIdentity::IDENTITIES {
-            let colors = identity.into_colors();
+            let colors = identity.colors();
             let count = colors.map(|_| 1).sum::<u32>();
             assert_eq!(
                 count,
@@ -347,7 +341,7 @@ mod tests {
     #[test]
     fn add_assigns_to_identity() {
         for identity in ColorIdentity::IDENTITIES {
-            let colors = identity.into_colors().collect::<Vec<_>>();
+            let colors = identity.colors().collect::<Vec<_>>();
             let mut i = ColorIdentity(0);
             for color in colors {
                 i += color;
@@ -359,7 +353,7 @@ mod tests {
     #[test]
     fn adds_to_identity() {
         for identity in ColorIdentity::IDENTITIES {
-            let colors = identity.into_colors().collect::<Vec<_>>();
+            let colors = identity.colors().collect::<Vec<_>>();
             let ident = colors.into_iter().fold(ColorIdentity(0), |a, b| a + b);
             assert_eq!(identity, ident);
         }

@@ -22,7 +22,7 @@ impl Tournament {
     #[must_use]
     pub fn get_aggregated_identity_stats(&self) -> HashMap<ColorIdentity, AggregateStats> {
         self.get_aggregated_player_stats()
-            .map(|(player, stats)| (*player.info().color_identity(), stats))
+            .map(|(player, stats)| (player.info().color_identity(), stats))
             .into_grouping_map()
             .sum()
     }
@@ -34,7 +34,7 @@ impl Tournament {
                 player
                     .info()
                     .color_identity()
-                    .into_colors()
+                    .colors()
                     .map(move |color| (color, stats.clone()))
             })
             .into_grouping_map()

@@ -107,7 +107,7 @@ pub fn view_identity_matchups(tournament: &Tournament, id: u32) -> Option<Contai
                         text(format!("{identity}"))
                     }),
                     table::column("Colors", |(identity, _): RowType| {
-                        text(identity.into_colors().map(MtgColor::letter).join(""))
+                        text(identity.colors().map(MtgColor::letter).join(""))
                     }),
                     table::column("Wins", |(_, perf): RowType| {
                         text(format!("{}", perf.wins()))
