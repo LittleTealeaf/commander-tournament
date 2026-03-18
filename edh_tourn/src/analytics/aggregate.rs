@@ -37,6 +37,12 @@ impl AggregateStats {
     }
 }
 
+impl From<PlayerStats> for AggregateStats {
+    fn from(value: PlayerStats) -> Self {
+        (&value).into()
+    }
+}
+
 impl From<&PlayerStats> for AggregateStats {
     fn from(value: &PlayerStats) -> Self {
         Self {
