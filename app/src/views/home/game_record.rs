@@ -47,6 +47,7 @@ impl Player {
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum Message {
+    SetPlayers([u32; 4]),
     SetPlayer(Player, Option<u32>),
     SetWinner(Option<u32>),
     AddPlayer(u32),
@@ -125,6 +126,13 @@ impl ComponentUpdate for State {
         context: Self::Context<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         match message {
+            Message::SetPlayers([a, b, c, d]) => {
+                self.player_a = Some(a);
+                self.player_b = Some(b);
+                self.player_c = Some(c);
+                self.player_d = Some(d);
+                Effect::ok()
+            }
             Message::SetPlayer(position, value) => {
                 self.set_player(position, value);
                 self.update_matchup(context)?;

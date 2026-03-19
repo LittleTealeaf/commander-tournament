@@ -90,6 +90,10 @@ impl HandleMessage<ranking::Message> for State {
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         self.ranking
             .update(message, context)?
-            .map(|_message| todo!())
+            .map(|message| match message {
+                ranking::OutMessage::LoadGame(players) => {
+                    self.handle_message(game_record::Message::SetPlayers(players), context)
+                }
+            })
     }
 }
