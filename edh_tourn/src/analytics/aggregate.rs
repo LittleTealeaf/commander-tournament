@@ -2,7 +2,7 @@ use core::ops::{Add, AddAssign};
 
 use crate::player::stats::PlayerStats;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct AggregateStats {
     sum_elos: f64,
     count: u32,
@@ -27,8 +27,8 @@ impl AggregateStats {
     }
 
     #[must_use]
-    pub fn avg_elo(&self) -> f64 {
-        self.sum_elos / f64::from(self.count)
+    pub fn avg_elo(&self) -> Option<f64> {
+        (self.count > 0).then(|| self.sum_elos / f64::from(self.count))
     }
 
     #[must_use]
