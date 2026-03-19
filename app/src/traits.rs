@@ -1,4 +1,5 @@
 use iced::{Element, Task};
+use iced_futures::MaybeSend;
 
 #[derive(Debug)]
 pub struct Effect<M, O> {
@@ -29,6 +30,21 @@ impl<M, O> Effect<M, O> {
         Ok(Self {
             task,
             out: Some(out_message),
+        })
+    }
+
+    pub fn map<MN, ON, F>(self, map_out: F) -> anyhow::Result<Effect<MN, ON>>
+    where
+        MN: From<M> + Send + MaybeSend + 'static,
+        M: MaybeSend + 'static,
+        F: FnMut(O) -> anyhow::Result<Effect<MN, ON>>,
+    {
+        let effect = self.out.map_or_else(Effect::ok, map_out)?;
+
+        Ok(Effect {
+            task: self.task.map(From::from).chain(effect.task),
+
+            out: effect.out,
         })
     }
 }

@@ -27,6 +27,8 @@ edh_tourn = {path = "../edh_tourn/"}
 directories = "6.0.0"
 iced_aw = { version = "0.13.1", features = ["tab_bar", "tabs"] }
 nerd-font-symbols = "0.3.0"
+derive_more = {version = "2", features = ["from"]}
+iced_futures = "0.14.0"
 
 [dev-dependencies]
 app = {path = ".", features = ["dev"]}

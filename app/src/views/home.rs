@@ -10,12 +10,14 @@ pub mod ranking;
 pub struct State {
     leaderboard: leaderboard::State,
     game_record: game_record::State,
+    ranking: ranking::State,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, derive_more::From)]
 pub enum Message {
     Leaderboard(leaderboard::Message),
     GameRecord(game_record::Message),
+    Ranking(ranking::Message),
 }
 
 #[derive(Debug, Clone)]
@@ -44,6 +46,7 @@ impl ComponentUpdate for State {
         match message {
             Message::Leaderboard(message) => self.handle_message(message, context),
             Message::GameRecord(message) => self.handle_message(message, context),
+            Message::Ranking(message) => self.handle_message(message, context),
         }
     }
 }
@@ -54,9 +57,16 @@ impl HandleMessage<leaderboard::Message> for State {
         message: leaderboard::Message,
         context: Self::Context<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
-        let _effect = self.leaderboard.update(message, context)?;
-
-        Effect::ok()
+        self.leaderboard
+            .update(message, context)?
+            .map(|message| match message {
+                leaderboard::OutMessage::OpenPlayerDetails(maybe_id) => {
+                    Effect::out(OutMessage::OpenPlayerDetails(maybe_id))
+                }
+                leaderboard::OutMessage::RankPlayer(id) => {
+                    self.handle_message(ranking::Message::SelectPlayer(id), context)
+                }
+            })
     }
 }
 
@@ -69,5 +79,17 @@ impl HandleMessage<game_record::Message> for State {
         let _effect = self.game_record.update(message, context)?;
 
         Effect::ok()
+    }
+}
+
+impl HandleMessage<ranking::Message> for State {
+    fn handle_message(
+        &mut self,
+        message: ranking::Message,
+        context: Self::Context<'_>,
+    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
+        self.ranking
+            .update(message, context)?
+            .map(|_message| todo!())
     }
 }

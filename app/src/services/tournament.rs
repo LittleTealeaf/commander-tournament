@@ -6,6 +6,7 @@ use edh_tourn::{
     tournament::Tournament,
 };
 
+
 #[derive(Clone, Debug)]
 pub enum Action {
     Register(PlayerInfo),
