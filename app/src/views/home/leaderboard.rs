@@ -3,7 +3,7 @@ use core::cmp::Ordering;
 use edh_tourn::{player::RegisteredPlayer, tournament::Tournament};
 use itertools::Itertools;
 
-use crate::traits::{Component, Effect};
+use crate::traits::{Component, ComponentUpdate, ComponentView, Effect};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Column {
@@ -81,12 +81,14 @@ impl Component for State {
     type Message = Message;
     type OutMessage = OutMessage;
     type Context<'a> = &'a Tournament;
+}
 
+impl ComponentUpdate for State {
     fn update(
         &mut self,
         message: Self::Message,
         _: &Tournament,
-    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>>{
+    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         match message {
             Message::OpenPlayer(id) => Effect::out(OutMessage::OpenPlayerDetails(Some(id))),
             Message::NewPlayer => Effect::out(OutMessage::OpenPlayerDetails(None)),
@@ -106,7 +108,10 @@ impl Component for State {
             }
         }
     }
-    fn view(&self, context: &Tournament) -> iced::Element<'_, Self::Message> {
+}
+
+impl ComponentView for State {
+    fn view<'a>(&'a self, _context: Self::Context<'a>) -> iced::Element<'a, Self::Message> {
         todo!()
     }
 }

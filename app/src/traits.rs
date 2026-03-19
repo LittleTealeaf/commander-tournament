@@ -38,12 +38,34 @@ pub trait Component {
     type Message: Clone + Send + 'static;
 
     type Context<'a>;
+}
 
+pub trait ComponentView: Component {
+    fn view<'a>(&'a self, context: Self::Context<'a>) -> Element<'a, Self::Message>;
+}
+
+pub trait ComponentUpdate: Component {
     fn update(
         &mut self,
         message: Self::Message,
         context: Self::Context<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>>;
+}
 
-    fn view(&self, context: Self::Context<'_>) -> Element<'_, Self::Message>;
+pub trait HandleMessage<M>: Component {
+    fn handle_message(
+        &mut self,
+        message: M,
+        context: Self::Context<'_>,
+    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>>;
+}
+
+impl<T: Component + ComponentUpdate> HandleMessage<T::Message> for T {
+    fn handle_message(
+        &mut self,
+        message: T::Message,
+        context: Self::Context<'_>,
+    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
+        self.update(message, context)
+    }
 }
