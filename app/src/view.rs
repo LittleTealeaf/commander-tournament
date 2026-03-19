@@ -2,7 +2,6 @@ pub mod config_matchmaker;
 pub mod confirm;
 pub mod home;
 pub mod player;
-pub mod tourn_stats;
 
 use iced::{
     Alignment, Element, Length,
@@ -13,9 +12,12 @@ use itertools::Itertools;
 use nerd_font_symbols::md::MD_CHEVRON_RIGHT;
 
 use crate::{
-    logic::Message, traits::View, view::{
-        config_matchmaker::ViewMatchmakerConfig, confirm::ConfirmPrompt, player::ViewPlayerScene, tourn_stats::TournamentStatsView,
-    }, App
+    App,
+    logic::Message,
+    traits::View,
+    view::{
+        config_matchmaker::ViewMatchmakerConfig, confirm::ConfirmPrompt, player::ViewPlayerScene,
+    },
 };
 
 #[derive(Debug)]
@@ -23,7 +25,6 @@ pub enum Scene {
     Player(ViewPlayerScene),
     Confirm(ConfirmPrompt),
     MatchmakerConfig(ViewMatchmakerConfig),
-    TournamentStats(TournamentStatsView)
 }
 
 impl Scene {
@@ -32,7 +33,6 @@ impl Scene {
             Self::Player(view_player_scene) => view_player_scene.title(),
             Self::Confirm(confirm_prompt) => confirm_prompt.title(),
             Self::MatchmakerConfig(_) => "Matchmaker Configuration".to_owned(),
-            Self::TournamentStats(_) => "Tournament Stats".to_owned(),
         }
     }
 }
@@ -40,7 +40,6 @@ impl Scene {
 impl View<Scene> for App {
     fn view<'a>(&'a self, scene: &'a Scene) -> Element<'a, Message> {
         match scene {
-            Scene::TournamentStats(scene) => self.view(scene),
             Scene::Player(view_player_scene) => self.view(view_player_scene),
             Scene::Confirm(confirm_prompt) => self.view(confirm_prompt),
             Scene::MatchmakerConfig(view_matchmaker_config) => self.view(view_matchmaker_config),

@@ -10,7 +10,7 @@ use crate::{
     traits::HandleMessage,
     view::{
         config_matchmaker::MessageMatchmakerConfig, confirm::ConfirmPromptMessage,
-        home::HomeMessage, player::ViewPlayerMessage, tourn_stats::TournamentStatsMessage,
+        home::HomeMessage, player::ViewPlayerMessage,
     },
 };
 
@@ -29,7 +29,6 @@ pub enum Message {
     ViewPlayer(ViewPlayerMessage),
     ConfirmationPrompt(ConfirmPromptMessage),
     ViewMatchmakerConfig(MessageMatchmakerConfig),
-    TournamentStats(TournamentStatsMessage),
     CloseAllScenes,
 }
 
@@ -61,7 +60,6 @@ impl Message {
 impl HandleMessage<Message> for App {
     fn update(&mut self, msg: Message) -> anyhow::Result<iced::Task<Message>> {
         match msg {
-            Message::TournamentStats(msg) => self.update(msg),
             Message::Batch(messages) => {
                 let mut tasks = Vec::new();
                 for message in messages {
