@@ -14,7 +14,11 @@ impl Tournament {
     }
 
     #[must_use]
-    pub fn create_match_players<const T: usize>(&self, players: [u32; T]) -> [MatchPlayer; T] {
+    pub(crate) fn create_match_players<const T: usize>(
+        &self,
+        players: [u32; T],
+    ) -> [MatchPlayer; T] {
+        #[derive(Debug)]
         struct TempMatchPlayer<'a> {
             id: u32,
             stats: &'a PlayerStats,
@@ -25,7 +29,6 @@ impl Tournament {
         #[allow(clippy::cast_precision_loss)]
         let base_chance = 1.0 / (T as f64);
 
-        // let base_chance = (0..T).map(|_| 1.0).sum::<f64>().powi(-1);
         let config = self.game_config();
 
         let id_stats = players.map(|id| {
@@ -34,15 +37,15 @@ impl Tournament {
                 scaled_wr: stats
                     .wr()
                     .unwrap_or(base_chance)
-                    .powf(self.game_config().game_wr_pow_scale),
-                scaled_elo: stats.elo().powf(self.game_config().game_elo_pow_scale),
+                    .powf(config.game_wr_pow_scale),
+                scaled_elo: stats.elo().powf(config.game_elo_pow_scale),
                 stats,
                 id,
             }
         });
 
-        let sum_wr: f64 = id_stats.iter().map(|p| p.scaled_wr).sum();
-        let sum_elo: f64 = id_stats.iter().map(|p| p.scaled_elo).sum();
+        let sum_wr = id_stats.iter().map(|p| p.scaled_wr).sum::<f64>().max(1.0);
+        let sum_elo = id_stats.iter().map(|p| p.scaled_elo).sum::<f64>();
 
         let weight_total = config.game_wr_weight + config.game_elo_weight;
         let coef_wr = config.game_wr_weight / (weight_total * sum_wr);
@@ -125,5 +128,27 @@ impl Tournament {
         self.games.remove(gid);
         self.reload()?;
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use approx::assert_relative_eq;
+
+    use super::*;
+
+    #[test]
+    fn expected_adds_up_to_1() {
+        #[allow(clippy::needless_pass_by_value)]
+        fn assert_sums_up_to_one<const T: usize>(players: [MatchPlayer; T]) {
+            assert_relative_eq!(1.0, players.iter().map(|p| { p.expected() }).sum::<f64>());
+        }
+        let t = Tournament::generate_tournament(1, 0).unwrap();
+        let id = *t.players().keys().next().unwrap();
+
+        assert_sums_up_to_one(t.create_match_players([id, id]));
+        assert_sums_up_to_one(t.create_match_players([id, id, id]));
+        assert_sums_up_to_one(t.create_match_players([id, id, id, id]));
+        assert_sums_up_to_one(t.create_match_players([id, id, id, id, id]));
     }
 }

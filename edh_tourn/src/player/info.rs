@@ -106,8 +106,8 @@ impl PlayerInfo {
     }
 
     #[must_use]
-    pub const fn color_identity(&self) -> &ColorIdentity {
-        &self.identity
+    pub const fn color_identity(&self) -> ColorIdentity {
+        self.identity
     }
 
     #[must_use]
@@ -212,6 +212,6 @@ mod tests {
         let mut info = new_player_info();
         info.toggle_color(MtgColor::Blue);
         info.toggle_color(MtgColor::Blue);
-        assert_eq!(ColorIdentity::COLORLESS, *info.color_identity());
+        assert_eq!(ColorIdentity::COLORLESS, info.color_identity());
     }
 }

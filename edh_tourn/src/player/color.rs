@@ -68,22 +68,16 @@ impl ColorIdentity {
         self.0 == 0
     }
 
-    pub fn into_colors(self) -> impl Iterator<Item = MtgColor> {
-        MtgColor::COLORS
-            .map(|color| self.has_color(color).then_some(color))
-            .into_iter()
-            .flatten()
-    }
-
     #[must_use]
     pub const fn num_colors(&self) -> u32 {
         self.0.count_ones()
     }
 
-    pub fn colors(&self) -> impl Iterator<Item = MtgColor> {
+    pub fn colors(self) -> impl Iterator<Item = MtgColor> {
         MtgColor::COLORS
+            .map(|color| self.has_color(color).then_some(color))
             .into_iter()
-            .filter(|color| self.has_color(*color))
+            .flatten()
     }
 
     #[must_use]
@@ -258,63 +252,117 @@ impl BitOrAssign for ColorIdentity {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashSet;
-
     use super::*;
 
-    #[test]
-    fn color_conversions() {
-        for i in 0..32 {
-            let color = ColorIdentity(i);
-            let values = color.colors().collect_vec();
-            let new_color: ColorIdentity = values.into_iter().collect();
-            assert_eq!(color, new_color);
-        }
+    macro_rules! test_colors {
+        ($($color:ident),+; $id: ident) => {
+            let identity = crate::player::color::ColorIdentity::$id;
+            assert!(crate::player::color::ColorIdentity::IDENTITIES.contains(&identity), "Expected IDENTITIES const to include {identity}");
+            let colors = [$(crate::player::color::MtgColor::$color),+];
+            assert_eq!(identity, colors.clone().into_iter().collect());
+            assert_eq!(
+                crate::player::color::ColorIdentity::$id,
+                [$(crate::player::color::MtgColor::$color),+].into_iter().rev().collect()
+            );
+
+            let colors = identity.colors().collect::<Vec<_>>();
+            $(
+                let color = crate::player::color::MtgColor::$color;
+                assert!(colors.contains(&color), "Expected {color} to be found in {identity}");
+                assert!(identity.has_color(color), "Expected {identity} to return `true` for has_color({color})");
+            )+
+            for color in crate::player::color::MtgColor::COLORS {
+                if !colors.contains(&color) {
+                    assert!(!identity.has_color(color), "Expected {identity} to return `false` for has_color({color})");
+                }
+            }
+        };
     }
 
     #[test]
-    fn add_colors_work() {
-        let mut i = ColorIdentity(0);
-        i.add_color(MtgColor::White);
-        assert!(i.has_color(MtgColor::White));
-
-        i.add_color(MtgColor::White);
-        assert!(i.has_color(MtgColor::White));
+    fn color_to_identity_conversion() {
+        test_colors!(Red; RED);
+        test_colors!(White; WHITE);
+        test_colors!(Blue; BLUE);
+        test_colors!(Black; BLACK);
+        test_colors!(Green; GREEN);
+        test_colors!(White, Blue; AZORIUS);
+        test_colors!(Blue, Black; DIMIR);
+        test_colors!(Black, Red; RAKDOS);
+        test_colors!(Red, Green; GRUUL);
+        test_colors!(Green, White; SELESNYA);
+        test_colors!(White, Black; ORZHOV);
+        test_colors!(Blue, Red; IZZET);
+        test_colors!(Black, Green; GOLGARI);
+        test_colors!(Red, White; BOROS);
+        test_colors!(Blue, Green; SIMIC);
+        test_colors!(White, Green, Blue; BANT);
+        test_colors!(White, Black, Blue; ESPER);
+        test_colors!(Red, Black, Blue; GRIXIS);
+        test_colors!(Red, Black, Green; JUND);
+        test_colors!(Red, White, Green; NAYA);
+        test_colors!(White, Black, Green; ABZAN);
+        test_colors!(Black, Green, Blue; SULTAI);
+        test_colors!(Green, Blue, Red; TEMUR);
+        test_colors!(Blue, Red, White; JESKAI);
+        test_colors!(Red, White, Black; MARDU);
+        test_colors!(White, Blue, Black, Red; YORE);
+        test_colors!(Green, Blue, Black, Red; GLINT);
+        test_colors!(Green, White, Black, Red; DUNE);
+        test_colors!(Green, White, Blue, Red; INK);
+        test_colors!(Green, White, Blue, Black; WITCH);
+        test_colors!(White, Blue, Black, Red, Green; WUBRG);
     }
 
     #[test]
-    #[allow(clippy::cast_possible_truncation)]
-    fn identities_range_valid() {
-        for i in 0..32 {
-            let value = ColorIdentity::IDENTITIES.get(i).unwrap();
-            assert!(value.0 == i as u8);
-        }
+    fn colors_has_all_colors() {
+        let colors = MtgColor::COLORS;
+        assert!(colors.contains(&MtgColor::Red));
+        assert!(colors.contains(&MtgColor::Blue));
+        assert!(colors.contains(&MtgColor::Black));
+        assert!(colors.contains(&MtgColor::Green));
+        assert!(colors.contains(&MtgColor::White));
     }
 
     #[test]
-    fn identities_are_all_colors() {
+    fn identity_color_counts() {
         for identity in ColorIdentity::IDENTITIES {
-            assert_ne!("Unknown", identity.to_string());
-        }
-    }
-
-    #[test]
-    fn identities_are_all_different() {
-        let mut seen = HashSet::new();
-        for identity in ColorIdentity::IDENTITIES {
-            assert!(
-                seen.insert(identity),
-                "Duplicate identity found: {identity}"
+            let colors = identity.colors();
+            let count = colors.map(|_| 1).sum::<u32>();
+            assert_eq!(
+                count,
+                identity.num_colors(),
+                "{identity} returns {} colors, expected {count}",
+                identity.num_colors()
             );
         }
     }
 
     #[test]
-    fn color_matches_identity() {
-        for color in MtgColor::COLORS {
-            let identity: ColorIdentity = color.into();
-            assert!(identity.has_color(color));
-            assert_eq!(1, identity.num_colors());
+    fn add_assigns_to_identity() {
+        for identity in ColorIdentity::IDENTITIES {
+            let colors = identity.colors().collect::<Vec<_>>();
+            let mut i = ColorIdentity(0);
+            for color in colors {
+                i += color;
+            }
+            assert_eq!(identity, i);
+        }
+    }
+
+    #[test]
+    fn adds_to_identity() {
+        for identity in ColorIdentity::IDENTITIES {
+            let colors = identity.colors().collect::<Vec<_>>();
+            let ident = colors.into_iter().fold(ColorIdentity(0), |a, b| a + b);
+            assert_eq!(identity, ident);
+        }
+    }
+
+    #[test]
+    fn identities_to_string_not_null() {
+        for identity in ColorIdentity::IDENTITIES {
+            assert_ne!("Unknown", identity.to_string());
         }
     }
 
