@@ -1,4 +1,5 @@
-use edh_tourn::tournament::Tournament;
+use edh_tourn::{game::record::GameRecord, tournament::Tournament};
+use iced::widget::{column, container, row, rule};
 
 use crate::traits::{Component, ComponentUpdate, ComponentView, Effect, HandleMessage};
 
@@ -23,6 +24,8 @@ pub enum Message {
 #[derive(Debug, Clone)]
 pub enum OutMessage {
     OpenPlayerDetails(Option<u32>),
+    RegisterRecord(Box<GameRecord>),
+    OpenLinks(Vec<String>),
 }
 
 impl Component for State {
@@ -32,8 +35,17 @@ impl Component for State {
 }
 
 impl ComponentView for State {
-    fn view<'a>(&'a self, _context: Self::Context<'a>) -> iced::Element<'a, Self::Message> {
-        todo!()
+    fn view<'a>(&'a self, context: Self::Context<'a>) -> iced::Element<'a, Self::Message> {
+        column![row![
+            container(self.leaderboard.view_into(context)),
+            rule::vertical(2),
+            column![
+                self.game_record.view_into(context),
+                rule::horizontal(2),
+                self.ranking.view_into(context),
+            ]
+        ]]
+        .into()
     }
 }
 
@@ -76,9 +88,19 @@ impl HandleMessage<game_record::Message> for State {
         message: game_record::Message,
         context: Self::Context<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
-        let _effect = self.game_record.update(message, context)?;
-
-        Effect::ok()
+        self.game_record
+            .update(message, context)?
+            .map(|message| match message {
+                game_record::OutMessage::SubmitRecord(game_record) => {
+                    Effect::out(OutMessage::RegisterRecord(game_record))
+                }
+                game_record::OutMessage::OpenLink(link) => {
+                    Effect::out(OutMessage::OpenLinks(vec![link]))
+                }
+                game_record::OutMessage::BatchLinks(links) => {
+                    Effect::out(OutMessage::OpenLinks(links))
+                }
+            })
     }
 }
 

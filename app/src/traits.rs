@@ -35,15 +35,14 @@ impl<M, O> Effect<M, O> {
 
     pub fn map<MN, ON, F>(self, map_out: F) -> anyhow::Result<Effect<MN, ON>>
     where
-        MN: From<M> + Send + MaybeSend + 'static,
-        M: MaybeSend + 'static,
+        MN: Send + MaybeSend + 'static,
+        M: MaybeSend + 'static + Into<MN>,
         F: FnMut(O) -> anyhow::Result<Effect<MN, ON>>,
     {
         let effect = self.out.map_or_else(Effect::ok, map_out)?;
 
         Ok(Effect {
-            task: self.task.map(From::from).chain(effect.task),
-
+            task: self.task.map(Into::into).chain(effect.task),
             out: effect.out,
         })
     }
@@ -58,6 +57,14 @@ pub trait Component {
 
 pub trait ComponentView: Component {
     fn view<'a>(&'a self, context: Self::Context<'a>) -> Element<'a, Self::Message>;
+
+    fn view_into<'a, M>(&'a self, context: Self::Context<'a>) -> Element<'a, M>
+    where
+        Self::Message: Into<M>,
+        M: 'a,
+    {
+        self.view(context).map(Into::into)
+    }
 }
 
 pub trait ComponentUpdate: Component {

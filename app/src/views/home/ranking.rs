@@ -2,7 +2,7 @@ use anyhow::anyhow;
 
 use edh_tourn::{player::RegisteredPlayer, ranking::RankingMethod, tournament::Tournament};
 
-use crate::traits::{Component, ComponentUpdate, Effect};
+use crate::traits::{Component, ComponentUpdate, ComponentView, Effect};
 
 #[derive(Debug)]
 pub struct State {
@@ -66,5 +66,11 @@ impl ComponentUpdate for State {
                 Effect::ok()
             }
         }
+    }
+}
+
+impl ComponentView for State {
+    fn view<'a>(&'a self, _: Self::Context<'a>) -> iced::Element<'a, Self::Message> {
+        todo!()
     }
 }

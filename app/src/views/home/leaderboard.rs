@@ -1,7 +1,12 @@
 use core::cmp::Ordering;
 
 use edh_tourn::{player::RegisteredPlayer, tournament::Tournament};
+use iced::{
+    Padding,
+    widget::{button, container, row, scrollable, space, table, text},
+};
 use itertools::Itertools;
+use nerd_font_symbols::md::{MD_ARROW_DOWN, MD_ARROW_UP, MD_PLAYLIST_PLUS};
 
 use crate::traits::{Component, ComponentUpdate, ComponentView, Effect};
 
@@ -111,7 +116,71 @@ impl ComponentUpdate for State {
 }
 
 impl ComponentView for State {
-    fn view<'a>(&'a self, _context: Self::Context<'a>) -> iced::Element<'a, Self::Message> {
-        todo!()
+    fn view<'a>(&'a self, context: Self::Context<'a>) -> iced::Element<'a, Self::Message> {
+        let players = self.sort_players(context.get_registered_players());
+
+        let ord_char = match self.direction {
+            SortDirection::Ascending => MD_ARROW_UP,
+            SortDirection::Descending => MD_ARROW_DOWN,
+        };
+
+        let col_header = |label: &str, col: Column| {
+            button(text(if self.column == col {
+                format!("{label} {ord_char}")
+            } else {
+                format!("{label}  ")
+            }))
+            .style(button::text)
+            .on_press(Message::Sort(col))
+        };
+
+        let tbl = table(
+            [
+                table::column(
+                    col_header("Name", Column::Name),
+                    |p: RegisteredPlayer<'_>| {
+                        button(text(p.info().name().clone()).size(12))
+                            .style(button::text)
+                            .on_press(Message::OpenPlayer(p.id()))
+                    },
+                ),
+                table::column(col_header("Elo", Column::Elo), |p: RegisteredPlayer<'_>| {
+                    text(format!("{:.0}", p.stats().elo())).size(12)
+                }),
+                table::column(
+                    col_header("Games", Column::Games),
+                    |p: RegisteredPlayer<'_>| text(p.stats().games()).size(12),
+                ),
+                table::column(
+                    col_header("Wins", Column::Wins),
+                    |p: RegisteredPlayer<'_>| text(p.stats().wins()).size(12),
+                ),
+                table::column(
+                    col_header("WR", Column::WinRate),
+                    |p: RegisteredPlayer<'_>| {
+                        text(
+                            p.stats()
+                                .wr()
+                                .map(|wr| format!("{:.1}%", wr * 100.0))
+                                .unwrap_or_default(),
+                        )
+                        .size(12)
+                    },
+                ),
+                table::column(
+                    button("+").on_press(Message::NewPlayer),
+                    |p: RegisteredPlayer<'_>| {
+                        button(MD_PLAYLIST_PLUS)
+                            .style(button::text)
+                            .on_press(Message::RankPlayer(p.id()))
+                    },
+                ),
+            ],
+            players,
+        );
+
+        container(scrollable(row![tbl, space().width(15)]))
+            .padding(Padding::new(10f32))
+            .into()
     }
 }
