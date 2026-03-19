@@ -1,4 +1,3 @@
-
 use core::cmp::Ordering;
 
 use itertools::Itertools;

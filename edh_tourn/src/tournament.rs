@@ -1,3 +1,4 @@
+mod analytics;
 mod config;
 #[cfg(feature = "dev")]
 mod dev;
@@ -5,7 +6,6 @@ mod matches;
 mod players;
 mod ranking;
 mod stats;
-mod analytics;
 
 use std::collections::HashMap;
 
