@@ -7,7 +7,7 @@ pub mod game_record;
 pub mod leaderboard;
 pub mod ranking;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct State {
     leaderboard: leaderboard::State,
     game_record: game_record::State,

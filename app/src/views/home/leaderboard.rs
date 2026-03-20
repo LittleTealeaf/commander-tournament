@@ -10,18 +10,20 @@ use nerd_font_symbols::md::{MD_ARROW_DOWN, MD_ARROW_UP, MD_PLAYLIST_PLUS};
 
 use crate::traits::{Component, ComponentUpdate, ComponentView, Effect};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub enum Column {
     Name,
+    #[default]
     Elo,
     Games,
     Wins,
     WinRate,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum SortDirection {
     Ascending,
+    #[default]
     Descending,
 }
 
@@ -35,7 +37,7 @@ impl SortDirection {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct State {
     column: Column,
     direction: SortDirection,

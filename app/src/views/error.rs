@@ -6,10 +6,11 @@ use iced::{
 
 use crate::traits::{Component, ComponentUpdate, ComponentView, Effect};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, derive_more::Constructor)]
 pub struct State {
     message: String,
 }
+
 
 #[derive(Debug, Clone)]
 pub enum Message {

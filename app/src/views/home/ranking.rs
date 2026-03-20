@@ -1,10 +1,11 @@
 use anyhow::anyhow;
 
 use edh_tourn::{player::RegisteredPlayer, ranking::RankingMethod, tournament::Tournament};
+use iced::widget::text;
 
 use crate::traits::{Component, ComponentUpdate, ComponentView, Effect};
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct State {
     method: RankingMethod,
     player: Option<u32>,
@@ -71,6 +72,6 @@ impl ComponentUpdate for State {
 
 impl ComponentView for State {
     fn view<'a>(&'a self, _: Self::Context<'a>) -> iced::Element<'a, Self::Message> {
-        todo!()
+        text("ranking").into()
     }
 }

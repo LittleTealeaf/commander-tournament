@@ -1,8 +1,10 @@
+use iced::Task;
+
 use crate::{
     App,
     services::tournament,
     traits::{ComponentUpdate, Effect, HandleMessage},
-    views::{self, View, home},
+    views::{self, View, error, home},
 };
 
 #[derive(Debug, Clone, derive_more::From)]
@@ -10,6 +12,19 @@ pub enum Message {
     Tournament(tournament::Action),
     Home(home::Message),
     Error(views::error::Message),
+}
+
+impl App {
+    pub fn handle_update(&mut self, message: Message) -> Task<Message> {
+        match self.update(message, ()) {
+            Ok(effect) => effect.task,
+            Err(error) => {
+                self.views
+                    .push(View::Error(error::State::new(error.to_string())));
+                Task::none()
+            }
+        }
+    }
 }
 
 impl ComponentUpdate for App {

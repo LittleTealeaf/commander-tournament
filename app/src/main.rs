@@ -1,3 +1,17 @@
-fn main() {
-    println!("hi");
+use app::{
+    App,
+    style::{FONT_BYTES, JETBRAINS_MONO},
+};
+use iced::{Font, Theme, application};
+
+fn main() -> iced::Result {
+    let mut app = application(App::boot, App::handle_update, App::handle_view);
+
+    for font in FONT_BYTES {
+        app = app.font(font);
+    }
+
+    app.theme(Theme::CatppuccinMocha)
+        .default_font(Font::with_name(JETBRAINS_MONO))
+        .run()
 }

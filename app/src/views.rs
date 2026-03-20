@@ -1,8 +1,15 @@
-use crate::{App, traits::ComponentView};
+use crate::{message::Message, traits::ComponentView, App};
 
 pub mod error;
 pub mod home;
 pub mod player_details;
+
+impl App {
+    #[must_use]
+    pub fn handle_view(&self) -> iced::Element<'_, Message> {
+        self.view(())
+    }
+}
 
 #[derive(Clone, Debug)]
 pub enum View {

@@ -3,10 +3,12 @@ pub mod message;
 pub mod services;
 pub mod traits;
 pub mod views;
+pub mod style;
 
 use std::path::PathBuf;
 
 use edh_tourn::tournament::Tournament;
+use iced::Task;
 
 use crate::{
     message::Message,
@@ -14,7 +16,7 @@ use crate::{
     views::{View, home},
 };
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct App {
     tournament: Tournament,
     home: home::State,
@@ -24,14 +26,13 @@ pub struct App {
 }
 
 impl App {
-    #[must_use]
-    pub const fn tournament(&self) -> &Tournament {
-        &self.tournament
+    pub fn boot() -> (Self, Task<Message>) {
+        (Self::default(), Task::none())
     }
 
     #[must_use]
-    pub const fn tournament_mut(&mut self) -> &mut Tournament {
-        &mut self.tournament
+    pub const fn tournament(&self) -> &Tournament {
+        &self.tournament
     }
 }
 
