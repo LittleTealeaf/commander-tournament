@@ -116,6 +116,9 @@ impl HandleMessage<ranking::Message> for State {
                 ranking::OutMessage::LoadGame(players) => {
                     self.handle_message(game_record::Message::SetPlayers(players), context)
                 }
+                ranking::OutMessage::OpenPlayerDetails(id) => {
+                    Effect::out(OutMessage::OpenPlayerDetails(Some(id)))
+                }
             })
     }
 }

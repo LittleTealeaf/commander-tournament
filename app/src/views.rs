@@ -14,6 +14,7 @@ impl App {
 #[derive(Clone, Debug)]
 pub enum View {
     Error(error::State),
+    PlayerDetails(player_details::State)
 }
 
 impl ComponentView for App {
@@ -22,6 +23,7 @@ impl ComponentView for App {
             || self.home.view_into(&self.tournament),
             |view| match view {
                 View::Error(error) => error.view_into(()),
+                View::PlayerDetails(state) => state.view_into(&self.tournament),
             },
         )
     }

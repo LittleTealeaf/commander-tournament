@@ -12,6 +12,7 @@ pub enum Message {
     Tournament(tournament::Action),
     Home(home::Message),
     Error(views::error::Message),
+    Player(views::player_details::Message),
 }
 
 impl App {
@@ -37,6 +38,7 @@ impl ComponentUpdate for App {
             Message::Tournament(action) => self.handle_message(action, ()),
             Message::Home(message) => self.handle_message(message, ()),
             Message::Error(error) => self.handle_message(error, ()),
+            Message::Player(message) => self.handle_message(message, ()),
         }
     }
 }
@@ -92,5 +94,38 @@ impl HandleMessage<views::error::Message> for App {
                 Effect::ok()
             }
         })
+    }
+}
+
+impl HandleMessage<views::player_details::Message> for App {
+    fn handle_message(
+        &mut self,
+        message: views::player_details::Message,
+        (): Self::Context<'_>,
+    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
+        handle_view!(
+            self,
+            PlayerDetails,
+            state,
+            message,
+            &self.tournament,
+            |message| match message {
+                views::player_details::OutMessage::SaveAndClose(maybe_id, info) => {
+                    let effect = self.handle_message(
+                        match maybe_id {
+                            Some(id) => tournament::Action::SetPlayerInfo(id, info),
+                            None => tournament::Action::Register(info),
+                        },
+                        (),
+                    )?;
+                    self.views.pop();
+                    Ok(effect)
+                }
+                views::player_details::OutMessage::Close => {
+                    self.views.pop();
+                    Effect::ok()
+                }
+            }
+        )
     }
 }
