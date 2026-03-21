@@ -223,8 +223,8 @@ pub fn stats_color_matchups(
     Some(table_wrapper(table(
         [
             table::column("Color", col_color),
-            table::column("Wins", col_losses),
-            table::column("Draws", col_losses),
+            table::column("Wins", col_wins),
+            table::column("Draws", col_draws),
             table::column("Losses", col_losses),
         ],
         matchups,
