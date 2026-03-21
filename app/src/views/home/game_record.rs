@@ -10,6 +10,7 @@ use iced::{
 };
 use itertools::Itertools;
 use nerd_font_symbols::md::{MD_CANCEL, MD_LINK_VARIANT, MD_LINK_VARIANT_PLUS};
+use opener::open_browser;
 
 // Assuming you have these imported from your definitions
 use crate::traits::{Component, ComponentUpdate, ComponentView, Effect};
@@ -61,8 +62,6 @@ pub enum Message {
 #[derive(Debug)]
 pub enum OutMessage {
     SubmitRecord(Box<GameRecord>),
-    OpenLink(String),
-    BatchLinks(Vec<String>),
 }
 
 impl State {
@@ -162,8 +161,16 @@ impl ComponentUpdate for State {
                 *self = Self::default();
                 Effect::ok()
             }
-            Message::OpenLink(link) => Effect::out(OutMessage::OpenLink(link)),
-            Message::OpenLinks(links) => Effect::out(OutMessage::BatchLinks(links)),
+            Message::OpenLink(link) => {
+                open_browser(link)?;
+                Effect::ok()
+            }
+            Message::OpenLinks(links) => {
+                for link in links {
+                    open_browser(link)?;
+                }
+                Effect::ok()
+            }
         }
     }
 }

@@ -12,7 +12,7 @@ use crate::traits::Component;
 #[derive(Debug, Clone)]
 pub struct State {
     id: Option<u32>,
-    name: String,
+    initial_name: String,
     info: PlayerInfo,
     moxfield_id: String,
     modified: bool,
@@ -20,7 +20,7 @@ pub struct State {
     stats: StatsTab,
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Copy, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord, derive_more::Display)]
 pub enum StatsTab {
     #[default]
     Games,
@@ -29,14 +29,21 @@ pub enum StatsTab {
     Colors,
 }
 
+impl StatsTab {
+    const VALUES: [Self; 4] = [Self::Games, Self::Players, Self::Identities, Self::Colors];
+}
+
 #[derive(Debug, Clone)]
 pub enum Message {
     SaveAndClose,
+    Close,
     SetName(String),
     EditDescription(text_editor::Action),
     SetMoxfieldId(String),
     ToggleColor(MtgColor),
     SetStatsTab(StatsTab),
+    SelectPlayerReference(u32),
+    OpenLink(String),
 }
 
 #[derive(Debug)]
@@ -47,7 +54,7 @@ pub enum OutMessage {
 
 impl State {
     #[must_use]
-    pub fn new(&self, player: Option<RegisteredPlayer<'_>>) -> Self {
+    pub fn new(player: Option<RegisteredPlayer<'_>>) -> Self {
         let id = player.as_ref().map(RegisteredPlayer::id);
         let info = player.map(|p| p.info().clone()).unwrap_or_default();
         let name = info.name().clone();
@@ -57,7 +64,7 @@ impl State {
         Self {
             id,
             info,
-            name,
+            initial_name: name,
             moxfield_id,
             description,
             stats: StatsTab::Games,

@@ -25,7 +25,6 @@ pub enum Message {
 pub enum OutMessage {
     OpenPlayerDetails(Option<u32>),
     RegisterRecord(Box<GameRecord>),
-    OpenLinks(Vec<String>),
 }
 
 impl Component for State {
@@ -93,12 +92,6 @@ impl HandleMessage<game_record::Message> for State {
             .map(|message| match message {
                 game_record::OutMessage::SubmitRecord(game_record) => {
                     Effect::out(OutMessage::RegisterRecord(game_record))
-                }
-                game_record::OutMessage::OpenLink(link) => {
-                    Effect::out(OutMessage::OpenLinks(vec![link]))
-                }
-                game_record::OutMessage::BatchLinks(links) => {
-                    Effect::out(OutMessage::OpenLinks(links))
                 }
             })
     }

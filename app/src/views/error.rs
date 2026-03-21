@@ -11,7 +11,6 @@ pub struct State {
     message: String,
 }
 
-
 #[derive(Debug, Clone)]
 pub enum Message {
     CloseError,

@@ -1,9 +1,9 @@
 pub mod components;
 pub mod message;
 pub mod services;
+pub mod style;
 pub mod traits;
 pub mod views;
-pub mod style;
 
 use std::path::PathBuf;
 

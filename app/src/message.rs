@@ -4,7 +4,7 @@ use crate::{
     App,
     services::tournament,
     traits::{ComponentUpdate, Effect, HandleMessage},
-    views::{self, View, error, home},
+    views::{self, View, error, home, player_details},
 };
 
 #[derive(Debug, Clone, derive_more::From)]
@@ -63,11 +63,15 @@ impl HandleMessage<home::Message> for App {
         self.home
             .handle_message(message, &self.tournament)?
             .map(|message| match message {
-                home::OutMessage::OpenPlayerDetails(_id) => todo!(),
+                home::OutMessage::OpenPlayerDetails(id) => {
+                    let player = id.and_then(|id| self.tournament.get_registered_player(id));
+                    self.views
+                        .push(View::PlayerDetails(player_details::State::new(player)));
+                    Effect::ok()
+                }
                 home::OutMessage::RegisterRecord(game_record) => {
                     self.handle_message(tournament::Action::Record(game_record), ())
                 }
-                home::OutMessage::OpenLinks(_items) => todo!(),
             })
     }
 }

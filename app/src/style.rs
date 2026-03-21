@@ -1,3 +1,5 @@
+use iced::Font;
+
 pub const JETBRAINS_MONO: &str = "JetBrains Mono";
 
 pub const FONT_BYTES: [&[u8]; 16] = [
@@ -18,3 +20,8 @@ pub const FONT_BYTES: [&[u8]; 16] = [
     include_bytes!("../res/fonts/JetBrainsMono-Thin.ttf"),
     include_bytes!("../res/fonts/JetBrainsMono-ThinItalic.ttf"),
 ];
+
+#[must_use]
+pub const fn default_font() -> Font {
+    Font::with_name(JETBRAINS_MONO)
+}

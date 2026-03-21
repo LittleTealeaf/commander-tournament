@@ -1,3 +1,5 @@
+use opener::open_browser;
+
 use crate::{
     traits::{ComponentUpdate, Effect},
     views::player_details::OutMessage,
@@ -12,13 +14,13 @@ impl ComponentUpdate for super::State {
         _: Self::Context<'_>,
     ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
         match message {
+            Message::SelectPlayerReference(_) => todo!(),
             Message::SaveAndClose => {
                 self.info.set_description(self.description.text());
-                self.info.set_name(self.name.clone());
                 Effect::out(OutMessage::SaveAndClose(self.id, self.info.clone()))
             }
             Message::SetName(name) => {
-                self.name = name;
+                self.info.set_name(name);
                 Effect::ok()
             }
             Message::EditDescription(action) => {
@@ -38,6 +40,11 @@ impl ComponentUpdate for super::State {
                 self.stats = stats_tab;
                 Effect::ok()
             }
+            Message::OpenLink(link) => {
+                open_browser(link)?;
+                Effect::ok()
+            }
+            Message::Close => Effect::out(OutMessage::Close),
         }
     }
 }
