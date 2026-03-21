@@ -116,7 +116,6 @@ pub fn load_tournament_sync(path: &PathBuf) -> anyhow::Result<Tournament> {
     deserialize_by_extension(&data, extension)
 }
 
-
 fn get_extension(path: &Path) -> Option<&str> {
     path.extension()?.to_str()
 }
