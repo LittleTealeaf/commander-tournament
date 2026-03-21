@@ -1,9 +1,13 @@
 use anyhow::anyhow;
+use iced::Task;
 use std::path::PathBuf;
 
 use directories::ProjectDirs;
 
-use crate::services::system::load_from_file_async;
+use crate::{
+    services::system::{load_from_file_async, save_file_async},
+    traits::{Component, ComponentUpdate, Effect, HandleMessage},
+};
 
 const QUALIFIER: &str = "io.github.littletealeaf";
 const ORGANIZATION: &str = "LittleTealeaf";
@@ -31,7 +35,11 @@ pub struct AppSettings {
 #[derive(Debug, Clone)]
 pub enum Message {
     Save,
-    OnSave,
+    IsSaved,
+    SetOpenedFile(PathBuf),
+    ClearOpenedFile,
+    Error(String),
+    Nothing,
 }
 
 impl AppSettings {
@@ -53,9 +61,67 @@ impl AppSettings {
         })
     }
 
+    // pub async fn save(&self) -> anyhow::Result<()> {
+    //     if self.is_saving {
+    //         return Ok(());
+    //     }
+    //     save_file_async(self, self.save_path.clone()).await?;
+    //     Ok(())
+    // }
+
     #[must_use]
     pub const fn last_opened(&self) -> &Option<PathBuf> {
         &self.last_opened
+    }
+
+    pub fn clear_last_opened(&mut self) {
+        self.last_opened = None;
+    }
+
+    pub fn set_last_opened(&mut self, last_opened: PathBuf) {
+        self.last_opened = Some(last_opened);
+    }
+}
+
+impl Component for AppSettings {
+    type Message = Message;
+    type Context<'a> = ();
+    type OutMessage = String;
+}
+
+impl ComponentUpdate for AppSettings {
+    fn update(
+        &mut self,
+        message: Self::Message,
+        (): Self::Context<'_>,
+    ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
+        match message {
+            Message::Save => {
+                let save_path = self.save_path.clone();
+                let value = self.clone();
+                let future = async move {
+                    match save_file_async(&value, save_path).await {
+                        Ok(()) => Message::Nothing,
+                        Err(error) => Message::Error(error.to_string()),
+                    }
+                };
+                Effect::task(Task::future(future))
+            }
+            Message::IsSaved => {
+                self.is_saving = false;
+                Effect::ok()
+            }
+            Message::SetOpenedFile(path_buf) => {
+                self.set_last_opened(path_buf);
+                self.handle_message(Message::Save, ())
+            }
+            Message::ClearOpenedFile => {
+                self.clear_last_opened();
+                self.handle_message(Message::Save, ())
+            }
+            Message::Nothing => Effect::ok(),
+            Message::Error(error) => Effect::out(error),
+        }
     }
 }
 

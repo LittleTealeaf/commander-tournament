@@ -4,7 +4,7 @@ use iced::Task;
 
 use crate::{
     App,
-    message::file::TournFileMessage,
+    message::file::TournamentFileMessage,
     settings::AppSettings,
     traits::{ComponentUpdate, Effect, HandleMessage},
     views::{self, View, error, home, player_details},
@@ -15,7 +15,7 @@ pub enum Message {
     OnBoot,
     SettingsLoaded(Option<AppSettings>),
     Tournament(tournament::Action),
-    TournFile(TournFileMessage),
+    TournFile(TournamentFileMessage),
     Error(String),
     ViewHome(home::Message),
     ViewError(views::error::Message),
@@ -49,7 +49,7 @@ impl ComponentUpdate for App {
                 let message = settings
                     .last_opened()
                     .as_ref()
-                    .map(|path| TournFileMessage::LoadTournament(path.clone()));
+                    .map(|path| TournamentFileMessage::LoadTournament(path.clone()));
 
                 self.settings = Some(settings);
 
@@ -88,6 +88,22 @@ impl HandleMessage<home::Message> for App {
                     self.handle_message(tournament::Action::Record(game_record), ())
                 }
             })
+    }
+}
+
+impl HandleMessage<crate::settings::Message> for App {
+    fn handle_message(
+        &mut self,
+        message: crate::settings::Message,
+        context: Self::Context<'_>,
+    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
+        if let Some(settings) = &mut self.settings {
+            settings
+                .handle_message(message, ())?
+                .map(|error| self.handle_message(Message::Error(error), ()))
+        } else {
+            Effect::ok()
+        }
     }
 }
 

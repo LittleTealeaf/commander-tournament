@@ -7,6 +7,11 @@ use std::{
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
 #[must_use]
+pub fn accepted_file_types() -> Vec<&'static str> {
+    vec!["ron", "json", "toml"]
+}
+
+#[must_use]
 pub fn get_extension(path: &Path) -> Option<&str> {
     path.extension()?.to_str()
 }
