@@ -48,6 +48,7 @@ pub enum Message {
 
 #[derive(Debug)]
 pub enum OutMessage {
+    OpenPlayer(u32),
     SaveAndClose(Option<u32>, PlayerInfo),
     Close,
 }

@@ -129,6 +129,13 @@ impl HandleMessage<views::player_details::Message> for App {
             message,
             &self.tournament,
             |message| match message {
+                views::player_details::OutMessage::OpenPlayer(id) => {
+                    self.views
+                        .push(View::PlayerDetails(player_details::State::new(
+                            self.tournament.get_registered_player(id),
+                        )));
+                    Effect::ok()
+                }
                 views::player_details::OutMessage::SaveAndClose(maybe_id, info) => {
                     let effect = self.handle_message(
                         match maybe_id {

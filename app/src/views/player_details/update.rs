@@ -14,7 +14,13 @@ impl ComponentUpdate for super::State {
         _: Self::Context<'_>,
     ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
         match message {
-            Message::SelectPlayerReference(_) => todo!(),
+            Message::SelectPlayerReference(id) => {
+                if Some(id) == self.id {
+                    Effect::ok()
+                } else {
+                    Effect::out(OutMessage::OpenPlayer(id))
+                }
+            }
             Message::SaveAndClose => {
                 self.info.set_description(self.description.text());
                 Effect::out(OutMessage::SaveAndClose(self.id, self.info.clone()))
