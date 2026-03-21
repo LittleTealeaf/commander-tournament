@@ -3,7 +3,9 @@ use std::collections::HashMap;
 use crate::{error::TournamentError, game::record::GameRecord, tournament::Tournament};
 
 /// Stores only the player IDs and the winner ID. Primarily used for serialization or conversions
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default, PartialEq, Copy, Eq, Hash)]
+#[derive(
+    Debug, Clone, serde::Serialize, serde::Deserialize, Default, PartialEq, Copy, Eq, Hash,
+)]
 pub struct GameEntry {
     #[serde(rename = "p", alias = "players")]
     players: [u32; 4],
