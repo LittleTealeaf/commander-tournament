@@ -34,6 +34,10 @@ impl ComponentUpdate for super::State {
                 self.info.toggle_color(mtg_color);
                 Effect::ok()
             }
+            Message::SetStatsTab(stats_tab) => {
+                self.stats = stats_tab;
+                Effect::ok()
+            }
         }
     }
 }

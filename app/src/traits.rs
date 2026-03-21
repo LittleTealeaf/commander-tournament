@@ -4,47 +4,65 @@ use iced_futures::MaybeSend;
 #[derive(Debug)]
 pub struct Effect<M, O> {
     pub task: Task<M>,
-    pub out: Option<O>,
+    pub out: Vec<O>,
 }
 
-impl<M, O> Effect<M, O> {
+impl<M, O> Effect<M, O>
+where
+    M: 'static,
+{
     pub fn ok() -> anyhow::Result<Self> {
         Ok(Self {
             task: Task::none(),
-            out: None,
+            out: Vec::new(),
         })
     }
 
     pub fn out(out_message: O) -> anyhow::Result<Self> {
         Ok(Self {
             task: Task::none(),
-            out: Some(out_message),
+            out: vec![out_message],
         })
     }
 
     pub const fn task(task: Task<M>) -> anyhow::Result<Self> {
-        Ok(Self { task, out: None })
-    }
-
-    pub const fn both(out_message: O, task: Task<M>) -> anyhow::Result<Self> {
         Ok(Self {
             task,
-            out: Some(out_message),
+            out: Vec::new(),
         })
     }
 
-    pub fn map<MN, ON, F>(self, map_out: F) -> anyhow::Result<Effect<MN, ON>>
+    pub fn both(out_message: O, task: Task<M>) -> anyhow::Result<Self> {
+        Ok(Self {
+            task,
+            out: vec![out_message],
+        })
+    }
+
+    #[must_use]
+    pub fn chain(self, other: Self) -> Self {
+        Self {
+            task: self.task.chain(other.task),
+            out: self.out.into_iter().chain(other.out).collect(),
+        }
+    }
+
+    pub fn map<MN, ON, F>(self, mut map_out: F) -> anyhow::Result<Effect<MN, ON>>
     where
         MN: Send + MaybeSend + 'static,
         M: MaybeSend + 'static + Into<MN>,
         F: FnMut(O) -> anyhow::Result<Effect<MN, ON>>,
     {
-        let effect = self.out.map_or_else(Effect::ok, map_out)?;
+        let mut task = self.task.map(Into::into);
+        let mut out = Vec::new();
 
-        Ok(Effect {
-            task: self.task.map(Into::into).chain(effect.task),
-            out: effect.out,
-        })
+        for o in self.out {
+            let effect = map_out(o)?;
+            out.extend(effect.out);
+            task = task.chain(effect.task);
+        }
+
+        Ok(Effect { task, out })
     }
 }
 

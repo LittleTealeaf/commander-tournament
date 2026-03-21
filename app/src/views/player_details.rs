@@ -17,6 +17,7 @@ pub struct State {
     moxfield_id: String,
     modified: bool,
     description: text_editor::Content,
+    stats: StatsTab,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -35,6 +36,7 @@ pub enum Message {
     EditDescription(text_editor::Action),
     SetMoxfieldId(String),
     ToggleColor(MtgColor),
+    SetStatsTab(StatsTab),
 }
 
 #[derive(Debug)]
@@ -58,6 +60,7 @@ impl State {
             name,
             moxfield_id,
             description,
+            stats: StatsTab::Games,
             modified: false,
         }
     }
