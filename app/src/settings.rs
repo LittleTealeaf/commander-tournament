@@ -9,8 +9,14 @@ const QUALIFIER: &str = "io.github.littletealeaf";
 const ORGANIZATION: &str = "LittleTealeaf";
 const APPLICATION: &str = "commander-tournament";
 
-fn get_config_path() -> Option<ProjectDirs> {
+fn get_project_dir() -> Option<ProjectDirs> {
     ProjectDirs::from(QUALIFIER, ORGANIZATION, APPLICATION)
+}
+
+fn get_config_path() -> Option<PathBuf> {
+    let project_dir = get_project_dir()?;
+    let path = project_dir.config_dir().join("config.ron");
+    Some(path)
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
@@ -30,9 +36,7 @@ pub enum Message {
 
 impl AppSettings {
     pub async fn load() -> anyhow::Result<Self> {
-        let project_dir =
-            get_config_path().ok_or_else(|| anyhow!("Could not file app config path"))?;
-        let path = project_dir.config_dir().join("config.ron");
+        let path = get_config_path().ok_or_else(|| anyhow!("Could not file app config path"))?;
         let config = Self::load_from_path_or_default(path).await;
         Ok(config)
     }
@@ -52,5 +56,20 @@ impl AppSettings {
     #[must_use]
     pub const fn last_opened(&self) -> &Option<PathBuf> {
         &self.last_opened
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn project_dir_exists() {
+        get_project_dir().unwrap();
+    }
+
+    #[test]
+    fn config_path_exists() {
+        get_config_path().unwrap();
     }
 }
