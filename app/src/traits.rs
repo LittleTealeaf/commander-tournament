@@ -64,6 +64,20 @@ where
 
         Ok(Effect { task, out })
     }
+
+    pub fn perform<T, FA, FM, FE>(future: FA, on_complete: FM, on_error: FE) -> anyhow::Result<Self>
+    where
+        T: Sync + Send + 'static,
+        FA: Future<Output = anyhow::Result<T>> + 'static + MaybeSend + Send + Sync,
+        FM: Fn(T) -> M + MaybeSend + Send + Sync + 'static,
+        FE: Fn(anyhow::Error) -> M + MaybeSend + Send + Sync + 'static,
+        M: MaybeSend + 'static,
+    {
+        Self::task(Task::perform(future, move |result| match result {
+            Ok(value) => on_complete(value),
+            Err(error) => on_error(error),
+        }))
+    }
 }
 
 pub trait Component {

@@ -1,18 +1,25 @@
+pub mod file;
+pub mod tournament;
 use iced::Task;
 
 use crate::{
     App,
-    services::tournament,
+    message::file::TournFileMessage,
+    settings::AppSettings,
     traits::{ComponentUpdate, Effect, HandleMessage},
     views::{self, View, error, home, player_details},
 };
 
 #[derive(Debug, Clone, derive_more::From)]
 pub enum Message {
+    OnBoot,
+    SettingsLoaded(Option<AppSettings>),
     Tournament(tournament::Action),
-    Home(home::Message),
-    Error(views::error::Message),
-    Player(views::player_details::Message),
+    TournFile(TournFileMessage),
+    Error(String),
+    ViewHome(home::Message),
+    ViewError(views::error::Message),
+    ViewPlayer(views::player_details::Message),
 }
 
 impl App {
@@ -35,22 +42,30 @@ impl ComponentUpdate for App {
         (): Self::Context<'_>,
     ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
         match message {
-            Message::Tournament(action) => self.handle_message(action, ()),
-            Message::Home(message) => self.handle_message(message, ()),
-            Message::Error(error) => self.handle_message(error, ()),
-            Message::Player(message) => self.handle_message(message, ()),
-        }
-    }
-}
+            Message::SettingsLoaded(maybe_settings) => {
+                let Some(settings) = maybe_settings else {
+                    return Effect::ok();
+                };
+                let message = settings
+                    .last_opened()
+                    .as_ref()
+                    .map(|path| TournFileMessage::LoadTournament(path.clone()));
 
-impl HandleMessage<tournament::Action> for App {
-    fn handle_message(
-        &mut self,
-        message: tournament::Action,
-        (): Self::Context<'_>,
-    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
-        message.apply(&mut self.tournament)?;
-        Effect::ok()
+                self.settings = Some(settings);
+
+                message.map_or_else(Effect::ok, |message| self.handle_message(message, ()))
+            }
+            Message::OnBoot => Effect::task(Task::perform(
+                async { AppSettings::load().await.ok() },
+                Message::SettingsLoaded,
+            )),
+            Message::Tournament(action) => self.handle_message(action, ()),
+            Message::ViewHome(message) => self.handle_message(message, ()),
+            Message::ViewError(error) => self.handle_message(error, ()),
+            Message::ViewPlayer(message) => self.handle_message(message, ()),
+            Message::TournFile(message) => self.handle_message(message, ()),
+            Message::Error(error) => Err(anyhow::anyhow!("{error}")),
+        }
     }
 }
 

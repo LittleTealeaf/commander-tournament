@@ -1,6 +1,7 @@
 pub mod components;
 pub mod message;
 pub mod services;
+pub mod settings;
 pub mod style;
 pub mod traits;
 pub mod views;
@@ -12,6 +13,7 @@ use iced::Task;
 
 use crate::{
     message::Message,
+    settings::AppSettings,
     traits::Component,
     views::{View, home},
 };
@@ -23,11 +25,12 @@ pub struct App {
     error: Option<String>,
     file: Option<PathBuf>,
     views: Vec<View>,
+    settings: Option<AppSettings>,
 }
 
 impl App {
     pub fn boot() -> (Self, Task<Message>) {
-        (Self::default(), Task::none())
+        (Self::default(), Task::done(Message::OnBoot))
     }
 
     #[must_use]

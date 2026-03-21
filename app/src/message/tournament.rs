@@ -6,6 +6,11 @@ use edh_tourn::{
     tournament::Tournament,
 };
 
+use crate::{
+    App,
+    traits::{Effect, HandleMessage},
+};
+
 #[derive(Clone, Debug)]
 pub enum Action {
     Register(PlayerInfo),
@@ -36,5 +41,16 @@ impl Action {
             Self::DeleteGame(index) => tournament.delete_game(index),
             Self::SetPlayerInfo(id, info) => tournament.set_player_info(id, info),
         }
+    }
+}
+
+impl HandleMessage<Action> for App {
+    fn handle_message(
+        &mut self,
+        message: Action,
+        (): Self::Context<'_>,
+    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
+        message.apply(&mut self.tournament)?;
+        Effect::ok()
     }
 }
