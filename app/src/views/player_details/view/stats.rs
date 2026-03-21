@@ -93,18 +93,26 @@ pub fn stats_game_history(
         .padding(5)
     };
 
-    Some(container(table(
-        [
-            table::column("Games", column_game),
-            table::column("Games", column_elo),
-        ],
-        tournament
-            .get_player_games(id)
-            .ok()?
-            .collect_vec()
-            .into_iter()
-            .rev(),
-    )))
+    Some(
+        container(
+            scrollable(table(
+                [
+                    table::column("Games", column_game),
+                    table::column("Games", column_elo),
+                ],
+                tournament
+                    .get_player_games(id)
+                    .ok()?
+                    .collect_vec()
+                    .into_iter()
+                    .rev(),
+            ))
+            .width(Length::Fill)
+            .height(Length::Fill),
+        )
+        .width(Length::Fill)
+        .height(Length::Fill),
+    )
 }
 
 fn col_losses<'a, T: 'a>(

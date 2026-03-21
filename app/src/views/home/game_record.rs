@@ -130,6 +130,7 @@ impl ComponentUpdate for State {
                 self.player_b = Some(b);
                 self.player_c = Some(c);
                 self.player_d = Some(d);
+                self.update_matchup(context)?;
                 Effect::ok()
             }
             Message::SetPlayer(position, value) => {
