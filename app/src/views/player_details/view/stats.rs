@@ -122,7 +122,7 @@ fn col_draws<'a, T: 'a>(
 fn col_wins<'a, T: 'a>(
     (_, performance): (T, MatchPerformance),
 ) -> impl Into<Element<'a, super::Message>> {
-    text(format!("{}", performance.losses()))
+    text(format!("{}", performance.wins()))
 }
 
 fn table_wrapper(table: table::Table<'_, super::Message>) -> Container<'_, super::Message> {
