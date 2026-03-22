@@ -21,6 +21,7 @@ use crate::{
 pub struct App {
     tournament: Tournament,
     modified: bool,
+    is_saving: bool,
     home: home::Home,
     error: Option<String>,
     file: Option<PathBuf>,

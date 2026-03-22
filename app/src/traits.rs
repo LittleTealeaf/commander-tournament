@@ -14,7 +14,7 @@ pub enum Effect<M, O> {
 
 impl<M, O> Effect<M, O>
 where
-    M: 'static,
+    M: 'static + MaybeSend,
 {
     pub const fn done() -> anyhow::Result<Self> {
         Ok(Self::Done)
@@ -44,26 +44,42 @@ where
         ))
     }
 
-    pub fn then(self, next: anyhow::Result<Self>) -> anyhow::Result<Self> {
-        Ok(match self {
-            Self::Batch(mut effects) => {
-                match next? {
-                    Self::Batch(mut new_effects) => {
-                        effects.append(&mut new_effects);
-                    }
-                    effect => {
-                        effects.push(effect);
+    pub fn then(self, task: anyhow::Result<Self>) -> anyhow::Result<Self> {
+        Ok(match (self, task?) {
+            (Self::Done, other) | (other, Self::Done) => other,
+            (Self::Batch(first), Self::Batch(second)) => {
+                Self::Batch(first.into_iter().chain(second).collect())
+            }
+            (Self::Task(first), Self::Task(second)) => Self::Task(first.chain(second)),
+            (Self::Batch(batch), Self::Task(task)) => {
+                let mut tasks = Vec::new();
+                let mut effects = Vec::new();
+                for eff in batch {
+                    match eff {
+                        Self::Task(task) => tasks.push(task),
+                        other => effects.push(other),
                     }
                 }
+                effects.push(Self::Task(Task::batch(tasks).chain(task)));
                 Self::Batch(effects)
             }
-            self_other => match next? {
-                Self::Batch(mut new_effects) => {
-                    new_effects.insert(0, self_other);
-                    Self::Batch(new_effects)
+            (Self::Task(task), Self::Batch(batch)) => {
+                let mut tasks = Vec::new();
+                let mut effects = Vec::new();
+                for eff in batch {
+                    match eff {
+                        Self::Task(task) => tasks.push(task),
+                        other => effects.push(other),
+                    }
                 }
-                effect => Self::Batch(vec![self_other, effect]),
-            },
+                effects.push(Self::Task(task.chain(Task::batch(tasks))));
+                Self::Batch(effects)
+            }
+            (Self::Batch(mut batch), other) | (other, Self::Batch(mut batch)) => {
+                batch.push(other);
+                Self::Batch(batch)
+            }
+            (first, second) => Self::Batch(vec![first, second]),
         })
     }
 
