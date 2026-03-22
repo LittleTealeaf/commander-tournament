@@ -27,15 +27,31 @@ pub enum Message {
 
 impl App {
     pub fn handle_update(&mut self, message: Message) -> Task<Message> {
-        match self.update(message, ()) {
-            Ok(Effect::Task(task)) => task,
-            Ok(Effect::Global(message)) => self.handle_update(message),
-            Err(error) => {
-                self.views
-                    .push(View::Error(error::State::new(error.to_string())));
-                Task::none()
+        let mut messages_to_process = vec![message];
+        let mut tasks = vec![];
+
+        while let Some(msg) = messages_to_process.pop() {
+            match self.update(msg, ()) {
+                Ok(effect) => {
+                    let mut effects_to_process = vec![effect];
+                    while let Some(eff) = effects_to_process.pop() {
+                        match eff {
+                            Effect::Task(task) => tasks.push(task),
+                            Effect::Global(m) => messages_to_process.push(m),
+                            Effect::Batch(batch) => {
+                                effects_to_process.extend(batch.into_iter().rev());
+                            }
+                            Effect::Done | Effect::Out(()) => (),
+                        }
+                    }
+                }
+                Err(error) => {
+                    self.views
+                        .push(View::Error(error::State::new(error.to_string())));
+                }
             }
-            _ => Task::none(),
         }
+
+        Task::batch(tasks)
     }
 }

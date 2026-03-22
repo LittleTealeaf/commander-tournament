@@ -36,6 +36,19 @@ impl App {
     pub const fn tournament(&self) -> &Tournament {
         &self.tournament
     }
+
+
+    pub fn push_view<V>(&mut self, view: V) where V: Into<View> {
+        self.views.push(view.into());
+    }
+
+    pub fn pop_view(&mut self) {
+        let _ = self.views.pop();
+    }
+
+    pub fn clear_views(&mut self) {
+        self.views.clear();
+    }
 }
 
 impl Component for App {
