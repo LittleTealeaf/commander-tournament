@@ -1,4 +1,3 @@
-use anyhow::anyhow;
 use iced::Task;
 use std::path::PathBuf;
 
@@ -23,6 +22,12 @@ fn get_config_path() -> Option<PathBuf> {
     Some(path)
 }
 
+#[cfg(feature="dev")]
+#[must_use]
+pub fn debug_config_path() -> Option<PathBuf> {
+    get_config_path()
+}
+
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
 pub struct AppSettings {
     #[serde(skip)]
@@ -43,10 +48,20 @@ pub enum Message {
 }
 
 impl AppSettings {
-    #[allow(clippy::assertions_on_constants)]
     pub async fn load() -> anyhow::Result<Self> {
-        debug_assert!(!cfg!(test), "Do not run AppSettings::load() in tests");
-        let path = get_config_path().ok_or_else(|| anyhow!("Could not file app config path"))?;
+        let path = {
+            #[cfg(feature="dev")]
+            {
+                tempfile::NamedTempFile::with_suffix(".ron")?
+                    .path()
+                    .to_path_buf()
+            }
+            #[cfg(not(feature="dev"))]
+            {
+                get_config_path()
+                    .ok_or_else(|| anyhow::anyhow!("Could not file app config path"))?
+            }
+        };
         let config = Self::load_from_path_or_default(path).await;
         Ok(config)
     }
@@ -81,6 +96,12 @@ impl AppSettings {
 
     pub fn set_last_opened(&mut self, last_opened: PathBuf) {
         self.last_opened = Some(last_opened);
+    }
+
+    #[cfg(feature="dev")]
+    #[must_use]
+    pub const fn settings_loc(&self) -> &PathBuf {
+        &self.save_path
     }
 }
 
@@ -142,8 +163,9 @@ mod tests {
     }
 
     #[tokio::test]
-    #[should_panic(expected = "Do not run AppSettings::load() in tests")]
-    async fn load_in_tests_panics() {
-        AppSettings::load().await.unwrap();
+    async fn testing_uses_non_system_config_path() {
+        let system_path = get_config_path().unwrap();
+        let settings = AppSettings::load().await.unwrap();
+        assert_ne!(system_path, settings.save_path);
     }
 }

@@ -1,10 +1,21 @@
 use tempfile::NamedTempFile;
 
 // Adjust `commander_tournament` to your actual crate name if different
-use app::settings::AppSettings;
+use app::settings::{AppSettings, debug_config_path};
 
 fn temp_file() -> NamedTempFile {
     NamedTempFile::with_suffix(".ron").unwrap()
+}
+
+#[tokio::test]
+async fn settings_loc_uses_temp_path() {
+    let settings = AppSettings::load().await.unwrap();
+    let settings_path = settings.settings_loc().clone();
+    let system_path = debug_config_path().unwrap();
+    assert_ne!(
+        settings_path, system_path,
+        "Settings is using system path in dev flag"
+    );
 }
 
 #[tokio::test]
@@ -35,9 +46,7 @@ async fn loading_from_saved() {
 
 #[tokio::test]
 async fn set_and_clear_last_updated() {
-    let file = temp_file();
-    let path = file.path().to_path_buf();
-    let mut settings = AppSettings::load_from_path_or_default(path).await;
+    let mut settings = AppSettings::load().await.unwrap();
     assert!(
         settings.last_opened().is_none(),
         "Expected new settings object to have no last_opened file"
