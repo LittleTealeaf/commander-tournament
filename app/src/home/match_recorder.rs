@@ -4,7 +4,7 @@ use edh_tourn::{
     tournament::Tournament,
 };
 use iced::{
-    Alignment, Length, Task,
+    Alignment, Length,
     alignment::Vertical,
     widget::{button, column, container, pick_list, row, space, text},
 };
@@ -13,12 +13,12 @@ use nerd_font_symbols::md::{MD_CANCEL, MD_LINK_VARIANT, MD_LINK_VARIANT_PLUS};
 
 // Assuming you have these imported from your definitions
 use crate::{
-    services::system::open_link,
+    core::message::Message,
     traits::{Component, ComponentUpdate, ComponentView, Effect},
 };
 
 #[derive(Default, Debug)]
-pub struct State {
+pub struct MatchRecorder {
     player_a: Option<u32>,
     player_b: Option<u32>,
     player_c: Option<u32>,
@@ -49,7 +49,7 @@ impl Player {
 }
 
 #[derive(Clone, PartialEq, Eq, Debug)]
-pub enum Message {
+pub enum MatchRecorderMsg {
     SetPlayers([u32; 4]),
     SetPlayer(Player, Option<u32>),
     SetWinner(Option<u32>),
@@ -59,15 +59,14 @@ pub enum Message {
     // Added local messages for handling links before escalating to OutMessage
     OpenLink(String),
     OpenLinks(Vec<String>),
-    Nothing,
 }
 
 #[derive(Debug)]
-pub enum OutMessage {
+pub enum MatchRecorderOut {
     SubmitRecord(Box<GameRecord>),
 }
 
-impl State {
+impl MatchRecorder {
     const fn set_player(&mut self, position: Player, value: Option<u32>) {
         match position {
             Player::PlayerA => self.player_a = value,
@@ -114,12 +113,12 @@ impl State {
     }
 }
 
-impl Component for State {
-    type Message = Message;
-    type OutMessage = OutMessage;
+impl Component for MatchRecorder {
+    type Message = MatchRecorderMsg;
+    type OutMessage = MatchRecorderOut;
 }
 
-impl ComponentUpdate for State {
+impl ComponentUpdate for MatchRecorder {
     type UpdateContext<'a> = &'a Tournament;
     fn update(
         &mut self,
@@ -127,59 +126,54 @@ impl ComponentUpdate for State {
         context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         match message {
-            Message::SetPlayers([a, b, c, d]) => {
+            MatchRecorderMsg::SetPlayers([a, b, c, d]) => {
                 self.player_a = Some(a);
                 self.player_b = Some(b);
                 self.player_c = Some(c);
                 self.player_d = Some(d);
                 self.update_matchup(context)?;
-                Effect::ok()
+                Effect::done()
             }
-            Message::SetPlayer(position, value) => {
+            MatchRecorderMsg::SetPlayer(position, value) => {
                 self.set_player(position, value);
                 self.update_matchup(context)?;
-                Effect::ok()
+                Effect::done()
             }
-            Message::SetWinner(value) => {
+            MatchRecorderMsg::SetWinner(value) => {
                 self.winner = value;
-                Effect::ok()
+                Effect::done()
             }
-            Message::AddPlayer(player) => {
+            MatchRecorderMsg::AddPlayer(player) => {
                 self.add_player(player);
                 self.update_matchup(context)?;
-                Effect::ok()
+                Effect::done()
             }
-            Message::SubmitGame => {
+            MatchRecorderMsg::SubmitGame => {
                 let (Some(matchup), Some(winner)) = (&self.matchup, self.winner) else {
-                    return Effect::ok();
+                    return Effect::done();
                 };
 
                 let record = matchup.clone().record(winner)?;
 
                 *self = Self::default();
 
-                Effect::out(OutMessage::SubmitRecord(Box::new(record)))
+                Effect::out(MatchRecorderOut::SubmitRecord(Box::new(record)))
             }
-            Message::Clear => {
+            MatchRecorderMsg::Clear => {
                 *self = Self::default();
-                Effect::ok()
+                Effect::done()
             }
-            Message::OpenLink(link) => Effect::task(Task::future(async {
-                let _ = open_link(link).await;
-                Message::Nothing
-            })),
-            Message::OpenLinks(links) => Effect::task(Task::future(async {
-                for link in links {
-                    let _ = open_link(link).await;
-                }
-                Message::Nothing
-            })),
-            Message::Nothing => Effect::ok(),
+            MatchRecorderMsg::OpenLink(link) => Effect::global(Message::OpenLink(link)),
+            MatchRecorderMsg::OpenLinks(links) => Effect::batch(
+                links
+                    .into_iter()
+                    .map(|link| Effect::global(Message::OpenLink(link))),
+            ),
         }
     }
 }
 
-impl ComponentView for State {
+impl ComponentView for MatchRecorder {
     type ViewContext<'a>
         = &'a Tournament
     where
@@ -222,7 +216,7 @@ impl ComponentView for State {
             ];
 
             let selector = pick_list(players.clone(), entry, move |option| {
-                Message::SetPlayer(position, Some(option.id()))
+                MatchRecorderMsg::SetPlayer(position, Some(option.id()))
             })
             .width(Length::Fill);
 
@@ -233,7 +227,7 @@ impl ComponentView for State {
                         button(MD_LINK_VARIANT).on_press_maybe(
                             entry
                                 .and_then(|entry| entry.info().moxfield_goldfish_link())
-                                .map(Message::OpenLink)
+                                .map(MatchRecorderMsg::OpenLink)
                         )
                     ],
                     player_info
@@ -261,7 +255,7 @@ impl ComponentView for State {
         let winner_selector = row![
             text("Winner: ").size(17),
             pick_list(current_players, winner_entry, |picked| {
-                Message::SetWinner(Some(picked.id()))
+                MatchRecorderMsg::SetWinner(Some(picked.id()))
             })
             .width(Length::Fill),
             button(MD_LINK_VARIANT_PLUS).on_press_maybe({
@@ -276,7 +270,7 @@ impl ComponentView for State {
                 if links.is_empty() {
                     None
                 } else {
-                    Some(Message::OpenLinks(links))
+                    Some(MatchRecorderMsg::OpenLinks(links))
                 }
             })
         ]
@@ -296,9 +290,10 @@ impl ComponentView for State {
             space().width(Length::Fill),
             results_preview,
             button("Submit").on_press_maybe(
-                (self.matchup.is_some() && self.winner.is_some()).then_some(Message::SubmitGame)
+                (self.matchup.is_some() && self.winner.is_some())
+                    .then_some(MatchRecorderMsg::SubmitGame)
             ),
-            button(MD_CANCEL).on_press(Message::Clear),
+            button(MD_CANCEL).on_press(MatchRecorderMsg::Clear),
         ]
         .spacing(10)
         .align_y(Vertical::Center);
@@ -306,5 +301,46 @@ impl ComponentView for State {
         container(column![title, players_col, winner_selector, submit].spacing(10))
             .padding(10)
             .into()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use iced_test::simulator;
+
+    use super::*;
+
+    fn setup_test_context() -> (Tournament, u32) {
+        let mut tourn = Tournament::new();
+        let id = tourn.register_debug_player().unwrap();
+        (tourn, id)
+    }
+
+    #[test]
+    fn submit_button_submits_game() {
+        let (tourn, player_id) = setup_test_context();
+
+        // Initialize state with enough data to make the Submit button active
+        let mut recorder = MatchRecorder {
+            player_a: Some(player_id),
+            player_b: Some(player_id),
+            player_c: Some(player_id),
+            player_d: Some(player_id),
+            winner: Some(player_id),
+            ..Default::default()
+        };
+        recorder.update_matchup(&tourn).unwrap();
+        let mut ui = simulator(recorder.view(&tourn));
+        ui.click("Submit").unwrap();
+
+        let mut has_message = false;
+
+        for message in ui.into_messages() {
+            let effect = recorder.update(message, &tourn).unwrap();
+            if let Effect::Out(MatchRecorderOut::SubmitRecord(_)) = effect {
+                has_message = true;
+            }
+        }
+        assert!(has_message, "Did not find SubmitRecord message");
     }
 }

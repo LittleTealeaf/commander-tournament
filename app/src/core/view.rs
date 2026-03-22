@@ -1,8 +1,6 @@
-use crate::{App, message::Message, traits::ComponentView};
-
-pub mod error;
-pub mod home;
-pub mod player_details;
+use crate::{
+    App, core::message::Message, error::Error, player_details::PlayerDetails, traits::ComponentView,
+};
 
 impl App {
     #[must_use]
@@ -11,10 +9,10 @@ impl App {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, derive_more::From)]
 pub enum View {
-    Error(error::State),
-    PlayerDetails(player_details::State),
+    Error(Error),
+    PlayerDetails(PlayerDetails),
 }
 
 impl ComponentView for App {

@@ -1,7 +1,7 @@
 use tempfile::NamedTempFile;
 
 // Adjust `commander_tournament` to your actual crate name if different
-use app::settings::{AppSettings, debug_config_path};
+use app::core::settings::{AppSettings, debug_config_path};
 
 fn temp_file() -> NamedTempFile {
     NamedTempFile::with_suffix(".ron").unwrap()

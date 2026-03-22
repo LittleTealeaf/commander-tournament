@@ -1,49 +1,90 @@
 use iced::{Element, Task};
 use iced_futures::MaybeSend;
 
+use crate::core::message::Message;
+
 #[derive(Debug)]
-pub struct Effect<M, O> {
-    pub task: Task<M>,
-    pub out: Vec<O>,
+pub enum Effect<M, O> {
+    Global(Message),
+    Out(O),
+    Task(Task<M>),
+    Batch(Vec<Self>),
+    Done,
 }
 
 impl<M, O> Effect<M, O>
 where
     M: 'static,
 {
-    pub fn ok() -> anyhow::Result<Self> {
-        Ok(Self {
-            task: Task::none(),
-            out: Vec::new(),
-        })
+    pub const fn done() -> anyhow::Result<Self> {
+        Ok(Self::Done)
     }
 
-    pub fn out(out_message: O) -> anyhow::Result<Self> {
-        Ok(Self {
-            task: Task::none(),
-            out: vec![out_message],
-        })
+    pub fn global<G>(message: G) -> anyhow::Result<Self>
+    where
+        G: Into<Message>,
+    {
+        Ok(Self::Global(message.into()))
+    }
+
+    pub const fn out(message: O) -> anyhow::Result<Self> {
+        Ok(Self::Out(message))
     }
 
     pub const fn task(task: Task<M>) -> anyhow::Result<Self> {
-        Ok(Self {
-            task,
-            out: Vec::new(),
+        Ok(Self::Task(task))
+    }
+
+    pub fn batch<I>(effects: I) -> anyhow::Result<Self>
+    where
+        I: IntoIterator<Item = anyhow::Result<Self>>,
+    {
+        Ok(Self::Batch(
+            effects.into_iter().collect::<anyhow::Result<_>>()?,
+        ))
+    }
+
+    pub fn then(self, next: anyhow::Result<Self>) -> anyhow::Result<Self> {
+        Ok(match self {
+            Self::Batch(mut effects) => {
+                match next? {
+                    Self::Batch(mut new_effects) => {
+                        effects.append(&mut new_effects);
+                    }
+                    effect => {
+                        effects.push(effect);
+                    }
+                }
+                Self::Batch(effects)
+            }
+            self_other => match next? {
+                Self::Batch(mut new_effects) => {
+                    new_effects.insert(0, self_other);
+                    Self::Batch(new_effects)
+                }
+                effect => Self::Batch(vec![self_other, effect]),
+            },
         })
     }
 
-    pub fn both(out_message: O, task: Task<M>) -> anyhow::Result<Self> {
-        Ok(Self {
-            task,
-            out: vec![out_message],
-        })
-    }
-
-    #[must_use]
-    pub fn chain(self, other: Self) -> Self {
-        Self {
-            task: self.task.chain(other.task),
-            out: self.out.into_iter().chain(other.out).collect(),
+    fn inner_map<MN, ON, F>(self, map_out: &mut F) -> anyhow::Result<Effect<MN, ON>>
+    where
+        MN: Send + MaybeSend + 'static,
+        M: MaybeSend + 'static + Into<MN>,
+        F: FnMut(O) -> anyhow::Result<Effect<MN, ON>>,
+    {
+        match self {
+            Self::Done => Ok(Effect::Done),
+            Self::Global(message) => Ok(Effect::Global(message)),
+            Self::Out(message) => map_out(message),
+            Self::Task(task) => Ok(Effect::Task(task.map(Into::into))),
+            Self::Batch(batch) => {
+                let mut effects = Vec::new();
+                for effect in batch {
+                    effects.push(effect.inner_map(map_out)?);
+                }
+                Ok(Effect::Batch(effects))
+            }
         }
     }
 
@@ -53,30 +94,24 @@ where
         M: MaybeSend + 'static + Into<MN>,
         F: FnMut(O) -> anyhow::Result<Effect<MN, ON>>,
     {
-        let mut task = self.task.map(Into::into);
-        let mut out = Vec::new();
-
-        for o in self.out {
-            let effect = map_out(o)?;
-            out.extend(effect.out);
-            task = task.chain(effect.task);
-        }
-
-        Ok(Effect { task, out })
+        self.inner_map(&mut map_out)
     }
 
-    pub fn perform<T, FA, FM, FE>(future: FA, on_complete: FM, on_error: FE) -> anyhow::Result<Self>
+    pub const fn is_done(&self) -> bool {
+        matches!(self, Self::Done)
+    }
+}
+
+impl<M> Effect<M, ()>
+where
+    M: MaybeSend + 'static,
+{
+    pub fn map_empty<MN, ON>(self) -> anyhow::Result<Effect<MN, ON>>
     where
-        T: Sync + Send + 'static,
-        FA: Future<Output = anyhow::Result<T>> + 'static + MaybeSend + Send + Sync,
-        FM: Fn(T) -> M + MaybeSend + Send + Sync + 'static,
-        FE: Fn(anyhow::Error) -> M + MaybeSend + Send + Sync + 'static,
-        M: MaybeSend + 'static,
+        MN: Send + MaybeSend + 'static,
+        M: Into<MN>,
     {
-        Self::task(Task::perform(future, move |result| match result {
-            Ok(value) => on_complete(value),
-            Err(error) => on_error(error),
-        }))
+        self.map(|()| Effect::done())
     }
 }
 

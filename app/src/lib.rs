@@ -1,10 +1,11 @@
 pub mod components;
-pub mod message;
+pub mod core;
+pub mod error;
+pub mod home;
+pub mod player_details;
 pub mod services;
-pub mod settings;
 pub mod style;
 pub mod traits;
-pub mod views;
 
 use std::path::PathBuf;
 
@@ -12,16 +13,14 @@ use edh_tourn::tournament::Tournament;
 use iced::Task;
 
 use crate::{
-    message::Message,
-    settings::AppSettings,
+    core::{message::Message, settings::AppSettings, view::View},
     traits::Component,
-    views::{View, home},
 };
 
 #[derive(Debug, Default)]
 pub struct App {
     tournament: Tournament,
-    home: home::State,
+    home: home::Home,
     error: Option<String>,
     file: Option<PathBuf>,
     views: Vec<View>,
@@ -36,6 +35,21 @@ impl App {
     #[must_use]
     pub const fn tournament(&self) -> &Tournament {
         &self.tournament
+    }
+
+    pub fn push_view<V>(&mut self, view: V)
+    where
+        V: Into<View>,
+    {
+        self.views.push(view.into());
+    }
+
+    pub fn pop_view(&mut self) {
+        let _ = self.views.pop();
+    }
+
+    pub fn clear_views(&mut self) {
+        self.views.clear();
     }
 }
 
