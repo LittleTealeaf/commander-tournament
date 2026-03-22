@@ -37,6 +37,7 @@ app = {path = ".", features = ["dev"]}
 tempfile = "3.27.0"
 edh_tourn = {path = "../edh_tourn/", features=["dev"]}
 approx = "0.5.1"
+iced_test = "0.14.0"
 
 [lints]
 workspace = true
