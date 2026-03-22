@@ -21,6 +21,7 @@ use crate::{
 #[derive(Debug, Default)]
 pub struct App {
     tournament: Tournament,
+    modified: bool,
     home: home::State,
     error: Option<String>,
     file: Option<PathBuf>,
@@ -36,6 +37,15 @@ impl App {
     #[must_use]
     pub const fn tournament(&self) -> &Tournament {
         &self.tournament
+    }
+
+    #[must_use]
+    pub fn title(&self) -> String {
+        if self.modified {
+            "* Commander Tournament".to_owned()
+        } else {
+            "Commander Tournament".to_owned()
+        }
     }
 }
 
