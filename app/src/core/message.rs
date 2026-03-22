@@ -19,6 +19,7 @@ pub enum Message {
     SettingsLoaded(Option<AppSettings>),
     Tournament(tournament::Action),
     TournFile(FileAction),
+    OpenPlayerDetails(Option<u32>),
     Error(String),
     ViewHome(home::Message),
     ViewError(error::Message),

@@ -28,7 +28,6 @@ pub enum Message {
 
 #[derive(Debug, Clone)]
 pub enum OutMessage {
-    OpenPlayerDetails(Option<u32>),
     RegisterRecord(Box<GameRecord>),
 }
 
@@ -95,9 +94,6 @@ impl HandleMessage<leaderboard::Message> for State {
         self.leaderboard
             .update(message, ())?
             .map(|message| match message {
-                leaderboard::OutMessage::OpenPlayerDetails(maybe_id) => {
-                    Effect::out(OutMessage::OpenPlayerDetails(maybe_id))
-                }
                 leaderboard::OutMessage::RankPlayer(id) => {
                     self.handle_message(ranking::Message::SelectPlayer(id), context)
                 }
@@ -133,9 +129,6 @@ impl HandleMessage<ranking::Message> for State {
             .map(|message| match message {
                 ranking::OutMessage::LoadGame(players) => {
                     self.handle_message(game_record::Message::SetPlayers(players), context)
-                }
-                ranking::OutMessage::OpenPlayerDetails(id) => {
-                    Effect::out(OutMessage::OpenPlayerDetails(Some(id)))
                 }
             })
     }

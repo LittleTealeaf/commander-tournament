@@ -42,6 +42,12 @@ impl ComponentUpdate for App {
             Message::ViewPlayer(message) => self.handle_message(message, ()),
             Message::TournFile(message) => self.handle_message(message, ()),
             Message::Error(error) => Err(anyhow::anyhow!("{error}")),
+            Message::OpenPlayerDetails(maybe_id) => {
+                self.push_view(player_details::State::new(
+                    maybe_id.and_then(|id| self.tournament().get_registered_player(id)),
+                ));
+                Effect::done()
+            }
         }
     }
 }
@@ -55,12 +61,6 @@ impl HandleMessage<home::Message> for App {
         self.home
             .handle_message(message, (&self.tournament, &self.file))?
             .map(|message| match message {
-                home::OutMessage::OpenPlayerDetails(id) => {
-                    let player = id.and_then(|id| self.tournament.get_registered_player(id));
-                    self.views
-                        .push(View::PlayerDetails(player_details::State::new(player)));
-                    Effect::done()
-                }
                 home::OutMessage::RegisterRecord(game_record) => {
                     self.handle_message(tournament::Action::Record(game_record), ())
                 }

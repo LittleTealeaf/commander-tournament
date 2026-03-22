@@ -30,7 +30,6 @@ pub enum Message {
 #[derive(Debug)]
 pub enum OutMessage {
     LoadGame([u32; 4]),
-    OpenPlayerDetails(u32),
 }
 
 impl Component for State {
@@ -73,7 +72,9 @@ impl ComponentUpdate for State {
                 self.method = method;
                 Effect::done()
             }
-            Message::OpenPlayerDetails(id) => Effect::out(OutMessage::OpenPlayerDetails(id)),
+            Message::OpenPlayerDetails(id) => {
+                Effect::global(crate::core::message::Message::OpenPlayerDetails(Some(id)))
+            }
         }
     }
 }

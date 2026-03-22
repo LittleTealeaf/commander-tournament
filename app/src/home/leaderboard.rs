@@ -53,7 +53,6 @@ pub enum Message {
 
 #[derive(Debug, Clone)]
 pub enum OutMessage {
-    OpenPlayerDetails(Option<u32>),
     RankPlayer(u32),
 }
 
@@ -97,8 +96,12 @@ impl ComponentUpdate for State {
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         match message {
-            Message::OpenPlayer(id) => Effect::out(OutMessage::OpenPlayerDetails(Some(id))),
-            Message::NewPlayer => Effect::out(OutMessage::OpenPlayerDetails(None)),
+            Message::OpenPlayer(id) => {
+                Effect::global(crate::core::message::Message::OpenPlayerDetails(Some(id)))
+            }
+            Message::NewPlayer => {
+                Effect::global(crate::core::message::Message::OpenPlayerDetails(None))
+            }
             Message::RankPlayer(id) => Effect::out(OutMessage::RankPlayer(id)),
             Message::Sort(column) => {
                 if self.column == column {

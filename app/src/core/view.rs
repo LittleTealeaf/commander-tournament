@@ -7,7 +7,7 @@ impl App {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, derive_more::From)]
 pub enum View {
     Error(error::State),
     PlayerDetails(player_details::State),

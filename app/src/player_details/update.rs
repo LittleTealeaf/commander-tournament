@@ -1,8 +1,9 @@
-use opener::open_browser;
+use iced::Task;
 
 use crate::{
     components::prompt::{self, DialogPrompt},
     player_details::OutMessage,
+    services::system::open_link,
     traits::{ComponentUpdate, Effect},
 };
 
@@ -54,10 +55,11 @@ impl ComponentUpdate for super::State {
                 self.stats = stats_tab;
                 Effect::done()
             }
-            Message::OpenLink(link) => {
-                open_browser(link)?;
-                Effect::done()
-            }
+            Message::OpenLink(link) => Effect::task(Task::future(async {
+                let _ = open_link(link).await;
+                Message::Nothing
+            })),
+            Message::Nothing => Effect::done(),
             Message::Close => Effect::out(OutMessage::Close),
             Message::Dialog(message) => {
                 if let Some(dialog) = &mut self.prompt_confirm_delete {
