@@ -43,14 +43,9 @@ pub enum Message {
 }
 
 impl AppSettings {
+    #[allow(clippy::assertions_on_constants)]
     pub async fn load() -> anyhow::Result<Self> {
-        {
-            // Because this uses the config path of the system, this should not be used in tests as
-            // it may have side-effects and will not work with running concurrent tests.
-            #[cfg(test)]
-            panic!("AppSettings::load() should not be called in tests");
-        }
-
+        debug_assert!(!cfg!(test), "Do not run AppSettings::load() in tests");
         let path = get_config_path().ok_or_else(|| anyhow!("Could not file app config path"))?;
         let config = Self::load_from_path_or_default(path).await;
         Ok(config)
@@ -144,5 +139,11 @@ mod tests {
     #[test]
     fn config_path_exists() {
         get_config_path().unwrap();
+    }
+
+    #[tokio::test]
+    #[should_panic(expected = "Do not run AppSettings::load() in tests")]
+    async fn load_in_tests_panics() {
+        AppSettings::load().await.unwrap();
     }
 }
