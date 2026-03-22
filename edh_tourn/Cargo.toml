@@ -18,7 +18,7 @@ derive_more = {version = "2", features = ["from", "constructor"]}
 
 [dev-dependencies]
 edh_tourn = {path=".", features=["dev"]}
-toml = "1.0.6"
+toml = "1.0.7"
 serde_json = "1.0.149"
 approx = "0.5.1"
 

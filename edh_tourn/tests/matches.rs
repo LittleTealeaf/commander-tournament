@@ -1,4 +1,6 @@
-use approx::{assert_relative_eq, assert_relative_ne};
+use core::f64;
+
+use approx::{assert_abs_diff_eq, assert_relative_eq, assert_relative_ne};
 use edh_tourn::tournament::Tournament;
 use itertools::Itertools;
 
@@ -28,6 +30,31 @@ fn mirror_matchup_equal_expected() {
     let mu = tourn.create_match([id, id, id, id]).unwrap();
     for p in mu.players() {
         assert_relative_eq!(0.25, *p.expected());
+    }
+}
+
+#[test]
+fn matchup_sum_elo_always_zero() {
+    let tourn = Tournament::generate_tournament(20, 100).unwrap();
+    for (a, b, c, d) in tourn.players().keys().copied().tuple_windows() {
+        let matchup = tourn.create_match((a, b, c, d).into()).unwrap();
+        let mut sum_elo = matchup
+            .players()
+            .iter()
+            .map(|player| -1.0 * *player.elo_loss())
+            .sum::<f64>();
+
+        for player in matchup.players() {
+            // First remove the players' loss
+            sum_elo += player.elo_loss();
+            // Then, add the win
+            sum_elo += player.elo_win();
+
+            assert_abs_diff_eq!(sum_elo, 0.0, epsilon = 1.0e-10);
+
+            sum_elo -= player.elo_loss();
+            sum_elo -= player.elo_win();
+        }
     }
 }
 
