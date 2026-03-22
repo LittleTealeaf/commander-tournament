@@ -99,8 +99,7 @@ where
     let extension = require_extension(&path)?;
     let serialized = serialize_by_extension(data, extension)?;
 
-    if let Some(parent) = path.parent()
-    {
+    if let Some(parent) = path.parent() {
         async_fs::create_dir_all(parent).await?;
     }
 
