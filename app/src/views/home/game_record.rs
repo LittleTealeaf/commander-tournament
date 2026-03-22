@@ -10,7 +10,6 @@ use iced::{
 };
 use itertools::Itertools;
 use nerd_font_symbols::md::{MD_CANCEL, MD_LINK_VARIANT, MD_LINK_VARIANT_PLUS};
-use opener::open_browser;
 
 // Assuming you have these imported from your definitions
 use crate::{
