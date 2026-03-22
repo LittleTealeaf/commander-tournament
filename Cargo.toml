@@ -1,6 +1,6 @@
 
 [workspace]
-members = ["app", "edh_tourn"]
+members = ["edh_tourn", "app"]
 default-members = ["app"]
 resolver = "2"
 

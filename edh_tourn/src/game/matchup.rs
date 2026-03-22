@@ -3,18 +3,15 @@ use crate::{
     game::{match_player::MatchPlayer, record::GameRecord},
 };
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
+#[derive(
+    Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, derive_more::Constructor,
+)]
 pub struct Matchup {
     players: [MatchPlayer; 4],
     snapshot: usize,
 }
 
 impl Matchup {
-    #[must_use]
-    pub(crate) const fn new(players: [MatchPlayer; 4], snapshot: usize) -> Self {
-        Self { players, snapshot }
-    }
-
     #[must_use]
     pub const fn snapshot(&self) -> usize {
         self.snapshot

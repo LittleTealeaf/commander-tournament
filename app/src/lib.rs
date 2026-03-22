@@ -1,76 +1,45 @@
-use core::time::Duration;
+pub mod components;
+pub mod message;
+pub mod services;
+pub mod settings;
+pub mod style;
+pub mod traits;
+pub mod views;
+
 use std::path::PathBuf;
 
 use edh_tourn::tournament::Tournament;
-use iced::{Subscription, Task};
-
-pub mod config;
-pub mod fonts;
-pub mod logic;
-#[cfg(feature = "dev")]
-pub mod tests;
-pub mod traits;
-pub mod view;
+use iced::Task;
 
 use crate::{
-    config::AppConfig,
-    logic::{Message, file::FileMessage},
-    traits::HandleMessage,
-    view::{Scene, home::HomeState},
+    message::Message,
+    settings::AppSettings,
+    traits::Component,
+    views::{View, home},
 };
 
-const SAVE_INTERVAL: u64 = 5 * 60;
-
-#[derive(Default, Debug)]
+#[derive(Debug, Default)]
 pub struct App {
     tournament: Tournament,
+    home: home::State,
     error: Option<String>,
     file: Option<PathBuf>,
-    home: HomeState,
-    scenes: Vec<Scene>,
-    config: Option<AppConfig>,
+    views: Vec<View>,
+    settings: Option<AppSettings>,
 }
 
 impl App {
     pub fn boot() -> (Self, Task<Message>) {
-        let mut app = Self {
-            config: AppConfig::load().ok(),
-            ..Self::default()
-        };
-
-        let task = app
-            .config
-            .as_ref()
-            .and_then(|config| config.last_opened())
-            .cloned()
-            .map_or_else(Task::none, |path| {
-                app.updater(FileMessage::LoadFromFile(path).into())
-            });
-
-        (app, task)
-    }
-
-    pub fn updater(&mut self, message: Message) -> Task<Message> {
-        match self.update(message) {
-            Ok(task) => task,
-            Err(res) => {
-                let msg = res.to_string();
-                self.error = Some(msg);
-                Task::none()
-            }
-        }
+        (Self::default(), Task::done(Message::OnBoot))
     }
 
     #[must_use]
     pub const fn tournament(&self) -> &Tournament {
         &self.tournament
     }
+}
 
-    pub const fn tournament_mut(&mut self) -> &mut Tournament {
-        &mut self.tournament
-    }
-
-    pub fn autosave_subscription(&self) -> Subscription<Message> {
-        iced::time::every(Duration::from_secs(SAVE_INTERVAL)).map(|_| FileMessage::Save.into())
-    }
+impl Component for App {
+    type Message = Message;
+    type OutMessage = ();
 }

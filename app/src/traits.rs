@@ -1,16 +1,128 @@
 use iced::{Element, Task};
+use iced_futures::MaybeSend;
 
-use crate::logic::Message;
-
-pub trait HandleMessage<T> {
-    fn update(&mut self, msg: T) -> anyhow::Result<Task<Message>>;
+#[derive(Debug)]
+pub struct Effect<M, O> {
+    pub task: Task<M>,
+    pub out: Vec<O>,
 }
 
-pub trait View<S> {
-    fn view<'a>(&'a self, scene: &'a S) -> Element<'a, Message>;
-}
+impl<M, O> Effect<M, O>
+where
+    M: 'static,
+{
+    pub fn ok() -> anyhow::Result<Self> {
+        Ok(Self {
+            task: Task::none(),
+            out: Vec::new(),
+        })
+    }
 
-pub trait PushMaybe<'a, M, T, R> {
+    pub fn out(out_message: O) -> anyhow::Result<Self> {
+        Ok(Self {
+            task: Task::none(),
+            out: vec![out_message],
+        })
+    }
+
+    pub const fn task(task: Task<M>) -> anyhow::Result<Self> {
+        Ok(Self {
+            task,
+            out: Vec::new(),
+        })
+    }
+
+    pub fn both(out_message: O, task: Task<M>) -> anyhow::Result<Self> {
+        Ok(Self {
+            task,
+            out: vec![out_message],
+        })
+    }
+
     #[must_use]
-    fn push_maybe(self, item: Option<impl Into<Element<'a, M, T, R>>>) -> Self;
+    pub fn chain(self, other: Self) -> Self {
+        Self {
+            task: self.task.chain(other.task),
+            out: self.out.into_iter().chain(other.out).collect(),
+        }
+    }
+
+    pub fn map<MN, ON, F>(self, mut map_out: F) -> anyhow::Result<Effect<MN, ON>>
+    where
+        MN: Send + MaybeSend + 'static,
+        M: MaybeSend + 'static + Into<MN>,
+        F: FnMut(O) -> anyhow::Result<Effect<MN, ON>>,
+    {
+        let mut task = self.task.map(Into::into);
+        let mut out = Vec::new();
+
+        for o in self.out {
+            let effect = map_out(o)?;
+            out.extend(effect.out);
+            task = task.chain(effect.task);
+        }
+
+        Ok(Effect { task, out })
+    }
+
+    pub fn perform<T, FA, FM, FE>(future: FA, on_complete: FM, on_error: FE) -> anyhow::Result<Self>
+    where
+        T: Sync + Send + 'static,
+        FA: Future<Output = anyhow::Result<T>> + 'static + MaybeSend + Send + Sync,
+        FM: Fn(T) -> M + MaybeSend + Send + Sync + 'static,
+        FE: Fn(anyhow::Error) -> M + MaybeSend + Send + Sync + 'static,
+        M: MaybeSend + 'static,
+    {
+        Self::task(Task::perform(future, move |result| match result {
+            Ok(value) => on_complete(value),
+            Err(error) => on_error(error),
+        }))
+    }
+}
+
+pub trait Component {
+    type OutMessage;
+    type Message: Clone + Send + 'static;
+}
+
+pub trait ComponentView: Component {
+    type ViewContext<'a>
+    where
+        Self: 'a;
+    fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> Element<'a, Self::Message>;
+
+    fn view_into<'a, M>(&'a self, context: Self::ViewContext<'a>) -> Element<'a, M>
+    where
+        Self::Message: Into<M>,
+        M: 'a,
+    {
+        self.view(context).map(Into::into)
+    }
+}
+
+pub trait ComponentUpdate: Component {
+    type UpdateContext<'a>;
+    fn update(
+        &mut self,
+        message: Self::Message,
+        context: Self::UpdateContext<'_>,
+    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>>;
+}
+
+pub trait HandleMessage<M>: ComponentUpdate {
+    fn handle_message(
+        &mut self,
+        message: M,
+        context: Self::UpdateContext<'_>,
+    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>>;
+}
+
+impl<T: Component + ComponentUpdate> HandleMessage<T::Message> for T {
+    fn handle_message(
+        &mut self,
+        message: T::Message,
+        context: Self::UpdateContext<'_>,
+    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
+        self.update(message, context)
+    }
 }

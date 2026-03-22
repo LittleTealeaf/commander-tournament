@@ -1,7 +1,7 @@
 use core::hash::{Hash, Hasher};
 use std::hash::DefaultHasher;
 
-use itertools::chain;
+use itertools::{Itertools, chain};
 
 use crate::{
     config::game::GameConfig, error::TournamentError, game::entry::GameEntry,
@@ -21,6 +21,11 @@ where
 }
 
 impl Tournament {
+    #[must_use]
+    pub const fn snapshot(&self) -> usize {
+        self.snapshot
+    }
+
     pub fn generate_tournament(player_count: usize, games: usize) -> Result<Self, TournamentError> {
         if games > 0 && player_count < 4 {
             return Err(TournamentError::NotEnoughPlayers);
@@ -35,19 +40,23 @@ impl Tournament {
         let mut rng = ChaCha8Rng::seed_from_u64(hash_to_u64((player_count, games)));
 
         for _ in 0..games {
-            let mut iter = ids.sample(&mut rng, 4).copied();
-            let player_a = iter.next().unwrap();
-            let player_b = iter.next().unwrap();
-            let player_c = iter.next().unwrap();
-            let player_d = iter.next().unwrap();
-            let players = [player_a, player_b, player_c, player_d];
+            let players = ids.sample(&mut rng, 4).copied().next_array().unwrap();
             let winner = *players.choose(&mut rng).unwrap();
-
             let entry = GameEntry::new(players, winner)?;
             tournament.register_entry(entry)?;
         }
 
         Ok(tournament)
+    }
+
+    pub fn random_game(&self) -> Option<GameEntry> {
+        let hash = self.games().iter().map(GameEntry::from).collect_vec();
+        let seed = hash_to_u64(hash);
+        let mut rng = ChaCha8Rng::seed_from_u64(seed);
+        let ids = self.players().keys().copied().collect_vec();
+        let players = ids.sample(&mut rng, 4).copied().next_array()?;
+        let winner = *players.choose(&mut rng)?;
+        GameEntry::new(players, winner).ok()
     }
 
     #[must_use]
