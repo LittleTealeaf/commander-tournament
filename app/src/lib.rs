@@ -45,7 +45,7 @@ impl App {
         if self.modified {
             format!("* {APP_TITLE}")
         } else {
-            APP_TITLE.to_string()
+            APP_TITLE.to_owned()
         }
     }
 
