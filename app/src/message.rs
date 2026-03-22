@@ -1,5 +1,6 @@
 pub mod file;
 pub mod tournament;
+use edh_tourn::tournament::Tournament;
 use iced::Task;
 
 use crate::{
@@ -81,7 +82,7 @@ impl HandleMessage<home::Message> for App {
         (): Self::Context<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         self.home
-            .handle_message(message, &self.tournament)?
+            .handle_message(message, (&self.tournament, &self.file))?
             .map(|message| match message {
                 home::OutMessage::OpenPlayerDetails(id) => {
                     let player = id.and_then(|id| self.tournament.get_registered_player(id));
@@ -92,6 +93,21 @@ impl HandleMessage<home::Message> for App {
                 home::OutMessage::RegisterRecord(game_record) => {
                     self.handle_message(tournament::Action::Record(game_record), ())
                 }
+                home::OutMessage::MenuMessage(message) => match message {
+                    home::menu::Message::New => {
+                        self.tournament = Tournament::new();
+                        Effect::ok()
+                    }
+                    home::menu::Message::Open => {
+                        self.handle_message(TournamentFileMessage::Open, ())
+                    }
+                    home::menu::Message::Save => {
+                        self.handle_message(TournamentFileMessage::Save, ())
+                    }
+                    home::menu::Message::SaveAs => {
+                        self.handle_message(TournamentFileMessage::SaveAs, ())
+                    }
+                },
             })
     }
 }

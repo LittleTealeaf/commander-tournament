@@ -32,7 +32,7 @@ impl HandleMessage<TournamentFileMessage> for App {
         (): Self::Context<'_>,
     ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
         match message {
-            TournamentFileMessage::New => Effect::ok(),
+            TournamentFileMessage::New | TournamentFileMessage::None => Effect::ok(),
             TournamentFileMessage::Open => Effect::task(Task::perform(
                 AsyncFileDialog::new()
                     .add_filter("formats", &accepted_file_types())
@@ -66,13 +66,34 @@ impl HandleMessage<TournamentFileMessage> for App {
                     },
                 ))
             }
-            TournamentFileMessage::Save => todo!(),
-            TournamentFileMessage::SaveAs => todo!(),
+            TournamentFileMessage::Save => {
+                if let Some(path) = &self.file {
+                    self.handle_message(TournamentFileMessage::SaveTournament(path.clone()), ())
+                } else {
+                    self.handle_message(TournamentFileMessage::SaveAs, ())
+                }
+            }
+            TournamentFileMessage::SaveAs => {
+                let future = async {
+                    let result = AsyncFileDialog::new()
+                        .add_filter("formats", &accepted_file_types())
+                        .set_directory(".")
+                        .set_title("Save Tournament")
+                        .save_file()
+                        .await;
+                    result
+                        .map_or(TournamentFileMessage::None, |file| {
+                            TournamentFileMessage::SaveTournament(file.path().to_path_buf())
+                        })
+                        .into()
+                };
+                Effect::task(Task::future(future))
+            }
             TournamentFileMessage::TournamentLoaded(path, tournament) => {
                 self.tournament = *tournament;
+                self.file = Some(path.clone());
                 self.handle_message(crate::settings::Message::SetOpenedFile(path), ())
             }
-            TournamentFileMessage::None => todo!(),
         }
     }
 }

@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use edh_tourn::{game::record::GameRecord, tournament::Tournament};
 use iced::widget::{column, container, row, rule};
 
@@ -5,10 +7,12 @@ use crate::traits::{Component, ComponentUpdate, ComponentView, Effect, HandleMes
 
 pub mod game_record;
 pub mod leaderboard;
+pub mod menu;
 pub mod ranking;
 
 #[derive(Debug, Default)]
 pub struct State {
+    menu: menu::State,
     leaderboard: leaderboard::State,
     game_record: game_record::State,
     ranking: ranking::State,
@@ -19,31 +23,37 @@ pub enum Message {
     Leaderboard(leaderboard::Message),
     GameRecord(game_record::Message),
     Ranking(ranking::Message),
+    Menu(menu::Message),
 }
 
 #[derive(Debug, Clone)]
 pub enum OutMessage {
     OpenPlayerDetails(Option<u32>),
     RegisterRecord(Box<GameRecord>),
+    MenuMessage(menu::Message),
 }
 
 impl Component for State {
     type Message = Message;
     type OutMessage = OutMessage;
-    type Context<'a> = &'a Tournament;
+    type Context<'a> = (&'a Tournament, &'a Option<PathBuf>);
 }
 
 impl ComponentView for State {
     fn view<'a>(&'a self, context: Self::Context<'a>) -> iced::Element<'a, Self::Message> {
-        column![row![
-            container(self.leaderboard.view_into(context)),
-            rule::vertical(2),
-            column![
-                self.game_record.view_into(context),
-                rule::horizontal(2),
-                self.ranking.view_into(context),
+        let (tournament, path) = context;
+        column![
+            self.menu.view_into(path),
+            row![
+                container(self.leaderboard.view_into(tournament)),
+                rule::vertical(2),
+                column![
+                    self.game_record.view_into(tournament),
+                    rule::horizontal(2),
+                    self.ranking.view_into(tournament),
+                ]
             ]
-        ]]
+        ]
         .into()
     }
 }
@@ -58,6 +68,7 @@ impl ComponentUpdate for State {
             Message::Leaderboard(message) => self.handle_message(message, context),
             Message::GameRecord(message) => self.handle_message(message, context),
             Message::Ranking(message) => self.handle_message(message, context),
+            Message::Menu(message) => Effect::out(OutMessage::MenuMessage(message)),
         }
     }
 }
@@ -68,8 +79,9 @@ impl HandleMessage<leaderboard::Message> for State {
         message: leaderboard::Message,
         context: Self::Context<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
+        let (tournament, _) = context;
         self.leaderboard
-            .update(message, context)?
+            .update(message, tournament)?
             .map(|message| match message {
                 leaderboard::OutMessage::OpenPlayerDetails(maybe_id) => {
                     Effect::out(OutMessage::OpenPlayerDetails(maybe_id))
@@ -85,10 +97,10 @@ impl HandleMessage<game_record::Message> for State {
     fn handle_message(
         &mut self,
         message: game_record::Message,
-        context: Self::Context<'_>,
+        (tournament, _): Self::Context<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         self.game_record
-            .update(message, context)?
+            .update(message, tournament)?
             .map(|message| match message {
                 game_record::OutMessage::SubmitRecord(game_record) => {
                     Effect::out(OutMessage::RegisterRecord(game_record))
@@ -103,8 +115,9 @@ impl HandleMessage<ranking::Message> for State {
         message: ranking::Message,
         context: Self::Context<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
+        let (tournament, _) = context;
         self.ranking
-            .update(message, context)?
+            .update(message, tournament)?
             .map(|message| match message {
                 ranking::OutMessage::LoadGame(players) => {
                     self.handle_message(game_record::Message::SetPlayers(players), context)

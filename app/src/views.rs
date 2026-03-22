@@ -20,7 +20,7 @@ pub enum View {
 impl ComponentView for App {
     fn view<'a>(&'a self, (): Self::Context<'a>) -> iced::Element<'a, Self::Message> {
         self.views.last().map_or_else(
-            || self.home.view_into(&self.tournament),
+            || self.home.view_into((&self.tournament, &self.file)),
             |view| match view {
                 View::Error(error) => error.view_into(()),
                 View::PlayerDetails(state) => state.view_into(&self.tournament),
