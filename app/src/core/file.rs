@@ -95,12 +95,17 @@ impl HandleMessage<FileAction> for App {
             FileAction::FileOpened(path, tournament) => {
                 self.tournament = *tournament;
                 self.file = Some(path.clone());
+                self.modified = false;
                 self.handle_message(
                     crate::core::settings::AppSettingsMsg::SetOpenedFile(path),
                     (),
                 )
             }
-            FileAction::Cancelled | FileAction::FileSaved => Effect::done(),
+            FileAction::FileSaved => {
+                self.modified = false;
+                Effect::done()
+            }
+            FileAction::Cancelled => Effect::done(),
         }
     }
 }
