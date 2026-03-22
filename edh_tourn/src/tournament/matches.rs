@@ -47,7 +47,12 @@ impl Tournament {
         let sum_wr = id_stats.iter().map(|p| p.scaled_wr).sum::<f64>();
         let sum_elo = id_stats.iter().map(|p| p.scaled_elo).sum::<f64>();
 
-        let weight_total = config.game_wr_weight + config.game_elo_weight;
+        let wr_weight = if sum_wr > 0.0 {
+            config.game_wr_weight
+        } else {
+            0.0
+        };
+        let weight_total = wr_weight + config.game_elo_weight;
         let coef_wr = if sum_wr > 0.0 {
             config.game_wr_weight / (weight_total * sum_wr)
         } else {
