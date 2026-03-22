@@ -9,9 +9,8 @@ use iced::{
 use iced_aw::{TabBar, TabLabel};
 
 use crate::{
-    traits::ComponentView,
-    views::player_details::{
-        Message, StatsTab,
+    player_details::{
+        PlayerDetailsMsg, StatsTab,
         view::{
             info::view_info_panel,
             stats::{
@@ -20,9 +19,10 @@ use crate::{
             },
         },
     },
+    traits::ComponentView,
 };
 
-impl ComponentView for super::State {
+impl ComponentView for super::PlayerDetails {
     type ViewContext<'a>
         = &'a Tournament
     where
@@ -47,9 +47,10 @@ impl ComponentView for super::State {
                 stats_summary(context.get_player_or_default_stats(id)),
                 StatsTab::VALUES
                     .into_iter()
-                    .fold(TabBar::new(super::Message::SetStatsTab), |tab_bar, tab| {
-                        tab_bar.push(tab, TabLabel::Text(format!("{tab}")))
-                    })
+                    .fold(
+                        TabBar::new(super::PlayerDetailsMsg::SetStatsTab),
+                        |tab_bar, tab| { tab_bar.push(tab, TabLabel::Text(format!("{tab}"))) }
+                    )
                     .set_active_tab(&self.stats),
                 match self.stats {
                     StatsTab::Games => stats_game_history(context, id),
@@ -75,11 +76,11 @@ impl ComponentView for super::State {
             self.id.is_some().then_some(
                 button("Delete")
                     .style(button::danger)
-                    .on_press(Message::DeletePlayer)
+                    .on_press(PlayerDetailsMsg::DeletePlayer)
             ),
             space().width(Length::Fill),
-            button("Close").on_press(Message::Close),
-            button("Save").on_press(Message::SaveAndClose)
+            button("Close").on_press(PlayerDetailsMsg::Close),
+            button("Save").on_press(PlayerDetailsMsg::SaveAndClose)
         ]
         .spacing(20);
 

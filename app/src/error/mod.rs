@@ -7,21 +7,21 @@ use iced::{
 use crate::traits::{Component, ComponentUpdate, ComponentView, Effect};
 
 #[derive(Debug, Clone, derive_more::Constructor)]
-pub struct State {
+pub struct Error {
     message: String,
 }
 
 #[derive(Debug, Clone)]
-pub enum Message {
+pub enum ErrorMsg {
     CloseError,
 }
 
-impl Component for State {
-    type OutMessage = Message;
-    type Message = Message;
+impl Component for Error {
+    type OutMessage = ErrorMsg;
+    type Message = ErrorMsg;
 }
 
-impl ComponentUpdate for State {
+impl ComponentUpdate for Error {
     type UpdateContext<'a> = ();
     fn update(
         &mut self,
@@ -32,7 +32,7 @@ impl ComponentUpdate for State {
     }
 }
 
-impl ComponentView for State {
+impl ComponentView for Error {
     type ViewContext<'a> = ();
     fn view<'a>(&'a self, (): Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
         let title = text("An Error Occurred").size(24);
@@ -40,7 +40,7 @@ impl ComponentView for State {
 
         let close_button = button(text("Close").align_x(Horizontal::Center))
             .padding([8, 16])
-            .on_press(Message::CloseError);
+            .on_press(ErrorMsg::CloseError);
 
         container(
             column![title, message, close_button]

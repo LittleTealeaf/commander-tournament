@@ -10,7 +10,7 @@ use crate::{
 };
 
 #[derive(Debug, Clone)]
-pub struct State {
+pub struct PlayerDetails {
     id: Option<u32>,
     initial_name: String,
     info: PlayerInfo,
@@ -35,7 +35,7 @@ impl StatsTab {
 }
 
 #[derive(Debug, Clone)]
-pub enum Message {
+pub enum PlayerDetailsMsg {
     SaveAndClose,
     Close,
     SetName(String),
@@ -51,14 +51,11 @@ pub enum Message {
 }
 
 #[derive(Debug)]
-pub enum OutMessage {
-    OpenPlayer(u32),
-    SaveAndClose(Option<u32>, PlayerInfo),
-    DeletePlayer(u32),
+pub enum PlayerDetailsOut {
     Close,
 }
 
-impl State {
+impl PlayerDetails {
     #[must_use]
     pub fn new(player: Option<RegisteredPlayer<'_>>) -> Self {
         let id = player.as_ref().map(RegisteredPlayer::id);
@@ -80,7 +77,7 @@ impl State {
     }
 }
 
-impl Component for State {
-    type Message = Message;
-    type OutMessage = OutMessage;
+impl Component for PlayerDetails {
+    type Message = PlayerDetailsMsg;
+    type OutMessage = PlayerDetailsOut;
 }

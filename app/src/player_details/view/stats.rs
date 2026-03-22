@@ -16,9 +16,9 @@ use iced::{
 };
 use itertools::Itertools;
 
-use crate::{style::default_font, views::player_details::Message};
+use crate::{player_details::PlayerDetailsMsg, style::default_font};
 
-pub fn stats_summary(stats: &PlayerStats) -> Container<'_, Message> {
+pub fn stats_summary(stats: &PlayerStats) -> Container<'_, PlayerDetailsMsg> {
     container(
         row![
             column![
@@ -47,7 +47,7 @@ pub fn stats_summary(stats: &PlayerStats) -> Container<'_, Message> {
 pub fn stats_game_history(
     tournament: &Tournament,
     id: u32,
-) -> Option<Container<'_, super::Message>> {
+) -> Option<Container<'_, super::PlayerDetailsMsg>> {
     let column_game = |game: &GameRecord| {
         column(game.players().iter().map(|player| {
             let elo = player.stats().elo().round();
@@ -65,7 +65,7 @@ pub fn stats_game_history(
             )
             .padding(Padding::new(0.0))
             .style(button::text)
-            .on_press(Message::SelectPlayerReference(player.id()))
+            .on_press(PlayerDetailsMsg::SelectPlayerReference(player.id()))
             .into()
         }))
     };
@@ -117,23 +117,25 @@ pub fn stats_game_history(
 
 fn col_losses<'a, T: 'a>(
     (_, performance): (T, MatchPerformance),
-) -> impl Into<Element<'a, super::Message>> {
+) -> impl Into<Element<'a, super::PlayerDetailsMsg>> {
     text(format!("{}", performance.losses()))
 }
 
 fn col_draws<'a, T: 'a>(
     (_, performance): (T, MatchPerformance),
-) -> impl Into<Element<'a, super::Message>> {
+) -> impl Into<Element<'a, super::PlayerDetailsMsg>> {
     text(format!("{}", performance.draws()))
 }
 
 fn col_wins<'a, T: 'a>(
     (_, performance): (T, MatchPerformance),
-) -> impl Into<Element<'a, super::Message>> {
+) -> impl Into<Element<'a, super::PlayerDetailsMsg>> {
     text(format!("{}", performance.wins()))
 }
 
-fn table_wrapper(table: table::Table<'_, super::Message>) -> Container<'_, super::Message> {
+fn table_wrapper(
+    table: table::Table<'_, super::PlayerDetailsMsg>,
+) -> Container<'_, super::PlayerDetailsMsg> {
     container(
         scrollable(table.width(Length::Fill))
             .width(Length::Fill)
@@ -144,7 +146,7 @@ fn table_wrapper(table: table::Table<'_, super::Message>) -> Container<'_, super
 pub fn stats_player_matchups(
     tournament: &Tournament,
     id: u32,
-) -> Option<Container<'_, super::Message>> {
+) -> Option<Container<'_, super::PlayerDetailsMsg>> {
     type RowType<'a> = (RegisteredPlayer<'a>, MatchPerformance);
 
     let matchups = tournament
@@ -161,7 +163,7 @@ pub fn stats_player_matchups(
         button(text(player.info().name().to_owned()))
             .style(button::text)
             .padding(Padding::new(0.0))
-            .on_press(super::Message::SelectPlayerReference(player.id()))
+            .on_press(super::PlayerDetailsMsg::SelectPlayerReference(player.id()))
     };
 
     let col_identity = |(player, _): RowType| text(player.info().color_identity().to_string());
@@ -181,7 +183,7 @@ pub fn stats_player_matchups(
 pub fn stats_identity_matchups(
     tournament: &Tournament,
     id: u32,
-) -> Option<Container<'_, super::Message>> {
+) -> Option<Container<'_, super::PlayerDetailsMsg>> {
     type RowType = (ColorIdentity, MatchPerformance);
     let matchups = tournament
         .get_player_identity_match_performance(id)
@@ -213,7 +215,7 @@ pub fn stats_identity_matchups(
 pub fn stats_color_matchups(
     tournament: &Tournament,
     id: u32,
-) -> Option<Container<'_, super::Message>> {
+) -> Option<Container<'_, super::PlayerDetailsMsg>> {
     type RowType = (MtgColor, MatchPerformance);
     let matchups = tournament
         .get_player_color_match_performance(id)
