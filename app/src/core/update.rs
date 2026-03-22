@@ -25,7 +25,7 @@ impl ComponentUpdate for App {
             Message::Settings(message) => self.handle_message(message, ()),
             Message::SettingsLoaded(maybe_settings) => {
                 let Some(settings) = maybe_settings else {
-                    return Effect::ok();
+                    return Effect::done();
                 };
                 let message = settings
                     .last_opened()
@@ -34,7 +34,7 @@ impl ComponentUpdate for App {
 
                 self.settings = Some(settings);
 
-                message.map_or_else(Effect::ok, |message| self.handle_message(message, ()))
+                message.map_or_else(Effect::done, |message| self.handle_message(message, ()))
             }
             Message::OnBoot => Effect::task(Task::perform(
                 async { AppSettings::load().await.ok() },
@@ -63,7 +63,7 @@ impl HandleMessage<home::Message> for App {
                     let player = id.and_then(|id| self.tournament.get_registered_player(id));
                     self.views
                         .push(View::PlayerDetails(player_details::State::new(player)));
-                    Effect::ok()
+                    Effect::done()
                 }
                 home::OutMessage::RegisterRecord(game_record) => {
                     self.handle_message(tournament::Action::Record(game_record), ())
@@ -71,7 +71,7 @@ impl HandleMessage<home::Message> for App {
                 home::OutMessage::MenuMessage(message) => match message {
                     home::menu::Message::New => {
                         self.tournament = Tournament::new();
-                        Effect::ok()
+                        Effect::done()
                     }
                     home::menu::Message::Open => {
                         self.handle_message(TournamentFileMessage::Open, ())
@@ -98,7 +98,7 @@ impl HandleMessage<crate::core::settings::Message> for App {
                 .handle_message(message, ())?
                 .map(|error| self.handle_message(Message::Error(error), ()))
         } else {
-            Effect::ok()
+            Effect::done()
         }
     }
 }
@@ -115,11 +115,11 @@ impl HandleMessage<error::Message> for App {
                 .map(|message| match message {
                     error::Message::CloseError => {
                         self.views.pop();
-                        Effect::ok()
+                        Effect::done()
                     }
                 })
         } else {
-            Effect::ok()
+            Effect::done()
         }
     }
 }
@@ -139,7 +139,7 @@ impl HandleMessage<player_details::Message> for App {
                             .push(View::PlayerDetails(player_details::State::new(
                                 self.tournament.get_registered_player(id),
                             )));
-                        Effect::ok()
+                        Effect::done()
                     }
                     player_details::OutMessage::SaveAndClose(maybe_id, info) => {
                         let effect = self.handle_message(
@@ -154,7 +154,7 @@ impl HandleMessage<player_details::Message> for App {
                     }
                     player_details::OutMessage::Close => {
                         self.views.pop();
-                        Effect::ok()
+                        Effect::done()
                     }
                     player_details::OutMessage::DeletePlayer(id) => {
                         let effect =
@@ -164,7 +164,7 @@ impl HandleMessage<player_details::Message> for App {
                     }
                 })
         } else {
-            Effect::ok()
+            Effect::done()
         }
     }
 }

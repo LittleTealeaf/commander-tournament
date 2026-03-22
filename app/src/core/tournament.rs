@@ -51,6 +51,6 @@ impl HandleMessage<Action> for App {
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         message.apply(&mut self.tournament)?;
-        Effect::ok()
+        Effect::done()
     }
 }

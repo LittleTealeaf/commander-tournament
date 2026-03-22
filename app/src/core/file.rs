@@ -32,7 +32,7 @@ impl HandleMessage<TournamentFileMessage> for App {
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
         match message {
-            TournamentFileMessage::New | TournamentFileMessage::None => Effect::ok(),
+            TournamentFileMessage::New | TournamentFileMessage::None => Effect::done(),
             TournamentFileMessage::Open => Effect::task(Task::perform(
                 AsyncFileDialog::new()
                     .add_filter("formats", &accepted_file_types())

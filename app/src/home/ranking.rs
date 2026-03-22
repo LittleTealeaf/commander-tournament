@@ -57,7 +57,7 @@ impl ComponentUpdate for State {
             Message::SelectPlayer(id) => {
                 context.require_id_registered(id)?;
                 self.player = Some(id);
-                Effect::ok()
+                Effect::done()
             }
             Message::AddTopThree => {
                 let Some(id) = self.player else {
@@ -71,7 +71,7 @@ impl ComponentUpdate for State {
             }
             Message::SetMethod(method) => {
                 self.method = method;
-                Effect::ok()
+                Effect::done()
             }
             Message::OpenPlayerDetails(id) => Effect::out(OutMessage::OpenPlayerDetails(id)),
         }

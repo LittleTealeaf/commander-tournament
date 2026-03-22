@@ -24,7 +24,7 @@ impl ComponentUpdate for super::State {
         match message {
             Message::SelectPlayerReference(id) => {
                 if Some(id) == self.id {
-                    Effect::ok()
+                    Effect::done()
                 } else {
                     Effect::out(OutMessage::OpenPlayer(id))
                 }
@@ -35,45 +35,45 @@ impl ComponentUpdate for super::State {
             }
             Message::SetName(name) => {
                 self.info.set_name(name);
-                Effect::ok()
+                Effect::done()
             }
             Message::EditDescription(action) => {
                 self.description.perform(action);
-                Effect::ok()
+                Effect::done()
             }
             Message::SetMoxfieldId(id) => {
                 self.info.set_moxfield_id(id.clone());
                 self.moxfield_id = id;
-                Effect::ok()
+                Effect::done()
             }
             Message::ToggleColor(mtg_color) => {
                 self.info.toggle_color(mtg_color);
-                Effect::ok()
+                Effect::done()
             }
             Message::SetStatsTab(stats_tab) => {
                 self.stats = stats_tab;
-                Effect::ok()
+                Effect::done()
             }
             Message::OpenLink(link) => {
                 open_browser(link)?;
-                Effect::ok()
+                Effect::done()
             }
             Message::Close => Effect::out(OutMessage::Close),
             Message::Dialog(message) => {
                 if let Some(dialog) = &mut self.prompt_confirm_delete {
                     return dialog.update(message, ())?.map(|message| match message {
                         crate::components::prompt::Message::Accept => {
-                            self.id.map_or_else(Effect::ok, |id| {
+                            self.id.map_or_else(Effect::done, |id| {
                                 Effect::out(OutMessage::DeletePlayer(id))
                             })
                         }
                         crate::components::prompt::Message::Cancel => {
                             self.prompt_confirm_delete = None;
-                            Effect::ok()
+                            Effect::done()
                         }
                     });
                 }
-                Effect::ok()
+                Effect::done()
             }
             Message::DeletePlayer => {
                 self.prompt_confirm_delete = Some(DialogPrompt::new(
@@ -83,7 +83,7 @@ impl ComponentUpdate for super::State {
                         self.initial_name
                     ),
                 ));
-                Effect::ok()
+                Effect::done()
             }
         }
     }

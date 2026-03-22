@@ -111,7 +111,7 @@ impl ComponentUpdate for State {
                         SortDirection::Descending
                     };
                 }
-                Effect::ok()
+                Effect::done()
             }
         }
     }

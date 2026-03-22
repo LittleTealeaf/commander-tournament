@@ -133,25 +133,25 @@ impl ComponentUpdate for State {
                 self.player_c = Some(c);
                 self.player_d = Some(d);
                 self.update_matchup(context)?;
-                Effect::ok()
+                Effect::done()
             }
             Message::SetPlayer(position, value) => {
                 self.set_player(position, value);
                 self.update_matchup(context)?;
-                Effect::ok()
+                Effect::done()
             }
             Message::SetWinner(value) => {
                 self.winner = value;
-                Effect::ok()
+                Effect::done()
             }
             Message::AddPlayer(player) => {
                 self.add_player(player);
                 self.update_matchup(context)?;
-                Effect::ok()
+                Effect::done()
             }
             Message::SubmitGame => {
                 let (Some(matchup), Some(winner)) = (&self.matchup, self.winner) else {
-                    return Effect::ok();
+                    return Effect::done();
                 };
 
                 let record = matchup.clone().record(winner)?;
@@ -162,7 +162,7 @@ impl ComponentUpdate for State {
             }
             Message::Clear => {
                 *self = Self::default();
-                Effect::ok()
+                Effect::done()
             }
             Message::OpenLink(link) => Effect::task(Task::future(async {
                 let _ = open_link(link).await;
@@ -174,7 +174,7 @@ impl ComponentUpdate for State {
                 }
                 Message::Nothing
             })),
-            Message::Nothing => Effect::ok(),
+            Message::Nothing => Effect::done(),
         }
     }
 }

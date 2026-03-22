@@ -132,7 +132,7 @@ impl ComponentUpdate for AppSettings {
             }
             Message::IsSaved => {
                 self.is_saving = false;
-                Effect::ok()
+                Effect::done()
             }
             Message::SetOpenedFile(path_buf) => {
                 self.set_last_opened(path_buf);
@@ -142,7 +142,7 @@ impl ComponentUpdate for AppSettings {
                 self.clear_last_opened();
                 self.handle_message(Message::Save, ())
             }
-            Message::Nothing => Effect::ok(),
+            Message::Nothing => Effect::done(),
             Message::Error(error) => Effect::out(error),
         }
     }
