@@ -2,7 +2,7 @@ use edh_tourn::player::color::MtgColor;
 use iced::widget::{button, column, container, row, text, text_editor, text_input};
 use nerd_font_symbols::md::MD_LINK_VARIANT;
 
-use crate::views::player_details::{Message, State};
+use crate::player_details::{Message, State};
 
 pub fn view_info_panel(state: &State) -> iced::widget::Container<'_, super::Message> {
     let edit_name = text_input("Player Name...", state.info.name()).on_input(Message::SetName);

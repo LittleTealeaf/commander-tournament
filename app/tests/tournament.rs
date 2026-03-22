@@ -1,4 +1,4 @@
-use app::message::tournament::Action;
+use app::core::tournament::Action;
 use approx::assert_relative_eq;
 use edh_tourn::{
     game::{entry::GameEntry, record::GameRecord},

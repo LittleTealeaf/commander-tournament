@@ -1,27 +1,29 @@
-pub mod file;
-pub mod tournament;
 use edh_tourn::tournament::Tournament;
 use iced::Task;
 
 use crate::{
     App,
-    message::file::TournamentFileMessage,
-    settings::AppSettings,
+    core::{
+        file::TournamentFileMessage,
+        settings::{self, AppSettings},
+        tournament,
+        view::View,
+    },
+    error, home, player_details,
     traits::{ComponentUpdate, Effect, HandleMessage},
-    views::{self, View, error, home, player_details},
 };
 
 #[derive(Debug, Clone, derive_more::From)]
 pub enum Message {
     OnBoot,
-    Settings(crate::settings::Message),
+    Settings(settings::Message),
     SettingsLoaded(Option<AppSettings>),
     Tournament(tournament::Action),
     TournFile(TournamentFileMessage),
     Error(String),
     ViewHome(home::Message),
-    ViewError(views::error::Message),
-    ViewPlayer(views::player_details::Message),
+    ViewError(error::Message),
+    ViewPlayer(player_details::Message),
 }
 
 impl App {
@@ -113,10 +115,10 @@ impl HandleMessage<home::Message> for App {
     }
 }
 
-impl HandleMessage<crate::settings::Message> for App {
+impl HandleMessage<crate::core::settings::Message> for App {
     fn handle_message(
         &mut self,
-        message: crate::settings::Message,
+        message: crate::core::settings::Message,
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         if let Some(settings) = &mut self.settings {
@@ -129,17 +131,17 @@ impl HandleMessage<crate::settings::Message> for App {
     }
 }
 
-impl HandleMessage<views::error::Message> for App {
+impl HandleMessage<error::Message> for App {
     fn handle_message(
         &mut self,
-        message: views::error::Message,
+        message: error::Message,
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         if let Some(View::Error(state)) = self.views.last_mut() {
             state
                 .handle_message(message, ())?
                 .map(|message| match message {
-                    views::error::Message::CloseError => {
+                    error::Message::CloseError => {
                         self.views.pop();
                         Effect::ok()
                     }
@@ -150,10 +152,10 @@ impl HandleMessage<views::error::Message> for App {
     }
 }
 
-impl HandleMessage<views::player_details::Message> for App {
+impl HandleMessage<player_details::Message> for App {
     fn handle_message(
         &mut self,
-        message: views::player_details::Message,
+        message: player_details::Message,
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         if let Some(View::PlayerDetails(state)) = self.views.last_mut() {

@@ -1,10 +1,11 @@
 pub mod components;
-pub mod message;
-pub mod services;
-pub mod settings;
+pub mod core;
+pub mod error;
 pub mod style;
+pub mod home;
+pub mod player_details;
+pub mod services;
 pub mod traits;
-pub mod views;
 
 use std::path::PathBuf;
 
@@ -12,10 +13,8 @@ use edh_tourn::tournament::Tournament;
 use iced::Task;
 
 use crate::{
-    message::Message,
-    settings::AppSettings,
+    core::{message::Message, settings::AppSettings, view::View},
     traits::Component,
-    views::{View, home},
 };
 
 #[derive(Debug, Default)]

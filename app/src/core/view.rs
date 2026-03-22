@@ -1,8 +1,4 @@
-use crate::{App, message::Message, traits::ComponentView};
-
-pub mod error;
-pub mod home;
-pub mod player_details;
+use crate::{App, core::message::Message, error, player_details, traits::ComponentView};
 
 impl App {
     #[must_use]

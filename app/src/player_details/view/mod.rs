@@ -10,7 +10,7 @@ use iced_aw::{TabBar, TabLabel};
 
 use crate::{
     traits::ComponentView,
-    views::player_details::{
+    player_details::{
         Message, StatsTab,
         view::{
             info::view_info_panel,
