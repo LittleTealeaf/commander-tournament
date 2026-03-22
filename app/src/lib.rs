@@ -1,10 +1,10 @@
 pub mod components;
 pub mod core;
 pub mod error;
-pub mod style;
 pub mod home;
 pub mod player_details;
 pub mod services;
+pub mod style;
 pub mod traits;
 
 use std::path::PathBuf;

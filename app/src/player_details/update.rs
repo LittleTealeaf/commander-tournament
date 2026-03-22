@@ -2,8 +2,8 @@ use opener::open_browser;
 
 use crate::{
     components::prompt::{self, DialogPrompt},
-    traits::{ComponentUpdate, Effect},
     player_details::OutMessage,
+    traits::{ComponentUpdate, Effect},
 };
 
 use super::Message;

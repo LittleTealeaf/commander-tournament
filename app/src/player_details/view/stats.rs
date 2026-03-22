@@ -16,7 +16,7 @@ use iced::{
 };
 use itertools::Itertools;
 
-use crate::{style::default_font, player_details::Message};
+use crate::{player_details::Message, style::default_font};
 
 pub fn stats_summary(stats: &PlayerStats) -> Container<'_, Message> {
     container(

@@ -9,7 +9,6 @@ use iced::{
 use iced_aw::{TabBar, TabLabel};
 
 use crate::{
-    traits::ComponentView,
     player_details::{
         Message, StatsTab,
         view::{
@@ -20,6 +19,7 @@ use crate::{
             },
         },
     },
+    traits::ComponentView,
 };
 
 impl ComponentView for super::State {
