@@ -16,13 +16,8 @@ pub enum Message {
     CloseError,
 }
 
-#[derive(Debug)]
-pub enum OutMessage {
-    Close,
-}
-
 impl Component for State {
-    type OutMessage = OutMessage;
+    type OutMessage = Message;
     type Context<'a> = ();
     type Message = Message;
 }
@@ -33,9 +28,7 @@ impl ComponentUpdate for State {
         message: Self::Message,
         (): Self::Context<'_>,
     ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
-        match message {
-            Message::CloseError => Effect::out(OutMessage::Close),
-        }
+        Effect::out(message)
     }
 }
 

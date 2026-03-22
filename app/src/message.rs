@@ -138,7 +138,7 @@ impl HandleMessage<views::error::Message> for App {
             state
                 .handle_message(message, ())?
                 .map(|message| match message {
-                    views::error::OutMessage::Close => {
+                    views::error::Message::CloseError => {
                         self.views.pop();
                         Effect::ok()
                     }
