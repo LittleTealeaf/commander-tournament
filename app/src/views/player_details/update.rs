@@ -1,11 +1,18 @@
 use opener::open_browser;
 
 use crate::{
+    components::prompt::{self, DialogPrompt},
     traits::{ComponentUpdate, Effect},
     views::player_details::OutMessage,
 };
 
 use super::Message;
+
+impl From<prompt::Message> for super::Message {
+    fn from(value: prompt::Message) -> Self {
+        Self::Dialog(value)
+    }
+}
 
 impl ComponentUpdate for super::State {
     fn update(
@@ -51,6 +58,32 @@ impl ComponentUpdate for super::State {
                 Effect::ok()
             }
             Message::Close => Effect::out(OutMessage::Close),
+            Message::Dialog(message) => {
+                if let Some(dialog) = &mut self.prompt_confirm_delete {
+                    return dialog.update(message, ())?.map(|message| match message {
+                        crate::components::prompt::Message::Accept => {
+                            self.id.map_or_else(Effect::ok, |id| {
+                                Effect::out(OutMessage::DeletePlayer(id))
+                            })
+                        }
+                        crate::components::prompt::Message::Cancel => {
+                            self.prompt_confirm_delete = None;
+                            Effect::ok()
+                        }
+                    });
+                }
+                Effect::ok()
+            }
+            Message::DeletePlayer => {
+                self.prompt_confirm_delete = Some(DialogPrompt::new(
+                    format!("Delete {}?", self.initial_name),
+                    format!(
+                        "Are you sure you want to delete {} and all games they were a part of?",
+                        self.initial_name
+                    ),
+                ));
+                Effect::ok()
+            }
         }
     }
 }

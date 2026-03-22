@@ -112,28 +112,24 @@ impl HandleMessage<crate::settings::Message> for App {
     }
 }
 
-macro_rules! handle_view {
-    ($self: ident, $variant:ident, $state:ident, $msg:expr, $ctx:expr, $mapper:expr) => {
-        if let Some(View::$variant($state)) = $self.views.last_mut() {
-            $state.handle_message($msg, $ctx)?.map($mapper)
-        } else {
-            Effect::ok()
-        }
-    };
-}
-
 impl HandleMessage<views::error::Message> for App {
     fn handle_message(
         &mut self,
         message: views::error::Message,
         (): Self::Context<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
-        handle_view!(self, Error, state, message, (), |message| match message {
-            views::error::OutMessage::Close => {
-                self.views.pop();
-                Effect::ok()
-            }
-        })
+        if let Some(View::Error(state)) = self.views.last_mut() {
+            state
+                .handle_message(message, ())?
+                .map(|message| match message {
+                    views::error::OutMessage::Close => {
+                        self.views.pop();
+                        Effect::ok()
+                    }
+                })
+        } else {
+            Effect::ok()
+        }
     }
 }
 
@@ -143,36 +139,41 @@ impl HandleMessage<views::player_details::Message> for App {
         message: views::player_details::Message,
         (): Self::Context<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
-        handle_view!(
-            self,
-            PlayerDetails,
-            state,
-            message,
-            &self.tournament,
-            |message| match message {
-                views::player_details::OutMessage::OpenPlayer(id) => {
-                    self.views
-                        .push(View::PlayerDetails(player_details::State::new(
-                            self.tournament.get_registered_player(id),
-                        )));
-                    Effect::ok()
-                }
-                views::player_details::OutMessage::SaveAndClose(maybe_id, info) => {
-                    let effect = self.handle_message(
-                        match maybe_id {
-                            Some(id) => tournament::Action::SetPlayerInfo(id, info),
-                            None => tournament::Action::Register(info),
-                        },
-                        (),
-                    )?;
-                    self.views.pop();
-                    Ok(effect)
-                }
-                views::player_details::OutMessage::Close => {
-                    self.views.pop();
-                    Effect::ok()
-                }
-            }
-        )
+        if let Some(View::PlayerDetails(state)) = self.views.last_mut() {
+            state
+                .handle_message(message, &self.tournament)?
+                .map(|message| match message {
+                    player_details::OutMessage::OpenPlayer(id) => {
+                        self.views
+                            .push(View::PlayerDetails(player_details::State::new(
+                                self.tournament.get_registered_player(id),
+                            )));
+                        Effect::ok()
+                    }
+                    player_details::OutMessage::SaveAndClose(maybe_id, info) => {
+                        let effect = self.handle_message(
+                            match maybe_id {
+                                Some(id) => tournament::Action::SetPlayerInfo(id, info),
+                                None => tournament::Action::Register(info),
+                            },
+                            (),
+                        )?;
+                        self.views.pop();
+                        Ok(effect)
+                    }
+                    player_details::OutMessage::Close => {
+                        self.views.pop();
+                        Effect::ok()
+                    }
+                    player_details::OutMessage::DeletePlayer(id) => {
+                        let effect =
+                            self.handle_message(tournament::Action::DeletePlayer(id), ())?;
+                        self.views.pop();
+                        Ok(effect)
+                    }
+                })
+        } else {
+            Effect::ok()
+        }
     }
 }

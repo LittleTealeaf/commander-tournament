@@ -22,7 +22,7 @@ fn get_config_path() -> Option<PathBuf> {
     Some(path)
 }
 
-#[cfg(feature="dev")]
+#[cfg(feature = "dev")]
 #[must_use]
 pub fn debug_config_path() -> Option<PathBuf> {
     get_config_path()
@@ -50,13 +50,13 @@ pub enum Message {
 impl AppSettings {
     pub async fn load() -> anyhow::Result<Self> {
         let path = {
-            #[cfg(feature="dev")]
+            #[cfg(feature = "dev")]
             {
                 tempfile::NamedTempFile::with_suffix(".ron")?
                     .path()
                     .to_path_buf()
             }
-            #[cfg(not(feature="dev"))]
+            #[cfg(not(feature = "dev"))]
             {
                 get_config_path()
                     .ok_or_else(|| anyhow::anyhow!("Could not file app config path"))?
@@ -98,7 +98,7 @@ impl AppSettings {
         self.last_opened = Some(last_opened);
     }
 
-    #[cfg(feature="dev")]
+    #[cfg(feature = "dev")]
     #[must_use]
     pub const fn settings_loc(&self) -> &PathBuf {
         &self.save_path

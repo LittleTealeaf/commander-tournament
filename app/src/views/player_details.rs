@@ -7,7 +7,10 @@ use edh_tourn::{
 };
 use iced::widget::text_editor;
 
-use crate::traits::Component;
+use crate::{
+    components::prompt::{self, DialogPrompt},
+    traits::Component,
+};
 
 #[derive(Debug, Clone)]
 pub struct State {
@@ -18,6 +21,7 @@ pub struct State {
     modified: bool,
     description: text_editor::Content,
     stats: StatsTab,
+    prompt_confirm_delete: Option<DialogPrompt>,
 }
 
 #[derive(Copy, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord, derive_more::Display)]
@@ -44,12 +48,16 @@ pub enum Message {
     SetStatsTab(StatsTab),
     SelectPlayerReference(u32),
     OpenLink(String),
+    /// Opens the dialog to delete the player
+    DeletePlayer,
+    Dialog(prompt::Message),
 }
 
 #[derive(Debug)]
 pub enum OutMessage {
     OpenPlayer(u32),
     SaveAndClose(Option<u32>, PlayerInfo),
+    DeletePlayer(u32),
     Close,
 }
 
@@ -70,6 +78,7 @@ impl State {
             description,
             stats: StatsTab::Games,
             modified: false,
+            prompt_confirm_delete: None,
         }
     }
 }

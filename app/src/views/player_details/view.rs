@@ -23,6 +23,10 @@ use crate::{
 
 impl ComponentView for super::State {
     fn view<'a>(&'a self, context: Self::Context<'a>) -> iced::Element<'a, Self::Message> {
+        if let Some(prompt) = &self.prompt_confirm_delete {
+            return prompt.view_into(());
+        }
+
         let title_text = if self.id.is_none() {
             "Create New Player".to_owned()
         } else {
@@ -63,9 +67,11 @@ impl ComponentView for super::State {
         });
 
         let bottom_row = row![
-            self.id
-                .is_some()
-                .then_some(button("Delete").style(button::danger)),
+            self.id.is_some().then_some(
+                button("Delete")
+                    .style(button::danger)
+                    .on_press(Message::DeletePlayer)
+            ),
             space().width(Length::Fill),
             button("Close").on_press(Message::Close),
             button("Save").on_press(Message::SaveAndClose)
