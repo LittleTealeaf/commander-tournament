@@ -2,10 +2,7 @@ use iced::Task;
 
 use crate::{
     App,
-    core::{
-        file::FileAction, message::Message, settings::AppSettings, tournament,
-        view::View,
-    },
+    core::{file::FileAction, message::Message, settings::AppSettings, tournament, view::View},
     error, home, player_details,
     traits::{ComponentUpdate, Effect, HandleMessage},
 };
