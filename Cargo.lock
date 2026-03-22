@@ -111,32 +111,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "app_old"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "app_old",
- "appconfig",
- "approx",
- "async-fs",
- "directories",
- "edh_tourn",
- "iced",
- "iced_aw",
- "itertools",
- "nerd-font-symbols",
- "opener",
- "rfd",
- "ron",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "toml 1.0.7+spec-1.1.0",
-]
-
-[[package]]
 name = "appconfig"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
