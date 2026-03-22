@@ -100,7 +100,6 @@ where
     let serialized = serialize_by_extension(data, extension)?;
 
     if let Some(parent) = path.parent()
-        && !fs::exists(parent)?
     {
         async_fs::create_dir_all(parent).await?;
     }
