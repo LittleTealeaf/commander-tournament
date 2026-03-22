@@ -43,4 +43,3 @@ impl ComponentView for State {
         .into()
     }
 }
-
