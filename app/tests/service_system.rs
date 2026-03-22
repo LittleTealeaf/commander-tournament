@@ -3,6 +3,11 @@ use serde::{Deserialize, Serialize};
 use std::path::Path;
 use tempfile::tempdir;
 
+#[test]
+fn project_dir_exists() {
+    project_dir().unwrap();
+}
+
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 struct TestData {
     name: String,

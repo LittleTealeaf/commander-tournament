@@ -1,11 +1,9 @@
 use iced::Task;
 use std::path::PathBuf;
 
-use directories::ProjectDirs;
-
 use crate::{
     core::message::Message,
-    services::system::{load_from_file_async, save_file_async},
+    services::system::{load_from_file_async, project_dir, save_file_async},
     traits::{Component, ComponentUpdate, Effect, HandleMessage},
 };
 
@@ -13,31 +11,31 @@ const QUALIFIER: &str = "io.github.littletealeaf";
 const ORGANIZATION: &str = "LittleTealeaf";
 const APPLICATION: &str = "commander-tournament";
 
-fn get_project_dir() -> Option<ProjectDirs> {
-    ProjectDirs::from(QUALIFIER, ORGANIZATION, APPLICATION)
-}
-
-fn get_config_path() -> Option<PathBuf> {
-    let project_dir = get_project_dir()?;
-    let path = project_dir.config_dir().join("config.ron");
-    Some(path)
+fn get_state_path() -> Option<PathBuf> {
+    let project = project_dir()?;
+    Some(
+        project
+            .state_dir()
+            .unwrap_or_else(|| project.data_dir())
+            .to_path_buf(),
+    )
 }
 
 #[cfg(feature = "dev")]
 #[must_use]
 pub fn debug_config_path() -> Option<PathBuf> {
-    get_config_path()
+    get_state_path()
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
-pub struct AppSettings {
+pub struct AppState {
     #[serde(skip)]
     save_path: PathBuf,
     #[serde(skip)]
     is_saving: bool,
     last_opened: Option<PathBuf>,
 }
-impl AppSettings {
+impl AppState {
     pub async fn load() -> anyhow::Result<Self> {
         let path = {
             #[cfg(feature = "dev")]
@@ -48,8 +46,7 @@ impl AppSettings {
             }
             #[cfg(not(feature = "dev"))]
             {
-                get_config_path()
-                    .ok_or_else(|| anyhow::anyhow!("Could not file app config path"))?
+                get_state_path().ok_or_else(|| anyhow::anyhow!("Could not file app config path"))?
             }
         };
         let config = Self::load_from_path_or_default(path).await;
@@ -96,7 +93,7 @@ impl AppSettings {
 }
 
 #[derive(Debug, Clone)]
-pub enum AppSettingsMsg {
+pub enum AppStateMsg {
     Save,
     IsSaved,
     SetOpenedFile(PathBuf),
@@ -105,12 +102,12 @@ pub enum AppSettingsMsg {
     Nothing,
 }
 
-impl Component for AppSettings {
-    type Message = AppSettingsMsg;
+impl Component for AppState {
+    type Message = AppStateMsg;
     type OutMessage = ();
 }
 
-impl ComponentUpdate for AppSettings {
+impl ComponentUpdate for AppState {
     type UpdateContext<'a> = ();
     fn update(
         &mut self,
@@ -118,32 +115,32 @@ impl ComponentUpdate for AppSettings {
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
         match message {
-            AppSettingsMsg::Save => {
+            AppStateMsg::Save => {
                 self.is_saving = true;
                 let settings = self.clone();
                 let future = async move {
                     match settings.save().await {
-                        Ok(()) => AppSettingsMsg::IsSaved,
-                        Err(error) => AppSettingsMsg::Error(error.to_string()),
+                        Ok(()) => AppStateMsg::IsSaved,
+                        Err(error) => AppStateMsg::Error(error.to_string()),
                     }
                 };
                 let task = Task::future(future);
                 Effect::task(task)
             }
-            AppSettingsMsg::IsSaved => {
+            AppStateMsg::IsSaved => {
                 self.is_saving = false;
                 Effect::done()
             }
-            AppSettingsMsg::SetOpenedFile(path_buf) => {
+            AppStateMsg::SetOpenedFile(path_buf) => {
                 self.set_last_opened(path_buf);
-                self.handle_message(AppSettingsMsg::Save, ())
+                self.handle_message(AppStateMsg::Save, ())
             }
-            AppSettingsMsg::ClearOpenedFile => {
+            AppStateMsg::ClearOpenedFile => {
                 self.clear_last_opened();
-                self.handle_message(AppSettingsMsg::Save, ())
+                self.handle_message(AppStateMsg::Save, ())
             }
-            AppSettingsMsg::Nothing => Effect::done(),
-            AppSettingsMsg::Error(error) => Effect::global(Message::Error(error)),
+            AppStateMsg::Nothing => Effect::done(),
+            AppStateMsg::Error(error) => Effect::global(Message::Error(error)),
         }
     }
 }
@@ -153,19 +150,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn project_dir_exists() {
-        get_project_dir().unwrap();
-    }
-
-    #[test]
     fn config_path_exists() {
-        get_config_path().unwrap();
+        get_state_path().unwrap();
     }
 
     #[tokio::test]
     async fn testing_uses_non_system_config_path() {
-        let system_path = get_config_path().unwrap();
-        let settings = AppSettings::load().await.unwrap();
+        let system_path = get_state_path().unwrap();
+        let settings = AppState::load().await.unwrap();
         assert_ne!(system_path, settings.save_path);
     }
 }

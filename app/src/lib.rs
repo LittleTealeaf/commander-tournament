@@ -13,7 +13,7 @@ use edh_tourn::tournament::Tournament;
 use iced::Task;
 
 use crate::{
-    core::{message::Message, settings::AppSettings, view::View},
+    core::{message::Message, settings::AppState, view::View},
     traits::Component,
 };
 
@@ -26,7 +26,7 @@ pub struct App {
     error: Option<String>,
     file: Option<PathBuf>,
     views: Vec<View>,
-    settings: Option<AppSettings>,
+    settings: Option<AppState>,
 }
 
 impl App {

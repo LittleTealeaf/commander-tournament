@@ -5,7 +5,7 @@ use crate::{
     core::{
         file::FileAction,
         message::Message,
-        settings::{AppSettings, AppSettingsMsg},
+        settings::{AppState, AppStateMsg},
         view::View,
     },
     error::ErrorMsg,
@@ -42,7 +42,7 @@ impl ComponentUpdate for App {
                 message.map_or_else(Effect::done, |message| self.handle_message(message, ()))
             }
             Message::OnBoot => Effect::task(Task::perform(
-                async { AppSettings::load().await.ok() },
+                async { AppState::load().await.ok() },
                 Message::SettingsLoaded,
             )),
             Message::Tournament(action) => self.handle_message(action, ()),
@@ -79,10 +79,10 @@ impl HandleMessage<HomeMsg> for App {
     }
 }
 
-impl HandleMessage<AppSettingsMsg> for App {
+impl HandleMessage<AppStateMsg> for App {
     fn handle_message(
         &mut self,
-        message: AppSettingsMsg,
+        message: AppStateMsg,
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         if let Some(settings) = &mut self.settings {

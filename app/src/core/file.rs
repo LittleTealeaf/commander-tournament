@@ -97,7 +97,7 @@ impl HandleMessage<FileAction> for App {
                 self.file = Some(path.clone());
                 self.modified = false;
                 self.handle_message(
-                    crate::core::settings::AppSettingsMsg::SetOpenedFile(path),
+                    crate::core::settings::AppStateMsg::SetOpenedFile(path),
                     (),
                 )
             }

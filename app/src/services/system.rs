@@ -1,10 +1,20 @@
 use anyhow::anyhow;
+use directories::ProjectDirs;
 use std::{
     fs,
     path::{Path, PathBuf},
 };
 
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
+
+const QUALIFIER: &str = "io.github.littletealeaf";
+const ORGANIZATION: &str = "LittleTealeaf";
+const APPLICATION: &str = "commander-tournament";
+
+#[must_use]
+pub fn project_dir() -> Option<ProjectDirs> {
+    ProjectDirs::from(QUALIFIER, ORGANIZATION, APPLICATION)
+}
 
 #[must_use]
 pub fn accepted_file_types() -> Vec<&'static str> {

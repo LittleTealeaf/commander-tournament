@@ -44,6 +44,13 @@ where
         ))
     }
 
+    pub fn chain(self, other: anyhow::Result<Self>) -> anyhow::Result<Self> {
+        Ok(match (self, other?) {
+            (Self::Task(first), Self::Task(second)) => Self::Task(Task::batch([first, second])),
+            (first, second) => first.then(Ok(second))?,
+        })
+    }
+
     pub fn then(self, task: anyhow::Result<Self>) -> anyhow::Result<Self> {
         Ok(match (self, task?) {
             (Self::Done, other) | (other, Self::Done) => other,

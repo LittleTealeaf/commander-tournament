@@ -4,7 +4,7 @@ use crate::{
     App,
     core::{
         file::FileAction,
-        settings::{AppSettings, AppSettingsMsg},
+        settings::{AppState, AppStateMsg},
         tournament::TournamentAction,
         view::View,
     },
@@ -18,8 +18,8 @@ use crate::{
 pub enum Message {
     OnBoot,
     Nothing,
-    Settings(AppSettingsMsg),
-    SettingsLoaded(Option<AppSettings>),
+    Settings(AppStateMsg),
+    SettingsLoaded(Option<AppState>),
     Tournament(TournamentAction),
     TournFile(FileAction),
     OpenPlayerDetails(Option<u32>),
