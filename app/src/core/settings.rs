@@ -36,17 +36,6 @@ pub struct AppSettings {
     is_saving: bool,
     last_opened: Option<PathBuf>,
 }
-
-#[derive(Debug, Clone)]
-pub enum Message {
-    Save,
-    IsSaved,
-    SetOpenedFile(PathBuf),
-    ClearOpenedFile,
-    Error(String),
-    Nothing,
-}
-
 impl AppSettings {
     pub async fn load() -> anyhow::Result<Self> {
         let path = {
@@ -105,8 +94,18 @@ impl AppSettings {
     }
 }
 
+#[derive(Debug, Clone)]
+pub enum AppSettingsMsg {
+    Save,
+    IsSaved,
+    SetOpenedFile(PathBuf),
+    ClearOpenedFile,
+    Error(String),
+    Nothing,
+}
+
 impl Component for AppSettings {
-    type Message = Message;
+    type Message = AppSettingsMsg;
     type OutMessage = String;
 }
 
@@ -118,32 +117,32 @@ impl ComponentUpdate for AppSettings {
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
         match message {
-            Message::Save => {
+            AppSettingsMsg::Save => {
                 self.is_saving = true;
                 let settings = self.clone();
                 let future = async move {
                     match settings.save().await {
-                        Ok(()) => Message::IsSaved,
-                        Err(error) => Message::Error(error.to_string()),
+                        Ok(()) => AppSettingsMsg::IsSaved,
+                        Err(error) => AppSettingsMsg::Error(error.to_string()),
                     }
                 };
                 let task = Task::future(future);
                 Effect::task(task)
             }
-            Message::IsSaved => {
+            AppSettingsMsg::IsSaved => {
                 self.is_saving = false;
                 Effect::done()
             }
-            Message::SetOpenedFile(path_buf) => {
+            AppSettingsMsg::SetOpenedFile(path_buf) => {
                 self.set_last_opened(path_buf);
-                self.handle_message(Message::Save, ())
+                self.handle_message(AppSettingsMsg::Save, ())
             }
-            Message::ClearOpenedFile => {
+            AppSettingsMsg::ClearOpenedFile => {
                 self.clear_last_opened();
-                self.handle_message(Message::Save, ())
+                self.handle_message(AppSettingsMsg::Save, ())
             }
-            Message::Nothing => Effect::done(),
-            Message::Error(error) => Effect::out(error),
+            AppSettingsMsg::Nothing => Effect::done(),
+            AppSettingsMsg::Error(error) => Effect::out(error),
         }
     }
 }

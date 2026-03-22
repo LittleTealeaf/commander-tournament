@@ -2,8 +2,16 @@ use iced::Task;
 
 use crate::{
     App,
-    core::{file::FileAction, message::Message, settings::AppSettings, tournament, view::View},
-    error, home, player_details,
+    core::{
+        file::FileAction,
+        message::Message,
+        settings::{AppSettings, AppSettingsMsg},
+        tournament::TournamentAction,
+        view::View,
+    },
+    error::ErrorMsg,
+    home::{HomeMsg, HomeOut},
+    player_details::{PlayerDetails, PlayerDetailsMsg, PlayerDetailsOut},
     traits::{ComponentUpdate, Effect, HandleMessage},
 };
 
@@ -43,7 +51,7 @@ impl ComponentUpdate for App {
             Message::TournFile(message) => self.handle_message(message, ()),
             Message::Error(error) => Err(anyhow::anyhow!("{error}")),
             Message::OpenPlayerDetails(maybe_id) => {
-                self.push_view(player_details::State::new(
+                self.push_view(PlayerDetails::new(
                     maybe_id.and_then(|id| self.tournament().get_registered_player(id)),
                 ));
                 Effect::done()
@@ -52,26 +60,26 @@ impl ComponentUpdate for App {
     }
 }
 
-impl HandleMessage<home::Message> for App {
+impl HandleMessage<HomeMsg> for App {
     fn handle_message(
         &mut self,
-        message: home::Message,
+        message: HomeMsg,
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         self.home
             .handle_message(message, (&self.tournament, &self.file))?
             .map(|message| match message {
-                home::OutMessage::RegisterRecord(game_record) => {
-                    self.handle_message(tournament::Action::Record(game_record), ())
+                HomeOut::RegisterRecord(game_record) => {
+                    self.handle_message(TournamentAction::Record(game_record), ())
                 }
             })
     }
 }
 
-impl HandleMessage<crate::core::settings::Message> for App {
+impl HandleMessage<AppSettingsMsg> for App {
     fn handle_message(
         &mut self,
-        message: crate::core::settings::Message,
+        message: AppSettingsMsg,
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         if let Some(settings) = &mut self.settings {
@@ -84,17 +92,17 @@ impl HandleMessage<crate::core::settings::Message> for App {
     }
 }
 
-impl HandleMessage<error::Message> for App {
+impl HandleMessage<ErrorMsg> for App {
     fn handle_message(
         &mut self,
-        message: error::Message,
+        message: ErrorMsg,
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         if let Some(View::Error(state)) = self.views.last_mut() {
             state
                 .handle_message(message, ())?
                 .map(|message| match message {
-                    error::Message::CloseError => {
+                    ErrorMsg::CloseError => {
                         self.views.pop();
                         Effect::done()
                     }
@@ -105,41 +113,39 @@ impl HandleMessage<error::Message> for App {
     }
 }
 
-impl HandleMessage<player_details::Message> for App {
+impl HandleMessage<PlayerDetailsMsg> for App {
     fn handle_message(
         &mut self,
-        message: player_details::Message,
+        message: PlayerDetailsMsg,
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         if let Some(View::PlayerDetails(state)) = self.views.last_mut() {
             state
                 .handle_message(message, ())?
                 .map(|message| match message {
-                    player_details::OutMessage::OpenPlayer(id) => {
-                        self.views
-                            .push(View::PlayerDetails(player_details::State::new(
-                                self.tournament.get_registered_player(id),
-                            )));
+                    PlayerDetailsOut::OpenPlayer(id) => {
+                        self.views.push(View::PlayerDetails(PlayerDetails::new(
+                            self.tournament.get_registered_player(id),
+                        )));
                         Effect::done()
                     }
-                    player_details::OutMessage::SaveAndClose(maybe_id, info) => {
+                    PlayerDetailsOut::SaveAndClose(maybe_id, info) => {
                         let effect = self.handle_message(
                             match maybe_id {
-                                Some(id) => tournament::Action::SetPlayerInfo(id, info),
-                                None => tournament::Action::Register(info),
+                                Some(id) => TournamentAction::SetPlayerInfo(id, info),
+                                None => TournamentAction::Register(info),
                             },
                             (),
                         )?;
                         self.views.pop();
                         Ok(effect)
                     }
-                    player_details::OutMessage::Close => {
+                    PlayerDetailsOut::Close => {
                         self.views.pop();
                         Effect::done()
                     }
-                    player_details::OutMessage::DeletePlayer(id) => {
-                        let effect =
-                            self.handle_message(tournament::Action::DeletePlayer(id), ())?;
+                    PlayerDetailsOut::DeletePlayer(id) => {
+                        let effect = self.handle_message(TournamentAction::DeletePlayer(id), ())?;
                         self.views.pop();
                         Ok(effect)
                     }

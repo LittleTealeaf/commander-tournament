@@ -12,7 +12,7 @@ use crate::{
 };
 
 #[derive(Clone, Debug)]
-pub enum Action {
+pub enum TournamentAction {
     Register(PlayerInfo),
     SetPlayerInfo(u32, PlayerInfo),
     DeletePlayer(u32),
@@ -23,7 +23,7 @@ pub enum Action {
     SetRankingConfig(RankingConfig),
 }
 
-impl Action {
+impl TournamentAction {
     pub fn apply(self, tournament: &mut Tournament) -> Result<(), TournamentError> {
         match self {
             Self::Register(player_info) => {
@@ -44,10 +44,10 @@ impl Action {
     }
 }
 
-impl HandleMessage<Action> for App {
+impl HandleMessage<TournamentAction> for App {
     fn handle_message(
         &mut self,
-        message: Action,
+        message: TournamentAction,
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         message.apply(&mut self.tournament)?;

@@ -4,26 +4,28 @@ use crate::{
     App,
     core::{
         file::FileAction,
-        settings::{self, AppSettings},
-        tournament,
+        settings::{AppSettings, AppSettingsMsg},
+        tournament::TournamentAction,
         view::View,
     },
-    error, home, player_details,
+    error::{Error, ErrorMsg},
+    home::HomeMsg,
+    player_details::PlayerDetailsMsg,
     traits::{ComponentUpdate, Effect},
 };
 
 #[derive(Debug, Clone, derive_more::From)]
 pub enum Message {
     OnBoot,
-    Settings(settings::Message),
+    Settings(AppSettingsMsg),
     SettingsLoaded(Option<AppSettings>),
-    Tournament(tournament::Action),
+    Tournament(TournamentAction),
     TournFile(FileAction),
     OpenPlayerDetails(Option<u32>),
     Error(String),
-    ViewHome(home::Message),
-    ViewError(error::Message),
-    ViewPlayer(player_details::Message),
+    ViewHome(HomeMsg),
+    ViewError(ErrorMsg),
+    ViewPlayer(PlayerDetailsMsg),
 }
 
 impl App {
@@ -47,8 +49,7 @@ impl App {
                     }
                 }
                 Err(error) => {
-                    self.views
-                        .push(View::Error(error::State::new(error.to_string())));
+                    self.views.push(View::Error(Error::new(error.to_string())));
                 }
             }
         }

@@ -14,13 +14,13 @@ use itertools::Itertools;
 use nerd_font_symbols::md::MD_CARDS;
 
 #[derive(Debug, Default)]
-pub struct State {
+pub struct Ranking {
     method: RankingMethod,
     player: Option<u32>,
 }
 
 #[derive(Debug, Clone)]
-pub enum Message {
+pub enum RankingMsg {
     SelectPlayer(u32),
     OpenPlayerDetails(u32),
     AddTopThree,
@@ -28,13 +28,13 @@ pub enum Message {
 }
 
 #[derive(Debug)]
-pub enum OutMessage {
+pub enum RankingOut {
     LoadGame([u32; 4]),
 }
 
-impl Component for State {
-    type OutMessage = OutMessage;
-    type Message = Message;
+impl Component for Ranking {
+    type OutMessage = RankingOut;
+    type Message = RankingMsg;
 }
 
 fn create_game_players<'a>(
@@ -45,7 +45,7 @@ fn create_game_players<'a>(
     Some([id, iter.next()?, iter.next()?, iter.next()?])
 }
 
-impl ComponentUpdate for State {
+impl ComponentUpdate for Ranking {
     type UpdateContext<'a> = &'a Tournament;
     fn update(
         &mut self,
@@ -53,12 +53,12 @@ impl ComponentUpdate for State {
         context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
         match message {
-            Message::SelectPlayer(id) => {
+            RankingMsg::SelectPlayer(id) => {
                 context.require_id_registered(id)?;
                 self.player = Some(id);
                 Effect::done()
             }
-            Message::AddTopThree => {
+            RankingMsg::AddTopThree => {
                 let Some(id) = self.player else {
                     return Err(anyhow!("Player not specified"));
                 };
@@ -66,20 +66,20 @@ impl ComponentUpdate for State {
                 let players =
                     create_game_players(id, ranked).ok_or_else(|| anyhow!("Not enough players"))?;
 
-                Effect::out(OutMessage::LoadGame(players))
+                Effect::out(RankingOut::LoadGame(players))
             }
-            Message::SetMethod(method) => {
+            RankingMsg::SetMethod(method) => {
                 self.method = method;
                 Effect::done()
             }
-            Message::OpenPlayerDetails(id) => {
+            RankingMsg::OpenPlayerDetails(id) => {
                 Effect::global(crate::core::message::Message::OpenPlayerDetails(Some(id)))
             }
         }
     }
 }
 
-impl State {
+impl Ranking {
     fn rank_players<'a>(&'a self, tourn: &'a Tournament) -> Option<Vec<RegisteredPlayer<'a>>> {
         self.player.and_then(|id| {
             Some(
@@ -94,7 +94,7 @@ impl State {
     }
 }
 
-impl ComponentView for State {
+impl ComponentView for Ranking {
     type ViewContext<'a>
         = &'a Tournament
     where
@@ -114,20 +114,20 @@ impl ComponentView for State {
                             .sorted_by(|a, b| a.info().name().cmp(b.info().name()))
                             .collect_vec(),
                         self.player.and_then(|id| tourn.get_registered_player(id)),
-                        |player| Message::SelectPlayer(player.id())
+                        |player| RankingMsg::SelectPlayer(player.id())
                     )
                     .width(Length::Fill),
-                    button(MD_CARDS).on_press_maybe(self.player.map(Message::OpenPlayerDetails))
+                    button(MD_CARDS).on_press_maybe(self.player.map(RankingMsg::OpenPlayerDetails))
                 ]
                 .width(Length::Fill)
                 .spacing(10),
                 row![
                     pick_list(RankingMethod::VALUES, Some(self.method), |method| {
-                        Message::SetMethod(method)
+                        RankingMsg::SetMethod(method)
                     }),
                     space().width(Length::Fill),
                     button("Load Top 3")
-                        .on_press_maybe(self.player.is_some().then_some(Message::AddTopThree)),
+                        .on_press_maybe(self.player.is_some().then_some(RankingMsg::AddTopThree)),
                 ]
                 .spacing(10),
                 table(
@@ -135,7 +135,7 @@ impl ComponentView for State {
                         table::column(text("Player"), |player: RegisteredPlayer<'_>| {
                             button(text(player.info().name().clone()))
                                 .style(button::text)
-                                .on_press(Message::OpenPlayerDetails(player.id()))
+                                .on_press(RankingMsg::OpenPlayerDetails(player.id()))
                         }),
                         table::column(text("Stats"), |player: RegisteredPlayer<'_>| {
                             let elo = player.stats().elo().round();

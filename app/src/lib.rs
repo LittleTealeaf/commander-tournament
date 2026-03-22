@@ -20,7 +20,7 @@ use crate::{
 #[derive(Debug, Default)]
 pub struct App {
     tournament: Tournament,
-    home: home::State,
+    home: home::Home,
     error: Option<String>,
     file: Option<PathBuf>,
     views: Vec<View>,
@@ -37,8 +37,10 @@ impl App {
         &self.tournament
     }
 
-
-    pub fn push_view<V>(&mut self, view: V) where V: Into<View> {
+    pub fn push_view<V>(&mut self, view: V)
+    where
+        V: Into<View>,
+    {
         self.views.push(view.into());
     }
 

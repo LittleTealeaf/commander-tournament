@@ -38,13 +38,13 @@ impl SortDirection {
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct State {
+pub struct Leaderboard {
     column: Column,
     direction: SortDirection,
 }
 
 #[derive(Debug, Clone)]
-pub enum Message {
+pub enum LeaderboardMsg {
     Sort(Column),
     NewPlayer,
     OpenPlayer(u32),
@@ -52,11 +52,11 @@ pub enum Message {
 }
 
 #[derive(Debug, Clone)]
-pub enum OutMessage {
+pub enum LeaderboardOut {
     RankPlayer(u32),
 }
 
-impl State {
+impl Leaderboard {
     fn sort_players<'a>(
         &self,
         players: impl IntoIterator<Item = RegisteredPlayer<'a>>,
@@ -83,12 +83,12 @@ impl State {
     }
 }
 
-impl Component for State {
-    type Message = Message;
-    type OutMessage = OutMessage;
+impl Component for Leaderboard {
+    type Message = LeaderboardMsg;
+    type OutMessage = LeaderboardOut;
 }
 
-impl ComponentUpdate for State {
+impl ComponentUpdate for Leaderboard {
     type UpdateContext<'a> = ();
     fn update(
         &mut self,
@@ -96,14 +96,14 @@ impl ComponentUpdate for State {
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         match message {
-            Message::OpenPlayer(id) => {
+            LeaderboardMsg::OpenPlayer(id) => {
                 Effect::global(crate::core::message::Message::OpenPlayerDetails(Some(id)))
             }
-            Message::NewPlayer => {
+            LeaderboardMsg::NewPlayer => {
                 Effect::global(crate::core::message::Message::OpenPlayerDetails(None))
             }
-            Message::RankPlayer(id) => Effect::out(OutMessage::RankPlayer(id)),
-            Message::Sort(column) => {
+            LeaderboardMsg::RankPlayer(id) => Effect::out(LeaderboardOut::RankPlayer(id)),
+            LeaderboardMsg::Sort(column) => {
                 if self.column == column {
                     self.direction = self.direction.reverse();
                 } else {
@@ -120,7 +120,7 @@ impl ComponentUpdate for State {
     }
 }
 
-impl ComponentView for State {
+impl ComponentView for Leaderboard {
     type ViewContext<'a>
         = &'a Tournament
     where
@@ -141,7 +141,7 @@ impl ComponentView for State {
                 format!("{label}  ")
             }))
             .style(button::text)
-            .on_press(Message::Sort(col))
+            .on_press(LeaderboardMsg::Sort(col))
         };
 
         let tbl = table(
@@ -151,7 +151,7 @@ impl ComponentView for State {
                     |p: RegisteredPlayer<'_>| {
                         button(text(p.info().name().clone()).size(12))
                             .style(button::text)
-                            .on_press(Message::OpenPlayer(p.id()))
+                            .on_press(LeaderboardMsg::OpenPlayer(p.id()))
                     },
                 ),
                 table::column(col_header("Elo", Column::Elo), |p: RegisteredPlayer<'_>| {
@@ -178,11 +178,11 @@ impl ComponentView for State {
                     },
                 ),
                 table::column(
-                    button("+").on_press(Message::NewPlayer),
+                    button("+").on_press(LeaderboardMsg::NewPlayer),
                     |p: RegisteredPlayer<'_>| {
                         button(MD_PLAYLIST_PLUS)
                             .style(button::text)
-                            .on_press(Message::RankPlayer(p.id()))
+                            .on_press(LeaderboardMsg::RankPlayer(p.id()))
                     },
                 ),
             ],

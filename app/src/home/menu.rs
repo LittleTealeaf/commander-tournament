@@ -8,22 +8,22 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Default)]
-pub struct State;
+pub struct Menu;
 
 #[derive(Debug, Clone)]
-pub enum Message {
+pub enum MenuMsg {
     New,
     Open,
     Save,
     SaveAs,
 }
 
-impl Component for State {
-    type Message = Message;
+impl Component for Menu {
+    type Message = MenuMsg;
     type OutMessage = ();
 }
 
-impl ComponentUpdate for State {
+impl ComponentUpdate for Menu {
     type UpdateContext<'a> = ();
     fn update(
         &mut self,
@@ -31,25 +31,25 @@ impl ComponentUpdate for State {
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
         match message {
-            Message::New => Effect::global(FileAction::New),
-            Message::Open => Effect::global(FileAction::Open),
-            Message::Save => Effect::global(FileAction::Save),
-            Message::SaveAs => Effect::global(FileAction::SaveAs),
+            MenuMsg::New => Effect::global(FileAction::New),
+            MenuMsg::Open => Effect::global(FileAction::Open),
+            MenuMsg::Save => Effect::global(FileAction::Save),
+            MenuMsg::SaveAs => Effect::global(FileAction::SaveAs),
         }
     }
 }
 
-impl ComponentView for State {
+impl ComponentView for Menu {
     type ViewContext<'a>
         = &'a Option<PathBuf>
     where
         Self: 'a;
     fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
         row![
-            button("New").on_press(Message::New),
-            button("Open").on_press(Message::Open),
-            button("SaveAs").on_press(Message::SaveAs),
-            button("Save").on_press_maybe(context.is_some().then_some(Message::Save)),
+            button("New").on_press(MenuMsg::New),
+            button("Open").on_press(MenuMsg::Open),
+            button("SaveAs").on_press(MenuMsg::SaveAs),
+            button("Save").on_press_maybe(context.is_some().then_some(MenuMsg::Save)),
         ]
         .spacing(5)
         .into()

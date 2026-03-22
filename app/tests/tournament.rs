@@ -1,4 +1,4 @@
-use app::core::tournament::Action;
+use app::core::tournament::TournamentAction;
 use approx::assert_relative_eq;
 use edh_tourn::{
     game::{entry::GameEntry, record::GameRecord},
@@ -10,7 +10,7 @@ use edh_tourn::{
 fn register() {
     let mut tournament = Tournament::new();
     let info = PlayerInfo::new("Hello".to_owned());
-    Action::Register(info.clone())
+    TournamentAction::Register(info.clone())
         .apply(&mut tournament)
         .unwrap();
     let _ = tournament.get_player_id(info.name()).unwrap();
@@ -23,12 +23,12 @@ fn set_player_info() {
     let name = tournament.get_player_name(&id).unwrap();
     let new_name = format!("new-{name}");
     let info = PlayerInfo::new(new_name.clone());
-    Action::SetPlayerInfo(id, info)
+    TournamentAction::SetPlayerInfo(id, info)
         .apply(&mut tournament)
         .unwrap();
     assert_eq!(&new_name, tournament.get_player_name(&id).unwrap());
 
-    Action::SetPlayerInfo(id, PlayerInfo::new(String::new()))
+    TournamentAction::SetPlayerInfo(id, PlayerInfo::new(String::new()))
         .apply(&mut tournament)
         .unwrap_err();
 }
@@ -44,7 +44,9 @@ fn delete_player() {
         .next()
         .unwrap();
 
-    Action::DeletePlayer(id).apply(&mut tournament).unwrap();
+    TournamentAction::DeletePlayer(id)
+        .apply(&mut tournament)
+        .unwrap();
 
     // Player does not exist
     assert!(tournament.get_registered_player(id).is_none());
@@ -60,7 +62,9 @@ fn delete_game() {
     let mut tournament = Tournament::generate_tournament(20, 100).unwrap();
     let id = 5;
     let next_record = GameEntry::from(tournament.games().get(id + 1).unwrap().clone());
-    Action::DeleteGame(id).apply(&mut tournament).unwrap();
+    TournamentAction::DeleteGame(id)
+        .apply(&mut tournament)
+        .unwrap();
     let record = GameEntry::from(tournament.games().get(id).unwrap().clone());
     assert_eq!(record, next_record);
     assert_eq!(99, tournament.games().len());
@@ -73,7 +77,7 @@ fn record_game() {
     let matchup = tournament.create_match(*game.players()).unwrap();
     let record = matchup.record(game.winner()).unwrap();
 
-    Action::Record(Box::new(record))
+    TournamentAction::Record(Box::new(record))
         .apply(&mut tournament)
         .unwrap();
     assert_eq!(51, tournament.games().len());
@@ -83,7 +87,7 @@ fn record_game() {
 fn reload() {
     let mut tournament = Tournament::generate_tournament(20, 20).unwrap();
     let initial = tournament.snapshot();
-    Action::Reload.apply(&mut tournament).unwrap();
+    TournamentAction::Reload.apply(&mut tournament).unwrap();
     assert_eq!(initial + 1, tournament.snapshot());
 }
 
@@ -94,7 +98,7 @@ fn set_game_config() {
     let starting_elo = tournament.get_player_or_default_stats(id).elo();
     let mut config = tournament.game_config().clone();
     config.starting_elo += 1500.0;
-    Action::SetGameConfig(config)
+    TournamentAction::SetGameConfig(config)
         .apply(&mut tournament)
         .unwrap();
     let ending_elo = tournament.get_player_or_default_stats(id).elo();
@@ -107,7 +111,7 @@ fn set_ranking_config() {
     let start_ranking = tournament.ranking_config().clone();
     let mut new_ranking = start_ranking.clone();
     new_ranking.lost_with += 1;
-    Action::SetRankingConfig(new_ranking)
+    TournamentAction::SetRankingConfig(new_ranking)
         .apply(&mut tournament)
         .unwrap();
     assert_eq!(

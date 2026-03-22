@@ -18,7 +18,7 @@ use crate::{
 };
 
 #[derive(Default, Debug)]
-pub struct State {
+pub struct MatchRecorder {
     player_a: Option<u32>,
     player_b: Option<u32>,
     player_c: Option<u32>,
@@ -49,7 +49,7 @@ impl Player {
 }
 
 #[derive(Clone, PartialEq, Eq, Debug)]
-pub enum Message {
+pub enum MatchRecorderMsg {
     SetPlayers([u32; 4]),
     SetPlayer(Player, Option<u32>),
     SetWinner(Option<u32>),
@@ -63,11 +63,11 @@ pub enum Message {
 }
 
 #[derive(Debug)]
-pub enum OutMessage {
+pub enum MatchRecorderOut {
     SubmitRecord(Box<GameRecord>),
 }
 
-impl State {
+impl MatchRecorder {
     const fn set_player(&mut self, position: Player, value: Option<u32>) {
         match position {
             Player::PlayerA => self.player_a = value,
@@ -114,12 +114,12 @@ impl State {
     }
 }
 
-impl Component for State {
-    type Message = Message;
-    type OutMessage = OutMessage;
+impl Component for MatchRecorder {
+    type Message = MatchRecorderMsg;
+    type OutMessage = MatchRecorderOut;
 }
 
-impl ComponentUpdate for State {
+impl ComponentUpdate for MatchRecorder {
     type UpdateContext<'a> = &'a Tournament;
     fn update(
         &mut self,
@@ -127,7 +127,7 @@ impl ComponentUpdate for State {
         context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         match message {
-            Message::SetPlayers([a, b, c, d]) => {
+            MatchRecorderMsg::SetPlayers([a, b, c, d]) => {
                 self.player_a = Some(a);
                 self.player_b = Some(b);
                 self.player_c = Some(c);
@@ -135,21 +135,21 @@ impl ComponentUpdate for State {
                 self.update_matchup(context)?;
                 Effect::done()
             }
-            Message::SetPlayer(position, value) => {
+            MatchRecorderMsg::SetPlayer(position, value) => {
                 self.set_player(position, value);
                 self.update_matchup(context)?;
                 Effect::done()
             }
-            Message::SetWinner(value) => {
+            MatchRecorderMsg::SetWinner(value) => {
                 self.winner = value;
                 Effect::done()
             }
-            Message::AddPlayer(player) => {
+            MatchRecorderMsg::AddPlayer(player) => {
                 self.add_player(player);
                 self.update_matchup(context)?;
                 Effect::done()
             }
-            Message::SubmitGame => {
+            MatchRecorderMsg::SubmitGame => {
                 let (Some(matchup), Some(winner)) = (&self.matchup, self.winner) else {
                     return Effect::done();
                 };
@@ -158,28 +158,28 @@ impl ComponentUpdate for State {
 
                 *self = Self::default();
 
-                Effect::out(OutMessage::SubmitRecord(Box::new(record)))
+                Effect::out(MatchRecorderOut::SubmitRecord(Box::new(record)))
             }
-            Message::Clear => {
+            MatchRecorderMsg::Clear => {
                 *self = Self::default();
                 Effect::done()
             }
-            Message::OpenLink(link) => Effect::task(Task::future(async {
+            MatchRecorderMsg::OpenLink(link) => Effect::task(Task::future(async {
                 let _ = open_link(link).await;
-                Message::Nothing
+                MatchRecorderMsg::Nothing
             })),
-            Message::OpenLinks(links) => Effect::task(Task::future(async {
+            MatchRecorderMsg::OpenLinks(links) => Effect::task(Task::future(async {
                 for link in links {
                     let _ = open_link(link).await;
                 }
-                Message::Nothing
+                MatchRecorderMsg::Nothing
             })),
-            Message::Nothing => Effect::done(),
+            MatchRecorderMsg::Nothing => Effect::done(),
         }
     }
 }
 
-impl ComponentView for State {
+impl ComponentView for MatchRecorder {
     type ViewContext<'a>
         = &'a Tournament
     where
@@ -222,7 +222,7 @@ impl ComponentView for State {
             ];
 
             let selector = pick_list(players.clone(), entry, move |option| {
-                Message::SetPlayer(position, Some(option.id()))
+                MatchRecorderMsg::SetPlayer(position, Some(option.id()))
             })
             .width(Length::Fill);
 
@@ -233,7 +233,7 @@ impl ComponentView for State {
                         button(MD_LINK_VARIANT).on_press_maybe(
                             entry
                                 .and_then(|entry| entry.info().moxfield_goldfish_link())
-                                .map(Message::OpenLink)
+                                .map(MatchRecorderMsg::OpenLink)
                         )
                     ],
                     player_info
@@ -261,7 +261,7 @@ impl ComponentView for State {
         let winner_selector = row![
             text("Winner: ").size(17),
             pick_list(current_players, winner_entry, |picked| {
-                Message::SetWinner(Some(picked.id()))
+                MatchRecorderMsg::SetWinner(Some(picked.id()))
             })
             .width(Length::Fill),
             button(MD_LINK_VARIANT_PLUS).on_press_maybe({
@@ -276,7 +276,7 @@ impl ComponentView for State {
                 if links.is_empty() {
                     None
                 } else {
-                    Some(Message::OpenLinks(links))
+                    Some(MatchRecorderMsg::OpenLinks(links))
                 }
             })
         ]
@@ -296,9 +296,10 @@ impl ComponentView for State {
             space().width(Length::Fill),
             results_preview,
             button("Submit").on_press_maybe(
-                (self.matchup.is_some() && self.winner.is_some()).then_some(Message::SubmitGame)
+                (self.matchup.is_some() && self.winner.is_some())
+                    .then_some(MatchRecorderMsg::SubmitGame)
             ),
-            button(MD_CANCEL).on_press(Message::Clear),
+            button(MD_CANCEL).on_press(MatchRecorderMsg::Clear),
         ]
         .spacing(10)
         .align_y(Vertical::Center);

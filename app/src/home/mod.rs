@@ -3,40 +3,48 @@ use std::path::PathBuf;
 use edh_tourn::{game::record::GameRecord, tournament::Tournament};
 use iced::widget::{column, container, row, rule};
 
-use crate::traits::{Component, ComponentUpdate, ComponentView, Effect, HandleMessage};
+use crate::{
+    home::{
+        leaderboard::{Leaderboard, LeaderboardMsg},
+        match_recorder::{MatchRecorder, MatchRecorderMsg},
+        menu::{Menu, MenuMsg},
+        ranking::{Ranking, RankingMsg},
+    },
+    traits::{Component, ComponentUpdate, ComponentView, Effect, HandleMessage},
+};
 
-pub mod game_record;
 pub mod leaderboard;
+pub mod match_recorder;
 pub mod menu;
 pub mod ranking;
 
 #[derive(Debug, Default)]
-pub struct State {
-    menu: menu::State,
-    leaderboard: leaderboard::State,
-    game_record: game_record::State,
-    ranking: ranking::State,
+pub struct Home {
+    menu: Menu,
+    leaderboard: Leaderboard,
+    game_record: MatchRecorder,
+    ranking: Ranking,
 }
 
 #[derive(Debug, Clone, derive_more::From)]
-pub enum Message {
-    Leaderboard(leaderboard::Message),
-    GameRecord(game_record::Message),
-    Ranking(ranking::Message),
-    Menu(menu::Message),
+pub enum HomeMsg {
+    Leaderboard(LeaderboardMsg),
+    GameRecord(MatchRecorderMsg),
+    Ranking(RankingMsg),
+    Menu(MenuMsg),
 }
 
 #[derive(Debug, Clone)]
-pub enum OutMessage {
+pub enum HomeOut {
     RegisterRecord(Box<GameRecord>),
 }
 
-impl Component for State {
-    type Message = Message;
-    type OutMessage = OutMessage;
+impl Component for Home {
+    type Message = HomeMsg;
+    type OutMessage = HomeOut;
 }
 
-impl ComponentView for State {
+impl ComponentView for Home {
     type ViewContext<'a>
         = (&'a Tournament, &'a Option<PathBuf>)
     where
@@ -59,7 +67,7 @@ impl ComponentView for State {
     }
 }
 
-impl ComponentUpdate for State {
+impl ComponentUpdate for Home {
     type UpdateContext<'a> = (&'a Tournament, &'a Option<PathBuf>);
     fn update(
         &mut self,
@@ -67,68 +75,68 @@ impl ComponentUpdate for State {
         context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         match message {
-            Message::Leaderboard(message) => self.handle_message(message, context),
-            Message::GameRecord(message) => self.handle_message(message, context),
-            Message::Ranking(message) => self.handle_message(message, context),
-            Message::Menu(message) => self.handle_message(message, context),
+            HomeMsg::Leaderboard(message) => self.handle_message(message, context),
+            HomeMsg::GameRecord(message) => self.handle_message(message, context),
+            HomeMsg::Ranking(message) => self.handle_message(message, context),
+            HomeMsg::Menu(message) => self.handle_message(message, context),
         }
     }
 }
 
-impl HandleMessage<menu::Message> for State {
+impl HandleMessage<MenuMsg> for Home {
     fn handle_message(
         &mut self,
-        message: menu::Message,
+        message: MenuMsg,
         _: Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         self.menu.update(message, ())?.map_empty()
     }
 }
 
-impl HandleMessage<leaderboard::Message> for State {
+impl HandleMessage<LeaderboardMsg> for Home {
     fn handle_message(
         &mut self,
-        message: leaderboard::Message,
+        message: LeaderboardMsg,
         context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         self.leaderboard
             .update(message, ())?
             .map(|message| match message {
-                leaderboard::OutMessage::RankPlayer(id) => {
-                    self.handle_message(ranking::Message::SelectPlayer(id), context)
+                leaderboard::LeaderboardOut::RankPlayer(id) => {
+                    self.handle_message(RankingMsg::SelectPlayer(id), context)
                 }
             })
     }
 }
 
-impl HandleMessage<game_record::Message> for State {
+impl HandleMessage<MatchRecorderMsg> for Home {
     fn handle_message(
         &mut self,
-        message: game_record::Message,
+        message: MatchRecorderMsg,
         (tournament, _): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         self.game_record
             .update(message, tournament)?
             .map(|message| match message {
-                game_record::OutMessage::SubmitRecord(game_record) => {
-                    Effect::out(OutMessage::RegisterRecord(game_record))
+                match_recorder::MatchRecorderOut::SubmitRecord(game_record) => {
+                    Effect::out(HomeOut::RegisterRecord(game_record))
                 }
             })
     }
 }
 
-impl HandleMessage<ranking::Message> for State {
+impl HandleMessage<RankingMsg> for Home {
     fn handle_message(
         &mut self,
-        message: ranking::Message,
+        message: RankingMsg,
         context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         let (tournament, _) = context;
         self.ranking
             .update(message, tournament)?
             .map(|message| match message {
-                ranking::OutMessage::LoadGame(players) => {
-                    self.handle_message(game_record::Message::SetPlayers(players), context)
+                ranking::RankingOut::LoadGame(players) => {
+                    self.handle_message(MatchRecorderMsg::SetPlayers(players), context)
                 }
             })
     }
