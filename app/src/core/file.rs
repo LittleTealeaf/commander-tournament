@@ -23,6 +23,7 @@ pub enum FileAction {
     FileSaved,
     Save,
     SaveAs,
+    Cancelled,
 }
 
 impl HandleMessage<FileAction> for App {
@@ -46,7 +47,7 @@ impl HandleMessage<FileAction> for App {
                     .then(async |res| res.map(|handle| handle.path().to_path_buf())),
                 |result| {
                     result
-                        .map_or(FileAction::FileSaved, FileAction::OpenFile)
+                        .map_or(FileAction::Cancelled, FileAction::OpenFile)
                         .into()
                 },
             )),
@@ -84,7 +85,7 @@ impl HandleMessage<FileAction> for App {
                         .save_file()
                         .await;
                     result
-                        .map_or(FileAction::FileSaved, |file| {
+                        .map_or(FileAction::Cancelled, |file| {
                             FileAction::SaveFile(file.path().to_path_buf())
                         })
                         .into()
@@ -96,7 +97,7 @@ impl HandleMessage<FileAction> for App {
                 self.file = Some(path.clone());
                 self.handle_message(crate::core::settings::Message::SetOpenedFile(path), ())
             }
-            FileAction::FileSaved => Effect::done(),
+            FileAction::Cancelled | FileAction::FileSaved => Effect::done(),
         }
     }
 }

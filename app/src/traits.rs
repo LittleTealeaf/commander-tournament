@@ -8,7 +8,7 @@ pub enum Effect<M, O> {
     Global(Message),
     Out(O),
     Task(Task<M>),
-    Chain(Box<Self>, Box<Self>),
+    Batch(Vec<Self>),
     Done,
 }
 
@@ -46,10 +46,12 @@ where
             Self::Global(message) => Ok(Effect::Global(message)),
             Self::Out(message) => map_out(message),
             Self::Task(task) => Ok(Effect::Task(task.map(Into::into))),
-            Self::Chain(a, b) => {
-                let a = a.inner_map(map_out)?;
-                let b = b.inner_map(map_out)?;
-                Ok(Effect::Chain(a.into(), b.into()))
+            Self::Batch(batch) => {
+                let mut effects = Vec::new();
+                for effect in batch {
+                    effects.push(effect.inner_map(map_out)?);
+                }
+                Ok(Effect::Batch(effects))
             }
         }
     }
