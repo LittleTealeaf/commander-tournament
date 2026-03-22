@@ -75,8 +75,12 @@ where
                 effects.push(Self::Task(task.chain(Task::batch(tasks))));
                 Self::Batch(effects)
             }
-            (Self::Batch(mut batch), other) | (other, Self::Batch(mut batch)) => {
+            (Self::Batch(mut batch), other) => {
                 batch.push(other);
+                Self::Batch(batch)
+            }
+            (other, Self::Batch(mut batch)) => {
+                batch.insert(0, other);
                 Self::Batch(batch)
             }
             (first, second) => Self::Batch(vec![first, second]),
