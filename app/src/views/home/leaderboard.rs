@@ -87,14 +87,14 @@ impl State {
 impl Component for State {
     type Message = Message;
     type OutMessage = OutMessage;
-    type Context<'a> = &'a Tournament;
 }
 
 impl ComponentUpdate for State {
+    type UpdateContext<'a> = ();
     fn update(
         &mut self,
         message: Self::Message,
-        _: &Tournament,
+        (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         match message {
             Message::OpenPlayer(id) => Effect::out(OutMessage::OpenPlayerDetails(Some(id))),
@@ -118,7 +118,12 @@ impl ComponentUpdate for State {
 }
 
 impl ComponentView for State {
-    fn view<'a>(&'a self, context: Self::Context<'a>) -> iced::Element<'a, Self::Message> {
+    type ViewContext<'a>
+        = &'a Tournament
+    where
+        Self: 'a;
+
+    fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
         let players = self.sort_players(context.get_registered_players());
 
         let ord_char = match self.direction {

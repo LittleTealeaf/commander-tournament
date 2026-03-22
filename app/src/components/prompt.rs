@@ -20,22 +20,23 @@ pub enum Message {
 
 impl Component for DialogPrompt {
     type Message = Message;
-    type Context<'a> = ();
     type OutMessage = Message;
 }
 
 impl ComponentUpdate for DialogPrompt {
+    type UpdateContext<'a> = ();
     fn update(
         &mut self,
         message: Self::Message,
-        (): Self::Context<'_>,
+        (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
         Effect::out(message)
     }
 }
 
 impl ComponentView for DialogPrompt {
-    fn view<'a>(&'a self, (): Self::Context<'a>) -> iced::Element<'a, Self::Message> {
+    type ViewContext<'a> = ();
+    fn view<'a>(&'a self, (): Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
         let title = text(&self.title).size(24);
         let details = text(&self.details);
 

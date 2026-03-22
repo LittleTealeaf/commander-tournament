@@ -38,10 +38,11 @@ impl App {
 }
 
 impl ComponentUpdate for App {
+    type UpdateContext<'a> = ();
     fn update(
         &mut self,
         message: Self::Message,
-        (): Self::Context<'_>,
+        (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
         #[cfg(debug_assertions)]
         println!("Update: {message:?}");
@@ -79,7 +80,7 @@ impl HandleMessage<home::Message> for App {
     fn handle_message(
         &mut self,
         message: home::Message,
-        (): Self::Context<'_>,
+        (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         self.home
             .handle_message(message, (&self.tournament, &self.file))?
@@ -116,7 +117,7 @@ impl HandleMessage<crate::settings::Message> for App {
     fn handle_message(
         &mut self,
         message: crate::settings::Message,
-        (): Self::Context<'_>,
+        (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         if let Some(settings) = &mut self.settings {
             settings
@@ -132,7 +133,7 @@ impl HandleMessage<views::error::Message> for App {
     fn handle_message(
         &mut self,
         message: views::error::Message,
-        (): Self::Context<'_>,
+        (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         if let Some(View::Error(state)) = self.views.last_mut() {
             state
@@ -153,11 +154,11 @@ impl HandleMessage<views::player_details::Message> for App {
     fn handle_message(
         &mut self,
         message: views::player_details::Message,
-        (): Self::Context<'_>,
+        (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         if let Some(View::PlayerDetails(state)) = self.views.last_mut() {
             state
-                .handle_message(message, &self.tournament)?
+                .handle_message(message, ())?
                 .map(|message| match message {
                     player_details::OutMessage::OpenPlayer(id) => {
                         self.views

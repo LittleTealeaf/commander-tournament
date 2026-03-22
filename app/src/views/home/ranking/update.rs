@@ -1,5 +1,5 @@
 use anyhow::anyhow;
-use edh_tourn::player::RegisteredPlayer;
+use edh_tourn::{player::RegisteredPlayer, tournament::Tournament};
 
 use crate::{
     traits::{ComponentUpdate, Effect},
@@ -15,10 +15,11 @@ fn create_game_players<'a>(
 }
 
 impl ComponentUpdate for State {
+    type UpdateContext<'a> = &'a Tournament;
     fn update(
         &mut self,
         message: Self::Message,
-        context: Self::Context<'_>,
+        context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
         match message {
             Message::SelectPlayer(id) => {

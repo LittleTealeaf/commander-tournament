@@ -27,7 +27,11 @@ impl State {
 }
 
 impl ComponentView for State {
-    fn view<'a>(&'a self, context: Self::Context<'a>) -> iced::Element<'a, Self::Message> {
+    type ViewContext<'a>
+        = &'a Tournament
+    where
+        Self: 'a;
+    fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
         let tourn = context;
         container(
             column![

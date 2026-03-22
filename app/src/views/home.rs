@@ -36,11 +36,14 @@ pub enum OutMessage {
 impl Component for State {
     type Message = Message;
     type OutMessage = OutMessage;
-    type Context<'a> = (&'a Tournament, &'a Option<PathBuf>);
 }
 
 impl ComponentView for State {
-    fn view<'a>(&'a self, context: Self::Context<'a>) -> iced::Element<'a, Self::Message> {
+    type ViewContext<'a>
+        = (&'a Tournament, &'a Option<PathBuf>)
+    where
+        Self: 'a;
+    fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
         let (tournament, path) = context;
         column![
             self.menu.view_into(path),
@@ -59,10 +62,11 @@ impl ComponentView for State {
 }
 
 impl ComponentUpdate for State {
+    type UpdateContext<'a> = (&'a Tournament, &'a Option<PathBuf>);
     fn update(
         &mut self,
         message: Self::Message,
-        context: Self::Context<'_>,
+        context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         match message {
             Message::Leaderboard(message) => self.handle_message(message, context),
@@ -77,11 +81,10 @@ impl HandleMessage<leaderboard::Message> for State {
     fn handle_message(
         &mut self,
         message: leaderboard::Message,
-        context: Self::Context<'_>,
+        context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
-        let (tournament, _) = context;
         self.leaderboard
-            .update(message, tournament)?
+            .update(message, ())?
             .map(|message| match message {
                 leaderboard::OutMessage::OpenPlayerDetails(maybe_id) => {
                     Effect::out(OutMessage::OpenPlayerDetails(maybe_id))
@@ -97,7 +100,7 @@ impl HandleMessage<game_record::Message> for State {
     fn handle_message(
         &mut self,
         message: game_record::Message,
-        (tournament, _): Self::Context<'_>,
+        (tournament, _): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         self.game_record
             .update(message, tournament)?
@@ -113,7 +116,7 @@ impl HandleMessage<ranking::Message> for State {
     fn handle_message(
         &mut self,
         message: ranking::Message,
-        context: Self::Context<'_>,
+        context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         let (tournament, _) = context;
         self.ranking

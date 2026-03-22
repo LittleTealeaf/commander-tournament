@@ -107,15 +107,15 @@ impl AppSettings {
 
 impl Component for AppSettings {
     type Message = Message;
-    type Context<'a> = ();
     type OutMessage = String;
 }
 
 impl ComponentUpdate for AppSettings {
+    type UpdateContext<'a> = ();
     fn update(
         &mut self,
         message: Self::Message,
-        (): Self::Context<'_>,
+        (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
         match message {
             Message::Save => {

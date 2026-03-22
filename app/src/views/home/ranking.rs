@@ -1,7 +1,7 @@
 mod update;
 mod view;
 
-use edh_tourn::{ranking::RankingMethod, tournament::Tournament};
+use edh_tourn::ranking::RankingMethod;
 
 use crate::traits::Component;
 
@@ -28,5 +28,4 @@ pub enum OutMessage {
 impl Component for State {
     type OutMessage = OutMessage;
     type Message = Message;
-    type Context<'a> = &'a Tournament;
 }

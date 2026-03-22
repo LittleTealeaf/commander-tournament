@@ -117,15 +117,14 @@ impl State {
 impl Component for State {
     type Message = Message;
     type OutMessage = OutMessage;
-
-    type Context<'a> = &'a Tournament;
 }
 
 impl ComponentUpdate for State {
+    type UpdateContext<'a> = &'a Tournament;
     fn update(
         &mut self,
         message: Self::Message,
-        context: Self::Context<'_>,
+        context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         match message {
             Message::SetPlayers([a, b, c, d]) => {
@@ -181,7 +180,8 @@ impl ComponentUpdate for State {
 }
 
 impl ComponentView for State {
-    fn view<'a>(&'a self, context: Self::Context<'a>) -> iced::Element<'a, Self::Message> {
+    type ViewContext<'a> = &'a Tournament where Self: 'a;
+    fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
         let players = context
             .get_registered_players()
             .sorted_by(|a, b| a.info().name().cmp(b.info().name()))

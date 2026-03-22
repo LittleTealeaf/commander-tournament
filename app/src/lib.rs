@@ -41,6 +41,5 @@ impl App {
 
 impl Component for App {
     type Message = Message;
-    type Context<'a> = ();
     type OutMessage = ();
 }

@@ -18,21 +18,25 @@ pub enum Message {
 impl Component for State {
     type Message = Message;
     type OutMessage = Message;
-    type Context<'a> = &'a Option<PathBuf>;
 }
 
 impl ComponentUpdate for State {
+    type UpdateContext<'a> = ();
     fn update(
         &mut self,
         message: Self::Message,
-        _: Self::Context<'_>,
+        (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
         Effect::out(message)
     }
 }
 
 impl ComponentView for State {
-    fn view<'a>(&'a self, context: Self::Context<'a>) -> iced::Element<'a, Self::Message> {
+    type ViewContext<'a>
+        = &'a Option<PathBuf>
+    where
+        Self: 'a;
+    fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
         row![
             button("New").on_press(Message::New),
             button("Open").on_press(Message::Open),

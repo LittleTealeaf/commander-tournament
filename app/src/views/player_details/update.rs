@@ -15,10 +15,11 @@ impl From<prompt::Message> for super::Message {
 }
 
 impl ComponentUpdate for super::State {
+    type UpdateContext<'a> = ();
     fn update(
         &mut self,
         message: Self::Message,
-        _: Self::Context<'_>,
+        (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
         match message {
             Message::SelectPlayerReference(id) => {

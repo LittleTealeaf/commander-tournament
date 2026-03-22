@@ -1,10 +1,7 @@
 mod update;
 mod view;
 
-use edh_tourn::{
-    player::{RegisteredPlayer, color::MtgColor, info::PlayerInfo},
-    tournament::Tournament,
-};
+use edh_tourn::player::{RegisteredPlayer, color::MtgColor, info::PlayerInfo};
 use iced::widget::text_editor;
 
 use crate::{
@@ -85,6 +82,5 @@ impl State {
 
 impl Component for State {
     type Message = Message;
-    type Context<'a> = &'a Tournament;
     type OutMessage = OutMessage;
 }

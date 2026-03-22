@@ -83,14 +83,13 @@ where
 pub trait Component {
     type OutMessage;
     type Message: Clone + Send + 'static;
-
-    type Context<'a>;
 }
 
 pub trait ComponentView: Component {
-    fn view<'a>(&'a self, context: Self::Context<'a>) -> Element<'a, Self::Message>;
+    type ViewContext<'a> where Self: 'a;
+    fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> Element<'a, Self::Message>;
 
-    fn view_into<'a, M>(&'a self, context: Self::Context<'a>) -> Element<'a, M>
+    fn view_into<'a, M>(&'a self, context: Self::ViewContext<'a>) -> Element<'a, M>
     where
         Self::Message: Into<M>,
         M: 'a,
@@ -100,18 +99,19 @@ pub trait ComponentView: Component {
 }
 
 pub trait ComponentUpdate: Component {
+    type UpdateContext<'a>;
     fn update(
         &mut self,
         message: Self::Message,
-        context: Self::Context<'_>,
+        context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>>;
 }
 
-pub trait HandleMessage<M>: Component {
+pub trait HandleMessage<M>: ComponentUpdate {
     fn handle_message(
         &mut self,
         message: M,
-        context: Self::Context<'_>,
+        context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>>;
 }
 
@@ -119,7 +119,7 @@ impl<T: Component + ComponentUpdate> HandleMessage<T::Message> for T {
     fn handle_message(
         &mut self,
         message: T::Message,
-        context: Self::Context<'_>,
+        context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         self.update(message, context)
     }

@@ -18,7 +18,11 @@ pub enum View {
 }
 
 impl ComponentView for App {
-    fn view<'a>(&'a self, (): Self::Context<'a>) -> iced::Element<'a, Self::Message> {
+    type ViewContext<'a>
+        = ()
+    where
+        Self: 'a;
+    fn view<'a>(&'a self, (): Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
         self.views.last().map_or_else(
             || self.home.view_into((&self.tournament, &self.file)),
             |view| match view {

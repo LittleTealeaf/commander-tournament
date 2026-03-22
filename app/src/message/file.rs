@@ -29,7 +29,7 @@ impl HandleMessage<TournamentFileMessage> for App {
     fn handle_message(
         &mut self,
         message: TournamentFileMessage,
-        (): Self::Context<'_>,
+        (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
         match message {
             TournamentFileMessage::New | TournamentFileMessage::None => Effect::ok(),

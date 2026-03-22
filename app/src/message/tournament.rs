@@ -48,7 +48,7 @@ impl HandleMessage<Action> for App {
     fn handle_message(
         &mut self,
         message: Action,
-        (): Self::Context<'_>,
+        (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         message.apply(&mut self.tournament)?;
         Effect::ok()

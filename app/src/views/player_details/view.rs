@@ -1,6 +1,7 @@
 mod info;
 mod stats;
 
+use edh_tourn::tournament::Tournament;
 use iced::{
     Alignment, Length,
     widget::{button, column, container, row, space, text},
@@ -22,7 +23,11 @@ use crate::{
 };
 
 impl ComponentView for super::State {
-    fn view<'a>(&'a self, context: Self::Context<'a>) -> iced::Element<'a, Self::Message> {
+    type ViewContext<'a>
+        = &'a Tournament
+    where
+        Self: 'a;
+    fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
         if let Some(prompt) = &self.prompt_confirm_delete {
             return prompt.view_into(());
         }

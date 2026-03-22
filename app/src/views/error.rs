@@ -18,22 +18,23 @@ pub enum Message {
 
 impl Component for State {
     type OutMessage = Message;
-    type Context<'a> = ();
     type Message = Message;
 }
 
 impl ComponentUpdate for State {
+    type UpdateContext<'a> = ();
     fn update(
         &mut self,
         message: Self::Message,
-        (): Self::Context<'_>,
+        (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
         Effect::out(message)
     }
 }
 
 impl ComponentView for State {
-    fn view<'a>(&'a self, (): Self::Context<'a>) -> iced::Element<'a, Self::Message> {
+    type ViewContext<'a> = ();
+    fn view<'a>(&'a self, (): Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
         let title = text("An Error Occurred").size(24);
         let message = text(&self.message).size(16).align_x(Horizontal::Center);
 
