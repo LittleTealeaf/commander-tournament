@@ -35,6 +35,29 @@ where
         Ok(Self::Task(task))
     }
 
+    pub fn then(self, next: anyhow::Result<Self>) -> anyhow::Result<Self> {
+        Ok(match self {
+            Self::Batch(mut effects) => {
+                match next? {
+                    Self::Batch(mut new_effects) => {
+                        effects.append(&mut new_effects);
+                    }
+                    effect => {
+                        effects.push(effect);
+                    }
+                }
+                Self::Batch(effects)
+            }
+            self_other => match next? {
+                Self::Batch(mut new_effects) => {
+                    new_effects.insert(0, self_other);
+                    Self::Batch(new_effects)
+                }
+                effect => Self::Batch(vec![self_other, effect]),
+            },
+        })
+    }
+
     fn inner_map<MN, ON, F>(self, map_out: &mut F) -> anyhow::Result<Effect<MN, ON>>
     where
         MN: Send + MaybeSend + 'static,

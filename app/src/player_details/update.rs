@@ -2,6 +2,7 @@ use iced::Task;
 
 use crate::{
     components::prompt::{self, DialogPrompt},
+    core::{message::Message, tournament::TournamentAction},
     player_details::PlayerDetailsOut,
     services::system::open_link,
     traits::{ComponentUpdate, Effect},
@@ -27,12 +28,16 @@ impl ComponentUpdate for super::PlayerDetails {
                 if Some(id) == self.id {
                     Effect::done()
                 } else {
-                    Effect::out(PlayerDetailsOut::OpenPlayer(id))
+                    Effect::global(Message::OpenPlayerDetails(Some(id)))
                 }
             }
             PlayerDetailsMsg::SaveAndClose => {
                 self.info.set_description(self.description.text());
-                Effect::out(PlayerDetailsOut::SaveAndClose(self.id, self.info.clone()))
+                Effect::global(match self.id {
+                    Some(id) => TournamentAction::SetPlayerInfo(id, self.info.clone()),
+                    None => TournamentAction::Register(self.info.clone()),
+                })?
+                .then(Effect::out(PlayerDetailsOut::Close))
             }
             PlayerDetailsMsg::SetName(name) => {
                 self.info.set_name(name);
@@ -66,7 +71,8 @@ impl ComponentUpdate for super::PlayerDetails {
                     return dialog.update(message, ())?.map(|message| match message {
                         crate::components::prompt::Message::Accept => {
                             self.id.map_or_else(Effect::done, |id| {
-                                Effect::out(PlayerDetailsOut::DeletePlayer(id))
+                                Effect::global(TournamentAction::DeletePlayer(id))?
+                                    .then(Effect::out(PlayerDetailsOut::Close))
                             })
                         }
                         crate::components::prompt::Message::Cancel => {

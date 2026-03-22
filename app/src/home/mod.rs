@@ -1,9 +1,10 @@
 use std::path::PathBuf;
 
-use edh_tourn::{game::record::GameRecord, tournament::Tournament};
+use edh_tourn::tournament::Tournament;
 use iced::widget::{column, container, row, rule};
 
 use crate::{
+    core::tournament::TournamentAction,
     home::{
         leaderboard::{Leaderboard, LeaderboardMsg},
         match_recorder::{MatchRecorder, MatchRecorderMsg},
@@ -34,14 +35,9 @@ pub enum HomeMsg {
     Menu(MenuMsg),
 }
 
-#[derive(Debug, Clone)]
-pub enum HomeOut {
-    RegisterRecord(Box<GameRecord>),
-}
-
 impl Component for Home {
     type Message = HomeMsg;
-    type OutMessage = HomeOut;
+    type OutMessage = ();
 }
 
 impl ComponentView for Home {
@@ -119,7 +115,7 @@ impl HandleMessage<MatchRecorderMsg> for Home {
             .update(message, tournament)?
             .map(|message| match message {
                 match_recorder::MatchRecorderOut::SubmitRecord(game_record) => {
-                    Effect::out(HomeOut::RegisterRecord(game_record))
+                    Effect::global(TournamentAction::Record(game_record))
                 }
             })
     }

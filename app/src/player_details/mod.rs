@@ -53,9 +53,6 @@ pub enum PlayerDetailsMsg {
 
 #[derive(Debug)]
 pub enum PlayerDetailsOut {
-    OpenPlayer(u32),
-    SaveAndClose(Option<u32>, PlayerInfo),
-    DeletePlayer(u32),
     Close,
 }
 

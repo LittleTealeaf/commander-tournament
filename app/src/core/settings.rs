@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use directories::ProjectDirs;
 
 use crate::{
+    core::message::Message,
     services::system::{load_from_file_async, save_file_async},
     traits::{Component, ComponentUpdate, Effect, HandleMessage},
 };
@@ -106,7 +107,7 @@ pub enum AppSettingsMsg {
 
 impl Component for AppSettings {
     type Message = AppSettingsMsg;
-    type OutMessage = String;
+    type OutMessage = ();
 }
 
 impl ComponentUpdate for AppSettings {
@@ -142,7 +143,7 @@ impl ComponentUpdate for AppSettings {
                 self.handle_message(AppSettingsMsg::Save, ())
             }
             AppSettingsMsg::Nothing => Effect::done(),
-            AppSettingsMsg::Error(error) => Effect::out(error),
+            AppSettingsMsg::Error(error) => Effect::global(Message::Error(error)),
         }
     }
 }

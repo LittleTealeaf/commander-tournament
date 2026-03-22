@@ -6,11 +6,10 @@ use crate::{
         file::FileAction,
         message::Message,
         settings::{AppSettings, AppSettingsMsg},
-        tournament::TournamentAction,
         view::View,
     },
     error::ErrorMsg,
-    home::{HomeMsg, HomeOut},
+    home::HomeMsg,
     player_details::{PlayerDetails, PlayerDetailsMsg, PlayerDetailsOut},
     traits::{ComponentUpdate, Effect, HandleMessage},
 };
@@ -68,11 +67,7 @@ impl HandleMessage<HomeMsg> for App {
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         self.home
             .handle_message(message, (&self.tournament, &self.file))?
-            .map(|message| match message {
-                HomeOut::RegisterRecord(game_record) => {
-                    self.handle_message(TournamentAction::Record(game_record), ())
-                }
-            })
+            .map_empty()
     }
 }
 
@@ -83,9 +78,7 @@ impl HandleMessage<AppSettingsMsg> for App {
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         if let Some(settings) = &mut self.settings {
-            settings
-                .handle_message(message, ())?
-                .map(|error| self.handle_message(Message::Error(error), ()))
+            settings.handle_message(message, ())?.map_empty()
         } else {
             Effect::done()
         }
@@ -123,31 +116,9 @@ impl HandleMessage<PlayerDetailsMsg> for App {
             state
                 .handle_message(message, ())?
                 .map(|message| match message {
-                    PlayerDetailsOut::OpenPlayer(id) => {
-                        self.views.push(View::PlayerDetails(PlayerDetails::new(
-                            self.tournament.get_registered_player(id),
-                        )));
-                        Effect::done()
-                    }
-                    PlayerDetailsOut::SaveAndClose(maybe_id, info) => {
-                        let effect = self.handle_message(
-                            match maybe_id {
-                                Some(id) => TournamentAction::SetPlayerInfo(id, info),
-                                None => TournamentAction::Register(info),
-                            },
-                            (),
-                        )?;
-                        self.views.pop();
-                        Ok(effect)
-                    }
                     PlayerDetailsOut::Close => {
                         self.views.pop();
                         Effect::done()
-                    }
-                    PlayerDetailsOut::DeletePlayer(id) => {
-                        let effect = self.handle_message(TournamentAction::DeletePlayer(id), ())?;
-                        self.views.pop();
-                        Ok(effect)
                     }
                 })
         } else {
