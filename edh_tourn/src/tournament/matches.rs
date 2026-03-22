@@ -44,11 +44,20 @@ impl Tournament {
             }
         });
 
-        let sum_wr = id_stats.iter().map(|p| p.scaled_wr).sum::<f64>().max(1.0);
+        let sum_wr = id_stats.iter().map(|p| p.scaled_wr).sum::<f64>();
         let sum_elo = id_stats.iter().map(|p| p.scaled_elo).sum::<f64>();
 
-        let weight_total = config.game_wr_weight + config.game_elo_weight;
-        let coef_wr = config.game_wr_weight / (weight_total * sum_wr);
+        let wr_weight = if sum_wr > 0.0 {
+            config.game_wr_weight
+        } else {
+            0.0
+        };
+        let weight_total = wr_weight + config.game_elo_weight;
+        let coef_wr = if sum_wr > 0.0 {
+            config.game_wr_weight / (weight_total * sum_wr)
+        } else {
+            0.0
+        };
         let coef_elo = config.game_elo_weight / (weight_total * sum_elo);
         let base_loss = 1.0 - base_chance;
 
