@@ -64,6 +64,10 @@ where
     {
         self.inner_map(&mut map_out)
     }
+
+    pub const fn is_done(&self) -> bool {
+        matches!(self, Self::Done)
+    }
 }
 
 impl<M> Effect<M, ()>
