@@ -48,7 +48,6 @@ pub enum PlayerDetailsMsg {
     /// Opens the dialog to delete the player
     DeletePlayer,
     Dialog(prompt::Message),
-    Nothing,
 }
 
 #[derive(Debug)]

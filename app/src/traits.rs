@@ -35,6 +35,15 @@ where
         Ok(Self::Task(task))
     }
 
+    pub fn batch<I>(effects: I) -> anyhow::Result<Self>
+    where
+        I: IntoIterator<Item = anyhow::Result<Self>>,
+    {
+        Ok(Self::Batch(
+            effects.into_iter().collect::<anyhow::Result<_>>()?,
+        ))
+    }
+
     pub fn then(self, next: anyhow::Result<Self>) -> anyhow::Result<Self> {
         Ok(match self {
             Self::Batch(mut effects) => {

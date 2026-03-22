@@ -1,10 +1,7 @@
-use iced::Task;
-
 use crate::{
     components::prompt::{self, DialogPrompt},
     core::{message::Message, tournament::TournamentAction},
     player_details::PlayerDetailsOut,
-    services::system::open_link,
     traits::{ComponentUpdate, Effect},
 };
 
@@ -60,11 +57,7 @@ impl ComponentUpdate for super::PlayerDetails {
                 self.stats = stats_tab;
                 Effect::done()
             }
-            PlayerDetailsMsg::OpenLink(link) => Effect::task(Task::future(async {
-                let _ = open_link(link).await;
-                PlayerDetailsMsg::Nothing
-            })),
-            PlayerDetailsMsg::Nothing => Effect::done(),
+            PlayerDetailsMsg::OpenLink(link) => Effect::global(Message::OpenLink(link)),
             PlayerDetailsMsg::Close => Effect::out(PlayerDetailsOut::Close),
             PlayerDetailsMsg::Dialog(message) => {
                 if let Some(dialog) = &mut self.prompt_confirm_delete {

@@ -17,15 +17,19 @@ use crate::{
 #[derive(Debug, Clone, derive_more::From)]
 pub enum Message {
     OnBoot,
+    Nothing,
     Settings(AppSettingsMsg),
     SettingsLoaded(Option<AppSettings>),
     Tournament(TournamentAction),
     TournFile(FileAction),
     OpenPlayerDetails(Option<u32>),
+    #[from(ignore)]
     Error(String),
     ViewHome(HomeMsg),
     ViewError(ErrorMsg),
     ViewPlayer(PlayerDetailsMsg),
+    #[from(ignore)]
+    OpenLink(String),
 }
 
 impl App {

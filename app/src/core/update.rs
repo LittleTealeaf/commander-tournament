@@ -11,6 +11,7 @@ use crate::{
     error::ErrorMsg,
     home::HomeMsg,
     player_details::{PlayerDetails, PlayerDetailsMsg, PlayerDetailsOut},
+    services::system::open_link,
     traits::{ComponentUpdate, Effect, HandleMessage},
 };
 
@@ -25,6 +26,7 @@ impl ComponentUpdate for App {
         println!("Update: {message:?}");
 
         match message {
+            Message::Nothing => Effect::done(),
             Message::Settings(message) => self.handle_message(message, ()),
             Message::SettingsLoaded(maybe_settings) => {
                 let Some(settings) = maybe_settings else {
@@ -55,6 +57,12 @@ impl ComponentUpdate for App {
                 ));
                 Effect::done()
             }
+            Message::OpenLink(link) => Effect::task(Task::future(async {
+                if let Err(err) = open_link(link).await {
+                    println!("Warning: {err}");
+                }
+                Message::Nothing
+            })),
         }
     }
 }

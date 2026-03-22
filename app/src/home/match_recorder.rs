@@ -4,7 +4,7 @@ use edh_tourn::{
     tournament::Tournament,
 };
 use iced::{
-    Alignment, Length, Task,
+    Alignment, Length,
     alignment::Vertical,
     widget::{button, column, container, pick_list, row, space, text},
 };
@@ -13,7 +13,7 @@ use nerd_font_symbols::md::{MD_CANCEL, MD_LINK_VARIANT, MD_LINK_VARIANT_PLUS};
 
 // Assuming you have these imported from your definitions
 use crate::{
-    services::system::open_link,
+    core::message::Message,
     traits::{Component, ComponentUpdate, ComponentView, Effect},
 };
 
@@ -59,7 +59,6 @@ pub enum MatchRecorderMsg {
     // Added local messages for handling links before escalating to OutMessage
     OpenLink(String),
     OpenLinks(Vec<String>),
-    Nothing,
 }
 
 #[derive(Debug)]
@@ -164,17 +163,12 @@ impl ComponentUpdate for MatchRecorder {
                 *self = Self::default();
                 Effect::done()
             }
-            MatchRecorderMsg::OpenLink(link) => Effect::task(Task::future(async {
-                let _ = open_link(link).await;
-                MatchRecorderMsg::Nothing
-            })),
-            MatchRecorderMsg::OpenLinks(links) => Effect::task(Task::future(async {
-                for link in links {
-                    let _ = open_link(link).await;
-                }
-                MatchRecorderMsg::Nothing
-            })),
-            MatchRecorderMsg::Nothing => Effect::done(),
+            MatchRecorderMsg::OpenLink(link) => Effect::global(Message::OpenLink(link)),
+            MatchRecorderMsg::OpenLinks(links) => Effect::batch(
+                links
+                    .into_iter()
+                    .map(|link| Effect::global(Message::OpenLink(link))),
+            ),
         }
     }
 }
