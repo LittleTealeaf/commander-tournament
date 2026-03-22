@@ -180,7 +180,10 @@ impl ComponentUpdate for State {
 }
 
 impl ComponentView for State {
-    type ViewContext<'a> = &'a Tournament where Self: 'a;
+    type ViewContext<'a>
+        = &'a Tournament
+    where
+        Self: 'a;
     fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
         let players = context
             .get_registered_players()

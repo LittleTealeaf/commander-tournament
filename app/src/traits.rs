@@ -86,7 +86,9 @@ pub trait Component {
 }
 
 pub trait ComponentView: Component {
-    type ViewContext<'a> where Self: 'a;
+    type ViewContext<'a>
+    where
+        Self: 'a;
     fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> Element<'a, Self::Message>;
 
     fn view_into<'a, M>(&'a self, context: Self::ViewContext<'a>) -> Element<'a, M>
