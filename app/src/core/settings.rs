@@ -33,6 +33,8 @@ pub struct AppState {
     save_path: PathBuf,
     #[serde(skip)]
     is_saving: bool,
+    #[serde(skip)]
+    is_modified: bool,
     last_opened: Option<PathBuf>,
 }
 impl AppState {
@@ -64,6 +66,7 @@ impl AppState {
         Self::load_from_path(path.clone()).await.unwrap_or(Self {
             save_path: path,
             is_saving: false,
+            is_modified: false,
             last_opened: None,
         })
     }
@@ -79,10 +82,12 @@ impl AppState {
 
     pub fn clear_last_opened(&mut self) {
         self.last_opened = None;
+        self.is_modified = true;
     }
 
     pub fn set_last_opened(&mut self, last_opened: PathBuf) {
         self.last_opened = Some(last_opened);
+        self.is_modified = true;
     }
 
     #[cfg(feature = "dev")]
@@ -116,7 +121,13 @@ impl ComponentUpdate for AppState {
     ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
         match message {
             AppStateMsg::Save => {
+                if self.is_saving {
+                    self.is_modified = true;
+                    return Effect::done();
+                }
+
                 self.is_saving = true;
+                self.is_modified = false;
                 let settings = self.clone();
                 let future = async move {
                     match settings.save().await {
@@ -129,7 +140,11 @@ impl ComponentUpdate for AppState {
             }
             AppStateMsg::IsSaved => {
                 self.is_saving = false;
-                Effect::done()
+                if self.is_modified {
+                    self.handle_message(AppStateMsg::Save, ())
+                } else {
+                    Effect::done()
+                }
             }
             AppStateMsg::SetOpenedFile(path_buf) => {
                 self.set_last_opened(path_buf);
@@ -140,7 +155,11 @@ impl ComponentUpdate for AppState {
                 self.handle_message(AppStateMsg::Save, ())
             }
             AppStateMsg::Nothing => Effect::done(),
-            AppStateMsg::Error(error) => Effect::global(Message::Error(error)),
+            AppStateMsg::Error(error) => {
+                self.is_saving = false;
+                self.is_modified = true;
+                Effect::global(Message::Error(error))
+            }
         }
     }
 }
