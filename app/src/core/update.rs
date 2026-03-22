@@ -1,10 +1,9 @@
-use edh_tourn::tournament::Tournament;
 use iced::Task;
 
 use crate::{
     App,
     core::{
-        file::TournamentFileMessage, message::Message, settings::AppSettings, tournament,
+        file::FileAction, message::Message, settings::AppSettings, tournament,
         view::View,
     },
     error, home, player_details,
@@ -30,7 +29,7 @@ impl ComponentUpdate for App {
                 let message = settings
                     .last_opened()
                     .as_ref()
-                    .map(|path| TournamentFileMessage::LoadTournament(path.clone()));
+                    .map(|path| FileAction::OpenFile(path.clone()));
 
                 self.settings = Some(settings);
 
@@ -68,21 +67,6 @@ impl HandleMessage<home::Message> for App {
                 home::OutMessage::RegisterRecord(game_record) => {
                     self.handle_message(tournament::Action::Record(game_record), ())
                 }
-                home::OutMessage::MenuMessage(message) => match message {
-                    home::menu::Message::New => {
-                        self.tournament = Tournament::new();
-                        Effect::done()
-                    }
-                    home::menu::Message::Open => {
-                        self.handle_message(TournamentFileMessage::Open, ())
-                    }
-                    home::menu::Message::Save => {
-                        self.handle_message(TournamentFileMessage::Save, ())
-                    }
-                    home::menu::Message::SaveAs => {
-                        self.handle_message(TournamentFileMessage::SaveAs, ())
-                    }
-                },
             })
     }
 }

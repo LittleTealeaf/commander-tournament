@@ -3,7 +3,7 @@ use iced::Task;
 use crate::{
     App,
     core::{
-        file::TournamentFileMessage,
+        file::FileAction,
         settings::{self, AppSettings},
         tournament,
         view::View,
@@ -18,7 +18,7 @@ pub enum Message {
     Settings(settings::Message),
     SettingsLoaded(Option<AppSettings>),
     Tournament(tournament::Action),
-    TournFile(TournamentFileMessage),
+    TournFile(FileAction),
     Error(String),
     ViewHome(home::Message),
     ViewError(error::Message),
@@ -29,6 +29,7 @@ impl App {
     pub fn handle_update(&mut self, message: Message) -> Task<Message> {
         match self.update(message, ()) {
             Ok(Effect::Task(task)) => task,
+            Ok(Effect::Global(message)) => self.handle_update(message),
             Err(error) => {
                 self.views
                     .push(View::Error(error::State::new(error.to_string())));

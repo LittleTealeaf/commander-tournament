@@ -2,7 +2,10 @@ use std::path::PathBuf;
 
 use iced::widget::{button, row};
 
-use crate::traits::{Component, ComponentUpdate, ComponentView, Effect};
+use crate::{
+    core::file::FileAction,
+    traits::{Component, ComponentUpdate, ComponentView, Effect},
+};
 
 #[derive(Debug, Clone, Default)]
 pub struct State;
@@ -17,7 +20,7 @@ pub enum Message {
 
 impl Component for State {
     type Message = Message;
-    type OutMessage = Message;
+    type OutMessage = ();
 }
 
 impl ComponentUpdate for State {
@@ -27,7 +30,12 @@ impl ComponentUpdate for State {
         message: Self::Message,
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
-        Effect::out(message)
+        match message {
+            Message::New => Effect::global(FileAction::New),
+            Message::Open => Effect::global(FileAction::Open),
+            Message::Save => Effect::global(FileAction::Save),
+            Message::SaveAs => Effect::global(FileAction::SaveAs),
+        }
     }
 }
 

@@ -30,7 +30,6 @@ pub enum Message {
 pub enum OutMessage {
     OpenPlayerDetails(Option<u32>),
     RegisterRecord(Box<GameRecord>),
-    MenuMessage(menu::Message),
 }
 
 impl Component for State {
@@ -72,8 +71,18 @@ impl ComponentUpdate for State {
             Message::Leaderboard(message) => self.handle_message(message, context),
             Message::GameRecord(message) => self.handle_message(message, context),
             Message::Ranking(message) => self.handle_message(message, context),
-            Message::Menu(message) => Effect::out(OutMessage::MenuMessage(message)),
+            Message::Menu(message) => self.handle_message(message, context),
         }
+    }
+}
+
+impl HandleMessage<menu::Message> for State {
+    fn handle_message(
+        &mut self,
+        message: menu::Message,
+        _: Self::UpdateContext<'_>,
+    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
+        self.menu.update(message, ())?.map_empty()
     }
 }
 

@@ -20,8 +20,11 @@ where
         Ok(Self::Done)
     }
 
-    pub const fn global(message: Message) -> anyhow::Result<Self> {
-        Ok(Self::Global(message))
+    pub fn global<G>(message: G) -> anyhow::Result<Self>
+    where
+        G: Into<Message>,
+    {
+        Ok(Self::Global(message.into()))
     }
 
     pub const fn out(message: O) -> anyhow::Result<Self> {
@@ -58,6 +61,19 @@ where
         F: FnMut(O) -> anyhow::Result<Effect<MN, ON>>,
     {
         self.inner_map(&mut map_out)
+    }
+}
+
+impl<M> Effect<M, ()>
+where
+    M: MaybeSend + 'static,
+{
+    pub fn map_empty<MN, ON>(self) -> anyhow::Result<Effect<MN, ON>>
+    where
+        MN: Send + MaybeSend + 'static,
+        M: Into<MN>,
+    {
+        self.map(|()| Effect::done())
     }
 }
 
