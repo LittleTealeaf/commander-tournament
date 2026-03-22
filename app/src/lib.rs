@@ -41,10 +41,11 @@ impl App {
 
     #[must_use]
     pub fn title(&self) -> String {
+        const APP_TITLE: &str = "Commander Tournament";
         if self.modified {
-            "* Commander Tournament".to_owned()
+            format!("* {APP_TITLE}")
         } else {
-            "Commander Tournament".to_owned()
+            APP_TITLE.to_string()
         }
     }
 
