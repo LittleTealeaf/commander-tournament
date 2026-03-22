@@ -13,6 +13,7 @@ use crate::{
 #[derive(Debug, Clone, derive_more::From)]
 pub enum Message {
     OnBoot,
+    Settings(crate::settings::Message),
     SettingsLoaded(Option<AppSettings>),
     Tournament(tournament::Action),
     TournFile(TournamentFileMessage),
@@ -42,6 +43,7 @@ impl ComponentUpdate for App {
         (): Self::Context<'_>,
     ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
         match message {
+            Message::Settings(message) => self.handle_message(message, ()),
             Message::SettingsLoaded(maybe_settings) => {
                 let Some(settings) = maybe_settings else {
                     return Effect::ok();
@@ -95,7 +97,7 @@ impl HandleMessage<crate::settings::Message> for App {
     fn handle_message(
         &mut self,
         message: crate::settings::Message,
-        context: Self::Context<'_>,
+        (): Self::Context<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         if let Some(settings) = &mut self.settings {
             settings
