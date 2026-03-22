@@ -86,3 +86,7 @@ where
     async_fs::write(path, serialized.as_bytes()).await?;
     Ok(())
 }
+
+pub async fn open_link(link: String) -> anyhow::Result<()> {
+    Ok(tokio::task::spawn_blocking(move || opener::open_browser(link)).await??)
+}

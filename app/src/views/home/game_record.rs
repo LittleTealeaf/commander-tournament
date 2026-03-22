@@ -4,7 +4,7 @@ use edh_tourn::{
     tournament::Tournament,
 };
 use iced::{
-    Alignment, Length,
+    Alignment, Length, Task,
     alignment::Vertical,
     widget::{button, column, container, pick_list, row, space, text},
 };
@@ -13,7 +13,10 @@ use nerd_font_symbols::md::{MD_CANCEL, MD_LINK_VARIANT, MD_LINK_VARIANT_PLUS};
 use opener::open_browser;
 
 // Assuming you have these imported from your definitions
-use crate::traits::{Component, ComponentUpdate, ComponentView, Effect};
+use crate::{
+    services::system::open_link,
+    traits::{Component, ComponentUpdate, ComponentView, Effect},
+};
 
 #[derive(Default, Debug)]
 pub struct State {
@@ -57,6 +60,7 @@ pub enum Message {
     // Added local messages for handling links before escalating to OutMessage
     OpenLink(String),
     OpenLinks(Vec<String>),
+    Nothing,
 }
 
 #[derive(Debug)]
@@ -162,16 +166,17 @@ impl ComponentUpdate for State {
                 *self = Self::default();
                 Effect::ok()
             }
-            Message::OpenLink(link) => {
-                open_browser(link)?;
-                Effect::ok()
-            }
-            Message::OpenLinks(links) => {
+            Message::OpenLink(link) => Effect::task(Task::future(async {
+                let _ = open_link(link).await;
+                Message::Nothing
+            })),
+            Message::OpenLinks(links) => Effect::task(Task::future(async {
                 for link in links {
-                    open_browser(link)?;
+                    let _ = open_link(link).await;
                 }
-                Effect::ok()
-            }
+                Message::Nothing
+            })),
+            Message::Nothing => Effect::ok(),
         }
     }
 }

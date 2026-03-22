@@ -98,7 +98,7 @@ pub fn stats_game_history(
             scrollable(table(
                 [
                     table::column("Games", column_game),
-                    table::column("Games", column_elo),
+                    table::column("Elo Change", column_elo),
                 ],
                 tournament
                     .get_player_games(id)
