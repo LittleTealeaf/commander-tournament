@@ -23,12 +23,19 @@ impl ComponentUpdate for App {
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
         #[cfg(debug_assertions)]
-        println!("Update: {message:?}");
+        {
+            let dbg = format!("{message:?}");
+            if dbg.len() > 1000 {
+                println!("Update: {dbg:.1000}...");
+            } else {
+                println!("Update: {dbg}");
+            }
+        }
 
         match message {
             Message::Nothing => Effect::done(),
-            Message::Settings(message) => self.handle_message(message, ()),
-            Message::SettingsLoaded(maybe_settings) => {
+            Message::AppState(message) => self.handle_message(message, ()),
+            Message::AppStateLoaded(maybe_settings) => {
                 let Some(settings) = maybe_settings else {
                     return Effect::done();
                 };
@@ -43,7 +50,7 @@ impl ComponentUpdate for App {
             }
             Message::OnBoot => Effect::task(Task::perform(
                 async { AppState::load().await.ok() },
-                Message::SettingsLoaded,
+                Message::AppStateLoaded,
             )),
             Message::Tournament(action) => self.handle_message(action, ()),
             Message::ViewHome(message) => self.handle_message(message, ()),

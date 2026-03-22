@@ -18,8 +18,8 @@ use crate::{
 pub enum Message {
     OnBoot,
     Nothing,
-    Settings(AppStateMsg),
-    SettingsLoaded(Option<AppState>),
+    AppState(AppStateMsg),
+    AppStateLoaded(Option<AppState>),
     Tournament(TournamentAction),
     TournFile(FileAction),
     OpenPlayerDetails(Option<u32>),
