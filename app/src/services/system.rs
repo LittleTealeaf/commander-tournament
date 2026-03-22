@@ -83,6 +83,11 @@ where
 {
     let extension = require_extension(&path)?;
     let serialized = serialize_by_extension(data, extension)?;
+    if let Some(parent) = path.parent()
+        && !fs::exists(parent)?
+    {
+        fs::create_dir_all(parent)?;
+    }
     fs::write(path, serialized.as_bytes())?;
     Ok(())
 }
@@ -93,6 +98,13 @@ where
 {
     let extension = require_extension(&path)?;
     let serialized = serialize_by_extension(data, extension)?;
+
+    if let Some(parent) = path.parent()
+        && !fs::exists(parent)?
+    {
+        async_fs::create_dir_all(parent).await?;
+    }
+
     async_fs::write(path, serialized.as_bytes()).await?;
     Ok(())
 }

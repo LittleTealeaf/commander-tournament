@@ -1,4 +1,5 @@
 use iced::Task;
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 use crate::{
@@ -17,7 +18,8 @@ fn get_state_path() -> Option<PathBuf> {
         project
             .state_dir()
             .unwrap_or_else(|| project.data_dir())
-            .to_path_buf(),
+            .to_path_buf()
+            .join("app-state.json"),
     )
 }
 
@@ -27,16 +29,19 @@ pub fn debug_config_path() -> Option<PathBuf> {
     get_state_path()
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AppState {
-    #[serde(skip)]
     save_path: PathBuf,
-    #[serde(skip)]
     is_saving: bool,
-    #[serde(skip)]
     is_modified: bool,
+    data: AppStatePayload,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+struct AppStatePayload {
     last_opened: Option<PathBuf>,
 }
+
 impl AppState {
     pub async fn load() -> anyhow::Result<Self> {
         let path = {
@@ -58,7 +63,9 @@ impl AppState {
     pub async fn load_from_path(path: PathBuf) -> anyhow::Result<Self> {
         Ok(Self {
             save_path: path.clone(),
-            ..load_from_file_async(path).await?
+            is_saving: false,
+            is_modified: false,
+            data: load_from_file_async(path).await?,
         })
     }
 
@@ -67,26 +74,26 @@ impl AppState {
             save_path: path,
             is_saving: false,
             is_modified: false,
-            last_opened: None,
+            data: AppStatePayload { last_opened: None },
         })
     }
 
     pub async fn save(&self) -> anyhow::Result<()> {
-        save_file_async(&self, self.save_path.clone()).await
+        save_file_async(&self.data, self.save_path.clone()).await
     }
 
     #[must_use]
     pub const fn last_opened(&self) -> &Option<PathBuf> {
-        &self.last_opened
+        &self.data.last_opened
     }
 
     pub fn clear_last_opened(&mut self) {
-        self.last_opened = None;
+        self.data.last_opened = None;
         self.is_modified = true;
     }
 
     pub fn set_last_opened(&mut self, last_opened: PathBuf) {
-        self.last_opened = Some(last_opened);
+        self.data.last_opened = Some(last_opened);
         self.is_modified = true;
     }
 

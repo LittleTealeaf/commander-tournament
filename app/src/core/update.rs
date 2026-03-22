@@ -5,7 +5,7 @@ use crate::{
     core::{
         file::FileAction,
         message::Message,
-        settings::{AppState, AppStateMsg},
+        state::{AppState, AppStateMsg},
         view::View,
     },
     error::ErrorMsg,

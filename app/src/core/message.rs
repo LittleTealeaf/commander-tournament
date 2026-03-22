@@ -4,7 +4,7 @@ use crate::{
     App,
     core::{
         file::FileAction,
-        settings::{AppState, AppStateMsg},
+        state::{AppState, AppStateMsg},
         tournament::TournamentAction,
         view::View,
     },

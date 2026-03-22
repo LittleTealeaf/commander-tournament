@@ -13,7 +13,7 @@ use edh_tourn::tournament::Tournament;
 use iced::Task;
 
 use crate::{
-    core::{message::Message, settings::AppState, view::View},
+    core::{message::Message, state::AppState, view::View},
     traits::Component,
 };
 
