@@ -42,6 +42,9 @@ impl ComponentUpdate for App {
         message: Self::Message,
         (): Self::Context<'_>,
     ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
+        #[cfg(debug_assertions)]
+        println!("Update: {message:?}");
+
         match message {
             Message::Settings(message) => self.handle_message(message, ()),
             Message::SettingsLoaded(maybe_settings) => {

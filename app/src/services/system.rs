@@ -17,7 +17,12 @@ pub fn get_extension(path: &Path) -> Option<&str> {
 }
 
 pub fn require_extension(path: &Path) -> anyhow::Result<&str> {
-    get_extension(path).ok_or_else(|| anyhow!("Invalid File Extension"))
+    get_extension(path).ok_or_else(|| {
+        anyhow!(
+            "Invalid File Extension for path: {}",
+            path.to_path_buf().to_string_lossy()
+        )
+    })
 }
 
 pub fn deserialize_by_extension<'a, T>(data: &'a str, extension: &str) -> anyhow::Result<T>

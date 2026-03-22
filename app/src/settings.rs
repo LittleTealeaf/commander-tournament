@@ -44,13 +44,23 @@ pub enum Message {
 
 impl AppSettings {
     pub async fn load() -> anyhow::Result<Self> {
+        {
+            // Because this uses the config path of the system, this should not be used in tests as
+            // it may have side-effects and will not work with running concurrent tests.
+            #[cfg(test)]
+            panic!("AppSettings::load() should not be called in tests");
+        }
+
         let path = get_config_path().ok_or_else(|| anyhow!("Could not file app config path"))?;
         let config = Self::load_from_path_or_default(path).await;
         Ok(config)
     }
 
     pub async fn load_from_path(path: PathBuf) -> anyhow::Result<Self> {
-        load_from_file_async(path).await
+        Ok(Self {
+            save_path: path.clone(),
+            ..load_from_file_async(path).await?
+        })
     }
 
     pub async fn load_from_path_or_default(path: PathBuf) -> Self {
@@ -61,13 +71,9 @@ impl AppSettings {
         })
     }
 
-    // pub async fn save(&self) -> anyhow::Result<()> {
-    //     if self.is_saving {
-    //         return Ok(());
-    //     }
-    //     save_file_async(self, self.save_path.clone()).await?;
-    //     Ok(())
-    // }
+    pub async fn save(&self) -> anyhow::Result<()> {
+        save_file_async(&self, self.save_path.clone()).await
+    }
 
     #[must_use]
     pub const fn last_opened(&self) -> &Option<PathBuf> {
@@ -97,15 +103,16 @@ impl ComponentUpdate for AppSettings {
     ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
         match message {
             Message::Save => {
-                let save_path = self.save_path.clone();
-                let value = self.clone();
+                self.is_saving = true;
+                let settings = self.clone();
                 let future = async move {
-                    match save_file_async(&value, save_path).await {
-                        Ok(()) => Message::Nothing,
+                    match settings.save().await {
+                        Ok(()) => Message::IsSaved,
                         Err(error) => Message::Error(error.to_string()),
                     }
                 };
-                Effect::task(Task::future(future))
+                let task = Task::future(future);
+                Effect::task(task)
             }
             Message::IsSaved => {
                 self.is_saving = false;
