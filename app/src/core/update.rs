@@ -48,10 +48,11 @@ impl ComponentUpdate for App {
 
                 message.map_or_else(Effect::done, |message| self.handle_message(message, ()))
             }
-            Message::OnBoot => Effect::task(Task::perform(
+            Message::OnBoot => Effect::Task(Task::perform(
                 async { AppState::load().await.ok() },
                 Message::AppStateLoaded,
-            )),
+            ))
+            .ok(),
             Message::Tournament(action) => self.handle_message(action, ()),
             Message::ViewHome(message) => self.handle_message(message, ()),
             Message::ViewError(error) => self.handle_message(error, ()),
@@ -64,12 +65,13 @@ impl ComponentUpdate for App {
                 ));
                 Effect::done()
             }
-            Message::OpenLink(link) => Effect::task(Task::future(async {
+            Message::OpenLink(link) => Effect::Task(Task::future(async {
                 if let Err(err) = open_link(link).await {
                     println!("Warning: {err}");
                 }
                 Message::Nothing
-            })),
+            }))
+            .ok(),
         }
     }
 }

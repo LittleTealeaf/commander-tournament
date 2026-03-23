@@ -66,14 +66,14 @@ impl ComponentUpdate for Ranking {
                 let players =
                     create_game_players(id, ranked).ok_or_else(|| anyhow!("Not enough players"))?;
 
-                Effect::out(RankingOut::LoadGame(players))
+                Effect::Out(RankingOut::LoadGame(players)).ok()
             }
             RankingMsg::SetMethod(method) => {
                 self.method = method;
                 Effect::done()
             }
             RankingMsg::OpenPlayerDetails(id) => {
-                Effect::global(crate::core::message::Message::OpenPlayerDetails(Some(id)))
+                Effect::global(crate::core::message::Message::OpenPlayerDetails(Some(id))).ok()
             }
         }
     }

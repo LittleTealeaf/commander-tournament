@@ -38,7 +38,7 @@ impl HandleMessage<FileAction> for App {
                 self.file = None;
                 Effect::done()
             }
-            FileAction::Open => Effect::task(Task::perform(
+            FileAction::Open => Effect::Task(Task::perform(
                 AsyncFileDialog::new()
                     .add_filter("formats", &accepted_file_types())
                     .set_directory(".")
@@ -50,14 +50,16 @@ impl HandleMessage<FileAction> for App {
                         .map_or(FileAction::Cancelled, FileAction::OpenFile)
                         .into()
                 },
-            )),
-            FileAction::OpenFile(path_buf) => Effect::task(Task::perform(
+            ))
+            .ok(),
+            FileAction::OpenFile(path_buf) => Effect::Task(Task::perform(
                 load_from_file_async(path_buf.clone()),
                 |res| match res {
                     Ok(value) => FileAction::FileOpened(path_buf, value).into(),
                     Err(err) => Message::Error(err.to_string()),
                 },
-            )),
+            ))
+            .ok(),
             FileAction::SaveFile(path_buf) => {
                 if self.is_saving {
                     return Effect::done();
@@ -65,13 +67,14 @@ impl HandleMessage<FileAction> for App {
                 self.is_saving = true;
                 let extension = require_extension(&path_buf)?;
                 let serialized = serialize_by_extension(&self.tournament, extension)?;
-                Effect::task(Task::perform(
+                Effect::Task(Task::perform(
                     async_fs::write(path_buf.clone(), serialized),
                     |res| match res {
                         Ok(()) => FileAction::FileSaved.into(),
                         Err(e) => Message::Error(e.to_string()),
                     },
                 ))
+                .ok()
             }
             FileAction::Save => {
                 if let Some(path) = &self.file {
@@ -94,7 +97,7 @@ impl HandleMessage<FileAction> for App {
                         })
                         .into()
                 };
-                Effect::task(Task::future(future))
+                Effect::Task(Task::future(future)).ok()
             }
             FileAction::FileOpened(path, tournament) => {
                 self.tournament = *tournament;

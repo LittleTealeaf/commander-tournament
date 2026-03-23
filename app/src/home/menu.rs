@@ -36,6 +36,7 @@ impl ComponentUpdate for Menu {
             MenuMsg::Save => Effect::global(FileAction::Save),
             MenuMsg::SaveAs => Effect::global(FileAction::SaveAs),
         }
+        .ok()
     }
 }
 

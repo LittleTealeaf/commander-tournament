@@ -28,7 +28,7 @@ impl ComponentUpdate for Error {
         message: Self::Message,
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
-        Effect::out(message)
+        Effect::Out(message).ok()
     }
 }
 

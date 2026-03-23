@@ -143,7 +143,7 @@ impl ComponentUpdate for AppState {
                     }
                 };
                 let task = Task::future(future);
-                Effect::task(task)
+                Effect::Task(task).ok()
             }
             AppStateMsg::IsSaved => {
                 self.is_saving = false;
@@ -165,7 +165,7 @@ impl ComponentUpdate for AppState {
             AppStateMsg::Error(error) => {
                 self.is_saving = false;
                 self.is_modified = true;
-                Effect::global(Message::Error(error))
+                Effect::Global(Message::Error(error)).ok()
             }
         }
     }

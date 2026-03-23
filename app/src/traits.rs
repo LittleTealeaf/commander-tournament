@@ -1,3 +1,5 @@
+use core::iter::once;
+
 use iced::{Element, Task};
 use iced_futures::MaybeSend;
 
@@ -16,82 +18,98 @@ impl<M, O> Effect<M, O>
 where
     M: 'static + MaybeSend,
 {
+    pub const fn ok(self) -> anyhow::Result<Self> {
+        Ok(self)
+    }
+
     pub const fn done() -> anyhow::Result<Self> {
-        Ok(Self::Done)
+        Self::Done.ok()
     }
 
-    pub fn global<G>(message: G) -> anyhow::Result<Self>
+    pub fn global<Msg>(message: Msg) -> Self
     where
-        G: Into<Message>,
+        Msg: Into<Message>,
     {
-        Ok(Self::Global(message.into()))
+        Self::Global(message.into())
     }
 
-    pub const fn out(message: O) -> anyhow::Result<Self> {
-        Ok(Self::Out(message))
-    }
-
-    pub const fn task(task: Task<M>) -> anyhow::Result<Self> {
-        Ok(Self::Task(task))
-    }
-
-    pub fn batch<I>(effects: I) -> anyhow::Result<Self>
+    pub fn batch<I>(effects: I) -> Self
     where
-        I: IntoIterator<Item = anyhow::Result<Self>>,
+        I: IntoIterator<Item = Self>,
     {
-        Ok(Self::Batch(
-            effects.into_iter().collect::<anyhow::Result<_>>()?,
-        ))
+        let (tasks, mut other_effects) = effects.into_iter().fold(
+            (Vec::new(), Vec::new()),
+            |(mut tasks, mut effects), effect| {
+                match effect {
+                    Self::Done => {}
+                    Self::Task(task) => tasks.push(task),
+                    other => effects.push(other),
+                }
+                (tasks, effects)
+            },
+        );
+
+        let task = Task::batch(tasks);
+        let len = other_effects.len();
+        other_effects.push(Self::Task(task));
+        other_effects.swap(0, len);
+        Self::Batch(other_effects)
     }
 
-    pub fn and(self, other: anyhow::Result<Self>) -> anyhow::Result<Self> {
-        Ok(match (self, other?) {
-            (Self::Task(first), Self::Task(second)) => Self::Task(Task::batch([first, second])),
-            (first, second) => first.then(Ok(second))?,
-        })
+    pub fn sequence<I>(effects: I) -> Self
+    where
+        I: IntoIterator<Item = Self>,
+    {
+        let (task, mut other_effects) = effects.into_iter().fold(
+            (Task::none(), Vec::new()),
+            |(base_task, mut effects), effect| match effect {
+                Self::Done => (base_task, effects),
+                Self::Task(task) => (base_task.chain(task), effects),
+                other => {
+                    effects.push(other);
+                    (base_task, effects)
+                }
+            },
+        );
+        if other_effects.is_empty() {
+            return Self::Task(task);
+        }
+        other_effects.push(Self::Task(task));
+        Self::Batch(other_effects)
     }
 
-    pub fn then(self, task: anyhow::Result<Self>) -> anyhow::Result<Self> {
-        Ok(match (self, task?) {
-            (Self::Done, other) | (other, Self::Done) => other,
-            (Self::Batch(first), Self::Batch(second)) => {
-                Self::Batch(first.into_iter().chain(second).collect())
+    #[must_use]
+    pub fn chain(self, other: Self) -> Self {
+        match (self, other) {
+            (Self::Done, eff) | (eff, Self::Done) => eff,
+            (Self::Task(left), Self::Task(right)) => Self::Task(left.chain(right)),
+            (Self::Batch(left), Self::Batch(right)) => {
+                Self::sequence(left.into_iter().chain(right))
             }
-            (Self::Task(first), Self::Task(second)) => Self::Task(first.chain(second)),
-            (Self::Batch(batch), Self::Task(task)) => {
-                let mut tasks = Vec::new();
-                let mut effects = Vec::new();
-                for eff in batch {
-                    match eff {
-                        Self::Task(task) => tasks.push(task),
-                        other => effects.push(other),
-                    }
-                }
-                effects.push(Self::Task(Task::batch(tasks).chain(task)));
-                Self::Batch(effects)
+            (Self::Task(task), Self::Batch(effects)) => {
+                Self::sequence(once(Self::Task(task)).chain(effects))
             }
-            (Self::Task(task), Self::Batch(batch)) => {
-                let mut tasks = Vec::new();
-                let mut effects = Vec::new();
-                for eff in batch {
-                    match eff {
-                        Self::Task(task) => tasks.push(task),
-                        other => effects.push(other),
-                    }
-                }
-                effects.push(Self::Task(task.chain(Task::batch(tasks))));
-                Self::Batch(effects)
+            (Self::Batch(effects), Self::Task(task)) => {
+                Self::sequence(effects.into_iter().chain(once(Self::Task(task))))
             }
-            (Self::Batch(mut batch), other) => {
-                batch.push(other);
-                Self::Batch(batch)
+            (left, right) => Self::Batch(vec![left, right]),
+        }
+    }
+
+    #[must_use]
+    pub fn merge(self, other: Self) -> Self {
+        match (self, other) {
+            (Self::Done, eff) | (eff, Self::Done) => eff,
+            (Self::Task(left), Self::Task(right)) => Self::Task(Task::batch([left, right])),
+            (Self::Batch(left), Self::Batch(right)) => Self::batch(left.into_iter().chain(right)),
+            (Self::Task(task), Self::Batch(effects)) => {
+                Self::batch(once(Self::Task(task)).chain(effects))
             }
-            (other, Self::Batch(mut batch)) => {
-                batch.insert(0, other);
-                Self::Batch(batch)
+            (Self::Batch(effects), Self::Task(task)) => {
+                Self::batch(effects.into_iter().chain(once(Self::Task(task))))
             }
-            (first, second) => Self::Batch(vec![first, second]),
-        })
+            (left, right) => Self::Batch(vec![left, right]),
+        }
     }
 
     fn inner_map<MN, ON, F>(self, map_out: &mut F) -> anyhow::Result<Effect<MN, ON>>

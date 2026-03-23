@@ -157,18 +157,19 @@ impl ComponentUpdate for MatchRecorder {
 
                 *self = Self::default();
 
-                Effect::out(MatchRecorderOut::SubmitRecord(Box::new(record)))
+                Effect::Out(MatchRecorderOut::SubmitRecord(Box::new(record))).ok()
             }
             MatchRecorderMsg::Clear => {
                 *self = Self::default();
                 Effect::done()
             }
-            MatchRecorderMsg::OpenLink(link) => Effect::global(Message::OpenLink(link)),
+            MatchRecorderMsg::OpenLink(link) => Effect::Global(Message::OpenLink(link)).ok(),
             MatchRecorderMsg::OpenLinks(links) => Effect::batch(
                 links
                     .into_iter()
-                    .map(|link| Effect::global(Message::OpenLink(link))),
-            ),
+                    .map(|link| Effect::Global(Message::OpenLink(link))),
+            )
+            .ok(),
         }
     }
 }
