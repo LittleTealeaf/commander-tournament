@@ -11,6 +11,7 @@ pub enum Effect<M, O> {
     Out(O),
     Task(Task<M>),
     Batch(Vec<Self>),
+    Sequence(Vec<Self>),
     Done,
 }
 
@@ -37,68 +38,26 @@ where
     where
         I: IntoIterator<Item = Self>,
     {
-        let (tasks, mut other_effects) = effects.into_iter().fold(
-            (Vec::new(), Vec::new()),
-            |(mut tasks, mut effects), effect| {
-                match effect {
-                    Self::Done => {}
-                    Self::Task(task) => tasks.push(task),
-                    other => effects.push(other),
-                }
-                (tasks, effects)
-            },
-        );
-
-        if other_effects.is_empty() {
-            if tasks.is_empty() {
-                Self::Done
-            } else {
-                Self::Task(Task::batch(tasks))
-            }
-        } else {
-            if !tasks.is_empty() {
-                let task = Task::batch(tasks);
-                let len = other_effects.len();
-                other_effects.push(Self::Task(task));
-                other_effects.swap(0, len);
-            }
-            Self::Batch(other_effects)
-        }
+        Self::Batch(effects.into_iter().filter(|e| !e.is_done()).collect())
     }
 
+    /// Notes: tasks are not spawned if any message fails to complete
     pub fn sequence<I>(effects: I) -> Self
     where
         I: IntoIterator<Item = Self>,
     {
-        let (task, mut other_effects) = effects.into_iter().fold(
-            (Task::none(), Vec::new()),
-            |(base_task, mut effects), effect| match effect {
-                Self::Done => (base_task, effects),
-                Self::Task(task) => (base_task.chain(task), effects),
-                other => {
-                    effects.push(other);
-                    (base_task, effects)
-                }
-            },
-        );
-        if other_effects.is_empty() {
-            Self::Task(task)
-        } else {
-            other_effects.push(Self::Task(task));
-            Self::Batch(other_effects)
-        }
+        Self::Sequence(effects.into_iter().filter(|e| !e.is_done()).collect())
     }
 
     #[must_use]
     pub fn chain(self, other: Self) -> Self {
         match (self, other) {
             (Self::Done, eff) | (eff, Self::Done) => eff,
-            (Self::Task(left), Self::Task(right)) => Self::Task(left.chain(right)),
-            (Self::Batch(left), Self::Batch(right)) => {
+            (Self::Sequence(left), Self::Sequence(right)) => {
                 Self::sequence(left.into_iter().chain(right))
             }
-            (effect, Self::Batch(effects)) => Self::sequence(once(effect).chain(effects)),
-            (Self::Batch(effects), effect) => {
+            (effect, Self::Sequence(effects)) => Self::sequence(once(effect).chain(effects)),
+            (Self::Sequence(effects), effect) => {
                 Self::sequence(effects.into_iter().chain(once(effect)))
             }
             (left, right) => Self::Batch(vec![left, right]),
@@ -109,7 +68,6 @@ where
     pub fn merge(self, other: Self) -> Self {
         match (self, other) {
             (Self::Done, eff) | (eff, Self::Done) => eff,
-            (Self::Task(left), Self::Task(right)) => Self::Task(Task::batch([left, right])),
             (Self::Batch(left), Self::Batch(right)) => Self::batch(left.into_iter().chain(right)),
             (effect, Self::Batch(effects)) | (Self::Batch(effects), effect) => {
                 Self::batch(once(effect).chain(effects))
@@ -135,6 +93,13 @@ where
                     effects.push(effect.inner_map(map_out)?);
                 }
                 Ok(Effect::Batch(effects))
+            }
+            Self::Sequence(sequence) => {
+                let mut effects = Vec::new();
+                for effect in sequence {
+                    effects.push(effect.inner_map(map_out)?);
+                }
+                Ok(Effect::Sequence(effects))
             }
         }
     }

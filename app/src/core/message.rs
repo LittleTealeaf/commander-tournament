@@ -23,6 +23,7 @@ pub enum Message {
     Tournament(TournamentAction),
     TournFile(FileAction),
     OpenPlayerDetails(Option<u32>),
+    CloseView,
     #[from(ignore)]
     Error(String),
     ViewHome(HomeMsg),
@@ -33,31 +34,35 @@ pub enum Message {
 }
 
 impl App {
-    pub fn handle_update(&mut self, message: Message) -> Task<Message> {
-        let mut messages_to_process = vec![message];
-        let mut tasks = vec![];
-
-        while let Some(msg) = messages_to_process.pop() {
-            match self.update(msg, ()) {
-                Ok(effect) => {
-                    let mut effects_to_process = vec![effect];
-                    while let Some(eff) = effects_to_process.pop() {
-                        match eff {
-                            Effect::Task(task) => tasks.push(task),
-                            Effect::Global(m) => messages_to_process.push(m),
-                            Effect::Batch(batch) => {
-                                effects_to_process.extend(batch.into_iter().rev());
-                            }
-                            Effect::Done | Effect::Out(()) => (),
-                        }
-                    }
+    fn process_effect(&mut self, effect: Effect<Message, ()>) -> anyhow::Result<Task<Message>> {
+        match effect {
+            Effect::Out(()) | Effect::Done => Ok(Task::none()),
+            Effect::Global(message) => {
+                let effect = self.update(message, ())?;
+                self.process_effect(effect)
+            }
+            Effect::Task(task) => Ok(task),
+            Effect::Batch(effects) => Ok(Task::batch(effects.into_iter().map(|effect| {
+                self.process_effect(effect)
+                    .unwrap_or_else(|err| Task::done(Message::Error(err.to_string())))
+            }))),
+            Effect::Sequence(effects) => {
+                let mut task = Task::none();
+                for effect in effects {
+                    task = task.chain(self.process_effect(effect)?);
                 }
-                Err(error) => {
-                    self.views.push(View::Error(Error::new(error.to_string())));
-                }
+                Ok(task)
             }
         }
+    }
 
-        Task::batch(tasks)
+    pub fn handle_update(&mut self, message: Message) -> Task<Message> {
+        self.update(message, ())
+            .and_then(|effect| self.process_effect(effect))
+            .unwrap_or_else(|error| {
+                eprintln!("Error: {error}");
+                self.views.push(View::Error(Error::new(error.to_string())));
+                Task::none()
+            })
     }
 }

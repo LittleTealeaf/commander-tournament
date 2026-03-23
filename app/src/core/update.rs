@@ -33,6 +33,10 @@ impl ComponentUpdate for App {
         }
 
         match message {
+            Message::CloseView => {
+                self.views.pop();
+                Effect::done()
+            }
             Message::Nothing => Effect::done(),
             Message::AppState(message) => self.handle_message(message, ()),
             Message::AppStateLoaded(maybe_settings) => {
@@ -112,10 +116,7 @@ impl HandleMessage<ErrorMsg> for App {
             state
                 .handle_message(message, ())?
                 .map(|message| match message {
-                    ErrorMsg::CloseError => {
-                        self.views.pop();
-                        Effect::done()
-                    }
+                    ErrorMsg::CloseError => Effect::global(Message::CloseView).ok(),
                 })
         } else {
             Effect::done()
@@ -133,10 +134,7 @@ impl HandleMessage<PlayerDetailsMsg> for App {
             state
                 .handle_message(message, ())?
                 .map(|message| match message {
-                    PlayerDetailsOut::Close => {
-                        self.views.pop();
-                        Effect::done()
-                    }
+                    PlayerDetailsOut::Close => Effect::global(Message::CloseView).ok(),
                 })
         } else {
             Effect::done()
