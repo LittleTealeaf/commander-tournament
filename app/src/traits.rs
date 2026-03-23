@@ -49,11 +49,21 @@ where
             },
         );
 
-        let task = Task::batch(tasks);
-        let len = other_effects.len();
-        other_effects.push(Self::Task(task));
-        other_effects.swap(0, len);
-        Self::Batch(other_effects)
+        if other_effects.is_empty() {
+            if tasks.is_empty() {
+                Self::Done
+            } else {
+                Self::Task(Task::batch(tasks))
+            }
+        } else {
+            if !tasks.is_empty() {
+                let task = Task::batch(tasks);
+                let len = other_effects.len();
+                other_effects.push(Self::Task(task));
+                other_effects.swap(0, len);
+            }
+            Self::Batch(other_effects)
+        }
     }
 
     pub fn sequence<I>(effects: I) -> Self
@@ -72,10 +82,11 @@ where
             },
         );
         if other_effects.is_empty() {
-            return Self::Task(task);
+            Self::Task(task)
+        } else {
+            other_effects.push(Self::Task(task));
+            Self::Batch(other_effects)
         }
-        other_effects.push(Self::Task(task));
-        Self::Batch(other_effects)
     }
 
     #[must_use]
