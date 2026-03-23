@@ -83,8 +83,7 @@ where
 {
     let extension = require_extension(&path)?;
     let serialized = serialize_by_extension(data, extension)?;
-    if let Some(parent) = path.parent()
-    {
+    if let Some(parent) = path.parent() {
         fs::create_dir_all(parent)?;
     }
     fs::write(path, serialized.as_bytes())?;
