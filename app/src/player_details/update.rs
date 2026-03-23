@@ -34,7 +34,7 @@ impl ComponentUpdate for super::PlayerDetails {
                     Some(id) => TournamentAction::SetPlayerInfo(id, self.info.clone()),
                     None => TournamentAction::Register(self.info.clone()),
                 })?
-                .chain(Effect::out(PlayerDetailsOut::Close))
+                .then(Effect::out(PlayerDetailsOut::Close))
             }
             PlayerDetailsMsg::SetName(name) => {
                 self.info.set_name(name);
@@ -65,7 +65,7 @@ impl ComponentUpdate for super::PlayerDetails {
                         crate::components::prompt::Message::Accept => {
                             self.id.map_or_else(Effect::done, |id| {
                                 Effect::global(TournamentAction::DeletePlayer(id))?
-                                    .chain(Effect::out(PlayerDetailsOut::Close))
+                                    .and(Effect::out(PlayerDetailsOut::Close))
                             })
                         }
                         crate::components::prompt::Message::Cancel => {

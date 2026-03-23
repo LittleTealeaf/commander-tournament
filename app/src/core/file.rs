@@ -59,6 +59,10 @@ impl HandleMessage<FileAction> for App {
                 },
             )),
             FileAction::SaveFile(path_buf) => {
+                if self.is_saving {
+                    return Effect::done();
+                }
+                self.is_saving = true;
                 let extension = require_extension(&path_buf)?;
                 let serialized = serialize_by_extension(&self.tournament, extension)?;
                 Effect::task(Task::perform(
@@ -99,6 +103,7 @@ impl HandleMessage<FileAction> for App {
                 self.handle_message(crate::core::state::AppStateMsg::SetOpenedFile(path), ())
             }
             FileAction::FileSaved => {
+                self.is_saving = false;
                 self.modified = false;
                 Effect::done()
             }
