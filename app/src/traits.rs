@@ -97,11 +97,9 @@ where
             (Self::Batch(left), Self::Batch(right)) => {
                 Self::sequence(left.into_iter().chain(right))
             }
-            (Self::Task(task), Self::Batch(effects)) => {
-                Self::sequence(once(Self::Task(task)).chain(effects))
-            }
-            (Self::Batch(effects), Self::Task(task)) => {
-                Self::sequence(effects.into_iter().chain(once(Self::Task(task))))
+            (effect, Self::Batch(effects)) => Self::sequence(once(effect).chain(effects)),
+            (Self::Batch(effects), effect) => {
+                Self::sequence(effects.into_iter().chain(once(effect)))
             }
             (left, right) => Self::Batch(vec![left, right]),
         }
@@ -113,11 +111,8 @@ where
             (Self::Done, eff) | (eff, Self::Done) => eff,
             (Self::Task(left), Self::Task(right)) => Self::Task(Task::batch([left, right])),
             (Self::Batch(left), Self::Batch(right)) => Self::batch(left.into_iter().chain(right)),
-            (Self::Task(task), Self::Batch(effects)) => {
-                Self::batch(once(Self::Task(task)).chain(effects))
-            }
-            (Self::Batch(effects), Self::Task(task)) => {
-                Self::batch(effects.into_iter().chain(once(Self::Task(task))))
+            (effect, Self::Batch(effects)) | (Self::Batch(effects), effect) => {
+                Self::batch(once(effect).chain(effects))
             }
             (left, right) => Self::Batch(vec![left, right]),
         }
