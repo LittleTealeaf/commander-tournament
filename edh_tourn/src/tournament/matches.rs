@@ -10,7 +10,7 @@ impl Tournament {
         if record.matchup().snapshot() == self.snapshot {
             return Ok(record);
         }
-        let (matchup, winner) = record.into();
+        let (matchup, winner) = record.decompose();
         self.create_match(matchup.ids())?.record(winner)
     }
 

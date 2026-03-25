@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{error::TournamentError, game::record::GameRecord, tournament::Tournament};
+use crate::{error::TournamentError, game::record::GameRecord};
 
 /// Stores only the player IDs and the winner ID. Primarily used for serialization or conversions
 #[derive(
@@ -64,14 +64,12 @@ impl From<&GameRecord> for GameEntry {
     }
 }
 
-impl Tournament {
-    pub fn create_entry_record(&self, entry: GameEntry) -> Result<GameRecord, TournamentError> {
-        self.create_match(entry.players)?.record(entry.winner)
-    }
-}
-
 #[cfg(test)]
 mod test {
+    use itertools::Itertools;
+
+    use crate::tournament::Tournament;
+
     use super::*;
 
     #[test]
@@ -101,5 +99,25 @@ mod test {
     fn map_fails_invalid_id() {
         let entry = GameEntry::new([1, 2, 3, 4], 1).unwrap();
         entry.map_ids(&HashMap::new()).unwrap_err();
+    }
+
+    #[test]
+    fn from_game_record() {
+        let tournament = Tournament::generate_tournament(10,10).unwrap();
+        let ids = tournament.players().keys().copied().take(4).collect_array().unwrap();
+        let record = tournament.create_match(ids).unwrap().record(ids[0]).unwrap();
+        let entry = GameEntry::from(record);
+        assert_eq!(ids, entry.players);
+        assert_eq!(ids[0], entry.winner);
+    }
+
+    #[test]
+    fn from_game_record_ref() {
+        let tournament = Tournament::generate_tournament(10,10).unwrap();
+        let ids = tournament.players().keys().copied().take(4).collect_array().unwrap();
+        let record = tournament.create_match(ids).unwrap().record(ids[0]).unwrap();
+        let entry = GameEntry::from(&record);
+        assert_eq!(ids, entry.players);
+        assert_eq!(ids[0], entry.winner);
     }
 }

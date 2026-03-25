@@ -81,10 +81,8 @@ impl GameRecord {
 
         Ok(score)
     }
-}
 
-impl From<GameRecord> for (Matchup, u32) {
-    fn from(value: GameRecord) -> Self {
-        (value.matchup, value.winner)
+    pub fn decompose(self) -> (Matchup, u32) {
+        (self.matchup, self.winner)
     }
 }

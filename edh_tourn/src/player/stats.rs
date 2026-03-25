@@ -70,9 +70,11 @@ impl PlayerStats {
         if self.elo < MINIMUM_ELO {
             self.elo = MINIMUM_ELO;
         }
+        if self.wins == 0 {
+            self.elo_peak = self.elo;
+        }
     }
 }
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -157,18 +159,27 @@ mod tests {
     }
 
     #[test]
-    fn peak_elo_remains_with_loss() {
+    fn peak_elo_drops_with_loss_before_first_win() {
         let mut stats = PlayerStats::new(1500.0);
         stats.add_loss(400.0);
-        assert_relative_eq!(1500.0, stats.elo_peak());
+        assert_relative_eq!(1100.0, stats.elo_peak());
+    }
+
+    #[test]
+    fn peak_elo_remains_with_loss_after_first_win() {
+        let mut stats = PlayerStats::new(1500.0);
+        stats.add_win(100.0);
+        stats.add_loss(400.0);
+        assert_relative_eq!(1600.0, stats.elo_peak());
     }
 
     #[test]
     fn peak_elo_remains_when_winning_below() {
         let mut stats = PlayerStats::new(1500.0);
+        stats.add_win(500.0); // establishes peak at 2000
         stats.add_loss(500.0);
         stats.add_win(400.0);
-        assert_relative_eq!(1400.0, stats.elo());
-        assert_relative_eq!(1500.0, stats.elo_peak());
+        assert_relative_eq!(1900.0, stats.elo());
+        assert_relative_eq!(2000.0, stats.elo_peak());
     }
 }

@@ -29,13 +29,7 @@ impl Tournament {
         let iter = self.get_player_player_match_performance(id)?;
         let elo_base = self.get_player_or_default_stats(id).elo();
         let sorted = iter.sorted_by(|(player_a, perf_a), (player_b, perf_b)| {
-            let total_games = perf_a.played().max(perf_b.played());
-            let score_a = total_games + perf_a.wins() - perf_a.losses();
-            let score_b = total_games + perf_b.wins() - perf_b.losses();
-
-            score_a
-                .cmp(&score_b)
-                .then_with(|| closest_elo(elo_base, player_a, player_b))
+            perf_a.cmp(perf_b).then_with(|| closest_elo(elo_base, player_a, player_b))
         });
 
         Ok(sorted)
