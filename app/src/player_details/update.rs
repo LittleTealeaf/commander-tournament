@@ -25,7 +25,7 @@ impl ComponentUpdate for super::PlayerDetails {
                 if Some(id) == self.id {
                     Effect::done()
                 } else {
-                    Effect::global(Message::OpenPlayerDetails(Some(id)))
+                    Effect::global(Message::OpenPlayerDetails(Some(id))).ok()
                 }
             }
             PlayerDetailsMsg::SaveAndClose => {
@@ -33,8 +33,9 @@ impl ComponentUpdate for super::PlayerDetails {
                 Effect::global(match self.id {
                     Some(id) => TournamentAction::SetPlayerInfo(id, self.info.clone()),
                     None => TournamentAction::Register(self.info.clone()),
-                })?
-                .then(Effect::out(PlayerDetailsOut::Close))
+                })
+                .chain(Effect::Out(PlayerDetailsOut::Close))
+                .ok()
             }
             PlayerDetailsMsg::SetName(name) => {
                 self.info.set_name(name);
@@ -57,15 +58,16 @@ impl ComponentUpdate for super::PlayerDetails {
                 self.stats = stats_tab;
                 Effect::done()
             }
-            PlayerDetailsMsg::OpenLink(link) => Effect::global(Message::OpenLink(link)),
-            PlayerDetailsMsg::Close => Effect::out(PlayerDetailsOut::Close),
+            PlayerDetailsMsg::OpenLink(link) => Effect::global(Message::OpenLink(link)).ok(),
+            PlayerDetailsMsg::Close => Effect::Out(PlayerDetailsOut::Close).ok(),
             PlayerDetailsMsg::Dialog(message) => {
                 if let Some(dialog) = &mut self.prompt_confirm_delete {
                     return dialog.update(message, ())?.map(|message| match message {
                         crate::components::prompt::Message::Accept => {
                             self.id.map_or_else(Effect::done, |id| {
-                                Effect::global(TournamentAction::DeletePlayer(id))?
-                                    .then(Effect::out(PlayerDetailsOut::Close))
+                                Effect::global(TournamentAction::DeletePlayer(id))
+                                    .chain(Effect::Out(PlayerDetailsOut::Close))
+                                    .ok()
                             })
                         }
                         crate::components::prompt::Message::Cancel => {

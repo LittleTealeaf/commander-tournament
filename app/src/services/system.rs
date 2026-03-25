@@ -1,10 +1,20 @@
 use anyhow::anyhow;
+use directories::ProjectDirs;
 use std::{
     fs,
     path::{Path, PathBuf},
 };
 
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
+
+const QUALIFIER: &str = "io.github.littletealeaf";
+const ORGANIZATION: &str = "LittleTealeaf";
+const APPLICATION: &str = "commander-tournament";
+
+#[must_use]
+pub fn project_dir() -> Option<ProjectDirs> {
+    ProjectDirs::from(QUALIFIER, ORGANIZATION, APPLICATION)
+}
 
 #[must_use]
 pub fn accepted_file_types() -> Vec<&'static str> {
@@ -73,6 +83,9 @@ where
 {
     let extension = require_extension(&path)?;
     let serialized = serialize_by_extension(data, extension)?;
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)?;
+    }
     fs::write(path, serialized.as_bytes())?;
     Ok(())
 }
@@ -83,6 +96,11 @@ where
 {
     let extension = require_extension(&path)?;
     let serialized = serialize_by_extension(data, extension)?;
+
+    if let Some(parent) = path.parent() {
+        async_fs::create_dir_all(parent).await?;
+    }
+
     async_fs::write(path, serialized.as_bytes()).await?;
     Ok(())
 }

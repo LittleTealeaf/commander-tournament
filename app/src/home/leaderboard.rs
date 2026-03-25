@@ -97,12 +97,12 @@ impl ComponentUpdate for Leaderboard {
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         match message {
             LeaderboardMsg::OpenPlayer(id) => {
-                Effect::global(crate::core::message::Message::OpenPlayerDetails(Some(id)))
+                Effect::Global(crate::core::message::Message::OpenPlayerDetails(Some(id))).ok()
             }
             LeaderboardMsg::NewPlayer => {
-                Effect::global(crate::core::message::Message::OpenPlayerDetails(None))
+                Effect::Global(crate::core::message::Message::OpenPlayerDetails(None)).ok()
             }
-            LeaderboardMsg::RankPlayer(id) => Effect::out(LeaderboardOut::RankPlayer(id)),
+            LeaderboardMsg::RankPlayer(id) => Effect::Out(LeaderboardOut::RankPlayer(id)).ok(),
             LeaderboardMsg::Sort(column) => {
                 if self.column == column {
                     self.direction = self.direction.reverse();

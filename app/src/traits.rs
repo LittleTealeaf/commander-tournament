@@ -1,70 +1,103 @@
+use core::iter::once;
+
 use iced::{Element, Task};
 use iced_futures::MaybeSend;
 
 use crate::core::message::Message;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub enum Effect<M, O> {
     Global(Message),
     Out(O),
     Task(Task<M>),
     Batch(Vec<Self>),
+    Sequence(Vec<Self>),
+    #[default]
     Done,
 }
 
 impl<M, O> Effect<M, O>
 where
-    M: 'static,
+    M: 'static + MaybeSend,
 {
+    pub const fn ok(self) -> anyhow::Result<Self> {
+        Ok(self)
+    }
+
     pub const fn done() -> anyhow::Result<Self> {
-        Ok(Self::Done)
+        Self::Done.ok()
     }
 
-    pub fn global<G>(message: G) -> anyhow::Result<Self>
+    pub fn global<Msg>(message: Msg) -> Self
     where
-        G: Into<Message>,
+        Msg: Into<Message>,
     {
-        Ok(Self::Global(message.into()))
+        Self::Global(message.into())
     }
 
-    pub const fn out(message: O) -> anyhow::Result<Self> {
-        Ok(Self::Out(message))
-    }
-
-    pub const fn task(task: Task<M>) -> anyhow::Result<Self> {
-        Ok(Self::Task(task))
-    }
-
-    pub fn batch<I>(effects: I) -> anyhow::Result<Self>
+    pub fn future<F>(future: F) -> Self
     where
-        I: IntoIterator<Item = anyhow::Result<Self>>,
+        F: core::future::Future<Output = M> + Send + 'static,
     {
-        Ok(Self::Batch(
-            effects.into_iter().collect::<anyhow::Result<_>>()?,
-        ))
+        Self::Task(Task::future(future))
     }
 
-    pub fn then(self, next: anyhow::Result<Self>) -> anyhow::Result<Self> {
-        Ok(match self {
-            Self::Batch(mut effects) => {
-                match next? {
-                    Self::Batch(mut new_effects) => {
-                        effects.append(&mut new_effects);
-                    }
-                    effect => {
-                        effects.push(effect);
-                    }
-                }
-                Self::Batch(effects)
+    pub fn batch<I>(effects: I) -> Self
+    where
+        I: IntoIterator<Item = Self>,
+    {
+        let effects = effects
+            .into_iter()
+            .filter(|e| !e.is_done())
+            .collect::<Vec<_>>();
+        if effects.is_empty() {
+            Self::Done
+        } else {
+            Self::Batch(effects)
+        }
+    }
+
+    /// Notes: tasks are not spawned if any message fails to complete
+    pub fn sequence<I>(effects: I) -> Self
+    where
+        I: IntoIterator<Item = Self>,
+    {
+        let effects = effects
+            .into_iter()
+            .filter(|e| !e.is_done())
+            .collect::<Vec<_>>();
+        if effects.is_empty() {
+            Self::Done
+        } else {
+            Self::Sequence(effects)
+        }
+    }
+
+    #[must_use]
+    pub fn chain(self, other: Self) -> Self {
+        match (self, other) {
+            (Self::Done, eff) | (eff, Self::Done) => eff,
+            (Self::Sequence(left), Self::Sequence(right)) => {
+                Self::sequence(left.into_iter().chain(right))
             }
-            self_other => match next? {
-                Self::Batch(mut new_effects) => {
-                    new_effects.insert(0, self_other);
-                    Self::Batch(new_effects)
-                }
-                effect => Self::Batch(vec![self_other, effect]),
-            },
-        })
+            (effect, Self::Sequence(effects)) => Self::sequence(once(effect).chain(effects)),
+            (Self::Sequence(effects), effect) => {
+                Self::sequence(effects.into_iter().chain(once(effect)))
+            }
+            (left, right) => Self::Sequence(vec![left, right]),
+        }
+    }
+
+    #[must_use]
+    pub fn merge(self, other: Self) -> Self {
+        match (self, other) {
+            (Self::Done, eff) | (eff, Self::Done) => eff,
+            (Self::Batch(left), Self::Batch(right)) => Self::batch(left.into_iter().chain(right)),
+            (effect, Self::Batch(effects)) | (Self::Batch(effects), effect) => {
+                Self::batch(once(effect).chain(effects))
+            }
+            (left, right) => Self::Batch(vec![left, right]),
+        }
     }
 
     fn inner_map<MN, ON, F>(self, map_out: &mut F) -> anyhow::Result<Effect<MN, ON>>
@@ -84,6 +117,13 @@ where
                     effects.push(effect.inner_map(map_out)?);
                 }
                 Ok(Effect::Batch(effects))
+            }
+            Self::Sequence(sequence) => {
+                let mut effects = Vec::new();
+                for effect in sequence {
+                    effects.push(effect.inner_map(map_out)?);
+                }
+                Ok(Effect::Sequence(effects))
             }
         }
     }

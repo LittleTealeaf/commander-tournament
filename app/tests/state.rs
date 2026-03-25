@@ -1,7 +1,7 @@
 use tempfile::NamedTempFile;
 
 // Adjust `commander_tournament` to your actual crate name if different
-use app::core::settings::{AppSettings, debug_config_path};
+use app::core::state::{AppState, debug_config_path};
 
 fn temp_file() -> NamedTempFile {
     NamedTempFile::with_suffix(".ron").unwrap()
@@ -9,7 +9,7 @@ fn temp_file() -> NamedTempFile {
 
 #[tokio::test]
 async fn settings_loc_uses_temp_path() {
-    let settings = AppSettings::load().await.unwrap();
+    let settings = AppState::load().await.unwrap();
     let settings_path = settings.settings_loc().clone();
     let system_path = debug_config_path().unwrap();
     assert_ne!(
@@ -21,13 +21,13 @@ async fn settings_loc_uses_temp_path() {
 #[tokio::test]
 async fn loading_from_empty() {
     let path = temp_file().path().to_path_buf();
-    AppSettings::load_from_path(path).await.unwrap_err();
+    AppState::load_from_path(path).await.unwrap_err();
 }
 
 #[tokio::test]
 async fn saves_to_path() {
     let path = temp_file().path().to_path_buf();
-    let settings = AppSettings::load_from_path_or_default(path.clone()).await;
+    let settings = AppState::load_from_path_or_default(path.clone()).await;
     settings.save().await.unwrap();
 
     let data = async_fs::read_to_string(path).await.unwrap();
@@ -38,15 +38,15 @@ async fn saves_to_path() {
 async fn loading_from_saved() {
     let file = temp_file();
     let path = file.path().to_path_buf();
-    let settings = AppSettings::load_from_path_or_default(path.clone()).await;
+    let settings = AppState::load_from_path_or_default(path.clone()).await;
     settings.save().await.unwrap();
 
-    AppSettings::load_from_path(path).await.unwrap();
+    AppState::load_from_path(path).await.unwrap();
 }
 
 #[tokio::test]
 async fn set_and_clear_last_updated() {
-    let mut settings = AppSettings::load().await.unwrap();
+    let mut settings = AppState::load().await.unwrap();
     assert!(
         settings.last_opened().is_none(),
         "Expected new settings object to have no last_opened file"
@@ -74,10 +74,10 @@ async fn last_updated_persists_through_saves() {
 
     let tourn_test = temp_file().path().to_path_buf();
 
-    let mut settings = AppSettings::load_from_path_or_default(path.clone()).await;
+    let mut settings = AppState::load_from_path_or_default(path.clone()).await;
     settings.set_last_opened(tourn_test.clone());
     settings.save().await.unwrap();
 
-    let new_settings = AppSettings::load_from_path_or_default(path.clone()).await;
+    let new_settings = AppState::load_from_path_or_default(path.clone()).await;
     assert_eq!(tourn_test, new_settings.last_opened().clone().unwrap());
 }

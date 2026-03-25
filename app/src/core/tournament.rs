@@ -51,6 +51,7 @@ impl HandleMessage<TournamentAction> for App {
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         message.apply(&mut self.tournament)?;
+        self.modified = true;
         Effect::done()
     }
 }

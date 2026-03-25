@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use edh_tourn::tournament::Tournament;
-use iced::{Task, futures::FutureExt};
+use iced::Task;
 use rfd::AsyncFileDialog;
 
 use crate::{
@@ -20,10 +20,44 @@ pub enum FileAction {
     OpenFile(PathBuf),
     FileOpened(PathBuf, Box<Tournament>),
     SaveFile(PathBuf),
+    SaveError(String),
     FileSaved,
     Save,
     SaveAs,
     Cancelled,
+}
+
+async fn open_dialog() -> Message {
+    let dialog = AsyncFileDialog::new()
+        .add_filter("formats", &accepted_file_types())
+        .set_directory(".")
+        .set_title("Open Tournament");
+
+    let result = dialog.pick_file().await;
+
+    result
+        .map_or(FileAction::Cancelled, |file| {
+            let path = file.path().to_path_buf();
+            FileAction::OpenFile(path)
+        })
+        .into()
+}
+
+async fn save_dialog() -> Message {
+    let dialog = AsyncFileDialog::new()
+        .add_filter("formats", &accepted_file_types())
+        .set_directory(".")
+        .set_title("Save Tournament")
+        .save_file();
+
+    let result = dialog.await;
+
+    result
+        .map_or(FileAction::Cancelled, |file| {
+            let path = file.path().to_path_buf();
+            FileAction::SaveFile(path)
+        })
+        .into()
 }
 
 impl HandleMessage<FileAction> for App {
@@ -38,36 +72,30 @@ impl HandleMessage<FileAction> for App {
                 self.file = None;
                 Effect::done()
             }
-            FileAction::Open => Effect::task(Task::perform(
-                AsyncFileDialog::new()
-                    .add_filter("formats", &accepted_file_types())
-                    .set_directory(".")
-                    .set_title("Open Tournament")
-                    .pick_file()
-                    .then(async |res| res.map(|handle| handle.path().to_path_buf())),
-                |result| {
-                    result
-                        .map_or(FileAction::Cancelled, FileAction::OpenFile)
-                        .into()
-                },
-            )),
-            FileAction::OpenFile(path_buf) => Effect::task(Task::perform(
+            FileAction::Open => Effect::future(open_dialog()).ok(),
+            FileAction::OpenFile(path_buf) => Effect::Task(Task::perform(
                 load_from_file_async(path_buf.clone()),
                 |res| match res {
                     Ok(value) => FileAction::FileOpened(path_buf, value).into(),
                     Err(err) => Message::Error(err.to_string()),
                 },
-            )),
+            ))
+            .ok(),
             FileAction::SaveFile(path_buf) => {
+                if self.is_saving {
+                    return Effect::done();
+                }
+                self.is_saving = true;
                 let extension = require_extension(&path_buf)?;
                 let serialized = serialize_by_extension(&self.tournament, extension)?;
-                Effect::task(Task::perform(
-                    async_fs::write(path_buf.clone(), serialized),
-                    |res| match res {
+                let future = async move {
+                    let res = async_fs::write(path_buf.clone(), serialized).await;
+                    match res {
                         Ok(()) => FileAction::FileSaved.into(),
-                        Err(e) => Message::Error(e.to_string()),
-                    },
-                ))
+                        Err(e) => FileAction::SaveError(e.to_string()).into(),
+                    }
+                };
+                Effect::future(future).ok()
             }
             FileAction::Save => {
                 if let Some(path) = &self.file {
@@ -76,31 +104,23 @@ impl HandleMessage<FileAction> for App {
                     self.handle_message(FileAction::SaveAs, ())
                 }
             }
-            FileAction::SaveAs => {
-                let future = async {
-                    let result = AsyncFileDialog::new()
-                        .add_filter("formats", &accepted_file_types())
-                        .set_directory(".")
-                        .set_title("Save Tournament")
-                        .save_file()
-                        .await;
-                    result
-                        .map_or(FileAction::Cancelled, |file| {
-                            FileAction::SaveFile(file.path().to_path_buf())
-                        })
-                        .into()
-                };
-                Effect::task(Task::future(future))
-            }
+            FileAction::SaveAs => Effect::future(save_dialog()).ok(),
             FileAction::FileOpened(path, tournament) => {
                 self.tournament = *tournament;
                 self.file = Some(path.clone());
-                self.handle_message(
-                    crate::core::settings::AppSettingsMsg::SetOpenedFile(path),
-                    (),
-                )
+                self.modified = false;
+                self.handle_message(crate::core::state::AppStateMsg::SetOpenedFile(path), ())
             }
-            FileAction::Cancelled | FileAction::FileSaved => Effect::done(),
+            FileAction::FileSaved => {
+                self.is_saving = false;
+                self.modified = false;
+                Effect::done()
+            }
+            FileAction::Cancelled => Effect::done(),
+            FileAction::SaveError(err) => {
+                self.is_saving = false;
+                Err(anyhow::anyhow!("Failed to save file: {err}"))
+            }
         }
     }
 }

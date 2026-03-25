@@ -6,6 +6,14 @@ use crate::{
 };
 
 impl Tournament {
+    pub fn update_record(&self, record: GameRecord) -> Result<GameRecord, TournamentError> {
+        if record.matchup().snapshot() == self.snapshot {
+            return Ok(record);
+        }
+        let (matchup, winner) = record.into();
+        self.create_match(matchup.ids())?.record(winner)
+    }
+
     pub fn update_match(&self, matchup: Matchup) -> Result<Matchup, TournamentError> {
         if matchup.snapshot() == self.snapshot {
             return Ok(matchup);

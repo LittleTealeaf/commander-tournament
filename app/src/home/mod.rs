@@ -115,7 +115,7 @@ impl HandleMessage<MatchRecorderMsg> for Home {
             .update(message, tournament)?
             .map(|message| match message {
                 match_recorder::MatchRecorderOut::SubmitRecord(game_record) => {
-                    Effect::global(TournamentAction::Record(game_record))
+                    Effect::global(TournamentAction::Record(game_record)).ok()
                 }
             })
     }

@@ -13,18 +13,20 @@ use edh_tourn::tournament::Tournament;
 use iced::Task;
 
 use crate::{
-    core::{message::Message, settings::AppSettings, view::View},
+    core::{message::Message, state::AppState, view::View},
     traits::Component,
 };
 
 #[derive(Debug, Default)]
 pub struct App {
     tournament: Tournament,
+    modified: bool,
+    is_saving: bool,
     home: home::Home,
     error: Option<String>,
     file: Option<PathBuf>,
     views: Vec<View>,
-    settings: Option<AppSettings>,
+    state: Option<AppState>,
 }
 
 impl App {
@@ -37,19 +39,14 @@ impl App {
         &self.tournament
     }
 
-    pub fn push_view<V>(&mut self, view: V)
-    where
-        V: Into<View>,
-    {
-        self.views.push(view.into());
-    }
-
-    pub fn pop_view(&mut self) {
-        let _ = self.views.pop();
-    }
-
-    pub fn clear_views(&mut self) {
-        self.views.clear();
+    #[must_use]
+    pub fn title(&self) -> String {
+        const APP_TITLE: &str = "Commander Tournament";
+        if self.modified {
+            format!("* {APP_TITLE}")
+        } else {
+            APP_TITLE.to_owned()
+        }
     }
 }
 
