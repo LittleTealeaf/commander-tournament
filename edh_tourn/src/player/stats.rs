@@ -51,6 +51,7 @@ impl PlayerStats {
     }
 
     #[must_use]
+    /// Peak Elo is only tracked after the first win, so that a player doesn't have an artificially high peak from losses at the start of the tournament.
     pub const fn elo_peak(&self) -> f64 {
         self.elo_peak
     }
