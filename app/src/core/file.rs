@@ -20,6 +20,7 @@ pub enum FileAction {
     OpenFile(PathBuf),
     FileOpened(PathBuf, Box<Tournament>),
     SaveFile(PathBuf),
+    SaveError(String),
     FileSaved,
     Save,
     SaveAs,
@@ -91,7 +92,7 @@ impl HandleMessage<FileAction> for App {
                     let res = async_fs::write(path_buf.clone(), serialized).await;
                     match res {
                         Ok(()) => FileAction::FileSaved.into(),
-                        Err(e) => Message::Error(e.to_string()),
+                        Err(e) => FileAction::SaveError(e.to_string()).into(),
                     }
                 };
                 Effect::future(future).ok()
@@ -116,6 +117,10 @@ impl HandleMessage<FileAction> for App {
                 Effect::done()
             }
             FileAction::Cancelled => Effect::done(),
+            FileAction::SaveError(err) => {
+                self.is_saving = false;
+                Err(anyhow::anyhow!("Failed to save file: {err}"))
+            }
         }
     }
 }
