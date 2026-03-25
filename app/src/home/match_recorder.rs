@@ -164,7 +164,7 @@ impl ComponentUpdate for MatchRecorder {
                 Effect::done()
             }
             MatchRecorderMsg::OpenLink(link) => Effect::Global(Message::OpenLink(link)).ok(),
-            MatchRecorderMsg::OpenLinks(links) => Effect::batch(
+            MatchRecorderMsg::OpenLinks(links) => Effect::sequence(
                 links
                     .into_iter()
                     .map(|link| Effect::Global(Message::OpenLink(link))),

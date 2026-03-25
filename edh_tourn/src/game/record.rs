@@ -1,7 +1,6 @@
 use crate::{
     error::TournamentError,
     game::{match_player::MatchPlayer, matchup::Matchup},
-    tournament::Tournament,
 };
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
@@ -84,8 +83,8 @@ impl GameRecord {
     }
 }
 
-impl Tournament {
-    pub fn update_record(&self, record: GameRecord) -> Result<GameRecord, TournamentError> {
-        self.update_match(record.matchup)?.record(record.winner)
+impl From<GameRecord> for (Matchup, u32) {
+    fn from(value: GameRecord) -> Self {
+        (value.matchup, value.winner)
     }
 }

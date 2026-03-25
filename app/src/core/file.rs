@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use edh_tourn::tournament::Tournament;
-use iced::{Task, futures::FutureExt};
+use iced::Task;
 use rfd::AsyncFileDialog;
 
 use crate::{
@@ -26,6 +26,39 @@ pub enum FileAction {
     Cancelled,
 }
 
+async fn open_dialog() -> Message {
+    let dialog = AsyncFileDialog::new()
+        .add_filter("formats", &accepted_file_types())
+        .set_directory(".")
+        .set_title("Open Tournament");
+
+    let result = dialog.pick_file().await;
+
+    result
+        .map_or(FileAction::Cancelled, |file| {
+            let path = file.path().to_path_buf();
+            FileAction::OpenFile(path)
+        })
+        .into()
+}
+
+async fn save_dialog() -> Message {
+    let dialog = AsyncFileDialog::new()
+        .add_filter("formats", &accepted_file_types())
+        .set_directory(".")
+        .set_title("Save Tournament")
+        .save_file();
+
+    let result = dialog.await;
+
+    result
+        .map_or(FileAction::Cancelled, |file| {
+            let path = file.path().to_path_buf();
+            FileAction::SaveFile(path)
+        })
+        .into()
+}
+
 impl HandleMessage<FileAction> for App {
     fn handle_message(
         &mut self,
@@ -38,20 +71,7 @@ impl HandleMessage<FileAction> for App {
                 self.file = None;
                 Effect::done()
             }
-            FileAction::Open => Effect::Task(Task::perform(
-                AsyncFileDialog::new()
-                    .add_filter("formats", &accepted_file_types())
-                    .set_directory(".")
-                    .set_title("Open Tournament")
-                    .pick_file()
-                    .then(async |res| res.map(|handle| handle.path().to_path_buf())),
-                |result| {
-                    result
-                        .map_or(FileAction::Cancelled, FileAction::OpenFile)
-                        .into()
-                },
-            ))
-            .ok(),
+            FileAction::Open => Effect::future(open_dialog()).ok(),
             FileAction::OpenFile(path_buf) => Effect::Task(Task::perform(
                 load_from_file_async(path_buf.clone()),
                 |res| match res {
@@ -67,14 +87,14 @@ impl HandleMessage<FileAction> for App {
                 self.is_saving = true;
                 let extension = require_extension(&path_buf)?;
                 let serialized = serialize_by_extension(&self.tournament, extension)?;
-                Effect::Task(Task::perform(
-                    async_fs::write(path_buf.clone(), serialized),
-                    |res| match res {
+                let future = async move {
+                    let res = async_fs::write(path_buf.clone(), serialized).await;
+                    match res {
                         Ok(()) => FileAction::FileSaved.into(),
                         Err(e) => Message::Error(e.to_string()),
-                    },
-                ))
-                .ok()
+                    }
+                };
+                Effect::future(future).ok()
             }
             FileAction::Save => {
                 if let Some(path) = &self.file {
@@ -83,22 +103,7 @@ impl HandleMessage<FileAction> for App {
                     self.handle_message(FileAction::SaveAs, ())
                 }
             }
-            FileAction::SaveAs => {
-                let future = async {
-                    let result = AsyncFileDialog::new()
-                        .add_filter("formats", &accepted_file_types())
-                        .set_directory(".")
-                        .set_title("Save Tournament")
-                        .save_file()
-                        .await;
-                    result
-                        .map_or(FileAction::Cancelled, |file| {
-                            FileAction::SaveFile(file.path().to_path_buf())
-                        })
-                        .into()
-                };
-                Effect::Task(Task::future(future)).ok()
-            }
+            FileAction::SaveAs => Effect::future(save_dialog()).ok(),
             FileAction::FileOpened(path, tournament) => {
                 self.tournament = *tournament;
                 self.file = Some(path.clone());

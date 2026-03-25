@@ -70,10 +70,13 @@ impl Tournament {
 
     pub fn merge(&mut self, other: &Self) -> Result<(), TournamentError> {
         let id_map = self.merge_players_from_tournament(other)?;
+        let snapshot = self.snapshot;
 
         for game in &other.games {
             self.register_entry(GameEntry::from(game).map_ids(&id_map)?)?;
         }
+
+        self.snapshot = snapshot + 1;
 
         Ok(())
     }

@@ -5,13 +5,14 @@ use iced_futures::MaybeSend;
 
 use crate::core::message::Message;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub enum Effect<M, O> {
     Global(Message),
     Out(O),
     Task(Task<M>),
     Batch(Vec<Self>),
     Sequence(Vec<Self>),
+    #[default]
     Done,
 }
 
@@ -34,11 +35,26 @@ where
         Self::Global(message.into())
     }
 
+    pub fn future<F>(future: F) -> Self
+    where
+        F: core::future::Future<Output = M> + Send + 'static,
+    {
+        Self::Task(Task::future(future))
+    }
+
     pub fn batch<I>(effects: I) -> Self
     where
         I: IntoIterator<Item = Self>,
     {
-        Self::Batch(effects.into_iter().filter(|e| !e.is_done()).collect())
+        let effects = effects
+            .into_iter()
+            .filter(|e| !e.is_done())
+            .collect::<Vec<_>>();
+        if effects.is_empty() {
+            Self::Done
+        } else {
+            Self::Batch(effects)
+        }
     }
 
     /// Notes: tasks are not spawned if any message fails to complete
@@ -46,7 +62,15 @@ where
     where
         I: IntoIterator<Item = Self>,
     {
-        Self::Sequence(effects.into_iter().filter(|e| !e.is_done()).collect())
+        let effects = effects
+            .into_iter()
+            .filter(|e| !e.is_done())
+            .collect::<Vec<_>>();
+        if effects.is_empty() {
+            Self::Done
+        } else {
+            Self::Sequence(effects)
+        }
     }
 
     #[must_use]
@@ -60,7 +84,7 @@ where
             (Self::Sequence(effects), effect) => {
                 Self::sequence(effects.into_iter().chain(once(effect)))
             }
-            (left, right) => Self::Batch(vec![left, right]),
+            (left, right) => Self::Sequence(vec![left, right]),
         }
     }
 

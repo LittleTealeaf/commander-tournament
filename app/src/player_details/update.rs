@@ -30,13 +30,11 @@ impl ComponentUpdate for super::PlayerDetails {
             }
             PlayerDetailsMsg::SaveAndClose => {
                 self.info.set_description(self.description.text());
-                Effect::sequence([
-                    Effect::global(match self.id {
-                        Some(id) => TournamentAction::SetPlayerInfo(id, self.info.clone()),
-                        None => TournamentAction::Register(self.info.clone()),
-                    }),
-                    Effect::Out(PlayerDetailsOut::Close),
-                ])
+                Effect::global(match self.id {
+                    Some(id) => TournamentAction::SetPlayerInfo(id, self.info.clone()),
+                    None => TournamentAction::Register(self.info.clone()),
+                })
+                .chain(Effect::Out(PlayerDetailsOut::Close))
                 .ok()
             }
             PlayerDetailsMsg::SetName(name) => {
