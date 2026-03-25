@@ -103,9 +103,19 @@ mod test {
 
     #[test]
     fn from_game_record() {
-        let tournament = Tournament::generate_tournament(10,10).unwrap();
-        let ids = tournament.players().keys().copied().take(4).collect_array().unwrap();
-        let record = tournament.create_match(ids).unwrap().record(ids[0]).unwrap();
+        let tournament = Tournament::generate_tournament(10, 10).unwrap();
+        let ids = tournament
+            .players()
+            .keys()
+            .copied()
+            .take(4)
+            .collect_array()
+            .unwrap();
+        let record = tournament
+            .create_match(ids)
+            .unwrap()
+            .record(ids[0])
+            .unwrap();
         let entry = GameEntry::from(record);
         assert_eq!(ids, entry.players);
         assert_eq!(ids[0], entry.winner);
@@ -113,9 +123,19 @@ mod test {
 
     #[test]
     fn from_game_record_ref() {
-        let tournament = Tournament::generate_tournament(10,10).unwrap();
-        let ids = tournament.players().keys().copied().take(4).collect_array().unwrap();
-        let record = tournament.create_match(ids).unwrap().record(ids[0]).unwrap();
+        let tournament = Tournament::generate_tournament(10, 10).unwrap();
+        let ids = tournament
+            .players()
+            .keys()
+            .copied()
+            .take(4)
+            .collect_array()
+            .unwrap();
+        let record = tournament
+            .create_match(ids)
+            .unwrap()
+            .record(ids[0])
+            .unwrap();
         let entry = GameEntry::from(&record);
         assert_eq!(ids, entry.players);
         assert_eq!(ids[0], entry.winner);

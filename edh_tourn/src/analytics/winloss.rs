@@ -183,7 +183,7 @@ mod tests {
         let performances = vec![
             MatchPerformance::WIN,
             MatchPerformance::LOSS,
-            MatchPerformance::DRAW
+            MatchPerformance::DRAW,
         ];
         let sum: MatchPerformance = performances.into_iter().sum();
         assert_eq!(sum.played(), 3);
@@ -196,7 +196,7 @@ mod tests {
     fn test_ordering_primary() {
         // Highest win to loss difference wins
         let p_good = MatchPerformance::new(5, 4, 1); // diff baseline is heavily positive
-        let p_bad = MatchPerformance::new(5, 1, 4);  // diff baseline is negative
+        let p_bad = MatchPerformance::new(5, 1, 4); // diff baseline is negative
         assert!(p_good > p_bad);
         assert_eq!(p_good.cmp(&p_bad), Ordering::Greater);
     }
