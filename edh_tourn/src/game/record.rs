@@ -82,7 +82,8 @@ impl GameRecord {
         Ok(score)
     }
 
-    pub fn decompose(self) -> (Matchup, u32) {
+    #[must_use]
+    pub const fn decompose(self) -> (Matchup, u32) {
         (self.matchup, self.winner)
     }
 }
