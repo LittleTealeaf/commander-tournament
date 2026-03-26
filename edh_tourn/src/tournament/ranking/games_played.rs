@@ -1,6 +1,7 @@
 use core::cmp::Ordering;
+use std::collections::HashSet;
 
-use itertools::Itertools;
+use itertools::{Itertools, chain};
 
 use crate::{
     analytics::winloss::MatchPerformance, error::TournamentError, player::RegisteredPlayer,
@@ -21,12 +22,36 @@ fn closest_elo(
 }
 
 impl Tournament {
-    pub fn get_player_ranked_nemesis(
+    fn ranked_get_player_match_performance(
         &self,
         id: u32,
     ) -> Result<impl Iterator<Item = (RegisteredPlayer<'_>, MatchPerformance)>, TournamentError>
     {
         let iter = self.get_player_player_match_performance(id)?;
+        let mut missing = self.players().keys().copied().collect::<HashSet<_>>();
+        missing.remove(&id);
+        let players = iter
+            .map(|(player, perf)| {
+                missing.remove(&player.id());
+                (player, perf)
+            })
+            .collect::<Vec<_>>();
+
+        Ok(chain!(
+            players,
+            missing
+                .into_iter()
+                .filter_map(|id| self.get_registered_player(id))
+                .map(|player| (player, MatchPerformance::default()))
+        ))
+    }
+
+    pub fn get_player_ranked_nemesis(
+        &self,
+        id: u32,
+    ) -> Result<impl Iterator<Item = (RegisteredPlayer<'_>, MatchPerformance)>, TournamentError>
+    {
+        let iter = self.ranked_get_player_match_performance(id)?;
         let elo_base = self.get_player_or_default_stats(id).elo();
         let sorted = iter.sorted_by(|(player_a, perf_a), (player_b, perf_b)| {
             perf_a
@@ -42,7 +67,7 @@ impl Tournament {
         id: u32,
     ) -> Result<impl Iterator<Item = (RegisteredPlayer<'_>, MatchPerformance)>, TournamentError>
     {
-        let iter = self.get_player_player_match_performance(id)?;
+        let iter = self.ranked_get_player_match_performance(id)?;
         let elo_base = self.get_player_or_default_stats(id).elo();
         let sorted = iter.sorted_by(|(player_a, perf_a), (player_b, perf_b)| {
             let score_a = perf_a.draws();
@@ -61,7 +86,7 @@ impl Tournament {
         id: u32,
     ) -> Result<impl Iterator<Item = (RegisteredPlayer<'_>, MatchPerformance)>, TournamentError>
     {
-        let iter = self.get_player_player_match_performance(id)?;
+        let iter = self.ranked_get_player_match_performance(id)?;
         let elo_base = self.get_player_or_default_stats(id).elo();
         let sorted = iter.sorted_by(|(player_a, perf_a), (player_b, perf_b)| {
             let score_a = perf_a.played();
