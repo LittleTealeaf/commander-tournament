@@ -6,7 +6,10 @@ use rfd::AsyncFileDialog;
 
 use crate::{
     App,
-    core::{message::Message, state::{AppState, AppStateMsg}},
+    core::{
+        message::Message,
+        state::{AppState, AppStateMsg},
+    },
     effect::Effect,
     services::system::{
         accepted_file_types, load_from_file_async, require_extension, serialize_by_extension,
