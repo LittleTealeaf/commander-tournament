@@ -6,12 +6,12 @@ use crate::{
         file::FileAction,
         state::{AppState, AppStateMsg},
         tournament::TournamentAction,
-        view::View,
     },
-    error::{Error, ErrorMsg},
+    effect::Effect,
+    error::ErrorMsg,
     home::HomeMsg,
     player_details::PlayerDetailsMsg,
-    traits::{ComponentUpdate, Effect},
+    traits::ComponentUpdate,
 };
 
 #[derive(Debug, Clone, derive_more::From)]
@@ -36,6 +36,7 @@ pub enum Message {
 impl App {
     fn process_effect(&mut self, effect: Effect<Message, ()>) -> anyhow::Result<Task<Message>> {
         match effect {
+            Effect::Msg(message) => self.process_message(message),
             Effect::Out(()) | Effect::Done => Ok(Task::none()),
             Effect::Global(message) => {
                 let effect = self.update(message, ())?;
@@ -56,13 +57,16 @@ impl App {
         }
     }
 
-    pub fn handle_update(&mut self, message: Message) -> Task<Message> {
+    fn process_message(&mut self, message: Message) -> anyhow::Result<Task<Message>> {
         self.update(message, ())
             .and_then(|effect| self.process_effect(effect))
-            .unwrap_or_else(|error| {
-                eprintln!("Error: {error}");
-                self.views.push(View::Error(Error::new(error.to_string())));
-                Task::none()
-            })
+    }
+
+    pub fn handle_update(&mut self, message: Message) -> Task<Message> {
+        self.process_message(message).unwrap_or_else(|error| {
+            eprintln!("Error: {error}");
+            self.display_error(format!("{error}"));
+            Task::none()
+        })
     }
 }

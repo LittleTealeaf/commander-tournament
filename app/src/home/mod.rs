@@ -5,13 +5,14 @@ use iced::widget::{column, container, row, rule};
 
 use crate::{
     core::tournament::TournamentAction,
+    effect::Effect,
     home::{
         leaderboard::{Leaderboard, LeaderboardMsg},
-        match_recorder::{MatchRecorder, MatchRecorderMsg},
+        match_recorder::{MatchRecorder, MatchRecorderMsg, MatchRecorderOut},
         menu::{Menu, MenuMsg},
         ranking::{Ranking, RankingMsg},
     },
-    traits::{Component, ComponentUpdate, ComponentView, Effect, HandleMessage},
+    traits::{Component, ComponentUpdate, ComponentView},
 };
 
 pub mod leaderboard;
@@ -70,70 +71,36 @@ impl ComponentUpdate for Home {
         message: Self::Message,
         context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
-        match message {
-            HomeMsg::Leaderboard(message) => self.handle_message(message, context),
-            HomeMsg::GameRecord(message) => self.handle_message(message, context),
-            HomeMsg::Ranking(message) => self.handle_message(message, context),
-            HomeMsg::Menu(message) => self.handle_message(message, context),
-        }
-    }
-}
-
-impl HandleMessage<MenuMsg> for Home {
-    fn handle_message(
-        &mut self,
-        message: MenuMsg,
-        _: Self::UpdateContext<'_>,
-    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
-        self.menu.update(message, ())?.map_empty()
-    }
-}
-
-impl HandleMessage<LeaderboardMsg> for Home {
-    fn handle_message(
-        &mut self,
-        message: LeaderboardMsg,
-        context: Self::UpdateContext<'_>,
-    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
-        self.leaderboard
-            .update(message, ())?
-            .map(|message| match message {
-                leaderboard::LeaderboardOut::RankPlayer(id) => {
-                    self.handle_message(RankingMsg::SelectPlayer(id), context)
-                }
-            })
-    }
-}
-
-impl HandleMessage<MatchRecorderMsg> for Home {
-    fn handle_message(
-        &mut self,
-        message: MatchRecorderMsg,
-        (tournament, _): Self::UpdateContext<'_>,
-    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
-        self.game_record
-            .update(message, tournament)?
-            .map(|message| match message {
-                match_recorder::MatchRecorderOut::SubmitRecord(game_record) => {
-                    Effect::global(TournamentAction::Record(game_record)).ok()
-                }
-            })
-    }
-}
-
-impl HandleMessage<RankingMsg> for Home {
-    fn handle_message(
-        &mut self,
-        message: RankingMsg,
-        context: Self::UpdateContext<'_>,
-    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         let (tournament, _) = context;
-        self.ranking
-            .update(message, tournament)?
-            .map(|message| match message {
-                ranking::RankingOut::LoadGame(players) => {
-                    self.handle_message(MatchRecorderMsg::SetPlayers(players), context)
-                }
-            })
+        match message {
+            HomeMsg::Leaderboard(message) => {
+                self.leaderboard
+                    .update(message, ())?
+                    .map(|message| match message {
+                        leaderboard::LeaderboardOut::RankPlayer(id) => {
+                            Effect::msg(RankingMsg::SelectPlayer(id)).ok()
+                        }
+                    })
+            }
+            HomeMsg::GameRecord(message) => {
+                self.game_record
+                    .update(message, tournament)?
+                    .map(|message| match message {
+                        MatchRecorderOut::SubmitRecord(game_record) => {
+                            Effect::global(TournamentAction::Record(game_record)).ok()
+                        }
+                    })
+            }
+            HomeMsg::Ranking(message) => {
+                self.ranking
+                    .update(message, tournament)?
+                    .map(|message| match message {
+                        ranking::RankingOut::LoadGame(game) => {
+                            Effect::msg(MatchRecorderMsg::SetPlayers(game)).ok()
+                        }
+                    })
+            }
+            HomeMsg::Menu(message) => self.menu.update(message, ())?.map_empty(),
+        }
     }
 }

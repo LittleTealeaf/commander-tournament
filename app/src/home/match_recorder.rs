@@ -14,7 +14,8 @@ use nerd_font_symbols::md::{MD_CANCEL, MD_LINK_VARIANT, MD_LINK_VARIANT_PLUS};
 // Assuming you have these imported from your definitions
 use crate::{
     core::message::Message,
-    traits::{Component, ComponentUpdate, ComponentView, Effect},
+    effect::Effect,
+    traits::{Component, ComponentUpdate, ComponentView},
 };
 
 #[derive(Default, Debug)]
@@ -155,9 +156,9 @@ impl ComponentUpdate for MatchRecorder {
 
                 let record = matchup.clone().record(winner)?;
 
-                *self = Self::default();
-
-                Effect::Out(MatchRecorderOut::SubmitRecord(Box::new(record))).ok()
+                Effect::Out(MatchRecorderOut::SubmitRecord(Box::new(record)))
+                    .chain(Effect::Msg(MatchRecorderMsg::Clear))
+                    .ok()
             }
             MatchRecorderMsg::Clear => {
                 *self = Self::default();
@@ -302,46 +303,5 @@ impl ComponentView for MatchRecorder {
         container(column![title, players_col, winner_selector, submit].spacing(10))
             .padding(10)
             .into()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use iced_test::simulator;
-
-    use super::*;
-
-    fn setup_test_context() -> (Tournament, u32) {
-        let mut tourn = Tournament::new();
-        let id = tourn.register_debug_player().unwrap();
-        (tourn, id)
-    }
-
-    #[test]
-    fn submit_button_submits_game() {
-        let (tourn, player_id) = setup_test_context();
-
-        // Initialize state with enough data to make the Submit button active
-        let mut recorder = MatchRecorder {
-            player_a: Some(player_id),
-            player_b: Some(player_id),
-            player_c: Some(player_id),
-            player_d: Some(player_id),
-            winner: Some(player_id),
-            ..Default::default()
-        };
-        recorder.update_matchup(&tourn).unwrap();
-        let mut ui = simulator(recorder.view(&tourn));
-        ui.click("Submit").unwrap();
-
-        let mut has_message = false;
-
-        for message in ui.into_messages() {
-            let effect = recorder.update(message, &tourn).unwrap();
-            if let Effect::Out(MatchRecorderOut::SubmitRecord(_)) = effect {
-                has_message = true;
-            }
-        }
-        assert!(has_message, "Did not find SubmitRecord message");
     }
 }

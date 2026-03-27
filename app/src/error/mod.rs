@@ -4,7 +4,10 @@ use iced::{
     widget::{button, column, container, text},
 };
 
-use crate::traits::{Component, ComponentUpdate, ComponentView, Effect};
+use crate::{
+    effect::Effect,
+    traits::{Component, ComponentUpdate, ComponentView},
+};
 
 #[derive(Debug, Clone, derive_more::Constructor)]
 pub struct Error {
@@ -27,7 +30,7 @@ impl ComponentUpdate for Error {
         &mut self,
         message: Self::Message,
         (): Self::UpdateContext<'_>,
-    ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
+    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         Effect::Out(message).ok()
     }
 }

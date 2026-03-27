@@ -1,8 +1,9 @@
 use crate::{
     components::prompt::{self, DialogPrompt},
     core::{message::Message, tournament::TournamentAction},
+    effect::Effect,
     player_details::PlayerDetailsOut,
-    traits::{ComponentUpdate, Effect},
+    traits::ComponentUpdate,
 };
 
 use super::PlayerDetailsMsg;
@@ -19,7 +20,7 @@ impl ComponentUpdate for super::PlayerDetails {
         &mut self,
         message: Self::Message,
         (): Self::UpdateContext<'_>,
-    ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
+    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         match message {
             PlayerDetailsMsg::SelectPlayerReference(id) => {
                 if Some(id) == self.id {
@@ -64,11 +65,14 @@ impl ComponentUpdate for super::PlayerDetails {
                 if let Some(dialog) = &mut self.prompt_confirm_delete {
                     return dialog.update(message, ())?.map(|message| match message {
                         crate::components::prompt::Message::Accept => {
-                            self.id.map_or_else(Effect::done, |id| {
-                                Effect::global(TournamentAction::DeletePlayer(id))
-                                    .chain(Effect::Out(PlayerDetailsOut::Close))
-                                    .ok()
-                            })
+                            let id = self.id;
+                            let delete_action = id
+                                .map(|id| Effect::global(TournamentAction::DeletePlayer(id)))
+                                .unwrap_or_default();
+
+                            delete_action
+                                .chain(Effect::Out(PlayerDetailsOut::Close))
+                                .ok()
                         }
                         crate::components::prompt::Message::Cancel => {
                             self.prompt_confirm_delete = None;

@@ -8,11 +8,12 @@ use crate::{
         state::{AppState, AppStateMsg},
         view::View,
     },
+    effect::Effect,
     error::ErrorMsg,
     home::HomeMsg,
     player_details::{PlayerDetails, PlayerDetailsMsg, PlayerDetailsOut},
     services::system::open_link,
-    traits::{ComponentUpdate, Effect, HandleMessage},
+    traits::{ComponentUpdate, HandleMessage},
 };
 
 impl ComponentUpdate for App {
@@ -21,7 +22,7 @@ impl ComponentUpdate for App {
         &mut self,
         message: Self::Message,
         (): Self::UpdateContext<'_>,
-    ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
+    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         #[cfg(debug_assertions)]
         {
             let dbg = format!("{message:?}");
@@ -40,17 +41,19 @@ impl ComponentUpdate for App {
             Message::Nothing => Effect::done(),
             Message::AppState(message) => self.handle_message(message, ()),
             Message::AppStateLoaded(maybe_settings) => {
-                let Some(settings) = maybe_settings else {
+                self.state = maybe_settings;
+
+                let Some(settings) = &self.state else {
                     return Effect::done();
                 };
-                let message = settings
-                    .last_opened()
-                    .as_ref()
-                    .map(|path| FileAction::OpenFile(path.clone()));
 
-                self.state = Some(settings);
+                let Some(last_opened) = settings.last_opened() else {
+                    return Effect::done();
+                };
 
-                message.map_or_else(Effect::done, |message| self.handle_message(message, ()))
+                let path = last_opened.clone();
+
+                Effect::global(FileAction::OpenFile(path)).ok()
             }
             Message::OnBoot => Effect::Task(Task::perform(
                 async { AppState::load().await.ok() },
@@ -71,7 +74,7 @@ impl ComponentUpdate for App {
             }
             Message::OpenLink(link) => Effect::Task(Task::future(async {
                 if let Err(err) = open_link(link).await {
-                    println!("Warning: {err}");
+                    eprintln!("Warning: {err}");
                 }
                 Message::Nothing
             }))

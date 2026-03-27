@@ -6,10 +6,7 @@ use edh_tourn::{
     tournament::Tournament,
 };
 
-use crate::{
-    App,
-    traits::{Effect, HandleMessage},
-};
+use crate::{App, effect::Effect, traits::HandleMessage};
 
 #[derive(Clone, Debug)]
 pub enum TournamentAction {
