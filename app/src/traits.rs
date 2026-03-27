@@ -50,8 +50,9 @@ where
             .into_iter()
             .filter(|e| !e.is_done())
             .collect::<Vec<_>>();
-        if effects.is_empty() {
-            Self::Done
+
+        if effects.len() < 2 {
+            effects.into_iter().next().unwrap_or(Self::Done)
         } else {
             Self::Batch(effects)
         }
@@ -66,8 +67,9 @@ where
             .into_iter()
             .filter(|e| !e.is_done())
             .collect::<Vec<_>>();
-        if effects.is_empty() {
-            Self::Done
+
+        if effects.len() < 2 {
+            effects.into_iter().next().unwrap_or(Self::Done)
         } else {
             Self::Sequence(effects)
         }
