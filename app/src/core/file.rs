@@ -99,11 +99,11 @@ impl HandleMessage<FileAction> for App {
                 Effect::future(future).ok()
             }
             FileAction::Save => {
-                if let Some(path) = &self.file {
-                    self.handle_message(FileAction::SaveFile(path.clone()), ())
-                } else {
-                    self.handle_message(FileAction::SaveAs, ())
-                }
+                let action = self.file.as_ref().map_or(FileAction::SaveAs, |path| {
+                    FileAction::SaveFile(path.clone())
+                });
+
+                Effect::Msg(action.into()).ok()
             }
             FileAction::SaveAs => Effect::future(save_dialog()).ok(),
             FileAction::FileOpened(path, tournament) => {

@@ -74,7 +74,7 @@ impl ComponentUpdate for App {
             }
             Message::OpenLink(link) => Effect::Task(Task::future(async {
                 if let Err(err) = open_link(link).await {
-                    println!("Warning: {err}");
+                    eprintln!("Warning: {err}");
                 }
                 Message::Nothing
             }))

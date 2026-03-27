@@ -8,7 +8,11 @@ use iced::{
 use itertools::Itertools;
 use nerd_font_symbols::md::{MD_ARROW_DOWN, MD_ARROW_UP, MD_PLAYLIST_PLUS};
 
-use crate::{effect::Effect, traits::{Component, ComponentUpdate, ComponentView}};
+use crate::{
+    core::message::Message,
+    effect::Effect,
+    traits::{Component, ComponentUpdate, ComponentView},
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub enum Column {
@@ -97,11 +101,9 @@ impl ComponentUpdate for Leaderboard {
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         match message {
             LeaderboardMsg::OpenPlayer(id) => {
-                Effect::Global(crate::core::message::Message::OpenPlayerDetails(Some(id))).ok()
+                Effect::Global(Message::OpenPlayerDetails(Some(id))).ok()
             }
-            LeaderboardMsg::NewPlayer => {
-                Effect::Global(crate::core::message::Message::OpenPlayerDetails(None)).ok()
-            }
+            LeaderboardMsg::NewPlayer => Effect::Global(Message::OpenPlayerDetails(None)).ok(),
             LeaderboardMsg::RankPlayer(id) => Effect::Out(LeaderboardOut::RankPlayer(id)).ok(),
             LeaderboardMsg::Sort(column) => {
                 if self.column == column {

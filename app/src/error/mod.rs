@@ -4,7 +4,10 @@ use iced::{
     widget::{button, column, container, text},
 };
 
-use crate::{effect::Effect, traits::{Component, ComponentUpdate, ComponentView}};
+use crate::{
+    effect::Effect,
+    traits::{Component, ComponentUpdate, ComponentView},
+};
 
 #[derive(Debug, Clone, derive_more::Constructor)]
 pub struct Error {

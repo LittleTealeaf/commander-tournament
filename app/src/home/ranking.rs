@@ -2,6 +2,7 @@ use anyhow::anyhow;
 use edh_tourn::ranking::RankingMethod;
 use edh_tourn::{player::RegisteredPlayer, tournament::Tournament};
 
+use crate::core::message::Message;
 use crate::effect::Effect;
 use crate::traits::{Component, ComponentUpdate, ComponentView};
 
@@ -74,7 +75,7 @@ impl ComponentUpdate for Ranking {
                 Effect::done()
             }
             RankingMsg::OpenPlayerDetails(id) => {
-                Effect::global(crate::core::message::Message::OpenPlayerDetails(Some(id))).ok()
+                Effect::global(Message::OpenPlayerDetails(Some(id))).ok()
             }
         }
     }

@@ -29,6 +29,13 @@ where
         Self::Done.ok()
     }
 
+    pub fn msg<Msg>(message: Msg) -> Self
+    where
+        Msg: Into<M>,
+    {
+        Self::Msg(message.into())
+    }
+
     pub fn global<Msg>(message: Msg) -> Self
     where
         Msg: Into<Message>,

@@ -31,6 +31,10 @@ impl App {
     pub fn clear_views(&mut self) {
         self.views.clear();
     }
+
+    pub fn display_error(&mut self, error: String) {
+        self.push_view(crate::error::Error::new(error));
+    }
 }
 
 #[derive(Clone, Debug, derive_more::From)]

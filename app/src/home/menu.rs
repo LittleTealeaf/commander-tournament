@@ -3,7 +3,9 @@ use std::path::PathBuf;
 use iced::widget::{button, row};
 
 use crate::{
-    core::file::FileAction, effect::Effect, traits::{Component, ComponentUpdate, ComponentView}
+    core::file::FileAction,
+    effect::Effect,
+    traits::{Component, ComponentUpdate, ComponentView},
 };
 
 #[derive(Debug, Clone, Default)]

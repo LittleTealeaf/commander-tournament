@@ -6,10 +6,9 @@ use crate::{
         file::FileAction,
         state::{AppState, AppStateMsg},
         tournament::TournamentAction,
-        view::View,
     },
     effect::Effect,
-    error::{Error, ErrorMsg},
+    error::ErrorMsg,
     home::HomeMsg,
     player_details::PlayerDetailsMsg,
     traits::ComponentUpdate,
@@ -66,7 +65,7 @@ impl App {
     pub fn handle_update(&mut self, message: Message) -> Task<Message> {
         self.process_message(message).unwrap_or_else(|error| {
             eprintln!("Error: {error}");
-            self.views.push(View::Error(Error::new(error.to_string())));
+            self.display_error(format!("{error}"));
             Task::none()
         })
     }
