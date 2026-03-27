@@ -3,7 +3,10 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 use crate::{
-    core::message::Message, effect::Effect, services::system::{load_from_file_async, project_dir, save_file_async}, traits::{Component, ComponentUpdate, HandleMessage}
+    core::message::Message,
+    effect::Effect,
+    services::system::{load_from_file_async, project_dir, save_file_async},
+    traits::{Component, ComponentUpdate, HandleMessage},
 };
 
 const QUALIFIER: &str = "io.github.littletealeaf";
@@ -146,18 +149,18 @@ impl ComponentUpdate for AppState {
             AppStateMsg::IsSaved => {
                 self.is_saving = false;
                 if self.is_modified {
-                    self.handle_message(AppStateMsg::Save, ())
+                    Effect::Msg(AppStateMsg::Save).ok()
                 } else {
                     Effect::done()
                 }
             }
             AppStateMsg::SetOpenedFile(path_buf) => {
                 self.set_last_opened(path_buf);
-                self.handle_message(AppStateMsg::Save, ())
+                Effect::Msg(AppStateMsg::Save).ok()
             }
             AppStateMsg::ClearOpenedFile => {
                 self.clear_last_opened();
-                self.handle_message(AppStateMsg::Save, ())
+                Effect::Msg(AppStateMsg::Save).ok()
             }
             AppStateMsg::Nothing => Effect::done(),
             AppStateMsg::Error(error) => {

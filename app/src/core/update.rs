@@ -41,17 +41,19 @@ impl ComponentUpdate for App {
             Message::Nothing => Effect::done(),
             Message::AppState(message) => self.handle_message(message, ()),
             Message::AppStateLoaded(maybe_settings) => {
-                let Some(settings) = maybe_settings else {
+                self.state = maybe_settings;
+
+                let Some(settings) = &self.state else {
                     return Effect::done();
                 };
-                let message = settings
-                    .last_opened()
-                    .as_ref()
-                    .map(|path| FileAction::OpenFile(path.clone()));
 
-                self.state = Some(settings);
+                let Some(last_opened) = settings.last_opened() else {
+                    return Effect::done();
+                };
 
-                message.map_or_else(Effect::done, |message| self.handle_message(message, ()))
+                let path = last_opened.clone();
+
+                Effect::global(FileAction::OpenFile(path)).ok()
             }
             Message::OnBoot => Effect::Task(Task::perform(
                 async { AppState::load().await.ok() },

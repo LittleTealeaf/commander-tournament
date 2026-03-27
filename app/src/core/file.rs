@@ -6,12 +6,12 @@ use rfd::AsyncFileDialog;
 
 use crate::{
     App,
-    core::message::Message,
+    core::{message::Message, state::AppStateMsg},
+    effect::Effect,
     services::system::{
         accepted_file_types, load_from_file_async, require_extension, serialize_by_extension,
     },
-    traits::{HandleMessage},
-    effect::Effect,
+    traits::HandleMessage,
 };
 
 #[derive(Clone, Debug)]
@@ -110,7 +110,7 @@ impl HandleMessage<FileAction> for App {
                 self.tournament = *tournament;
                 self.file = Some(path.clone());
                 self.modified = false;
-                self.handle_message(crate::core::state::AppStateMsg::SetOpenedFile(path), ())
+                self.handle_message(AppStateMsg::SetOpenedFile(path), ())
             }
             FileAction::FileSaved => {
                 self.is_saving = false;

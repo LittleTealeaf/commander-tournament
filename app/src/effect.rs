@@ -8,6 +8,7 @@ use crate::core::message::Message;
 #[derive(Debug, Default)]
 pub enum Effect<M, O> {
     Global(Message),
+    Msg(M),
     Out(O),
     Task(Task<M>),
     Batch(Vec<Self>),
@@ -100,6 +101,7 @@ where
             Self::Global(message) => Ok(Effect::Global(message)),
             Self::Out(message) => map_out(message),
             Self::Task(task) => Ok(Effect::Task(task.map(Into::into))),
+            Self::Msg(message) => Effect::Msg(message.into()).ok(),
             Self::Batch(batch) => {
                 let mut effects = Vec::new();
                 for effect in batch {

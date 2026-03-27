@@ -13,7 +13,9 @@ use nerd_font_symbols::md::{MD_CANCEL, MD_LINK_VARIANT, MD_LINK_VARIANT_PLUS};
 
 // Assuming you have these imported from your definitions
 use crate::{
-    core::message::Message, effect::Effect, traits::{Component, ComponentUpdate, ComponentView}
+    core::message::Message,
+    effect::Effect,
+    traits::{Component, ComponentUpdate, ComponentView},
 };
 
 #[derive(Default, Debug)]
@@ -154,9 +156,9 @@ impl ComponentUpdate for MatchRecorder {
 
                 let record = matchup.clone().record(winner)?;
 
-                *self = Self::default();
-
-                Effect::Out(MatchRecorderOut::SubmitRecord(Box::new(record))).ok()
+                Effect::Out(MatchRecorderOut::SubmitRecord(Box::new(record)))
+                    .chain(Effect::Msg(MatchRecorderMsg::Clear))
+                    .ok()
             }
             MatchRecorderMsg::Clear => {
                 *self = Self::default();
