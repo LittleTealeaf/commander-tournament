@@ -147,6 +147,8 @@ where
 #[cfg(test)]
 mod tests {
 
+    use itertools::Itertools;
+
     use super::*;
     #[derive(Debug)]
     struct Message(usize);
@@ -183,6 +185,38 @@ mod tests {
     }
 
     #[test]
+    fn chain_appends_at_beginning() {
+        let item = Effect::Out(Out(0));
+        let sequence = Effect::sequence([Out(1), Out(2)].map(Effect::Out));
+        let effect: Eff = item.chain(sequence);
+        let Effect::Sequence(sequence) = effect else {
+            panic!("Expected output to be a sequence");
+        };
+
+        let mut iter = sequence.iter();
+        assert!(matches!(iter.next().unwrap(), Effect::Out(Out(0))));
+        assert!(matches!(iter.next().unwrap(), Effect::Out(Out(1))));
+        assert!(matches!(iter.next().unwrap(), Effect::Out(Out(2))));
+        assert!(iter.next().is_none());
+    }
+
+    #[test]
+    fn chain_appends_at_end() {
+        let sequence = Effect::sequence([Out(1), Out(2)].map(Effect::Out));
+        let item = Effect::Out(Out(0));
+        let effect: Eff = sequence.chain(item);
+        let Effect::Sequence(sequence) = effect else {
+            panic!("Expected output to be a sequence");
+        };
+
+        let mut iter = sequence.iter();
+        assert!(matches!(iter.next().unwrap(), Effect::Out(Out(1))));
+        assert!(matches!(iter.next().unwrap(), Effect::Out(Out(2))));
+        assert!(matches!(iter.next().unwrap(), Effect::Out(Out(0))));
+        assert!(iter.next().is_none());
+    }
+
+    #[test]
     fn batch_dones_returns_done() {
         let effect: Eff = Effect::Done.merge(Effect::Done);
         assert!(matches!(effect, Effect::Done));
@@ -190,5 +224,29 @@ mod tests {
         let batch = [Effect::Done, Effect::Done, Effect::Done, Effect::Done];
         let effect: Eff = Effect::batch(batch);
         assert!(matches!(effect, Effect::Done));
+    }
+
+    #[test]
+    fn batch_merges_into_batch() {
+        let batch_a = Effect::batch([Out(0), Out(1)].map(Effect::Out));
+        let batch_b = Effect::batch([Out(2), Out(3)].map(Effect::Out));
+        let effect: Eff = batch_a.merge(batch_b);
+
+        let Effect::Batch(batch) = effect else {
+            panic!("Expected output to be a batch");
+        };
+
+        let outs = batch
+            .into_iter()
+            .filter_map(|item| match item {
+                Effect::Out(out) => Some(out),
+                _ => None,
+            })
+            .collect_vec();
+
+        assert!(outs.contains(&Out(0)));
+        assert!(outs.contains(&Out(1)));
+        assert!(outs.contains(&Out(2)));
+        assert!(outs.contains(&Out(3)));
     }
 }
