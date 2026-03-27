@@ -4,7 +4,10 @@ use iced::{
     widget::{button, column, container, row, text},
 };
 
-use crate::traits::{Component, ComponentUpdate, ComponentView, Effect};
+use crate::{
+    effect::Effect,
+    traits::{Component, ComponentUpdate, ComponentView},
+};
 
 #[derive(Clone, Debug, derive_more::Constructor)]
 pub struct DialogPrompt {
@@ -29,7 +32,7 @@ impl ComponentUpdate for DialogPrompt {
         &mut self,
         message: Self::Message,
         (): Self::UpdateContext<'_>,
-    ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
+    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         Effect::Out(message).ok()
     }
 }

@@ -3,9 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 use crate::{
-    core::message::Message,
-    services::system::{load_from_file_async, project_dir, save_file_async},
-    traits::{Component, ComponentUpdate, Effect, HandleMessage},
+    core::message::Message, effect::Effect, services::system::{load_from_file_async, project_dir, save_file_async}, traits::{Component, ComponentUpdate, HandleMessage}
 };
 
 const QUALIFIER: &str = "io.github.littletealeaf";
@@ -125,7 +123,7 @@ impl ComponentUpdate for AppState {
         &mut self,
         message: Self::Message,
         (): Self::UpdateContext<'_>,
-    ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
+    ) -> anyhow::Result<crate::effect::Effect<Self::Message, Self::OutMessage>> {
         match message {
             AppStateMsg::Save => {
                 if self.is_saving {

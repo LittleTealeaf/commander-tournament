@@ -8,10 +8,11 @@ use crate::{
         tournament::TournamentAction,
         view::View,
     },
+    effect::Effect,
     error::{Error, ErrorMsg},
     home::HomeMsg,
     player_details::PlayerDetailsMsg,
-    traits::{ComponentUpdate, Effect},
+    traits::ComponentUpdate,
 };
 
 #[derive(Debug, Clone, derive_more::From)]

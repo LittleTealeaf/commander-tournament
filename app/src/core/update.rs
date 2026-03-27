@@ -8,11 +8,12 @@ use crate::{
         state::{AppState, AppStateMsg},
         view::View,
     },
+    effect::Effect,
     error::ErrorMsg,
     home::HomeMsg,
     player_details::{PlayerDetails, PlayerDetailsMsg, PlayerDetailsOut},
     services::system::open_link,
-    traits::{ComponentUpdate, Effect, HandleMessage},
+    traits::{ComponentUpdate, HandleMessage},
 };
 
 impl ComponentUpdate for App {
@@ -21,7 +22,7 @@ impl ComponentUpdate for App {
         &mut self,
         message: Self::Message,
         (): Self::UpdateContext<'_>,
-    ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
+    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         #[cfg(debug_assertions)]
         {
             let dbg = format!("{message:?}");

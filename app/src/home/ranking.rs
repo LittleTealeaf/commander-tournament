@@ -2,7 +2,8 @@ use anyhow::anyhow;
 use edh_tourn::ranking::RankingMethod;
 use edh_tourn::{player::RegisteredPlayer, tournament::Tournament};
 
-use crate::traits::{Component, ComponentUpdate, ComponentView, Effect};
+use crate::effect::Effect;
+use crate::traits::{Component, ComponentUpdate, ComponentView};
 
 use iced::{
     Length,
@@ -51,7 +52,7 @@ impl ComponentUpdate for Ranking {
         &mut self,
         message: Self::Message,
         context: Self::UpdateContext<'_>,
-    ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
+    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         match message {
             RankingMsg::SelectPlayer(id) => {
                 context.require_id_registered(id)?;

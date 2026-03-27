@@ -1,8 +1,5 @@
 use crate::{
-    components::prompt::{self, DialogPrompt},
-    core::{message::Message, tournament::TournamentAction},
-    player_details::PlayerDetailsOut,
-    traits::{ComponentUpdate, Effect},
+    components::prompt::{self, DialogPrompt}, core::{message::Message, tournament::TournamentAction}, effect::Effect, player_details::PlayerDetailsOut, traits::ComponentUpdate
 };
 
 use super::PlayerDetailsMsg;
@@ -19,7 +16,7 @@ impl ComponentUpdate for super::PlayerDetails {
         &mut self,
         message: Self::Message,
         (): Self::UpdateContext<'_>,
-    ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
+    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         match message {
             PlayerDetailsMsg::SelectPlayerReference(id) => {
                 if Some(id) == self.id {

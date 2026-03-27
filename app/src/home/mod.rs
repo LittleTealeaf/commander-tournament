@@ -4,14 +4,12 @@ use edh_tourn::tournament::Tournament;
 use iced::widget::{column, container, row, rule};
 
 use crate::{
-    core::tournament::TournamentAction,
-    home::{
+    core::tournament::TournamentAction, effect::Effect, home::{
         leaderboard::{Leaderboard, LeaderboardMsg},
         match_recorder::{MatchRecorder, MatchRecorderMsg},
         menu::{Menu, MenuMsg},
         ranking::{Ranking, RankingMsg},
-    },
-    traits::{Component, ComponentUpdate, ComponentView, Effect, HandleMessage},
+    }, traits::{Component, ComponentUpdate, ComponentView, HandleMessage}
 };
 
 pub mod leaderboard;

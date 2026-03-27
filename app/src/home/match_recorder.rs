@@ -13,8 +13,7 @@ use nerd_font_symbols::md::{MD_CANCEL, MD_LINK_VARIANT, MD_LINK_VARIANT_PLUS};
 
 // Assuming you have these imported from your definitions
 use crate::{
-    core::message::Message,
-    traits::{Component, ComponentUpdate, ComponentView, Effect},
+    core::message::Message, effect::Effect, traits::{Component, ComponentUpdate, ComponentView}
 };
 
 #[derive(Default, Debug)]

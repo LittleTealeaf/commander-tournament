@@ -10,7 +10,8 @@ use crate::{
     services::system::{
         accepted_file_types, load_from_file_async, require_extension, serialize_by_extension,
     },
-    traits::{Effect, HandleMessage},
+    traits::{HandleMessage},
+    effect::Effect,
 };
 
 #[derive(Clone, Debug)]
@@ -65,7 +66,7 @@ impl HandleMessage<FileAction> for App {
         &mut self,
         message: FileAction,
         (): Self::UpdateContext<'_>,
-    ) -> anyhow::Result<crate::traits::Effect<Self::Message, Self::OutMessage>> {
+    ) -> anyhow::Result<crate::effect::Effect<Self::Message, Self::OutMessage>> {
         match message {
             FileAction::New => {
                 self.tournament = Tournament::new();

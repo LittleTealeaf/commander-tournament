@@ -7,8 +7,7 @@ use edh_tourn::{
 };
 
 use crate::{
-    App,
-    traits::{Effect, HandleMessage},
+    effect::Effect, traits::HandleMessage, App
 };
 
 #[derive(Clone, Debug)]

@@ -8,7 +8,7 @@ use iced::{
 use itertools::Itertools;
 use nerd_font_symbols::md::{MD_ARROW_DOWN, MD_ARROW_UP, MD_PLAYLIST_PLUS};
 
-use crate::traits::{Component, ComponentUpdate, ComponentView, Effect};
+use crate::{effect::Effect, traits::{Component, ComponentUpdate, ComponentView}};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub enum Column {
