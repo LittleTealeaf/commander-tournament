@@ -1,7 +1,11 @@
-use crate::{error::TournamentError, player::stats::PlayerStats, tournament::Tournament};
+use crate::{
+    error::TournamentError,
+    player::{PlayerId, stats::PlayerStats},
+    tournament::Tournament,
+};
 
 impl Tournament {
-    pub fn recalcualte_stats(&mut self) -> Result<(), TournamentError> {
+    pub fn recalculate_stats(&mut self) -> Result<(), TournamentError> {
         let version = self.snapshot;
         self.default_stats = PlayerStats::new(self.game_config().starting_elo);
         self.stats.clear();
@@ -15,7 +19,7 @@ impl Tournament {
     }
 
     #[must_use]
-    pub fn get_player_or_default_stats(&self, player: u32) -> &PlayerStats {
+    pub fn get_player_or_default_stats(&self, player: PlayerId) -> &PlayerStats {
         self.get_player_stats(player).unwrap_or(&self.default_stats)
     }
 
@@ -25,7 +29,7 @@ impl Tournament {
     }
 
     #[must_use]
-    pub fn get_player_stats(&self, player: u32) -> Option<&PlayerStats> {
+    pub fn get_player_stats(&self, player: PlayerId) -> Option<&PlayerStats> {
         self.stats.get(&player)
     }
 }

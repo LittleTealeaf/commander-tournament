@@ -19,15 +19,14 @@ impl Component for GameStats {
 }
 
 impl ComponentView for GameStats {
-    type ViewContext<'a> = &'a Tournament
-        where
-            Self: 'a;
+    type ViewContext<'a>
+        = &'a Tournament
+    where
+        Self: 'a;
 
     fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
         let _ = context;
 
-
         todo!()
-        
     }
 }

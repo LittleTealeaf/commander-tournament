@@ -4,7 +4,9 @@ pub mod neighbors;
 use itertools::{Itertools, chain};
 
 use crate::{
-    error::TournamentError, player::RegisteredPlayer, ranking::RankingMethod,
+    error::TournamentError,
+    player::{PlayerId, RegisteredPlayer},
+    ranking::RankingMethod,
     tournament::Tournament,
 };
 
@@ -31,7 +33,7 @@ fn to_weight_rank<T>(
 impl<'a> Ranking<'a> {
     fn games_played(
         self,
-        id: u32,
+        id: PlayerId,
     ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, usize)> + 'a, TournamentError> {
         let config = self.0.ranking_config();
         Ok(chain!(
@@ -44,7 +46,7 @@ impl<'a> Ranking<'a> {
 
     fn neighbors(
         self,
-        id: u32,
+        id: PlayerId,
     ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, usize)> + 'a, TournamentError> {
         let config = self.0.ranking_config();
         Ok(chain!(
@@ -56,7 +58,7 @@ impl<'a> Ranking<'a> {
 
     pub fn combined(
         self,
-        id: u32,
+        id: PlayerId,
     ) -> Result<impl Iterator<Item = RegisteredPlayer<'a>> + 'a, TournamentError> {
         self.0.require_id_registered(id)?;
 
@@ -81,7 +83,7 @@ impl<'a> Ranking<'a> {
 
     pub fn ranked(
         self,
-        id: u32,
+        id: PlayerId,
         method: RankingMethod,
     ) -> Result<Vec<RegisteredPlayer<'a>>, TournamentError> {
         Ok(match method {

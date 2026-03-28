@@ -1,16 +1,17 @@
 use crate::{
     error::TournamentError,
     game::{match_player::MatchPlayer, matchup::Matchup},
+    player::PlayerId,
 };
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
 pub struct GameRecord {
     matchup: Matchup,
-    winner: u32,
+    winner: PlayerId,
 }
 
 impl GameRecord {
-    pub const fn new(matchup: Matchup, winner: u32) -> Result<Self, TournamentError> {
+    pub fn new(matchup: Matchup, winner: PlayerId) -> Result<Self, TournamentError> {
         let [a, b, c, d] = matchup.ids();
         if a != winner && b != winner && c != winner && d != winner {
             return Err(TournamentError::PlayerNotInMatch(winner));
@@ -20,7 +21,7 @@ impl GameRecord {
     }
 
     #[must_use]
-    pub const fn has_player(&self, id: u32) -> bool {
+    pub fn has_player(&self, id: PlayerId) -> bool {
         self.get_player(id).is_some()
     }
 
@@ -30,7 +31,7 @@ impl GameRecord {
     }
 
     #[must_use]
-    pub const fn get_player(&self, id: u32) -> Option<&MatchPlayer> {
+    pub fn get_player(&self, id: PlayerId) -> Option<&MatchPlayer> {
         self.matchup().get_player(id)
     }
 
@@ -40,17 +41,17 @@ impl GameRecord {
     }
 
     #[must_use]
-    pub const fn ids(&self) -> [u32; 4] {
+    pub const fn ids(&self) -> [PlayerId; 4] {
         self.matchup.ids()
     }
 
     #[must_use]
-    pub const fn winner(&self) -> u32 {
+    pub const fn winner(&self) -> PlayerId {
         self.winner
     }
 
     #[must_use]
-    pub const fn losers(&self) -> [u32; 3] {
+    pub fn losers(&self) -> [PlayerId; 3] {
         let [a, b, c, d] = self.ids();
         if a == self.winner {
             [b, c, d]
@@ -63,7 +64,7 @@ impl GameRecord {
         }
     }
 
-    pub fn get_player_elo_change(&self, id: u32) -> Result<f64, TournamentError> {
+    pub fn get_player_elo_change(&self, id: PlayerId) -> Result<f64, TournamentError> {
         let mut score = 0.0;
         let mut won = false;
 
@@ -83,7 +84,7 @@ impl GameRecord {
     }
 
     #[must_use]
-    pub const fn decompose(self) -> (Matchup, u32) {
+    pub const fn decompose(self) -> (Matchup, PlayerId) {
         (self.matchup, self.winner)
     }
 }

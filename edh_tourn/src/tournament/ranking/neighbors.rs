@@ -2,14 +2,24 @@ use core::cmp::Ordering;
 
 use itertools::Itertools;
 
-use crate::{error::TournamentError, player::RegisteredPlayer, tournament::ranking::Ranking};
+use crate::{
+    error::TournamentError,
+    player::{PlayerId, RegisteredPlayer},
+    tournament::ranking::Ranking,
+};
 
 #[must_use]
 const fn abs_diff(a: f64, b: f64) -> f64 {
     (a - b).abs()
 }
 
-fn ordered_by_proximity(score_a: f64, score_b: f64, target: f64, id_a: u32, id_b: u32) -> Ordering {
+fn ordered_by_proximity(
+    score_a: f64,
+    score_b: f64,
+    target: f64,
+    id_a: PlayerId,
+    id_b: PlayerId,
+) -> Ordering {
     let diff_a = abs_diff(score_a, target);
     let diff_b = abs_diff(score_b, target);
     diff_a.total_cmp(&diff_b).then_with(|| id_a.cmp(&id_b))
@@ -18,7 +28,7 @@ fn ordered_by_proximity(score_a: f64, score_b: f64, target: f64, id_a: u32, id_b
 impl<'a> Ranking<'a> {
     pub fn elo_neighbors(
         self,
-        id: u32,
+        id: PlayerId,
     ) -> Result<impl Iterator<Item = RegisteredPlayer<'a>> + 'a, TournamentError> {
         self.0.require_id_registered(id)?;
 
@@ -44,7 +54,7 @@ impl<'a> Ranking<'a> {
 
     pub fn wr_neighbors(
         self,
-        id: u32,
+        id: PlayerId,
     ) -> Result<impl Iterator<Item = RegisteredPlayer<'a>> + 'a, TournamentError> {
         self.0.require_id_registered(id)?;
 
@@ -70,7 +80,7 @@ impl<'a> Ranking<'a> {
 
     pub fn expected_neighbors(
         self,
-        id: u32,
+        id: PlayerId,
     ) -> Result<impl Iterator<Item = RegisteredPlayer<'a>> + 'a, TournamentError> {
         // This is going to function by the following: Assuming a 1v1, grab the list of people who
         // have the closest to a 50% expected winrate against the player

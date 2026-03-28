@@ -1,7 +1,7 @@
 use core::f64;
 
 use approx::{assert_abs_diff_eq, assert_relative_eq, assert_relative_ne};
-use edh_tourn::tournament::Tournament;
+use edh_tourn::{player::PlayerId, tournament::Tournament};
 use itertools::Itertools;
 
 #[test]
@@ -62,12 +62,16 @@ fn matchup_sum_elo_always_zero() {
 fn winner_gains_elo() {
     for i in 0..4 {
         let mut tourn = Tournament::generate_tournament(4, 0).unwrap();
-        let ids = tourn.players().keys().copied().collect_vec();
-        let mut match_ids = [0; 4];
-        match_ids.copy_from_slice(&ids);
-        let matchup = tourn.create_match(match_ids).unwrap();
+        let ids: [PlayerId; 4] = tourn
+            .players()
+            .keys()
+            .take(4)
+            .copied()
+            .collect_array()
+            .unwrap();
+        let matchup = tourn.create_match(ids).unwrap();
         let starting_elo = matchup.players().get(i).unwrap().stats().elo();
-        let winner = match_ids.get(i).unwrap();
+        let winner = ids.get(i).unwrap();
         let record = matchup.record(*winner).unwrap();
         tourn.register_record(record).unwrap();
         let elo = tourn.get_player_or_default_stats(*winner).elo();
@@ -84,11 +88,15 @@ fn winner_gains_elo() {
 fn loser_loses_elo() -> anyhow::Result<()> {
     for winner_i in 0..4 {
         let tourn = Tournament::generate_tournament(4, 0)?;
-        let ids = tourn.players().keys().copied().collect_vec();
+        let ids: [PlayerId; 4] = tourn
+            .players()
+            .keys()
+            .take(4)
+            .copied()
+            .collect_array()
+            .unwrap();
         let winner_id = &ids[winner_i];
-        let mut match_ids = [0; 4];
-        match_ids.copy_from_slice(&ids);
-        let matchup = tourn.create_match(match_ids)?;
+        let matchup = tourn.create_match(ids)?;
         for loser_i in 0..4 {
             let mut tourn = tourn.clone();
             let matchup = matchup.clone();
@@ -141,6 +149,5 @@ fn record_winner_must_be_player() {
     mu.clone().record(player_b).unwrap();
     mu.clone().record(player_c).unwrap();
     mu.clone().record(player_d).unwrap();
-    mu.clone().record(player_e).unwrap_err();
-    mu.record(u32::MAX).unwrap_err();
+    mu.record(player_e).unwrap_err();
 }

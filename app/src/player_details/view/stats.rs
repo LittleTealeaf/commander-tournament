@@ -2,7 +2,7 @@ use edh_tourn::{
     analytics::winloss::MatchPerformance,
     game::record::GameRecord,
     player::{
-        RegisteredPlayer,
+        PlayerId, RegisteredPlayer,
         color::{ColorIdentity, MtgColor},
         stats::PlayerStats,
     },
@@ -74,7 +74,7 @@ fn table_wrapper(
 
 pub fn stats_game_history(
     tournament: &Tournament,
-    id: u32,
+    id: PlayerId,
 ) -> Option<Container<'_, super::PlayerDetailsMsg>> {
     let column_game = |game: &GameRecord| {
         column(game.players().iter().map(|player| {
@@ -139,7 +139,7 @@ pub fn stats_game_history(
 
 pub fn stats_player_matchups(
     tournament: &Tournament,
-    id: u32,
+    id: PlayerId,
 ) -> Option<Container<'_, super::PlayerDetailsMsg>> {
     type RowType<'a> = (RegisteredPlayer<'a>, MatchPerformance);
 
@@ -177,7 +177,7 @@ pub fn stats_player_matchups(
 
 pub fn stats_identity_matchups(
     tournament: &Tournament,
-    id: u32,
+    id: PlayerId,
 ) -> Option<Container<'_, super::PlayerDetailsMsg>> {
     type RowType = (ColorIdentity, MatchPerformance);
     let matchups = tournament
@@ -210,7 +210,7 @@ pub fn stats_identity_matchups(
 
 pub fn stats_color_matchups(
     tournament: &Tournament,
-    id: u32,
+    id: PlayerId,
 ) -> Option<Container<'_, super::PlayerDetailsMsg>> {
     type RowType = (MtgColor, MatchPerformance);
     let matchups = tournament

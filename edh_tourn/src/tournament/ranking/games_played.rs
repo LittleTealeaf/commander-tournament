@@ -4,7 +4,9 @@ use std::collections::HashSet;
 use itertools::{Itertools, chain};
 
 use crate::{
-    analytics::winloss::MatchPerformance, error::TournamentError, player::RegisteredPlayer,
+    analytics::winloss::MatchPerformance,
+    error::TournamentError,
+    player::{PlayerId, RegisteredPlayer},
     tournament::ranking::Ranking,
 };
 
@@ -24,7 +26,7 @@ fn closest_elo(
 impl<'a> Ranking<'a> {
     fn player_match_performance(
         self,
-        id: u32,
+        id: PlayerId,
     ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)>, TournamentError>
     {
         let iter = self.0.analytics().player_vs_player_performance(id)?;
@@ -48,7 +50,7 @@ impl<'a> Ranking<'a> {
 
     pub fn nemesis(
         self,
-        id: u32,
+        id: PlayerId,
     ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)> + 'a, TournamentError>
     {
         let iter = self.player_match_performance(id)?;
@@ -64,7 +66,7 @@ impl<'a> Ranking<'a> {
 
     pub fn lost_with(
         self,
-        id: u32,
+        id: PlayerId,
     ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)> + 'a, TournamentError>
     {
         let iter = self.player_match_performance(id)?;
@@ -83,7 +85,7 @@ impl<'a> Ranking<'a> {
 
     pub fn least_played(
         self,
-        id: u32,
+        id: PlayerId,
     ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)> + 'a, TournamentError>
     {
         let iter = self.player_match_performance(id)?;

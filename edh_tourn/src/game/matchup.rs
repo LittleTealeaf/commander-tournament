@@ -1,6 +1,7 @@
 use crate::{
     error::TournamentError,
     game::{match_player::MatchPlayer, record::GameRecord},
+    player::PlayerId,
 };
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
@@ -25,12 +26,12 @@ impl Matchup {
     }
 
     #[must_use]
-    pub const fn has_player(&self, id: u32) -> bool {
+    pub fn has_player(&self, id: PlayerId) -> bool {
         self.get_player(id).is_some()
     }
 
     #[must_use]
-    pub const fn get_player(&self, id: u32) -> Option<&MatchPlayer> {
+    pub fn get_player(&self, id: PlayerId) -> Option<&MatchPlayer> {
         let [a, b, c, d] = &self.players();
         if a.id() == id {
             Some(a)
@@ -46,12 +47,12 @@ impl Matchup {
     }
 
     #[must_use]
-    pub const fn ids(&self) -> [u32; 4] {
+    pub const fn ids(&self) -> [PlayerId; 4] {
         let [player_a, player_b, player_c, player_d] = &self.players;
         [player_a.id(), player_b.id(), player_c.id(), player_d.id()]
     }
 
-    pub const fn record(self, winner: u32) -> Result<GameRecord, TournamentError> {
+    pub fn record(self, winner: PlayerId) -> Result<GameRecord, TournamentError> {
         GameRecord::new(self, winner)
     }
 }

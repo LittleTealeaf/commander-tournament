@@ -5,12 +5,11 @@ use itertools::{Itertools, chain};
 use serde::Deserialize;
 
 use crate::{
-    game::entry::GameEntry,
     player::{
         color::{ColorIdentity, MtgColor},
         info::PlayerInfo,
     },
-    serialization::v2::{V2Tournament, V2TournamentConfig},
+    serialization::v2::{V2GameEntry, V2Tournament, V2TournamentConfig},
 };
 
 #[derive(Clone, serde::Deserialize, Debug)]
@@ -119,16 +118,15 @@ impl From<V1Tournament> for V2Tournament {
                 let [str_a, str_b, str_c, str_d] = game.players;
                 let str_w = game.winner;
                 // let id_a = id_map.get()
-                GameEntry::new(
-                    [
+                Some(V2GameEntry {
+                    players: [
                         *id_map.get(&str_a)?,
                         *id_map.get(&str_b)?,
                         *id_map.get(&str_c)?,
                         *id_map.get(&str_d)?,
                     ],
-                    *id_map.get(&str_w)?,
-                )
-                .ok()
+                    winner: *id_map.get(&str_w)?,
+                })
             })
             .collect();
 
@@ -145,7 +143,7 @@ mod tests {
     use crate::tournament::Tournament;
 
     #[test]
-    pub fn serializes_v1_sample() {
+    pub fn deserialize() {
         let data = include_str!("../../../res/tests/compats/sample-v1.ron");
         let _: Tournament = ron::from_str(data).unwrap();
     }

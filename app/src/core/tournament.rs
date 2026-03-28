@@ -2,7 +2,7 @@ use edh_tourn::{
     config::{game::GameConfig, ranking::RankingConfig},
     error::TournamentError,
     game::record::GameRecord,
-    player::info::PlayerInfo,
+    player::{PlayerId, info::PlayerInfo},
     tournament::Tournament,
 };
 
@@ -11,8 +11,8 @@ use crate::{App, effect::Effect, traits::HandleMessage};
 #[derive(Clone, Debug)]
 pub enum TournamentAction {
     Register(PlayerInfo),
-    SetPlayerInfo(u32, PlayerInfo),
-    DeletePlayer(u32),
+    SetPlayerInfo(PlayerId, PlayerInfo),
+    DeletePlayer(PlayerId),
     DeleteGame(usize),
     Record(Box<GameRecord>),
     Reload,

@@ -1,5 +1,4 @@
 use edh_tourn::tournament::Tournament;
-use itertools::Itertools;
 
 #[test]
 fn new_has_no_players() {
@@ -23,9 +22,9 @@ fn unregister_removes_players_games() {
 #[test]
 fn unregister_invalid_id_returns_err() {
     let mut tourn = Tournament::new();
-    for i in 0..100 {
-        tourn.unregister_player(i).unwrap_err();
-    }
+    let id = tourn.register_debug_player().unwrap();
+    tourn.unregister_player(id).unwrap();
+    tourn.unregister_player(id).unwrap_err();
 }
 
 #[test]
@@ -37,30 +36,6 @@ fn into_fresh_same_players() -> anyhow::Result<()> {
         assert!(new_game_players.contains(&player));
     }
     assert_eq!(game.players().len(), new_game_players.len());
-
-    Ok(())
-}
-
-#[test]
-fn into_fresh_resets_ids() -> anyhow::Result<()> {
-    const REMOVE_COUNT: usize = 40;
-    let mut game = Tournament::generate_tournament(100, 0)?;
-    let mut ids = game.players().keys().copied().sorted().take(40);
-    // Just a dummy test that the first one is 0
-    assert_eq!(0, ids.next().unwrap());
-    game.unregister_player(0)?;
-
-    for id in ids {
-        game.unregister_player(id)?;
-    }
-
-    assert_eq!(60, game.players().len());
-    assert_eq!(99, *game.players().keys().max().unwrap());
-
-    let new_game = game.into_fresh()?;
-
-    assert_eq!(60, new_game.players().len());
-    assert_eq!(59, *new_game.players().keys().max().unwrap());
 
     Ok(())
 }

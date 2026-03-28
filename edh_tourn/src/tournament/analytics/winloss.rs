@@ -7,15 +7,18 @@ use crate::{
     error::TournamentError,
     game::record::GameRecord,
     player::{
-        RegisteredPlayer,
+        PlayerId, RegisteredPlayer,
         color::{ColorIdentity, MtgColor},
     },
     tournament::analytics::Analytics,
 };
 
-fn game_match_perfs<F>(game: &GameRecord, check: F) -> impl Iterator<Item = (u32, MatchPerformance)>
+fn game_match_perfs<F>(
+    game: &GameRecord,
+    check: F,
+) -> impl Iterator<Item = (PlayerId, MatchPerformance)>
 where
-    F: Fn(u32) -> bool,
+    F: Fn(PlayerId) -> bool,
 {
     let winner = game.winner();
     let [loser_a, loser_b, loser_c] = game.losers();
@@ -50,7 +53,7 @@ where
 impl<'a> Analytics<'a> {
     fn player_vs_player_all_performances(
         self,
-        id: u32,
+        id: PlayerId,
     ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)> + 'a, TournamentError>
     {
         self.tourn.require_id_registered(id)?;
@@ -67,7 +70,7 @@ impl<'a> Analytics<'a> {
 
     pub fn player_vs_player_performance(
         self,
-        id: u32,
+        id: PlayerId,
     ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)> + 'a, TournamentError>
     {
         let players = self.player_vs_player_all_performances(id)?;
@@ -77,7 +80,7 @@ impl<'a> Analytics<'a> {
 
     pub fn player_vs_identity_performance(
         self,
-        id: u32,
+        id: PlayerId,
     ) -> Result<HashMap<ColorIdentity, MatchPerformance>, TournamentError> {
         Ok(self
             .player_vs_player_all_performances(id)?
@@ -88,7 +91,7 @@ impl<'a> Analytics<'a> {
 
     pub fn player_vs_color_performance(
         self,
-        id: u32,
+        id: PlayerId,
     ) -> Result<HashMap<MtgColor, MatchPerformance>, TournamentError> {
         Ok(self
             .player_vs_player_all_performances(id)?

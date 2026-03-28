@@ -1,19 +1,51 @@
 use std::collections::HashMap;
 
-use serde::Deserialize;
+use serde::{Deserialize, Deserializer, Serialize};
 
 use crate::error::TournamentError;
 use crate::game::entry::GameEntry;
+use crate::player::PlayerId;
 use crate::serialization::utils::DeserializableMap;
 use crate::tournament::Tournament;
 use crate::{config::TournamentConfig, player::info::PlayerInfo};
 
-#[derive(Deserialize, Debug)]
+fn player_info_deserialize<'de, D>(
+    deserializer: D,
+) -> Result<HashMap<PlayerId, PlayerInfo>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    Ok(
+        DeserializableMap::<PlayerInfo>::deserialize_to_map(deserializer)?
+            .into_iter()
+            .map(|(id, info)| (PlayerId(id), info))
+            .collect(),
+    )
+}
+
+#[derive(Deserialize, Debug, Serialize)]
 pub struct V3Tournament {
+    #[serde(rename = "cfg", alias = "config")]
     pub(super) config: TournamentConfig,
-    #[serde(deserialize_with = "DeserializableMap::deserialize_to_map")]
-    pub(super) players: HashMap<u32, PlayerInfo>,
+    #[serde(
+        deserialize_with = "player_info_deserialize",
+        serialize_with = "super::utils::ordered_map",
+        rename = "pls",
+        alias = "players"
+    )]
+    pub(super) players: HashMap<PlayerId, PlayerInfo>,
+    #[serde(rename = "gms", alias = "games")]
     pub(super) games: Vec<GameEntry>,
+}
+
+impl From<Tournament> for V3Tournament {
+    fn from(value: Tournament) -> Self {
+        Self {
+            config: value.config,
+            players: value.players,
+            games: value.games.into_iter().map(GameEntry::from).collect(),
+        }
+    }
 }
 
 impl TryFrom<V3Tournament> for Tournament {
@@ -41,8 +73,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn serialize_v3() {
+    fn deserialize() {
         let data = include_str!("../../../res/tests/compats/sample-v3.ron");
+        let _: Tournament = ron::from_str(data).unwrap();
+    }
+
+    #[test]
+    fn deserialize_untagged() {
+        let data = include_str!("../../../res/tests/compats/sample-v3-untagged.ron");
         let _: Tournament = ron::from_str(data).unwrap();
     }
 }
