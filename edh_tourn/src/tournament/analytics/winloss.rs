@@ -48,7 +48,7 @@ where
 }
 
 impl<'a> Analytics<'a> {
-    fn player_get_all_players_match_performance(
+    fn player_vs_player_all_performances(
         self,
         id: u32,
     ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)> + 'a, TournamentError>
@@ -70,7 +70,7 @@ impl<'a> Analytics<'a> {
         id: u32,
     ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)> + 'a, TournamentError>
     {
-        let players = self.player_get_all_players_match_performance(id)?;
+        let players = self.player_vs_player_all_performances(id)?;
         let filtered = players.filter(move |(player, _)| player.id() != id);
         Ok(filtered)
     }
@@ -80,7 +80,7 @@ impl<'a> Analytics<'a> {
         id: u32,
     ) -> Result<HashMap<ColorIdentity, MatchPerformance>, TournamentError> {
         Ok(self
-            .player_get_all_players_match_performance(id)?
+            .player_vs_player_all_performances(id)?
             .map(|(player, perf)| (player.info().color_identity(), perf))
             .into_grouping_map()
             .sum())
@@ -91,7 +91,7 @@ impl<'a> Analytics<'a> {
         id: u32,
     ) -> Result<HashMap<MtgColor, MatchPerformance>, TournamentError> {
         Ok(self
-            .player_get_all_players_match_performance(id)?
+            .player_vs_player_all_performances(id)?
             .flat_map(|(player, perf)| {
                 player
                     .info()
