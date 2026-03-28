@@ -64,7 +64,7 @@ impl ComponentUpdate for Ranking {
                 let Some(id) = self.player else {
                     return Err(anyhow!("Player not specified"));
                 };
-                let ranked = context.get_player_ranked(id, self.method)?;
+                let ranked = context.ranking().ranked(id, self.method)?;
                 let players =
                     create_game_players(id, ranked).ok_or_else(|| anyhow!("Not enough players"))?;
 
@@ -86,7 +86,8 @@ impl Ranking {
         self.player.and_then(|id| {
             Some(
                 tourn
-                    .get_player_ranked(id, self.method)
+                    .ranking()
+                    .ranked(id, self.method)
                     .ok()?
                     .into_iter()
                     .take(10)

@@ -2,7 +2,7 @@ use core::cmp::Ordering;
 
 use itertools::Itertools;
 
-use crate::{error::TournamentError, player::RegisteredPlayer, tournament::Tournament};
+use crate::{error::TournamentError, player::RegisteredPlayer, tournament::ranking::Ranking};
 
 #[must_use]
 const fn abs_diff(a: f64, b: f64) -> f64 {
@@ -15,18 +15,19 @@ fn ordered_by_proximity(score_a: f64, score_b: f64, target: f64, id_a: u32, id_b
     diff_a.total_cmp(&diff_b).then_with(|| id_a.cmp(&id_b))
 }
 
-impl Tournament {
-    pub fn get_player_ranked_elo_neighbors(
-        &self,
+impl<'a> Ranking<'a> {
+    pub fn elo_neighbors(
+        self,
         id: u32,
-    ) -> Result<impl Iterator<Item = RegisteredPlayer<'_>>, TournamentError> {
-        self.require_id_registered(id)?;
+    ) -> Result<impl Iterator<Item = RegisteredPlayer<'a>> + 'a, TournamentError> {
+        self.0.require_id_registered(id)?;
 
         let players = self
+            .0
             .get_registered_players()
             .filter(|player| player.id() != id);
 
-        let elo = self.get_player_or_default_stats(id).elo();
+        let elo = self.0.get_player_or_default_stats(id).elo();
 
         let sorted = players.sorted_by(|player_a, player_b| {
             ordered_by_proximity(
@@ -41,17 +42,18 @@ impl Tournament {
         Ok(sorted)
     }
 
-    pub fn get_player_ranked_wr_neighbors(
-        &self,
+    pub fn wr_neighbors(
+        self,
         id: u32,
-    ) -> Result<impl Iterator<Item = RegisteredPlayer<'_>>, TournamentError> {
-        self.require_id_registered(id)?;
+    ) -> Result<impl Iterator<Item = RegisteredPlayer<'a>> + 'a, TournamentError> {
+        self.0.require_id_registered(id)?;
 
         let players = self
+            .0
             .get_registered_players()
             .filter(|player| player.id() != id);
 
-        let wr = self.get_player_or_default_stats(id).wr().unwrap_or(0.25);
+        let wr = self.0.get_player_or_default_stats(id).wr().unwrap_or(0.25);
 
         let sorted = players.sorted_by(|player_a, player_b| {
             ordered_by_proximity(
@@ -66,19 +68,20 @@ impl Tournament {
         Ok(sorted)
     }
 
-    pub fn get_player_ranked_expected_neighbors(
-        &self,
+    pub fn expected_neighbors(
+        self,
         id: u32,
-    ) -> Result<impl Iterator<Item = RegisteredPlayer<'_>>, TournamentError> {
+    ) -> Result<impl Iterator<Item = RegisteredPlayer<'a>> + 'a, TournamentError> {
         // This is going to function by the following: Assuming a 1v1, grab the list of people who
         // have the closest to a 50% expected winrate against the player
-        self.require_id_registered(id)?;
+        self.0.require_id_registered(id)?;
 
         Ok(self
+            .0
             .get_registered_players()
             .filter(|player| player.id() != id)
             .map(|player| {
-                let [_, match_player] = self.create_match_players([id, player.id()]);
+                let [_, match_player] = self.0.create_match_players([id, player.id()]);
                 (player, abs_diff(*match_player.expected(), 0.5))
             })
             .sorted_by(|(player_a, score_a), (player_b, score_b)| {

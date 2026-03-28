@@ -5,7 +5,7 @@ use itertools::{Itertools, chain};
 
 use crate::{
     analytics::winloss::MatchPerformance, error::TournamentError, player::RegisteredPlayer,
-    tournament::Tournament,
+    tournament::ranking::Ranking,
 };
 
 fn closest_elo(
@@ -21,14 +21,14 @@ fn closest_elo(
     cmp.then_with(|| player_a.id().cmp(&player_b.id()))
 }
 
-impl Tournament {
-    fn ranked_get_player_match_performance(
-        &self,
+impl<'a> Ranking<'a> {
+    fn player_match_performance(
+        self,
         id: u32,
-    ) -> Result<impl Iterator<Item = (RegisteredPlayer<'_>, MatchPerformance)>, TournamentError>
+    ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)>, TournamentError>
     {
-        let iter = self.analytics().player_vs_player_match_performance(id)?;
-        let mut missing = self.players().keys().copied().collect::<HashSet<_>>();
+        let iter = self.0.analytics().player_vs_player_match_performance(id)?;
+        let mut missing = self.0.players().keys().copied().collect::<HashSet<_>>();
         missing.remove(&id);
         let players = iter
             .map(|(player, perf)| {
@@ -41,18 +41,18 @@ impl Tournament {
             players,
             missing
                 .into_iter()
-                .filter_map(|id| self.get_registered_player(id))
+                .filter_map(|id| self.0.get_registered_player(id))
                 .map(|player| (player, MatchPerformance::default()))
         ))
     }
 
-    pub fn get_player_ranked_nemesis(
-        &self,
+    pub fn nemesis(
+        self,
         id: u32,
-    ) -> Result<impl Iterator<Item = (RegisteredPlayer<'_>, MatchPerformance)>, TournamentError>
+    ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)> + 'a, TournamentError>
     {
-        let iter = self.ranked_get_player_match_performance(id)?;
-        let elo_base = self.get_player_or_default_stats(id).elo();
+        let iter = self.player_match_performance(id)?;
+        let elo_base = self.0.get_player_or_default_stats(id).elo();
         let sorted = iter.sorted_by(|(player_a, perf_a), (player_b, perf_b)| {
             perf_a
                 .cmp(perf_b)
@@ -62,13 +62,13 @@ impl Tournament {
         Ok(sorted)
     }
 
-    pub fn get_player_ranked_lost_with(
-        &self,
+    pub fn lost_with(
+        self,
         id: u32,
-    ) -> Result<impl Iterator<Item = (RegisteredPlayer<'_>, MatchPerformance)>, TournamentError>
+    ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)> + 'a, TournamentError>
     {
-        let iter = self.ranked_get_player_match_performance(id)?;
-        let elo_base = self.get_player_or_default_stats(id).elo();
+        let iter = self.player_match_performance(id)?;
+        let elo_base = self.0.get_player_or_default_stats(id).elo();
         let sorted = iter.sorted_by(|(player_a, perf_a), (player_b, perf_b)| {
             let score_a = perf_a.draws();
             let score_b = perf_b.draws();
@@ -81,13 +81,13 @@ impl Tournament {
         Ok(sorted)
     }
 
-    pub fn get_player_ranked_least_played(
-        &self,
+    pub fn least_played(
+        self,
         id: u32,
-    ) -> Result<impl Iterator<Item = (RegisteredPlayer<'_>, MatchPerformance)>, TournamentError>
+    ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)> + 'a, TournamentError>
     {
-        let iter = self.ranked_get_player_match_performance(id)?;
-        let elo_base = self.get_player_or_default_stats(id).elo();
+        let iter = self.player_match_performance(id)?;
+        let elo_base = self.0.get_player_or_default_stats(id).elo();
         let sorted = iter.sorted_by(|(player_a, perf_a), (player_b, perf_b)| {
             let score_a = perf_a.played();
             let score_b = perf_b.played();
