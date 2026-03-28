@@ -27,6 +27,16 @@ pub struct PlayerInfo {
     moxfield_id: Option<String>,
 }
 
+fn convert_moxfield_id(id: String) -> Option<String> {
+    const PATTERN: &str = "/decks/";
+    if let Some(index) = id.find(PATTERN) {
+        let start_index = PATTERN.len() + index;
+        id[start_index..].split('/').next().map(str::to_owned)
+    } else {
+        Some(id)
+    }
+}
+
 impl PlayerInfo {
     #[must_use]
     pub const fn new(name: String) -> Self {
@@ -88,19 +98,13 @@ impl PlayerInfo {
     }
 
     pub fn set_moxfield_id(&mut self, id: String) {
-        const PATTERN: &str = "/decks/";
-        if let Some(index) = id.find(PATTERN) {
-            let start_index = PATTERN.len() + index;
-            self.moxfield_id = id[start_index..].split('/').next().map(str::to_owned);
-        } else {
-            self.moxfield_id = Some(id);
-        }
+        self.moxfield_id = convert_moxfield_id(id);
     }
 
     #[must_use]
     pub fn with_moxfield_id(self, moxfield_id: String) -> Self {
         Self {
-            moxfield_id: Some(moxfield_id),
+            moxfield_id: convert_moxfield_id(moxfield_id),
             ..self
         }
     }
