@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::{
     config::{TournamentConfig, game::GameConfig, ranking::RankingConfig},
     game::entry::GameEntry,
-    player::info::PlayerInfo,
+    player::{PlayerId, info::PlayerInfo},
     serialization::{utils::DeserializableMap, v3::V3Tournament},
 };
 
@@ -56,6 +56,14 @@ impl Default for V2TournamentConfig {
 }
 
 #[derive(serde::Deserialize, Debug)]
+pub struct V2GameEntry {
+    #[serde(rename = "p", alias = "players")]
+    pub(crate) players: [u32; 4],
+    #[serde(rename = "w", alias = "winner")]
+    pub(crate) winner: u32,
+}
+
+#[derive(serde::Deserialize, Debug)]
 pub struct V2Tournament {
     #[serde(alias = "c")]
     pub(super) config: V2TournamentConfig,
@@ -65,7 +73,7 @@ pub struct V2Tournament {
     )]
     pub(super) players: HashMap<u32, PlayerInfo>,
     #[serde(alias = "g")]
-    pub(super) games: Vec<GameEntry>,
+    pub(super) games: Vec<V2GameEntry>,
 }
 
 #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
@@ -94,8 +102,18 @@ impl From<V2Tournament> for V3Tournament {
                 game: game_config,
                 ranking: ranking_config,
             },
-            players: value.players,
-            games: value.games,
+            players: value
+                .players
+                .into_iter()
+                .map(|(id, info)| (PlayerId(id), info))
+                .collect(),
+            games: value
+                .games
+                .into_iter()
+                .filter_map(|game| {
+                    GameEntry::new(game.players.map(PlayerId), PlayerId(game.winner)).ok()
+                })
+                .collect(),
         }
     }
 }
@@ -105,7 +123,7 @@ mod tests {
     use crate::tournament::Tournament;
 
     #[test]
-    fn serialize_v2() {
+    fn deserialize() {
         let data = include_str!("../../../res/tests/compats/sample-v2.ron");
         let _: Tournament = ron::from_str(data).unwrap();
     }

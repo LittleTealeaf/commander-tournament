@@ -176,11 +176,6 @@ impl ComponentUpdate for AppState {
 mod tests {
     use super::*;
 
-    #[test]
-    fn config_path_exists() {
-        get_state_path().unwrap();
-    }
-
     #[tokio::test]
     async fn testing_uses_non_system_config_path() {
         let system_path = get_state_path().unwrap();

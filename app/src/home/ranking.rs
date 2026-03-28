@@ -1,4 +1,5 @@
 use anyhow::anyhow;
+use edh_tourn::player::PlayerId;
 use edh_tourn::ranking::RankingMethod;
 use edh_tourn::{player::RegisteredPlayer, tournament::Tournament};
 
@@ -18,20 +19,20 @@ use nerd_font_symbols::md::MD_CARDS;
 #[derive(Debug, Default)]
 pub struct Ranking {
     method: RankingMethod,
-    player: Option<u32>,
+    player: Option<PlayerId>,
 }
 
 #[derive(Debug, Clone)]
 pub enum RankingMsg {
-    SelectPlayer(u32),
-    OpenPlayerDetails(u32),
+    SelectPlayer(PlayerId),
+    OpenPlayerDetails(PlayerId),
     AddTopThree,
     SetMethod(RankingMethod),
 }
 
 #[derive(Debug)]
 pub enum RankingOut {
-    LoadGame([u32; 4]),
+    LoadGame([PlayerId; 4]),
 }
 
 impl Component for Ranking {
@@ -40,9 +41,9 @@ impl Component for Ranking {
 }
 
 fn create_game_players<'a>(
-    id: u32,
+    id: PlayerId,
     ranked: impl IntoIterator<Item = RegisteredPlayer<'a>>,
-) -> Option<[u32; 4]> {
+) -> Option<[PlayerId; 4]> {
     let mut iter = ranked.into_iter().map(|player| player.id());
     Some([id, iter.next()?, iter.next()?, iter.next()?])
 }
@@ -64,7 +65,7 @@ impl ComponentUpdate for Ranking {
                 let Some(id) = self.player else {
                     return Err(anyhow!("Player not specified"));
                 };
-                let ranked = context.get_player_ranked(id, self.method)?;
+                let ranked = context.ranking().ranked(id, self.method)?;
                 let players =
                     create_game_players(id, ranked).ok_or_else(|| anyhow!("Not enough players"))?;
 
@@ -86,7 +87,8 @@ impl Ranking {
         self.player.and_then(|id| {
             Some(
                 tourn
-                    .get_player_ranked(id, self.method)
+                    .ranking()
+                    .ranked(id, self.method)
                     .ok()?
                     .into_iter()
                     .take(10)

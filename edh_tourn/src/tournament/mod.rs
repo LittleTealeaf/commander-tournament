@@ -15,24 +15,19 @@ use crate::{
     config::TournamentConfig,
     error::TournamentError,
     game::{entry::GameEntry, record::GameRecord},
-    player::{info::PlayerInfo, stats::PlayerStats},
+    player::{PlayerId, info::PlayerInfo, stats::PlayerStats},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(try_from = "crate::serialization::SerializedTournament")]
+#[serde(into = "crate::serialization::SerdeTournament")]
 pub struct Tournament {
     pub(crate) config: TournamentConfig,
-    #[serde(skip)]
-    pub(crate) stats: HashMap<u32, PlayerStats>,
-    #[serde(skip)]
+    pub(crate) stats: HashMap<PlayerId, PlayerStats>,
     pub(crate) default_stats: PlayerStats,
-    #[serde(serialize_with = "crate::serialization::utils::ordered_map")]
-    pub(crate) players: HashMap<u32, PlayerInfo>,
-    #[serde(skip)]
-    pub(crate) player_names: HashMap<String, u32>,
-    #[serde(serialize_with = "crate::serialization::utils::convert_games")]
+    pub(crate) players: HashMap<PlayerId, PlayerInfo>,
+    pub(crate) player_names: HashMap<String, PlayerId>,
     pub(crate) games: Vec<GameRecord>,
-    #[serde(skip)]
     pub(crate) snapshot: usize,
 }
 
@@ -59,7 +54,7 @@ impl Tournament {
 
     pub fn reload(&mut self) -> Result<(), TournamentError> {
         self.update_player_names();
-        self.recalcualte_stats()?;
+        self.recalculate_stats()?;
         Ok(())
     }
 

@@ -1,8 +1,8 @@
-use crate::player::stats::PlayerStats;
+use crate::player::{PlayerId, stats::PlayerStats};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default, PartialEq)]
 pub struct MatchPlayer {
-    id: u32,
+    id: PlayerId,
     stats: PlayerStats,
     expected: f64,
     elo_win: f64,
@@ -11,7 +11,7 @@ pub struct MatchPlayer {
 
 impl MatchPlayer {
     pub(crate) const fn new(
-        id: u32,
+        id: PlayerId,
         stats: PlayerStats,
         expected: f64,
         elo_win: f64,
@@ -27,7 +27,7 @@ impl MatchPlayer {
     }
 
     #[must_use]
-    pub const fn id(&self) -> u32 {
+    pub const fn id(&self) -> PlayerId {
         self.id
     }
 

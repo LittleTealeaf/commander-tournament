@@ -2,7 +2,7 @@ use edh_tourn::{
     analytics::winloss::MatchPerformance,
     game::record::GameRecord,
     player::{
-        RegisteredPlayer,
+        PlayerId, RegisteredPlayer,
         color::{ColorIdentity, MtgColor},
         stats::PlayerStats,
     },
@@ -44,9 +44,37 @@ pub fn stats_summary(stats: &PlayerStats) -> Container<'_, PlayerDetailsMsg> {
     )
 }
 
+fn col_losses<'a, T: 'a>(
+    (_, performance): (T, MatchPerformance),
+) -> impl Into<Element<'a, super::PlayerDetailsMsg>> {
+    text(format!("{}", performance.losses()))
+}
+
+fn col_draws<'a, T: 'a>(
+    (_, performance): (T, MatchPerformance),
+) -> impl Into<Element<'a, super::PlayerDetailsMsg>> {
+    text(format!("{}", performance.draws()))
+}
+
+fn col_wins<'a, T: 'a>(
+    (_, performance): (T, MatchPerformance),
+) -> impl Into<Element<'a, super::PlayerDetailsMsg>> {
+    text(format!("{}", performance.wins()))
+}
+
+fn table_wrapper(
+    table: table::Table<'_, super::PlayerDetailsMsg>,
+) -> Container<'_, super::PlayerDetailsMsg> {
+    container(
+        scrollable(table.width(Length::Fill))
+            .width(Length::Fill)
+            .height(Length::Fill),
+    )
+}
+
 pub fn stats_game_history(
     tournament: &Tournament,
-    id: u32,
+    id: PlayerId,
 ) -> Option<Container<'_, super::PlayerDetailsMsg>> {
     let column_game = |game: &GameRecord| {
         column(game.players().iter().map(|player| {
@@ -93,64 +121,31 @@ pub fn stats_game_history(
         .padding(5)
     };
 
-    Some(
-        container(
-            scrollable(table(
-                [
-                    table::column("Games", column_game),
-                    table::column("Elo Change", column_elo),
-                ],
-                tournament
-                    .get_player_games(id)
-                    .ok()?
-                    .collect_vec()
-                    .into_iter()
-                    .rev(),
-            ))
-            .width(Length::Fill)
-            .height(Length::Fill),
-        )
-        .width(Length::Fill)
-        .height(Length::Fill),
-    )
-}
+    let games = tournament
+        .get_player_games(id)
+        .ok()?
+        .collect_vec()
+        .into_iter()
+        .rev();
 
-fn col_losses<'a, T: 'a>(
-    (_, performance): (T, MatchPerformance),
-) -> impl Into<Element<'a, super::PlayerDetailsMsg>> {
-    text(format!("{}", performance.losses()))
-}
-
-fn col_draws<'a, T: 'a>(
-    (_, performance): (T, MatchPerformance),
-) -> impl Into<Element<'a, super::PlayerDetailsMsg>> {
-    text(format!("{}", performance.draws()))
-}
-
-fn col_wins<'a, T: 'a>(
-    (_, performance): (T, MatchPerformance),
-) -> impl Into<Element<'a, super::PlayerDetailsMsg>> {
-    text(format!("{}", performance.wins()))
-}
-
-fn table_wrapper(
-    table: table::Table<'_, super::PlayerDetailsMsg>,
-) -> Container<'_, super::PlayerDetailsMsg> {
-    container(
-        scrollable(table.width(Length::Fill))
-            .width(Length::Fill)
-            .height(Length::Fill),
-    )
+    Some(table_wrapper(table(
+        [
+            table::column("Games", column_game),
+            table::column("Elo Change", column_elo),
+        ],
+        games,
+    )))
 }
 
 pub fn stats_player_matchups(
     tournament: &Tournament,
-    id: u32,
+    id: PlayerId,
 ) -> Option<Container<'_, super::PlayerDetailsMsg>> {
     type RowType<'a> = (RegisteredPlayer<'a>, MatchPerformance);
 
     let matchups = tournament
-        .get_player_player_match_performance(id)
+        .analytics()
+        .player_vs_player_performance(id)
         .ok()?
         .sorted_by(|(player_a, perf_a), (player_b, perf_b)| {
             perf_a
@@ -182,11 +177,12 @@ pub fn stats_player_matchups(
 
 pub fn stats_identity_matchups(
     tournament: &Tournament,
-    id: u32,
+    id: PlayerId,
 ) -> Option<Container<'_, super::PlayerDetailsMsg>> {
     type RowType = (ColorIdentity, MatchPerformance);
     let matchups = tournament
-        .get_player_identity_match_performance(id)
+        .analytics()
+        .player_vs_identity_performance(id)
         .ok()?
         .into_iter()
         .sorted_by(|(player_a, perf_a), (player_b, perf_b)| {
@@ -214,11 +210,12 @@ pub fn stats_identity_matchups(
 
 pub fn stats_color_matchups(
     tournament: &Tournament,
-    id: u32,
+    id: PlayerId,
 ) -> Option<Container<'_, super::PlayerDetailsMsg>> {
     type RowType = (MtgColor, MatchPerformance);
     let matchups = tournament
-        .get_player_color_match_performance(id)
+        .analytics()
+        .player_vs_color_performance(id)
         .ok()?
         .into_iter()
         .sorted_by(|(color_a, perf_a), (color_b, perf_b)| {

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::{
     error::TournamentError,
-    player::{RegisteredPlayer, info::PlayerInfo},
+    player::{PlayerId, RegisteredPlayer, info::PlayerInfo},
     tournament::Tournament,
 };
 
@@ -16,16 +16,16 @@ impl Tournament {
     }
 
     #[must_use]
-    pub const fn players(&self) -> &HashMap<u32, PlayerInfo> {
+    pub const fn players(&self) -> &HashMap<PlayerId, PlayerInfo> {
         &self.players
     }
 
     #[must_use]
-    pub fn is_id_registered(&self, id: &u32) -> bool {
+    pub fn is_id_registered(&self, id: &PlayerId) -> bool {
         self.players.contains_key(id)
     }
 
-    pub fn require_id_registered(&self, id: u32) -> Result<(), TournamentError> {
+    pub fn require_id_registered(&self, id: PlayerId) -> Result<(), TournamentError> {
         if self.is_id_registered(&id) {
             Ok(())
         } else {
@@ -34,12 +34,12 @@ impl Tournament {
     }
 
     #[must_use]
-    pub fn get_player_id(&self, name: &String) -> Option<u32> {
+    pub fn get_player_id(&self, name: &String) -> Option<PlayerId> {
         self.player_names.get(name).copied()
     }
 
     #[must_use]
-    pub fn get_registered_player(&self, id: u32) -> Option<RegisteredPlayer<'_>> {
+    pub fn get_registered_player(&self, id: PlayerId) -> Option<RegisteredPlayer<'_>> {
         let info = self.get_player_info(&id)?;
         let stats = self.get_player_or_default_stats(id);
         Some(RegisteredPlayer::new(id, info, stats))
@@ -51,7 +51,7 @@ impl Tournament {
         })
     }
 
-    pub fn unregister_player(&mut self, id: u32) -> Result<(), TournamentError> {
+    pub fn unregister_player(&mut self, id: PlayerId) -> Result<(), TournamentError> {
         self.players
             .remove(&id)
             .ok_or(TournamentError::InvalidPlayerId(id))?;
@@ -60,7 +60,7 @@ impl Tournament {
         Ok(())
     }
 
-    pub fn get_or_register_player(&mut self, name: String) -> Result<u32, TournamentError> {
+    pub fn get_or_register_player(&mut self, name: String) -> Result<PlayerId, TournamentError> {
         self.get_player_id(&name)
             .map_or_else(|| self.register_player(name), Ok)
     }
@@ -68,7 +68,7 @@ impl Tournament {
     pub fn merge_players_from_tournament(
         &mut self,
         other: &Self,
-    ) -> Result<HashMap<u32, u32>, TournamentError> {
+    ) -> Result<HashMap<PlayerId, PlayerId>, TournamentError> {
         other
             .players()
             .iter()
@@ -82,7 +82,7 @@ impl Tournament {
     pub fn update_or_register_player_with_info(
         &mut self,
         info: PlayerInfo,
-    ) -> Result<u32, TournamentError> {
+    ) -> Result<PlayerId, TournamentError> {
         match self.get_player_id(info.name()) {
             Some(id) => {
                 self.set_player_info(id, info)?;
@@ -92,11 +92,14 @@ impl Tournament {
         }
     }
 
-    pub fn register_player(&mut self, name: String) -> Result<u32, TournamentError> {
+    pub fn register_player(&mut self, name: String) -> Result<PlayerId, TournamentError> {
         self.register_player_with_info(PlayerInfo::new(name))
     }
 
-    pub fn register_player_with_info(&mut self, info: PlayerInfo) -> Result<u32, TournamentError> {
+    pub fn register_player_with_info(
+        &mut self,
+        info: PlayerInfo,
+    ) -> Result<PlayerId, TournamentError> {
         if info.name().is_empty() {
             return Err(TournamentError::InvalidPlayerName(String::new()));
         }
@@ -108,7 +111,8 @@ impl Tournament {
             ));
         }
 
-        let id = self.players.keys().max().map_or(0, |i| i + 1);
+        let id = self.players.keys().max().map_or(0, |i| i.0 + 1);
+        let id = PlayerId(id);
 
         self.player_names.insert(info.name().to_owned(), id);
         self.players.insert(id, info);
@@ -118,7 +122,7 @@ impl Tournament {
 
     pub fn set_player_info(
         &mut self,
-        player: u32,
+        player: PlayerId,
         info: PlayerInfo,
     ) -> Result<(), TournamentError> {
         let saved_info = self
@@ -148,12 +152,12 @@ impl Tournament {
     }
 
     #[must_use]
-    pub fn get_player_info(&self, id: &u32) -> Option<&PlayerInfo> {
+    pub fn get_player_info(&self, id: &PlayerId) -> Option<&PlayerInfo> {
         self.players().get(id)
     }
 
     #[must_use]
-    pub fn get_player_name(&self, id: &u32) -> Option<&String> {
+    pub fn get_player_name(&self, id: &PlayerId) -> Option<&String> {
         self.get_player_info(id).map(PlayerInfo::name)
     }
 }

@@ -1,7 +1,5 @@
 use edh_tourn::{
-    error::TournamentError,
-    game::{matchup::Matchup, record::GameRecord},
-    tournament::Tournament,
+    error::TournamentError, game::matchup::Matchup, player::PlayerId, tournament::Tournament,
 };
 use iced::{
     Alignment, Length,
@@ -13,19 +11,19 @@ use nerd_font_symbols::md::{MD_CANCEL, MD_LINK_VARIANT, MD_LINK_VARIANT_PLUS};
 
 // Assuming you have these imported from your definitions
 use crate::{
-    core::message::Message,
+    core::{message::Message, tournament::TournamentAction},
     effect::Effect,
     traits::{Component, ComponentUpdate, ComponentView},
 };
 
 #[derive(Default, Debug)]
 pub struct MatchRecorder {
-    player_a: Option<u32>,
-    player_b: Option<u32>,
-    player_c: Option<u32>,
-    player_d: Option<u32>,
+    player_a: Option<PlayerId>,
+    player_b: Option<PlayerId>,
+    player_c: Option<PlayerId>,
+    player_d: Option<PlayerId>,
     matchup: Option<Matchup>,
-    winner: Option<u32>,
+    winner: Option<PlayerId>,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -51,10 +49,10 @@ impl Player {
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum MatchRecorderMsg {
-    SetPlayers([u32; 4]),
-    SetPlayer(Player, Option<u32>),
-    SetWinner(Option<u32>),
-    AddPlayer(u32),
+    SetPlayers([PlayerId; 4]),
+    SetPlayer(Player, Option<PlayerId>),
+    SetWinner(Option<PlayerId>),
+    AddPlayer(PlayerId),
     SubmitGame,
     Clear,
     // Added local messages for handling links before escalating to OutMessage
@@ -62,13 +60,8 @@ pub enum MatchRecorderMsg {
     OpenLinks(Vec<String>),
 }
 
-#[derive(Debug)]
-pub enum MatchRecorderOut {
-    SubmitRecord(Box<GameRecord>),
-}
-
 impl MatchRecorder {
-    const fn set_player(&mut self, position: Player, value: Option<u32>) {
+    const fn set_player(&mut self, position: Player, value: Option<PlayerId>) {
         match position {
             Player::PlayerA => self.player_a = value,
             Player::PlayerB => self.player_b = value,
@@ -78,7 +71,7 @@ impl MatchRecorder {
     }
 
     #[must_use]
-    const fn get_player(&self, position: Player) -> Option<&u32> {
+    const fn get_player(&self, position: Player) -> Option<&PlayerId> {
         match position {
             Player::PlayerA => self.player_a.as_ref(),
             Player::PlayerB => self.player_b.as_ref(),
@@ -87,7 +80,7 @@ impl MatchRecorder {
         }
     }
 
-    pub fn add_player(&mut self, id: u32) {
+    pub fn add_player(&mut self, id: PlayerId) {
         for player in Player::PLAYERS {
             if self.get_player(player).is_none() {
                 self.set_player(player, Some(id));
@@ -96,7 +89,7 @@ impl MatchRecorder {
         }
     }
 
-    fn players(&self) -> Option<[u32; 4]> {
+    fn players(&self) -> Option<[PlayerId; 4]> {
         Some([
             self.player_a?,
             self.player_b?,
@@ -116,7 +109,7 @@ impl MatchRecorder {
 
 impl Component for MatchRecorder {
     type Message = MatchRecorderMsg;
-    type OutMessage = MatchRecorderOut;
+    type OutMessage = ();
 }
 
 impl ComponentUpdate for MatchRecorder {
@@ -156,8 +149,8 @@ impl ComponentUpdate for MatchRecorder {
 
                 let record = matchup.clone().record(winner)?;
 
-                Effect::Out(MatchRecorderOut::SubmitRecord(Box::new(record)))
-                    .chain(Effect::Msg(MatchRecorderMsg::Clear))
+                Effect::global(TournamentAction::Record(Box::new(record)))
+                    .chain(Effect::msg(MatchRecorderMsg::Clear))
                     .ok()
             }
             MatchRecorderMsg::Clear => {

@@ -4,9 +4,21 @@ pub mod neighbors;
 use itertools::{Itertools, chain};
 
 use crate::{
-    error::TournamentError, player::RegisteredPlayer, ranking::RankingMethod,
+    error::TournamentError,
+    player::{PlayerId, RegisteredPlayer},
+    ranking::RankingMethod,
     tournament::Tournament,
 };
+
+#[derive(Debug, Clone, Copy)]
+pub struct Ranking<'a>(&'a Tournament);
+
+impl Tournament {
+    #[must_use]
+    pub const fn ranking(&self) -> Ranking<'_> {
+        Ranking(self)
+    }
+}
 
 fn to_weight_rank<T>(
     ranking: impl IntoIterator<Item = T>,
@@ -18,56 +30,40 @@ fn to_weight_rank<T>(
         .map(move |(score, val)| (val, score * weight))
 }
 
-impl Tournament {
-    fn get_player_games_played_ranked_combined(
-        &self,
-        id: u32,
-    ) -> Result<impl Iterator<Item = (RegisteredPlayer<'_>, usize)>, TournamentError> {
+impl<'a> Ranking<'a> {
+    fn games_played(
+        self,
+        id: PlayerId,
+    ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, usize)> + 'a, TournamentError> {
+        let config = self.0.ranking_config();
         Ok(chain!(
-            to_weight_rank(
-                self.get_player_ranked_least_played(id)?,
-                self.ranking_config().least_played
-            ),
-            to_weight_rank(
-                self.get_player_ranked_nemesis(id)?,
-                self.ranking_config().nemesis
-            ),
-            to_weight_rank(
-                self.get_player_ranked_lost_with(id)?,
-                self.ranking_config().lost_with
-            ),
+            to_weight_rank(self.least_played(id)?, config.least_played),
+            to_weight_rank(self.nemesis(id)?, config.nemesis),
+            to_weight_rank(self.lost_with(id)?, config.lost_with),
         )
         .map(|((player, _), score)| (player, score)))
     }
 
-    fn get_player_neigbhors_ranked_combined(
-        &self,
-        id: u32,
-    ) -> Result<impl Iterator<Item = (RegisteredPlayer<'_>, usize)>, TournamentError> {
+    fn neighbors(
+        self,
+        id: PlayerId,
+    ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, usize)> + 'a, TournamentError> {
+        let config = self.0.ranking_config();
         Ok(chain!(
-            to_weight_rank(
-                self.get_player_ranked_elo_neighbors(id)?,
-                self.ranking_config().elo_neighbor
-            ),
-            to_weight_rank(
-                self.get_player_ranked_wr_neighbors(id)?,
-                self.ranking_config().wr_neighbor
-            ),
-            to_weight_rank(
-                self.get_player_ranked_expected_neighbors(id)?,
-                self.ranking_config().expected_neighbor
-            ),
+            to_weight_rank(self.elo_neighbors(id)?, config.elo_neighbor),
+            to_weight_rank(self.wr_neighbors(id)?, config.wr_neighbor),
+            to_weight_rank(self.expected_neighbors(id)?, config.expected_neighbor),
         ))
     }
 
-    pub fn get_player_ranked_combined(
-        &self,
-        id: u32,
-    ) -> Result<impl Iterator<Item = RegisteredPlayer<'_>>, TournamentError> {
-        self.require_id_registered(id)?;
+    pub fn combined(
+        self,
+        id: PlayerId,
+    ) -> Result<impl Iterator<Item = RegisteredPlayer<'a>> + 'a, TournamentError> {
+        self.0.require_id_registered(id)?;
 
-        let games_played_ranked = self.get_player_games_played_ranked_combined(id)?;
-        let neighbors_ranked = self.get_player_neigbhors_ranked_combined(id)?;
+        let games_played_ranked = self.games_played(id)?;
+        let neighbors_ranked = self.neighbors(id)?;
         let combined = chain!(games_played_ranked, neighbors_ranked);
 
         let grouped = combined.into_grouping_map_by(|(player, _)| player.id());
@@ -85,30 +81,21 @@ impl Tournament {
         Ok(sorted.map(|(player, _)| player))
     }
 
-    pub fn get_player_ranked(
-        &self,
-        id: u32,
+    pub fn ranked(
+        self,
+        id: PlayerId,
         method: RankingMethod,
-    ) -> Result<Vec<RegisteredPlayer<'_>>, TournamentError> {
+    ) -> Result<Vec<RegisteredPlayer<'a>>, TournamentError> {
         Ok(match method {
-            RankingMethod::LeastPlayed => self
-                .get_player_ranked_least_played(id)?
-                .map(|(player, _)| player)
-                .collect(),
-            RankingMethod::LostWith => self
-                .get_player_ranked_lost_with(id)?
-                .map(|(player, _)| player)
-                .collect(),
-            RankingMethod::Nemesis => self
-                .get_player_ranked_nemesis(id)?
-                .map(|(player, _)| player)
-                .collect(),
-            RankingMethod::EloNeighbors => self.get_player_ranked_elo_neighbors(id)?.collect(),
-            RankingMethod::WRNeighbors => self.get_player_ranked_wr_neighbors(id)?.collect(),
-            RankingMethod::ExpectedNeighbors => {
-                self.get_player_ranked_expected_neighbors(id)?.collect()
+            RankingMethod::LeastPlayed => {
+                self.least_played(id)?.map(|(player, _)| player).collect()
             }
-            RankingMethod::Combined => self.get_player_ranked_combined(id)?.collect(),
+            RankingMethod::LostWith => self.lost_with(id)?.map(|(player, _)| player).collect(),
+            RankingMethod::Nemesis => self.nemesis(id)?.map(|(player, _)| player).collect(),
+            RankingMethod::EloNeighbors => self.elo_neighbors(id)?.collect(),
+            RankingMethod::WRNeighbors => self.wr_neighbors(id)?.collect(),
+            RankingMethod::ExpectedNeighbors => self.expected_neighbors(id)?.collect(),
+            RankingMethod::Combined => self.combined(id)?.collect(),
         })
     }
 }

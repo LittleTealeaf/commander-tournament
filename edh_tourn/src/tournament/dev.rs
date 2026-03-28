@@ -4,7 +4,7 @@ use std::hash::DefaultHasher;
 use itertools::{Itertools, chain};
 
 use crate::{
-    config::game::GameConfig, error::TournamentError, game::entry::GameEntry,
+    config::game::GameConfig, error::TournamentError, game::entry::GameEntry, player::PlayerId,
     tournament::Tournament,
 };
 use rand::{SeedableRng, seq::IndexedRandom};
@@ -33,7 +33,7 @@ impl Tournament {
 
         let mut tournament = Self::default();
 
-        let ids: Vec<u32> = (0..player_count)
+        let ids: Vec<PlayerId> = (0..player_count)
             .map(|_| tournament.register_debug_player())
             .collect::<Result<Vec<_>, _>>()?;
 
@@ -84,9 +84,9 @@ impl Tournament {
         )
     }
 
-    pub fn register_debug_player(&mut self) -> Result<u32, TournamentError> {
-        let id = self.players().keys().max().copied().map_or(0, |i| i + 1);
-        self.register_player(format!("debug-{id}"))
+    pub fn register_debug_player(&mut self) -> Result<PlayerId, TournamentError> {
+        let max = self.players.keys().max().map_or(0, |id| id.0 + 1);
+        self.register_player(format!("debug-{max}"))
     }
 }
 

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{error::TournamentError, game::record::GameRecord};
+use crate::{error::TournamentError, game::record::GameRecord, player::PlayerId};
 
 /// Stores only the player IDs and the winner ID. Primarily used for serialization or conversions
 #[derive(
@@ -8,13 +8,13 @@ use crate::{error::TournamentError, game::record::GameRecord};
 )]
 pub struct GameEntry {
     #[serde(rename = "p", alias = "players")]
-    players: [u32; 4],
+    players: [PlayerId; 4],
     #[serde(rename = "w", alias = "winner")]
-    winner: u32,
+    winner: PlayerId,
 }
 
 impl GameEntry {
-    pub const fn new(players: [u32; 4], winner: u32) -> Result<Self, TournamentError> {
+    pub fn new(players: [PlayerId; 4], winner: PlayerId) -> Result<Self, TournamentError> {
         let [a, b, c, d] = players;
         if a != winner && b != winner && c != winner && d != winner {
             return Err(TournamentError::PlayerNotInMatch(winner));
@@ -24,21 +24,21 @@ impl GameEntry {
     }
 
     #[must_use]
-    const fn new_unchecked(players: [u32; 4], winner: u32) -> Self {
+    const fn new_unchecked(players: [PlayerId; 4], winner: PlayerId) -> Self {
         Self { players, winner }
     }
 
     #[must_use]
-    pub const fn players(&self) -> &[u32; 4] {
+    pub const fn players(&self) -> &[PlayerId; 4] {
         &self.players
     }
 
     #[must_use]
-    pub const fn winner(&self) -> u32 {
+    pub const fn winner(&self) -> PlayerId {
         self.winner
     }
 
-    pub fn map_ids(&self, ids: &HashMap<u32, u32>) -> Result<Self, TournamentError> {
+    pub fn map_ids(&self, ids: &HashMap<PlayerId, PlayerId>) -> Result<Self, TournamentError> {
         let [a, b, c, d] = self.players;
         let a = ids.get(&a).ok_or(TournamentError::InvalidPlayerId(a))?;
         let b = ids.get(&b).ok_or(TournamentError::InvalidPlayerId(b))?;
@@ -74,30 +74,51 @@ mod test {
 
     #[test]
     fn winner_must_be_player() {
-        GameEntry::new([0, 1, 2, 3], 0).unwrap();
-        GameEntry::new([0, 1, 2, 3], 1).unwrap();
-        GameEntry::new([0, 1, 2, 3], 2).unwrap();
-        GameEntry::new([0, 1, 2, 3], 3).unwrap();
-        GameEntry::new([0, 1, 2, 3], 4).unwrap_err();
+        GameEntry::new(
+            [PlayerId(0), PlayerId(1), PlayerId(2), PlayerId(3)],
+            PlayerId(0),
+        )
+        .unwrap();
+        GameEntry::new(
+            [PlayerId(0), PlayerId(1), PlayerId(2), PlayerId(3)],
+            PlayerId(1),
+        )
+        .unwrap();
+        GameEntry::new(
+            [PlayerId(0), PlayerId(1), PlayerId(2), PlayerId(3)],
+            PlayerId(2),
+        )
+        .unwrap();
+        GameEntry::new(
+            [PlayerId(0), PlayerId(1), PlayerId(2), PlayerId(3)],
+            PlayerId(3),
+        )
+        .unwrap();
+        GameEntry::new(
+            [PlayerId(0), PlayerId(1), PlayerId(2), PlayerId(3)],
+            PlayerId(4),
+        )
+        .unwrap_err();
     }
 
     #[test]
     fn maps_to_correct_ids() {
-        let starting = [1, 2, 3, 4];
-        let ending = [5, 6, 7, 8];
+        let starting = [1, 2, 3, 4].map(PlayerId);
+        let ending = [5, 6, 7, 8].map(PlayerId);
         let map = [(1, 5), (2, 6), (3, 7), (4, 8)]
             .into_iter()
+            .map(|(a, b)| (PlayerId(a), PlayerId(b)))
             .collect::<HashMap<_, _>>();
 
-        let entry = GameEntry::new(starting, 1).unwrap();
+        let entry = GameEntry::new(starting, PlayerId(1)).unwrap();
         let mapped_entry = entry.map_ids(&map).unwrap();
         assert_eq!(ending, mapped_entry.players);
-        assert_eq!(5, mapped_entry.winner);
+        assert_eq!(PlayerId(5), mapped_entry.winner);
     }
 
     #[test]
     fn map_fails_invalid_id() {
-        let entry = GameEntry::new([1, 2, 3, 4], 1).unwrap();
+        let entry = GameEntry::new([1, 2, 3, 4].map(PlayerId), PlayerId(1)).unwrap();
         entry.map_ids(&HashMap::new()).unwrap_err();
     }
 

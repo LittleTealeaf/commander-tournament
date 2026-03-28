@@ -1,3 +1,4 @@
+use edh_tourn::player::PlayerId;
 use iced::Task;
 
 use crate::{
@@ -22,7 +23,7 @@ pub enum Message {
     AppStateLoaded(Option<AppState>),
     Tournament(TournamentAction),
     TournFile(FileAction),
-    OpenPlayerDetails(Option<u32>),
+    OpenPlayerDetails(Option<PlayerId>),
     CloseView,
     #[from(ignore)]
     Error(String),

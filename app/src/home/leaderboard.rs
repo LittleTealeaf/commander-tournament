@@ -1,6 +1,9 @@
 use core::cmp::Ordering;
 
-use edh_tourn::{player::RegisteredPlayer, tournament::Tournament};
+use edh_tourn::{
+    player::{PlayerId, RegisteredPlayer},
+    tournament::Tournament,
+};
 use iced::{
     Padding,
     widget::{button, container, row, scrollable, space, table, text},
@@ -51,13 +54,13 @@ pub struct Leaderboard {
 pub enum LeaderboardMsg {
     Sort(Column),
     NewPlayer,
-    OpenPlayer(u32),
-    RankPlayer(u32),
+    OpenPlayer(PlayerId),
+    RankPlayer(PlayerId),
 }
 
 #[derive(Debug, Clone)]
 pub enum LeaderboardOut {
-    RankPlayer(u32),
+    RankPlayer(PlayerId),
 }
 
 impl Leaderboard {

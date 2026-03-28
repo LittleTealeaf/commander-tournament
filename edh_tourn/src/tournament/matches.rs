@@ -1,7 +1,7 @@
 use crate::{
     error::TournamentError,
     game::{entry::GameEntry, match_player::MatchPlayer, matchup::Matchup, record::GameRecord},
-    player::stats::PlayerStats,
+    player::{PlayerId, stats::PlayerStats},
     tournament::Tournament,
 };
 
@@ -24,11 +24,11 @@ impl Tournament {
     #[must_use]
     pub(crate) fn create_match_players<const T: usize>(
         &self,
-        players: [u32; T],
+        players: [PlayerId; T],
     ) -> [MatchPlayer; T] {
         #[derive(Debug)]
         struct TempMatchPlayer<'a> {
-            id: u32,
+            id: PlayerId,
             stats: &'a PlayerStats,
             scaled_elo: f64,
             scaled_wr: f64,
@@ -78,7 +78,7 @@ impl Tournament {
         })
     }
 
-    pub fn create_match(&self, ids: [u32; 4]) -> Result<Matchup, TournamentError> {
+    pub fn create_match(&self, ids: [PlayerId; 4]) -> Result<Matchup, TournamentError> {
         // First check registration
         for id in &ids {
             if !self.is_id_registered(id) {
@@ -129,7 +129,7 @@ impl Tournament {
 
     pub fn get_player_games(
         &self,
-        id: u32,
+        id: PlayerId,
     ) -> Result<impl Iterator<Item = &GameRecord>, TournamentError> {
         if !self.is_id_registered(&id) {
             return Err(TournamentError::InvalidPlayerId(id));

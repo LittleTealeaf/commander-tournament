@@ -1,24 +1,24 @@
 mod update;
 mod view;
 
-use edh_tourn::player::{RegisteredPlayer, color::MtgColor, info::PlayerInfo};
+use edh_tourn::player::{PlayerId, RegisteredPlayer, color::MtgColor, info::PlayerInfo};
 use iced::widget::text_editor;
 
 use crate::{
-    components::prompt::{self, DialogPrompt},
+    components::prompt::{self, PromptComponent},
     traits::Component,
 };
 
 #[derive(Debug, Clone)]
 pub struct PlayerDetails {
-    id: Option<u32>,
+    id: Option<PlayerId>,
     initial_name: String,
     info: PlayerInfo,
     moxfield_id: String,
     modified: bool,
     description: text_editor::Content,
     stats: StatsTab,
-    prompt_confirm_delete: Option<DialogPrompt>,
+    prompt_confirm_delete: Option<PromptComponent>,
 }
 
 #[derive(Copy, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord, derive_more::Display)]
@@ -43,11 +43,12 @@ pub enum PlayerDetailsMsg {
     SetMoxfieldId(String),
     ToggleColor(MtgColor),
     SetStatsTab(StatsTab),
-    SelectPlayerReference(u32),
+    SelectPlayerReference(PlayerId),
     OpenLink(String),
     /// Opens the dialog to delete the player
     DeletePlayer,
-    Dialog(prompt::Message),
+    CancelDelete,
+    Dialog(prompt::PromptMessage),
 }
 
 #[derive(Debug)]

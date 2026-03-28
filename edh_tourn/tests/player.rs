@@ -13,8 +13,10 @@ fn get_player_name() {
 
 #[test]
 fn get_invalid_player_name() {
-    let t = Tournament::new();
-    assert!(t.get_player_name(&5).is_none());
+    let mut t = Tournament::new();
+    let id = t.register_debug_player().unwrap();
+    t.unregister_player(id).unwrap();
+    assert!(t.get_player_name(&id).is_none());
 }
 
 #[test]
@@ -29,8 +31,10 @@ fn get_player_info() {
 
 #[test]
 fn get_invalid_player_info() {
-    let t = Tournament::new();
-    assert!(t.get_player_info(&5).is_none());
+    let mut t = Tournament::new();
+    let id = t.register_debug_player().unwrap();
+    t.unregister_player(id).unwrap();
+    assert!(t.get_player_info(&id).is_none());
 }
 
 #[test]
