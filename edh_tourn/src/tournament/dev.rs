@@ -85,12 +85,8 @@ impl Tournament {
     }
 
     pub fn register_debug_player(&mut self) -> Result<PlayerId, TournamentError> {
-        let max = self.players.keys().max();
-        if let Some(PlayerId(val)) = max {
-            self.register_player(format!("debug-{}", val + 1))
-        } else {
-            self.register_player("debug-0".to_owned())
-        }
+        let max = self.players.keys().max().map_or(0, |id| id.0 + 1);
+        self.register_player(format!("debug-{max}"))
     }
 }
 

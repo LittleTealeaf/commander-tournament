@@ -111,7 +111,7 @@ impl Tournament {
             ));
         }
 
-        let id = self.players.keys().max().map_or(0, |PlayerId(i)| *i + 1);
+        let id = self.players.keys().max().map_or(0, |i| i.0 + 1);
         let id = PlayerId(id);
 
         self.player_names.insert(info.name().to_owned(), id);

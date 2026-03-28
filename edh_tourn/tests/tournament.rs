@@ -66,6 +66,41 @@ fn into_fresh_same_stats() -> anyhow::Result<()> {
 }
 
 #[test]
+fn into_fresh_resets_ids() {
+    // or your specific Result type
+    // use edh_tourn::player::PlayerId; // Not strictly needed if we convert to u32
+    use itertools::Itertools;
+
+    let mut tourn = Tournament::generate_tournament(100, 0).unwrap();
+
+    let ids_to_delete = tourn
+        .players()
+        .keys()
+        .sorted()
+        .take(40)
+        .copied()
+        .collect::<Vec<_>>();
+    for id in ids_to_delete {
+        tourn.unregister_player(id).unwrap();
+    }
+
+    assert_eq!(60, tourn.players().len());
+
+    let new_game = tourn.into_fresh().unwrap();
+
+    assert_eq!(60, new_game.players().len());
+
+    assert_ne!(
+        new_game.players().keys().max(),
+        tourn.players().keys().max()
+    );
+    assert_ne!(
+        new_game.players().keys().min(),
+        tourn.players().keys().min()
+    );
+}
+
+#[test]
 fn merge_tournaments_merge_players() {
     let players = ["a", "b", "c", "d"];
     let mut tournament_a = Tournament::new();
