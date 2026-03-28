@@ -8,28 +8,29 @@ use crate::{
         RegisteredPlayer,
         color::{ColorIdentity, MtgColor},
     },
-    tournament::Tournament,
+    tournament::analytics::Analytics,
 };
 
-impl Tournament {
-    pub fn analyze_aggregated_player_stats(
-        &self,
-    ) -> impl Iterator<Item = (RegisteredPlayer<'_>, AggregateStats)> {
-        self.get_registered_players()
+impl<'a> Analytics<'a> {
+    fn aggregated_player_stats(
+        self,
+    ) -> impl Iterator<Item = (RegisteredPlayer<'a>, AggregateStats)> {
+        self.tourn
+            .get_registered_players()
             .map(|player| (player, player.stats().into()))
     }
 
     #[must_use]
-    pub fn analyze_aggregated_identity_stats(&self) -> HashMap<ColorIdentity, AggregateStats> {
-        self.analyze_aggregated_player_stats()
+    pub fn aggregated_identity_stats(self) -> HashMap<ColorIdentity, AggregateStats> {
+        self.aggregated_player_stats()
             .map(|(player, stats)| (player.info().color_identity(), stats))
             .into_grouping_map()
             .sum()
     }
 
     #[must_use]
-    pub fn analyze_aggregated_color_stats(&self) -> HashMap<MtgColor, AggregateStats> {
-        self.analyze_aggregated_player_stats()
+    pub fn aggregated_color_stats(self) -> HashMap<MtgColor, AggregateStats> {
+        self.aggregated_player_stats()
             .flat_map(|(player, stats)| {
                 player
                     .info()

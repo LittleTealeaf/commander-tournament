@@ -144,7 +144,8 @@ pub fn stats_player_matchups(
     type RowType<'a> = (RegisteredPlayer<'a>, MatchPerformance);
 
     let matchups = tournament
-        .get_player_player_match_performance(id)
+        .analytics()
+        .player_vs_player_match_performance(id)
         .ok()?
         .sorted_by(|(player_a, perf_a), (player_b, perf_b)| {
             perf_a
@@ -180,7 +181,8 @@ pub fn stats_identity_matchups(
 ) -> Option<Container<'_, super::PlayerDetailsMsg>> {
     type RowType = (ColorIdentity, MatchPerformance);
     let matchups = tournament
-        .get_player_identity_match_performance(id)
+        .analytics()
+        .player_vs_identity_match_performance(id)
         .ok()?
         .into_iter()
         .sorted_by(|(player_a, perf_a), (player_b, perf_b)| {
@@ -212,7 +214,8 @@ pub fn stats_color_matchups(
 ) -> Option<Container<'_, super::PlayerDetailsMsg>> {
     type RowType = (MtgColor, MatchPerformance);
     let matchups = tournament
-        .get_player_color_match_performance(id)
+        .analytics()
+        .player_vs_color_match_performance(id)
         .ok()?
         .into_iter()
         .sorted_by(|(color_a, perf_a), (color_b, perf_b)| {

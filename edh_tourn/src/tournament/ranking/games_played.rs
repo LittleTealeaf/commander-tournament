@@ -27,7 +27,7 @@ impl Tournament {
         id: u32,
     ) -> Result<impl Iterator<Item = (RegisteredPlayer<'_>, MatchPerformance)>, TournamentError>
     {
-        let iter = self.get_player_player_match_performance(id)?;
+        let iter = self.analytics().player_vs_player_match_performance(id)?;
         let mut missing = self.players().keys().copied().collect::<HashSet<_>>();
         missing.remove(&id);
         let players = iter
