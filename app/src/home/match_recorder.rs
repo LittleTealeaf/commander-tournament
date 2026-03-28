@@ -1,8 +1,4 @@
-use edh_tourn::{
-    error::TournamentError,
-    game::{matchup::Matchup, record::GameRecord},
-    tournament::Tournament,
-};
+use edh_tourn::{error::TournamentError, game::matchup::Matchup, tournament::Tournament};
 use iced::{
     Alignment, Length,
     alignment::Vertical,
@@ -13,7 +9,7 @@ use nerd_font_symbols::md::{MD_CANCEL, MD_LINK_VARIANT, MD_LINK_VARIANT_PLUS};
 
 // Assuming you have these imported from your definitions
 use crate::{
-    core::message::Message,
+    core::{message::Message, tournament::TournamentAction},
     effect::Effect,
     traits::{Component, ComponentUpdate, ComponentView},
 };
@@ -60,11 +56,6 @@ pub enum MatchRecorderMsg {
     // Added local messages for handling links before escalating to OutMessage
     OpenLink(String),
     OpenLinks(Vec<String>),
-}
-
-#[derive(Debug)]
-pub enum MatchRecorderOut {
-    SubmitRecord(Box<GameRecord>),
 }
 
 impl MatchRecorder {
@@ -116,7 +107,7 @@ impl MatchRecorder {
 
 impl Component for MatchRecorder {
     type Message = MatchRecorderMsg;
-    type OutMessage = MatchRecorderOut;
+    type OutMessage = ();
 }
 
 impl ComponentUpdate for MatchRecorder {
@@ -156,8 +147,8 @@ impl ComponentUpdate for MatchRecorder {
 
                 let record = matchup.clone().record(winner)?;
 
-                Effect::Out(MatchRecorderOut::SubmitRecord(Box::new(record)))
-                    .chain(Effect::Msg(MatchRecorderMsg::Clear))
+                Effect::global(TournamentAction::Record(Box::new(record)))
+                    .chain(Effect::msg(MatchRecorderMsg::Clear))
                     .ok()
             }
             MatchRecorderMsg::Clear => {

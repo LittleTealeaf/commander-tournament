@@ -1,5 +1,5 @@
 use crate::{
-    components::prompt::{self, DialogPrompt},
+    components::prompt::{self, PromptComponent, PromptMessage},
     core::{message::Message, tournament::TournamentAction},
     effect::Effect,
     player_details::PlayerDetailsOut,
@@ -8,8 +8,8 @@ use crate::{
 
 use super::PlayerDetailsMsg;
 
-impl From<prompt::Message> for super::PlayerDetailsMsg {
-    fn from(value: prompt::Message) -> Self {
+impl From<prompt::PromptMessage> for super::PlayerDetailsMsg {
+    fn from(value: prompt::PromptMessage) -> Self {
         Self::Dialog(value)
     }
 }
@@ -63,27 +63,24 @@ impl ComponentUpdate for super::PlayerDetails {
             PlayerDetailsMsg::Close => Effect::Out(PlayerDetailsOut::Close).ok(),
             PlayerDetailsMsg::Dialog(message) => {
                 if let Some(dialog) = &mut self.prompt_confirm_delete {
-                    return dialog.update(message, ())?.map(|message| match message {
-                        crate::components::prompt::Message::Accept => {
-                            let id = self.id;
-                            let delete_action = id
-                                .map(|id| Effect::global(TournamentAction::DeletePlayer(id)))
-                                .unwrap_or_default();
-
-                            delete_action
-                                .chain(Effect::Out(PlayerDetailsOut::Close))
-                                .ok()
-                        }
-                        crate::components::prompt::Message::Cancel => {
-                            self.prompt_confirm_delete = None;
-                            Effect::done()
-                        }
+                    return dialog.mapped_update(message, (), |message| match message {
+                        PromptMessage::Accept => self
+                            .id
+                            .map(|id| Effect::global(TournamentAction::DeletePlayer(id)))
+                            .unwrap_or_default()
+                            .chain(Effect::Out(PlayerDetailsOut::Close))
+                            .ok(),
+                        PromptMessage::Cancel => Effect::msg(PlayerDetailsMsg::CancelDelete).ok(),
                     });
                 }
                 Effect::done()
             }
+            PlayerDetailsMsg::CancelDelete => {
+                self.prompt_confirm_delete = None;
+                Effect::done()
+            }
             PlayerDetailsMsg::DeletePlayer => {
-                self.prompt_confirm_delete = Some(DialogPrompt::new(
+                self.prompt_confirm_delete = Some(PromptComponent::new(
                     format!("Delete {}?", self.initial_name),
                     format!(
                         "Are you sure you want to delete {} and all games they were a part of?",

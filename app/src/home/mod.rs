@@ -4,13 +4,12 @@ use edh_tourn::tournament::Tournament;
 use iced::widget::{column, container, row, rule};
 
 use crate::{
-    core::tournament::TournamentAction,
     effect::Effect,
     home::{
-        leaderboard::{Leaderboard, LeaderboardMsg},
-        match_recorder::{MatchRecorder, MatchRecorderMsg, MatchRecorderOut},
+        leaderboard::{Leaderboard, LeaderboardMsg, LeaderboardOut},
+        match_recorder::{MatchRecorder, MatchRecorderMsg},
         menu::{Menu, MenuMsg},
-        ranking::{Ranking, RankingMsg},
+        ranking::{Ranking, RankingMsg, RankingOut},
     },
     traits::{Component, ComponentUpdate, ComponentView},
 };
@@ -75,32 +74,22 @@ impl ComponentUpdate for Home {
         match message {
             HomeMsg::Leaderboard(message) => {
                 self.leaderboard
-                    .update(message, ())?
-                    .map(|message| match message {
-                        leaderboard::LeaderboardOut::RankPlayer(id) => {
+                    .mapped_update(message, (), |msg| match msg {
+                        LeaderboardOut::RankPlayer(id) => {
                             Effect::msg(RankingMsg::SelectPlayer(id)).ok()
-                        }
-                    })
-            }
-            HomeMsg::GameRecord(message) => {
-                self.game_record
-                    .update(message, tournament)?
-                    .map(|message| match message {
-                        MatchRecorderOut::SubmitRecord(game_record) => {
-                            Effect::global(TournamentAction::Record(game_record)).ok()
                         }
                     })
             }
             HomeMsg::Ranking(message) => {
                 self.ranking
-                    .update(message, tournament)?
-                    .map(|message| match message {
-                        ranking::RankingOut::LoadGame(game) => {
+                    .mapped_update(message, tournament, |message| match message {
+                        RankingOut::LoadGame(game) => {
                             Effect::msg(MatchRecorderMsg::SetPlayers(game)).ok()
                         }
                     })
             }
-            HomeMsg::Menu(message) => self.menu.update(message, ())?.map_empty(),
+            HomeMsg::GameRecord(message) => self.game_record.empty_update(message, tournament),
+            HomeMsg::Menu(message) => self.menu.empty_update(message, ()),
         }
     }
 }
