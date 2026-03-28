@@ -44,6 +44,34 @@ pub fn stats_summary(stats: &PlayerStats) -> Container<'_, PlayerDetailsMsg> {
     )
 }
 
+fn col_losses<'a, T: 'a>(
+    (_, performance): (T, MatchPerformance),
+) -> impl Into<Element<'a, super::PlayerDetailsMsg>> {
+    text(format!("{}", performance.losses()))
+}
+
+fn col_draws<'a, T: 'a>(
+    (_, performance): (T, MatchPerformance),
+) -> impl Into<Element<'a, super::PlayerDetailsMsg>> {
+    text(format!("{}", performance.draws()))
+}
+
+fn col_wins<'a, T: 'a>(
+    (_, performance): (T, MatchPerformance),
+) -> impl Into<Element<'a, super::PlayerDetailsMsg>> {
+    text(format!("{}", performance.wins()))
+}
+
+fn table_wrapper(
+    table: table::Table<'_, super::PlayerDetailsMsg>,
+) -> Container<'_, super::PlayerDetailsMsg> {
+    container(
+        scrollable(table.width(Length::Fill))
+            .width(Length::Fill)
+            .height(Length::Fill),
+    )
+}
+
 pub fn stats_game_history(
     tournament: &Tournament,
     id: u32,
@@ -93,54 +121,20 @@ pub fn stats_game_history(
         .padding(5)
     };
 
-    Some(
-        container(
-            scrollable(table(
-                [
-                    table::column("Games", column_game),
-                    table::column("Elo Change", column_elo),
-                ],
-                tournament
-                    .get_player_games(id)
-                    .ok()?
-                    .collect_vec()
-                    .into_iter()
-                    .rev(),
-            ))
-            .width(Length::Fill)
-            .height(Length::Fill),
-        )
-        .width(Length::Fill)
-        .height(Length::Fill),
-    )
-}
+    let games = tournament
+        .get_player_games(id)
+        .ok()?
+        .collect_vec()
+        .into_iter()
+        .rev();
 
-fn col_losses<'a, T: 'a>(
-    (_, performance): (T, MatchPerformance),
-) -> impl Into<Element<'a, super::PlayerDetailsMsg>> {
-    text(format!("{}", performance.losses()))
-}
-
-fn col_draws<'a, T: 'a>(
-    (_, performance): (T, MatchPerformance),
-) -> impl Into<Element<'a, super::PlayerDetailsMsg>> {
-    text(format!("{}", performance.draws()))
-}
-
-fn col_wins<'a, T: 'a>(
-    (_, performance): (T, MatchPerformance),
-) -> impl Into<Element<'a, super::PlayerDetailsMsg>> {
-    text(format!("{}", performance.wins()))
-}
-
-fn table_wrapper(
-    table: table::Table<'_, super::PlayerDetailsMsg>,
-) -> Container<'_, super::PlayerDetailsMsg> {
-    container(
-        scrollable(table.width(Length::Fill))
-            .width(Length::Fill)
-            .height(Length::Fill),
-    )
+    Some(table_wrapper(table(
+        [
+            table::column("Games", column_game),
+            table::column("Elo Change", column_elo),
+        ],
+        games,
+    )))
 }
 
 pub fn stats_player_matchups(
