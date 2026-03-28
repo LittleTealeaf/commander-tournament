@@ -58,7 +58,7 @@ impl<'a> Analytics<'a> {
             .filter_map(|(id, perf)| Some((self.tourn.get_registered_player(id)?, perf))))
     }
 
-    pub fn player_vs_player_match_performance(
+    pub fn player_vs_player_performance(
         self,
         id: u32,
     ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)> + 'a, TournamentError>
@@ -68,7 +68,7 @@ impl<'a> Analytics<'a> {
         Ok(filtered)
     }
 
-    pub fn player_vs_identity_match_performance(
+    pub fn player_vs_identity_performance(
         self,
         id: u32,
     ) -> Result<HashMap<ColorIdentity, MatchPerformance>, TournamentError> {
@@ -79,7 +79,7 @@ impl<'a> Analytics<'a> {
             .sum())
     }
 
-    pub fn player_vs_color_match_performance(
+    pub fn player_vs_color_performance(
         self,
         id: u32,
     ) -> Result<HashMap<MtgColor, MatchPerformance>, TournamentError> {
@@ -99,7 +99,7 @@ impl<'a> Analytics<'a> {
 
 impl Analytics<'_> {
     #[must_use]
-    pub fn identity_vs_identity_match_performance(
+    pub fn identity_vs_identity_performance(
         self,
         identity: ColorIdentity,
     ) -> HashMap<ColorIdentity, MatchPerformance> {
@@ -148,11 +148,11 @@ impl Analytics<'_> {
     }
 
     #[must_use]
-    pub fn identity_vs_color_match_performance(
+    pub fn identity_vs_color_performance(
         self,
         identity: ColorIdentity,
     ) -> HashMap<MtgColor, MatchPerformance> {
-        self.identity_vs_identity_match_performance(identity)
+        self.identity_vs_identity_performance(identity)
             .into_iter()
             .flat_map(|(identity, perf)| identity.colors().map(move |color| (color, perf)))
             .into_grouping_map()
@@ -162,7 +162,7 @@ impl Analytics<'_> {
 
 impl Analytics<'_> {
     #[must_use]
-    pub fn color_vs_color_match_performance(
+    pub fn color_vs_color_performance(
         self,
         color: MtgColor,
     ) -> HashMap<MtgColor, MatchPerformance> {

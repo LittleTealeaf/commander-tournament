@@ -145,7 +145,7 @@ pub fn stats_player_matchups(
 
     let matchups = tournament
         .analytics()
-        .player_vs_player_match_performance(id)
+        .player_vs_player_performance(id)
         .ok()?
         .sorted_by(|(player_a, perf_a), (player_b, perf_b)| {
             perf_a
@@ -182,7 +182,7 @@ pub fn stats_identity_matchups(
     type RowType = (ColorIdentity, MatchPerformance);
     let matchups = tournament
         .analytics()
-        .player_vs_identity_match_performance(id)
+        .player_vs_identity_performance(id)
         .ok()?
         .into_iter()
         .sorted_by(|(player_a, perf_a), (player_b, perf_b)| {
@@ -215,7 +215,7 @@ pub fn stats_color_matchups(
     type RowType = (MtgColor, MatchPerformance);
     let matchups = tournament
         .analytics()
-        .player_vs_color_match_performance(id)
+        .player_vs_color_performance(id)
         .ok()?
         .into_iter()
         .sorted_by(|(color_a, perf_a), (color_b, perf_b)| {
