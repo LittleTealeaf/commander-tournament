@@ -2,7 +2,6 @@ pub mod components;
 pub mod core;
 pub mod effect;
 pub mod error;
-pub mod game_stats;
 pub mod home;
 pub mod player_details;
 pub mod services;
