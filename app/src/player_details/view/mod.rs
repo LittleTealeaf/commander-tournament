@@ -28,10 +28,6 @@ impl ComponentView for super::PlayerDetails {
     where
         Self: 'a;
     fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
-        if let Some(prompt) = &self.prompt_confirm_delete {
-            return prompt.view_into(());
-        }
-
         let title_text = if self.id.is_none() {
             "Create New Player".to_owned()
         } else {

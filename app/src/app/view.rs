@@ -4,6 +4,7 @@ use iced::Element;
 use crate::{
     App,
     app::message::Message,
+    components::confirm::{ConfirmDialog, ConfirmDialogMsg, ConfirmDialogOut},
     core::tournament::TournamentAction,
     effect::Effect,
     error::{Error, ErrorMsg},
@@ -15,12 +16,14 @@ use crate::{
 pub enum View {
     Error(Error),
     PlayerDetails(PlayerDetails),
+    Confirm(ConfirmDialog<Message>),
 }
 
 #[derive(Debug, Clone, derive_more::From)]
 pub enum ViewMsg {
     Error(ErrorMsg),
     PlayerDetails(PlayerDetailsMsg),
+    Confirm(ConfirmDialogMsg),
 }
 
 impl Component for View {
@@ -57,11 +60,21 @@ impl ComponentUpdate for View {
                         Effect::out(TournamentAction::Register(player_info))
                     }
                     .ok(),
+                    PlayerDetailsOut::ConfirmDialog(confirm_dialog) => {
+                        let confirm: ConfirmDialog<ViewMsg> = confirm_dialog.map();
+                        Effect::out(Message::OpenConfirm(Box::new(confirm.map()))).ok()
+                    }
                 })
             }
             (Self::Error(state), ViewMsg::Error(msg)) => {
                 state.update(msg, ())?.map(|message| match message {
                     ErrorMsg::CloseError => Effect::Out(Message::CloseView).ok(),
+                })
+            }
+            (Self::Confirm(state), ViewMsg::Confirm(msg)) => {
+                state.update(msg, ())?.map(|msg| match msg {
+                    ConfirmDialogOut::Message(message) => Effect::out(message).ok(),
+                    ConfirmDialogOut::Close => Effect::out(Message::CloseView).ok(),
                 })
             }
             (_, _) => Effect::done(),
@@ -78,6 +91,7 @@ impl ComponentView for View {
         match self {
             Self::Error(error) => error.view_into(()),
             Self::PlayerDetails(player_details) => player_details.view_into(context.tournament()),
+            Self::Confirm(confirm) => confirm.view_into(()),
         }
     }
 }

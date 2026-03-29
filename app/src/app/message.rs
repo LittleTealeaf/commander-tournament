@@ -4,6 +4,7 @@ use iced::Task;
 use crate::{
     App,
     app::ViewMsg,
+    components::confirm::ConfirmDialog,
     core::{
         file::FileAction,
         state::{AppState, AppStateMsg},
@@ -18,6 +19,7 @@ use crate::{
 pub enum Message {
     OnBoot,
     Nothing,
+    OpenConfirm(Box<ConfirmDialog<Self>>),
     AppState(AppStateMsg),
     AppStateLoaded(Option<AppState>),
     Tournament(TournamentAction),

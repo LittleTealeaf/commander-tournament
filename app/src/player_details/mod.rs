@@ -4,10 +4,7 @@ mod view;
 use edh_tourn::player::{PlayerId, RegisteredPlayer, color::MtgColor, info::PlayerInfo};
 use iced::widget::text_editor;
 
-use crate::{
-    components::prompt::{self, PromptComponent},
-    traits::Component,
-};
+use crate::{components::confirm::ConfirmDialog, traits::Component};
 
 #[derive(Debug, Clone)]
 pub struct PlayerDetails {
@@ -18,7 +15,6 @@ pub struct PlayerDetails {
     modified: bool,
     description: text_editor::Content,
     stats: StatsTab,
-    prompt_confirm_delete: Option<PromptComponent>,
 }
 
 #[derive(Copy, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord, derive_more::Display)]
@@ -47,8 +43,7 @@ pub enum PlayerDetailsMsg {
     OpenLink(String),
     /// Opens the dialog to delete the player
     DeletePlayer,
-    CancelDelete,
-    Dialog(prompt::PromptMessage),
+    ConfirmDelete,
 }
 
 #[derive(Debug)]
@@ -57,6 +52,7 @@ pub enum PlayerDetailsOut {
     OpenPlayerDetails(PlayerId),
     DeletePlayer(PlayerId),
     OpenLink(String),
+    ConfirmDialog(Box<ConfirmDialog<PlayerDetailsMsg>>),
     Close,
 }
 
@@ -77,7 +73,6 @@ impl PlayerDetails {
             description,
             stats: StatsTab::Games,
             modified: false,
-            prompt_confirm_delete: None,
         }
     }
 }
