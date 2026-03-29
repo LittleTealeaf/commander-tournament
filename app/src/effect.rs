@@ -126,7 +126,7 @@ where
     where
         MN: Send + MaybeSend + 'static,
         M: MaybeSend + 'static + Into<MN>,
-        F: FnMut(O) -> anyhow::Result<Effect<MN, ON>>,
+        F: Fn(O) -> anyhow::Result<Effect<MN, ON>>,
     {
         self.inner_map(&mut map_out)
     }

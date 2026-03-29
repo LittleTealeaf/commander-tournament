@@ -45,7 +45,7 @@ impl ComponentUpdate for View {
     ) -> anyhow::Result<crate::effect::Effect<Self::Message, Self::OutMessage>> {
         match (self, message) {
             (Self::PlayerDetails(state), ViewMsg::PlayerDetails(msg)) => {
-                state.update(msg, ())?.map(|message| match message {
+                state.update(msg, ())?.map(|out| match out {
                     PlayerDetailsOut::Close => Effect::Out(Message::CloseView).ok(),
                     PlayerDetailsOut::OpenPlayerDetails(player_id) => {
                         Effect::Out(Message::OpenPlayerDetails(Some(player_id))).ok()
@@ -67,12 +67,12 @@ impl ComponentUpdate for View {
                 })
             }
             (Self::Error(state), ViewMsg::Error(msg)) => {
-                state.update(msg, ())?.map(|message| match message {
+                state.update(msg, ())?.map(|out| match out {
                     ErrorMsg::CloseError => Effect::Out(Message::CloseView).ok(),
                 })
             }
             (Self::Confirm(state), ViewMsg::Confirm(msg)) => {
-                state.update(msg, ())?.map(|msg| match msg {
+                state.update(msg, ())?.map(|out| match out {
                     ConfirmDialogOut::Message(message) => Effect::out(message).ok(),
                     ConfirmDialogOut::Close => Effect::out(Message::CloseView).ok(),
                 })
