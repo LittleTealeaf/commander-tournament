@@ -33,10 +33,15 @@ pub enum FileAction {
     Cancelled,
 }
 
-async fn open_dialog() -> Message {
+async fn open_dialog(current_file: Option<PathBuf>) -> Message {
+    let base_dir = current_file
+        .and_then(|path| path.parent().map(Path::to_path_buf))
+        .or_else(|| UserDirs::new()?.document_dir().map(Path::to_path_buf))
+        .unwrap_or_else(|| PathBuf::from("."));
+
     let dialog = AsyncFileDialog::new()
         .add_filter("formats", &accepted_file_types())
-        .set_directory(".")
+        .set_directory(base_dir)
         .set_title("Open Tournament");
 
     let result = dialog.pick_file().await;
@@ -96,7 +101,7 @@ impl HandleMessage<FileAction> for App {
                 self.file = None;
                 Effect::msg(AppStateMsg::ClearOpenedFile).ok()
             }
-            FileAction::Open => Effect::future(open_dialog()).ok(),
+            FileAction::Open => Effect::future(open_dialog(self.file.clone())).ok(),
             FileAction::OpenFile(path_buf) => Effect::Task(Task::perform(
                 load_from_file_async(path_buf.clone()),
                 |res| match res {
