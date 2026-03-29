@@ -1,17 +1,17 @@
 use crate::{
     error::TournamentError,
-    game::{match_player::MatchPlayer, record::GameRecord},
+    game::{POD_SIZE, match_player::MatchPlayer, record::GameRecord},
     player::PlayerId,
 };
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
 pub struct Matchup {
-    players: [MatchPlayer; 4],
+    players: [MatchPlayer; POD_SIZE],
     snapshot: usize,
 }
 
 impl Matchup {
-    pub(crate) const fn new(players: [MatchPlayer; 4], snapshot: usize) -> Self {
+    pub(crate) const fn new(players: [MatchPlayer; POD_SIZE], snapshot: usize) -> Self {
         Self { players, snapshot }
     }
 
@@ -21,7 +21,7 @@ impl Matchup {
     }
 
     #[must_use]
-    pub const fn players(&self) -> &[MatchPlayer; 4] {
+    pub const fn players(&self) -> &[MatchPlayer; POD_SIZE] {
         &self.players
     }
 

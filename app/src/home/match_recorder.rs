@@ -1,6 +1,6 @@
 use edh_tourn::{
     error::TournamentError,
-    game::{matchup::Matchup, record::GameRecord},
+    game::{POD_SIZE, matchup::Matchup, record::GameRecord},
     player::PlayerId,
     tournament::Tournament,
 };
@@ -20,7 +20,7 @@ use crate::{
 
 #[derive(Default, Debug)]
 pub struct MatchRecorder {
-    players: [Option<PlayerId>; 4],
+    players: [Option<PlayerId>; POD_SIZE],
     matchup: Option<Matchup>,
     winner: Option<PlayerId>,
 }
@@ -37,7 +37,7 @@ impl MatchRecorder {
         }
     }
 
-    fn players(&self) -> Option<[PlayerId; 4]> {
+    fn players(&self) -> Option<[PlayerId; POD_SIZE]> {
         let [a, b, c, d] = self.players;
         Some([a?, b?, c?, d?])
     }
@@ -67,6 +67,7 @@ pub enum MatchRecorderMsg {
 #[derive(Clone, PartialEq, Debug)]
 pub enum MatchRecorderOut {
     OpenLink(String),
+    /// Boxed because of large size difference
     RecordGame(Box<GameRecord>),
 }
 
@@ -148,7 +149,7 @@ impl ComponentView for MatchRecorder {
             .sorted_by(|a, b| a.info().name().cmp(b.info().name()))
             .collect_vec();
 
-        let match_players = (0..4).map(|position| {
+        let match_players = (0..POD_SIZE).map(|position| {
             let id = self.get_player(position).copied();
             let entry = id.and_then(|id| context.get_registered_player(id));
 
@@ -224,7 +225,7 @@ impl ComponentView for MatchRecorder {
             })
             .width(Length::Fill),
             button(MD_LINK_VARIANT_PLUS).on_press_maybe({
-                let links = (0..4)
+                let links = (0..POD_SIZE)
                     .filter_map(|position| {
                         let id = self.get_player(position)?;
                         let info = context.get_player_info(id)?;

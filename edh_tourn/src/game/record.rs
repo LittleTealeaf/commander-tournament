@@ -1,6 +1,6 @@
 use crate::{
     error::TournamentError,
-    game::{match_player::MatchPlayer, matchup::Matchup},
+    game::{POD_SIZE, match_player::MatchPlayer, matchup::Matchup},
     player::PlayerId,
 };
 
@@ -35,12 +35,12 @@ impl GameRecord {
     }
 
     #[must_use]
-    pub const fn players(&self) -> &[MatchPlayer; 4] {
+    pub const fn players(&self) -> &[MatchPlayer; POD_SIZE] {
         self.matchup().players()
     }
 
     #[must_use]
-    pub fn ids(&self) -> [PlayerId; 4] {
+    pub fn ids(&self) -> [PlayerId; POD_SIZE] {
         self.matchup.ids()
     }
 
@@ -50,7 +50,7 @@ impl GameRecord {
     }
 
     #[must_use]
-    pub fn losers(&self) -> [PlayerId; 3] {
+    pub fn losers(&self) -> [PlayerId; POD_SIZE - 1] {
         const EXPECT_MSG: &str = "Expected matchup to have at least 3 losers";
         let mut iter = self.ids().into_iter().filter(|&id| id != self.winner);
         [
