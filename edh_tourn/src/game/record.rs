@@ -1,6 +1,8 @@
+use itertools::Itertools;
+
 use crate::{
     error::TournamentError,
-    game::{match_player::MatchPlayer, matchup::Matchup},
+    game::{POD_SIZE, match_player::MatchPlayer, matchup::Matchup},
     player::PlayerId,
 };
 
@@ -12,8 +14,7 @@ pub struct GameRecord {
 
 impl GameRecord {
     pub fn new(matchup: Matchup, winner: PlayerId) -> Result<Self, TournamentError> {
-        let [a, b, c, d] = matchup.ids();
-        if a != winner && b != winner && c != winner && d != winner {
+        if !matchup.ids().contains(&winner) {
             return Err(TournamentError::PlayerNotInMatch(winner));
         }
 
@@ -36,12 +37,12 @@ impl GameRecord {
     }
 
     #[must_use]
-    pub const fn players(&self) -> &[MatchPlayer; 4] {
+    pub const fn players(&self) -> &[MatchPlayer; POD_SIZE] {
         self.matchup().players()
     }
 
     #[must_use]
-    pub const fn ids(&self) -> [PlayerId; 4] {
+    pub fn ids(&self) -> [PlayerId; POD_SIZE] {
         self.matchup.ids()
     }
 
@@ -51,17 +52,12 @@ impl GameRecord {
     }
 
     #[must_use]
-    pub fn losers(&self) -> [PlayerId; 3] {
-        let [a, b, c, d] = self.ids();
-        if a == self.winner {
-            [b, c, d]
-        } else if b == self.winner {
-            [a, c, d]
-        } else if c == self.winner {
-            [a, b, d]
-        } else {
-            [a, b, c]
-        }
+    pub fn losers(&self) -> [PlayerId; POD_SIZE - 1] {
+        self.ids()
+            .into_iter()
+            .filter(|&id| id != self.winner)
+            .collect_array()
+            .expect("Incorrect number of losers")
     }
 
     pub fn get_player_elo_change(&self, id: PlayerId) -> Result<f64, TournamentError> {

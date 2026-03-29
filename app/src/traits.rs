@@ -38,7 +38,7 @@ pub trait ComponentUpdate: Component {
         map_out: F,
     ) -> anyhow::Result<Effect<M, O>>
     where
-        F: FnMut(Self::OutMessage) -> anyhow::Result<Effect<M, O>>,
+        F: Fn(Self::OutMessage) -> anyhow::Result<Effect<M, O>>,
         Self::Message: Into<M> + 'static + MaybeSend,
         M: Send + MaybeSend + 'static,
     {

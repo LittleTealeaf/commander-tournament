@@ -3,15 +3,15 @@ use iced::Task;
 
 use crate::{
     App,
+    app::ViewMsg,
+    components::confirm::ConfirmDialog,
     core::{
         file::FileAction,
         state::{AppState, AppStateMsg},
         tournament::TournamentAction,
     },
     effect::Effect,
-    error::ErrorMsg,
     home::HomeMsg,
-    player_details::PlayerDetailsMsg,
     traits::ComponentUpdate,
 };
 
@@ -19,6 +19,7 @@ use crate::{
 pub enum Message {
     OnBoot,
     Nothing,
+    OpenConfirm(Box<ConfirmDialog<Self>>),
     AppState(AppStateMsg),
     AppStateLoaded(Option<AppState>),
     Tournament(TournamentAction),
@@ -27,9 +28,8 @@ pub enum Message {
     CloseView,
     #[from(ignore)]
     Error(String),
-    ViewHome(HomeMsg),
-    ViewError(ErrorMsg),
-    ViewPlayer(PlayerDetailsMsg),
+    Home(HomeMsg),
+    View(ViewMsg),
     #[from(ignore)]
     OpenLink(String),
 }
@@ -39,10 +39,6 @@ impl App {
         match effect {
             Effect::Msg(message) => self.process_message(message),
             Effect::Out(()) | Effect::Done => Ok(Task::none()),
-            Effect::Global(message) => {
-                let effect = self.update(message, ())?;
-                self.process_effect(effect)
-            }
             Effect::Task(task) => Ok(task),
             Effect::Batch(effects) => Ok(Task::batch(effects.into_iter().map(|effect| {
                 self.process_effect(effect)
@@ -66,7 +62,7 @@ impl App {
     pub fn handle_update(&mut self, message: Message) -> Task<Message> {
         self.process_message(message).unwrap_or_else(|error| {
             eprintln!("Error: {error}");
-            self.display_error(format!("{error}"));
+            self.error(format!("{error}"));
             Task::none()
         })
     }

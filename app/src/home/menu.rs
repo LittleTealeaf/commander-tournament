@@ -3,7 +3,6 @@ use std::path::PathBuf;
 use iced::widget::{button, row};
 
 use crate::{
-    core::file::FileAction,
     effect::Effect,
     traits::{Component, ComponentUpdate, ComponentView},
 };
@@ -21,7 +20,7 @@ pub enum MenuMsg {
 
 impl Component for Menu {
     type Message = MenuMsg;
-    type OutMessage = ();
+    type OutMessage = MenuMsg;
 }
 
 impl ComponentUpdate for Menu {
@@ -31,13 +30,7 @@ impl ComponentUpdate for Menu {
         message: Self::Message,
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
-        match message {
-            MenuMsg::New => Effect::global(FileAction::New),
-            MenuMsg::Open => Effect::global(FileAction::Open),
-            MenuMsg::Save => Effect::global(FileAction::Save),
-            MenuMsg::SaveAs => Effect::global(FileAction::SaveAs),
-        }
-        .ok()
+        Effect::out(message).ok()
     }
 }
 

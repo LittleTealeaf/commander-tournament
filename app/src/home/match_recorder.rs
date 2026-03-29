@@ -1,5 +1,8 @@
 use edh_tourn::{
-    error::TournamentError, game::matchup::Matchup, player::PlayerId, tournament::Tournament,
+    error::TournamentError,
+    game::{POD_SIZE, matchup::Matchup, record::GameRecord},
+    player::PlayerId,
+    tournament::Tournament,
 };
 use iced::{
     Alignment, Length,
@@ -11,91 +14,32 @@ use nerd_font_symbols::md::{MD_CANCEL, MD_LINK_VARIANT, MD_LINK_VARIANT_PLUS};
 
 // Assuming you have these imported from your definitions
 use crate::{
-    core::{message::Message, tournament::TournamentAction},
     effect::Effect,
     traits::{Component, ComponentUpdate, ComponentView},
 };
 
 #[derive(Default, Debug)]
 pub struct MatchRecorder {
-    player_a: Option<PlayerId>,
-    player_b: Option<PlayerId>,
-    player_c: Option<PlayerId>,
-    player_d: Option<PlayerId>,
+    players: [Option<PlayerId>; POD_SIZE],
     matchup: Option<Matchup>,
     winner: Option<PlayerId>,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum Player {
-    PlayerA,
-    PlayerB,
-    PlayerC,
-    PlayerD,
-}
-
-impl Player {
-    const PLAYERS: [Self; 4] = [Self::PlayerA, Self::PlayerB, Self::PlayerC, Self::PlayerD];
-
-    const fn number(self) -> usize {
-        match self {
-            Self::PlayerA => 0,
-            Self::PlayerB => 1,
-            Self::PlayerC => 2,
-            Self::PlayerD => 3,
-        }
-    }
-}
-
-#[derive(Clone, PartialEq, Eq, Debug)]
-pub enum MatchRecorderMsg {
-    SetPlayers([PlayerId; 4]),
-    SetPlayer(Player, Option<PlayerId>),
-    SetWinner(Option<PlayerId>),
-    AddPlayer(PlayerId),
-    SubmitGame,
-    Clear,
-    // Added local messages for handling links before escalating to OutMessage
-    OpenLink(String),
-    OpenLinks(Vec<String>),
-}
-
 impl MatchRecorder {
-    const fn set_player(&mut self, position: Player, value: Option<PlayerId>) {
-        match position {
-            Player::PlayerA => self.player_a = value,
-            Player::PlayerB => self.player_b = value,
-            Player::PlayerC => self.player_c = value,
-            Player::PlayerD => self.player_d = value,
-        }
-    }
-
     #[must_use]
-    const fn get_player(&self, position: Player) -> Option<&PlayerId> {
-        match position {
-            Player::PlayerA => self.player_a.as_ref(),
-            Player::PlayerB => self.player_b.as_ref(),
-            Player::PlayerC => self.player_c.as_ref(),
-            Player::PlayerD => self.player_d.as_ref(),
-        }
+    fn get_player(&self, position: usize) -> Option<&PlayerId> {
+        self.players.get(position)?.as_ref()
     }
 
     pub fn add_player(&mut self, id: PlayerId) {
-        for player in Player::PLAYERS {
-            if self.get_player(player).is_none() {
-                self.set_player(player, Some(id));
-                return;
-            }
+        if let Some(slot) = self.players.iter_mut().find(|p| p.is_none()) {
+            *slot = Some(id);
         }
     }
 
-    fn players(&self) -> Option<[PlayerId; 4]> {
-        Some([
-            self.player_a?,
-            self.player_b?,
-            self.player_c?,
-            self.player_d?,
-        ])
+    fn players(&self) -> Option<[PlayerId; POD_SIZE]> {
+        let [a, b, c, d] = self.players;
+        Some([a?, b?, c?, d?])
     }
 
     fn update_matchup(&mut self, tournament: &Tournament) -> Result<(), TournamentError> {
@@ -107,9 +51,29 @@ impl MatchRecorder {
     }
 }
 
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub enum MatchRecorderMsg {
+    SetPlayers([PlayerId; 4]),
+    SetPlayer(usize, Option<PlayerId>),
+    SetWinner(Option<PlayerId>),
+    AddPlayer(PlayerId),
+    SubmitGame,
+    Clear,
+    // Added local messages for handling links before escalating to OutMessage
+    OpenLink(String),
+    OpenLinks(Vec<String>),
+}
+
+#[derive(Clone, PartialEq, Debug)]
+pub enum MatchRecorderOut {
+    OpenLink(String),
+    /// Boxed because of large size difference
+    RecordGame(Box<GameRecord>),
+}
+
 impl Component for MatchRecorder {
     type Message = MatchRecorderMsg;
-    type OutMessage = ();
+    type OutMessage = MatchRecorderOut;
 }
 
 impl ComponentUpdate for MatchRecorder {
@@ -119,28 +83,30 @@ impl ComponentUpdate for MatchRecorder {
         message: Self::Message,
         context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
-        match message {
-            MatchRecorderMsg::SetPlayers([a, b, c, d]) => {
-                self.player_a = Some(a);
-                self.player_b = Some(b);
-                self.player_c = Some(c);
-                self.player_d = Some(d);
-                self.update_matchup(context)?;
-                Effect::done()
+        let mut modified = false;
+
+        let effect = match message {
+            MatchRecorderMsg::SetPlayers(players) => {
+                self.players = players.map(Some);
+                modified = true;
+                Effect::Done
             }
-            MatchRecorderMsg::SetPlayer(position, value) => {
-                self.set_player(position, value);
-                self.update_matchup(context)?;
-                Effect::done()
+            MatchRecorderMsg::SetPlayer(position, maybe_id) => {
+                let value = self.players.get_mut(position).ok_or_else(|| {
+                    anyhow::anyhow!("Player Index {position} invalid: Must be 0, 1, 2, or 3")
+                })?;
+                *value = maybe_id;
+                modified = true;
+                Effect::Done
             }
             MatchRecorderMsg::SetWinner(value) => {
                 self.winner = value;
-                Effect::done()
+                Effect::Done
             }
             MatchRecorderMsg::AddPlayer(player) => {
                 self.add_player(player);
-                self.update_matchup(context)?;
-                Effect::done()
+                modified = true;
+                Effect::Done
             }
             MatchRecorderMsg::SubmitGame => {
                 let (Some(matchup), Some(winner)) = (&self.matchup, self.winner) else {
@@ -149,22 +115,26 @@ impl ComponentUpdate for MatchRecorder {
 
                 let record = matchup.clone().record(winner)?;
 
-                Effect::global(TournamentAction::Record(Box::new(record)))
+                Effect::out(MatchRecorderOut::RecordGame(Box::new(record)))
                     .chain(Effect::msg(MatchRecorderMsg::Clear))
-                    .ok()
             }
             MatchRecorderMsg::Clear => {
                 *self = Self::default();
-                Effect::done()
+                Effect::Done
             }
-            MatchRecorderMsg::OpenLink(link) => Effect::Global(Message::OpenLink(link)).ok(),
+            MatchRecorderMsg::OpenLink(link) => Effect::out(MatchRecorderOut::OpenLink(link)),
             MatchRecorderMsg::OpenLinks(links) => Effect::sequence(
                 links
                     .into_iter()
-                    .map(|link| Effect::Global(Message::OpenLink(link))),
-            )
-            .ok(),
+                    .map(|link| Effect::out(MatchRecorderOut::OpenLink(link))),
+            ),
+        };
+
+        if modified {
+            self.update_matchup(context)?;
         }
+
+        Ok(effect)
     }
 }
 
@@ -179,7 +149,7 @@ impl ComponentView for MatchRecorder {
             .sorted_by(|a, b| a.info().name().cmp(b.info().name()))
             .collect_vec();
 
-        let match_players = Player::PLAYERS.map(|position| {
+        let match_players = (0..POD_SIZE).map(|position| {
             let id = self.get_player(position).copied();
             let entry = id.and_then(|id| context.get_registered_player(id));
 
@@ -193,7 +163,7 @@ impl ComponentView for MatchRecorder {
             });
 
             let text_expected = self.matchup.as_ref().and_then(|matchup| {
-                let player = matchup.players().get(position.number())?;
+                let player = matchup.players().get(position)?;
 
                 Some(text(format!(
                     "Expected: {}% (+{}/-{})",
@@ -239,10 +209,11 @@ impl ComponentView for MatchRecorder {
             .align_x(Alignment::Center)
             .width(Length::Fill);
 
-        let current_players = Player::PLAYERS
+        let current_players = self
+            .players
             .iter()
-            .filter_map(|player| self.get_player(*player).copied())
-            .filter_map(|id| context.get_registered_player(id))
+            .flatten()
+            .filter_map(|id| context.get_registered_player(*id))
             .collect_vec();
 
         let winner_entry = self.winner.and_then(|id| context.get_registered_player(id));
@@ -254,8 +225,7 @@ impl ComponentView for MatchRecorder {
             })
             .width(Length::Fill),
             button(MD_LINK_VARIANT_PLUS).on_press_maybe({
-                let links = Player::PLAYERS
-                    .into_iter()
+                let links = (0..POD_SIZE)
                     .filter_map(|position| {
                         let id = self.get_player(position)?;
                         let info = context.get_player_info(id)?;

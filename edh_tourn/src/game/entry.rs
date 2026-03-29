@@ -1,6 +1,10 @@
 use std::collections::HashMap;
 
-use crate::{error::TournamentError, game::record::GameRecord, player::PlayerId};
+use crate::{
+    error::TournamentError,
+    game::{POD_SIZE, record::GameRecord},
+    player::PlayerId,
+};
 
 /// Stores only the player IDs and the winner ID. Primarily used for serialization or conversions
 #[derive(
@@ -8,13 +12,13 @@ use crate::{error::TournamentError, game::record::GameRecord, player::PlayerId};
 )]
 pub struct GameEntry {
     #[serde(rename = "p", alias = "players")]
-    players: [PlayerId; 4],
+    players: [PlayerId; POD_SIZE],
     #[serde(rename = "w", alias = "winner")]
     winner: PlayerId,
 }
 
 impl GameEntry {
-    pub fn new(players: [PlayerId; 4], winner: PlayerId) -> Result<Self, TournamentError> {
+    pub fn new(players: [PlayerId; POD_SIZE], winner: PlayerId) -> Result<Self, TournamentError> {
         let [a, b, c, d] = players;
         if a != winner && b != winner && c != winner && d != winner {
             return Err(TournamentError::PlayerNotInMatch(winner));

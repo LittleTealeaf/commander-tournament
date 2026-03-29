@@ -2,16 +2,15 @@ use iced::Task;
 
 use crate::{
     App,
+    app::{Message, ViewUpdateContext},
     core::{
         file::FileAction,
-        message::Message,
         state::{AppState, AppStateMsg},
-        view::View,
+        tournament::TournamentAction,
     },
     effect::Effect,
-    error::ErrorMsg,
-    home::HomeMsg,
-    player_details::{PlayerDetails, PlayerDetailsMsg, PlayerDetailsOut},
+    home::{HomeMsg, HomeOut},
+    player_details::PlayerDetails,
     services::system::open_link,
     traits::{ComponentUpdate, HandleMessage},
 };
@@ -34,6 +33,10 @@ impl ComponentUpdate for App {
         }
 
         match message {
+            Message::OpenConfirm(dialog) => {
+                self.push_view(*dialog);
+                Effect::done()
+            }
             Message::CloseView => {
                 self.views.pop();
                 Effect::done()
@@ -53,7 +56,7 @@ impl ComponentUpdate for App {
 
                 let path = last_opened.clone();
 
-                Effect::global(FileAction::OpenFile(path)).ok()
+                Effect::msg(FileAction::OpenFile(path)).ok()
             }
             Message::OnBoot => Effect::Task(Task::perform(
                 async { AppState::load().await.ok() },
@@ -61,9 +64,7 @@ impl ComponentUpdate for App {
             ))
             .ok(),
             Message::Tournament(action) => self.handle_message(action, ()),
-            Message::ViewHome(message) => self.handle_message(message, ()),
-            Message::ViewError(error) => self.handle_message(error, ()),
-            Message::ViewPlayer(message) => self.handle_message(message, ()),
+            Message::Home(message) => self.handle_message(message, ()),
             Message::TournFile(message) => self.handle_message(message, ()),
             Message::Error(error) => Err(anyhow::anyhow!("{error}")),
             Message::OpenPlayerDetails(maybe_id) => {
@@ -79,59 +80,15 @@ impl ComponentUpdate for App {
                 Message::Nothing
             }))
             .ok(),
-        }
-    }
-}
-
-macro_rules! try_into {
-    ($variant: ident, $type: ty) => {
-        impl<'a> TryFrom<&'a mut View> for &'a mut $type {
-            type Error = ();
-
-            fn try_from(value: &'a mut View) -> Result<Self, Self::Error> {
-                if let View::$variant(state) = value {
-                    Ok(state)
+            Message::View(msg) => {
+                if let Some(view) = self.views.last_mut() {
+                    view.mapped_update(msg, ViewUpdateContext::new(&self.tournament), |msg| {
+                        Effect::Msg(msg).ok()
+                    })
                 } else {
-                    Err(())
+                    Effect::done()
                 }
             }
-        }
-    };
-}
-
-try_into!(Error, crate::error::Error);
-try_into!(PlayerDetails, PlayerDetails);
-
-impl App {
-    pub fn update_view<'a, F, V, E>(&'a mut self, f: F) -> anyhow::Result<Effect<Message, ()>>
-    where
-        F: FnOnce(&'a mut V) -> anyhow::Result<Effect<Message, ()>> + 'a,
-        V: 'a,
-        &'a mut View: TryInto<&'a mut V, Error = E>,
-    {
-        self.get_view_mut().map_or_else(Effect::done, |view| {
-            view.try_into().map_or_else(|_| Effect::done(), f)
-        })
-    }
-
-    fn handle_view_message<'a, C, F, E>(
-        &'a mut self,
-        message: C::Message,
-        context: C::UpdateContext<'a>,
-        map_out: F,
-    ) -> anyhow::Result<Effect<Message, ()>>
-    where
-        &'a mut View: TryInto<&'a mut C, Error = E>,
-        C: ComponentUpdate + 'a,
-        F: FnMut(C::OutMessage) -> anyhow::Result<Effect<Message, ()>> + 'a,
-        C::Message: Into<Message>,
-    {
-        if let Some(view) = self.get_view_mut()
-            && let Ok(component) = view.try_into()
-        {
-            component.handle_message(message, context)?.map(map_out)
-        } else {
-            Effect::done()
         }
     }
 }
@@ -144,7 +101,20 @@ impl HandleMessage<HomeMsg> for App {
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         self.home
             .handle_message(message, (&self.tournament, &self.file))?
-            .map_empty()
+            .map(|out| match out {
+                HomeOut::RecordGame(game_record) => {
+                    Effect::msg(TournamentAction::Record(game_record)).ok()
+                }
+                HomeOut::OpenLink(link) => Effect::msg(Message::OpenLink(link)).ok(),
+                HomeOut::FileNew => Effect::msg(FileAction::New).ok(),
+                HomeOut::FileOpen => Effect::msg(FileAction::Open).ok(),
+                HomeOut::FileSave => Effect::msg(FileAction::Save).ok(),
+                HomeOut::FileSaveAs => Effect::msg(FileAction::SaveAs).ok(),
+                HomeOut::OpenPlayerDetails(player_id) => {
+                    Effect::msg(Message::OpenPlayerDetails(Some(player_id))).ok()
+                }
+                HomeOut::OpenNewPlayer => Effect::msg(Message::OpenPlayerDetails(None)).ok(),
+            })
     }
 }
 
@@ -159,33 +129,5 @@ impl HandleMessage<AppStateMsg> for App {
         } else {
             Effect::done()
         }
-    }
-}
-
-impl HandleMessage<ErrorMsg> for App {
-    fn handle_message(
-        &mut self,
-        message: ErrorMsg,
-        (): Self::UpdateContext<'_>,
-    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
-        self.handle_view_message::<crate::error::Error, _, _>(
-            message,
-            (),
-            |message| match message {
-                ErrorMsg::CloseError => Effect::global(Message::CloseView).ok(),
-            },
-        )
-    }
-}
-
-impl HandleMessage<PlayerDetailsMsg> for App {
-    fn handle_message(
-        &mut self,
-        message: PlayerDetailsMsg,
-        (): Self::UpdateContext<'_>,
-    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
-        self.handle_view_message::<PlayerDetails, _, _>(message, (), |message| match message {
-            PlayerDetailsOut::Close => Effect::global(Message::CloseView).ok(),
-        })
     }
 }

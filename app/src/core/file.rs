@@ -1,12 +1,15 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
+use directories::UserDirs;
 use edh_tourn::tournament::Tournament;
 use iced::Task;
 use rfd::AsyncFileDialog;
 
 use crate::{
     App,
-    core::{message::Message, state::AppStateMsg},
+    app::Message,
+    components::confirm::ConfirmDialog,
+    core::state::AppStateMsg,
     effect::Effect,
     services::system::{
         accepted_file_types, load_from_file_async, require_extension, serialize_by_extension,
@@ -18,6 +21,8 @@ use crate::{
 pub enum FileAction {
     Open,
     New,
+    /// Use [`Self::New`] to prompt the user if the file is unsaved.
+    ConfirmedNew,
     OpenFile(PathBuf),
     FileOpened(PathBuf, Box<Tournament>),
     SaveFile(PathBuf),
@@ -28,10 +33,15 @@ pub enum FileAction {
     Cancelled,
 }
 
-async fn open_dialog() -> Message {
+async fn open_dialog(current_file: Option<PathBuf>) -> Message {
+    let base_dir = current_file
+        .and_then(|path| path.parent().map(Path::to_path_buf))
+        .or_else(|| UserDirs::new()?.document_dir().map(Path::to_path_buf))
+        .unwrap_or_else(|| PathBuf::from("."));
+
     let dialog = AsyncFileDialog::new()
         .add_filter("formats", &accepted_file_types())
-        .set_directory(".")
+        .set_directory(base_dir)
         .set_title("Open Tournament");
 
     let result = dialog.pick_file().await;
@@ -44,10 +54,15 @@ async fn open_dialog() -> Message {
         .into()
 }
 
-async fn save_dialog() -> Message {
+async fn save_dialog(current_file: Option<PathBuf>) -> Message {
+    let base_dir = current_file
+        .and_then(|path| path.parent().map(Path::to_path_buf))
+        .or_else(|| UserDirs::new()?.document_dir().map(Path::to_path_buf))
+        .unwrap_or_else(|| PathBuf::from("."));
+
     let dialog = AsyncFileDialog::new()
         .add_filter("formats", &accepted_file_types())
-        .set_directory(".")
+        .set_directory(base_dir)
         .set_title("Save Tournament")
         .save_file();
 
@@ -69,11 +84,24 @@ impl HandleMessage<FileAction> for App {
     ) -> anyhow::Result<crate::effect::Effect<Self::Message, Self::OutMessage>> {
         match message {
             FileAction::New => {
+                if self.modified {
+                    Effect::Msg(Message::OpenConfirm(Box::new(ConfirmDialog::new(
+                        "Overwrite Tournament?".to_owned(),
+                        "All unsaved changes will be lost.".to_owned(),
+                        Message::TournFile(FileAction::ConfirmedNew),
+                        None,
+                    ))))
+                    .ok()
+                } else {
+                    Effect::msg(FileAction::ConfirmedNew).ok()
+                }
+            }
+            FileAction::ConfirmedNew => {
                 self.tournament = Tournament::new();
                 self.file = None;
-                Effect::global(AppStateMsg::ClearOpenedFile).ok()
+                Effect::msg(AppStateMsg::ClearOpenedFile).ok()
             }
-            FileAction::Open => Effect::future(open_dialog()).ok(),
+            FileAction::Open => Effect::future(open_dialog(self.file.clone())).ok(),
             FileAction::OpenFile(path_buf) => Effect::Task(Task::perform(
                 load_from_file_async(path_buf.clone()),
                 |res| match res {
@@ -99,24 +127,23 @@ impl HandleMessage<FileAction> for App {
                 Effect::future(future).ok()
             }
             FileAction::Save => {
-                let action = self.file.as_ref().map_or(FileAction::SaveAs, |path| {
+                Effect::msg(self.file.as_ref().map_or(FileAction::SaveAs, |path| {
                     FileAction::SaveFile(path.clone())
-                });
-
-                Effect::Msg(action.into()).ok()
+                }))
+                .ok()
             }
-            FileAction::SaveAs => Effect::future(save_dialog()).ok(),
+            FileAction::SaveAs => Effect::future(save_dialog(self.file.clone())).ok(),
             FileAction::FileOpened(path, tournament) => {
                 self.tournament = *tournament;
                 self.file = Some(path.clone());
                 self.modified = false;
-                Effect::global(AppStateMsg::SetOpenedFile(path)).ok()
+                Effect::msg(AppStateMsg::SetOpenedFile(path)).ok()
             }
             FileAction::FileSaved(path_buf) => {
                 self.file = Some(path_buf.clone());
                 self.is_saving = false;
                 self.modified = false;
-                Effect::global(AppStateMsg::SetOpenedFile(path_buf)).ok()
+                Effect::msg(AppStateMsg::SetOpenedFile(path_buf)).ok()
             }
             FileAction::Cancelled => Effect::done(),
             FileAction::SaveError(err) => {

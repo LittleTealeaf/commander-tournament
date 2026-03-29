@@ -56,16 +56,16 @@ impl<'a> Analytics<'a> {
         id: PlayerId,
     ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)> + 'a, TournamentError>
     {
-        self.tourn.require_id_registered(id)?;
+        self.0.require_id_registered(id)?;
 
         Ok(self
-            .tourn
+            .0
             .get_player_games(id)?
             .flat_map(|game| game_match_perfs(game, |i| i == id))
             .into_grouping_map()
             .sum()
             .into_iter()
-            .filter_map(|(id, perf)| Some((self.tourn.get_registered_player(id)?, perf))))
+            .filter_map(|(id, perf)| Some((self.0.get_registered_player(id)?, perf))))
     }
 
     pub fn player_vs_player_performance(
@@ -113,20 +113,18 @@ impl Analytics<'_> {
         self,
         identity: ColorIdentity,
     ) -> HashMap<ColorIdentity, MatchPerformance> {
-        self.tourn
+        self.0
             .games()
             .iter()
             .flat_map(|game| {
                 game_match_perfs(game, |id| {
-                    let Some(info) = self.tourn.get_player_info(&id) else {
+                    let Some(info) = self.0.get_player_info(&id) else {
                         return false;
                     };
                     info.color_identity() == identity
                 })
             })
-            .filter_map(|(id, perf)| {
-                Some((self.tourn.get_player_info(&id)?.color_identity(), perf))
-            })
+            .filter_map(|(id, perf)| Some((self.0.get_player_info(&id)?.color_identity(), perf)))
             .into_grouping_map()
             .sum()
     }
@@ -150,20 +148,18 @@ impl Analytics<'_> {
         self,
         color: MtgColor,
     ) -> HashMap<MtgColor, MatchPerformance> {
-        self.tourn
+        self.0
             .games()
             .iter()
             .flat_map(|game| {
                 game_match_perfs(game, |id| {
-                    let Some(info) = self.tourn.get_player_info(&id) else {
+                    let Some(info) = self.0.get_player_info(&id) else {
                         return false;
                     };
                     info.color_identity().has_color(color)
                 })
             })
-            .filter_map(|(id, perf)| {
-                Some((self.tourn.get_player_info(&id)?.color_identity(), perf))
-            })
+            .filter_map(|(id, perf)| Some((self.0.get_player_info(&id)?.color_identity(), perf)))
             .flat_map(|(identity, perf)| identity.colors().map(move |color| (color, perf)))
             .into_grouping_map()
             .sum()

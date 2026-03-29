@@ -12,7 +12,6 @@ use itertools::Itertools;
 use nerd_font_symbols::md::{MD_ARROW_DOWN, MD_ARROW_UP, MD_PLAYLIST_PLUS};
 
 use crate::{
-    core::message::Message,
     effect::Effect,
     traits::{Component, ComponentUpdate, ComponentView},
 };
@@ -61,6 +60,8 @@ pub enum LeaderboardMsg {
 #[derive(Debug, Clone)]
 pub enum LeaderboardOut {
     RankPlayer(PlayerId),
+    OpenPlayerDetails(PlayerId),
+    OpenNewPlayer,
 }
 
 impl Leaderboard {
@@ -104,9 +105,9 @@ impl ComponentUpdate for Leaderboard {
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         match message {
             LeaderboardMsg::OpenPlayer(id) => {
-                Effect::Global(Message::OpenPlayerDetails(Some(id))).ok()
+                Effect::out(LeaderboardOut::OpenPlayerDetails(id)).ok()
             }
-            LeaderboardMsg::NewPlayer => Effect::Global(Message::OpenPlayerDetails(None)).ok(),
+            LeaderboardMsg::NewPlayer => Effect::out(LeaderboardOut::OpenNewPlayer).ok(),
             LeaderboardMsg::RankPlayer(id) => Effect::Out(LeaderboardOut::RankPlayer(id)).ok(),
             LeaderboardMsg::Sort(column) => {
                 if self.column == column {
