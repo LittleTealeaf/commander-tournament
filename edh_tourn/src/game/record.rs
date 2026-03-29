@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 use crate::{
     error::TournamentError,
     game::{POD_SIZE, match_player::MatchPlayer, matchup::Matchup},
@@ -51,13 +53,11 @@ impl GameRecord {
 
     #[must_use]
     pub fn losers(&self) -> [PlayerId; POD_SIZE - 1] {
-        const EXPECT_MSG: &str = "Expected matchup to have at least 3 losers";
-        let mut iter = self.ids().into_iter().filter(|&id| id != self.winner);
-        [
-            iter.next().expect(EXPECT_MSG),
-            iter.next().expect(EXPECT_MSG),
-            iter.next().expect(EXPECT_MSG),
-        ]
+        self.ids()
+            .into_iter()
+            .filter(|&id| id != self.winner)
+            .collect_array()
+            .expect("Incorrect number of losers")
     }
 
     pub fn get_player_elo_change(&self, id: PlayerId) -> Result<f64, TournamentError> {
