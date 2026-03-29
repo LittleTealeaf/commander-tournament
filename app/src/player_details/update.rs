@@ -5,15 +5,15 @@ use crate::{
     traits::ComponentUpdate,
 };
 
-use super::PlayerDetailsMsg;
+use super::{PlayerDetails, PlayerDetailsMsg};
 
-impl From<prompt::PromptMessage> for super::PlayerDetailsMsg {
+impl From<prompt::PromptMessage> for PlayerDetailsMsg {
     fn from(value: prompt::PromptMessage) -> Self {
         Self::Dialog(value)
     }
 }
 
-impl ComponentUpdate for super::PlayerDetails {
+impl ComponentUpdate for PlayerDetails {
     type UpdateContext<'a> = ();
     fn update(
         &mut self,

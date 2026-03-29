@@ -10,7 +10,7 @@ use crate::{
 };
 
 #[derive(Clone, Debug, derive_more::Constructor)]
-pub struct PromptComponent {
+pub struct DialogPrompt {
     title: String,
     details: String,
 }
@@ -21,12 +21,12 @@ pub enum PromptMessage {
     Cancel,
 }
 
-impl Component for PromptComponent {
+impl Component for DialogPrompt {
     type Message = PromptMessage;
     type OutMessage = PromptMessage;
 }
 
-impl ComponentUpdate for PromptComponent {
+impl ComponentUpdate for DialogPrompt {
     type UpdateContext<'a> = ();
     fn update(
         &mut self,
@@ -37,7 +37,7 @@ impl ComponentUpdate for PromptComponent {
     }
 }
 
-impl ComponentView for PromptComponent {
+impl ComponentView for DialogPrompt {
     type ViewContext<'a> = ();
     fn view<'a>(&'a self, (): Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
         let title = text(&self.title).size(24);
