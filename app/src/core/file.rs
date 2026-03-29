@@ -7,6 +7,7 @@ use rfd::AsyncFileDialog;
 use crate::{
     App,
     app::Message,
+    components::confirm::ConfirmDialog,
     core::state::AppStateMsg,
     effect::Effect,
     services::system::{
@@ -19,6 +20,8 @@ use crate::{
 pub enum FileAction {
     Open,
     New,
+    /// Use [`Self::New`] to prompt the user if the file is unsaved.
+    ConfirmedNew,
     OpenFile(PathBuf),
     FileOpened(PathBuf, Box<Tournament>),
     SaveFile(PathBuf),
@@ -70,6 +73,19 @@ impl HandleMessage<FileAction> for App {
     ) -> anyhow::Result<crate::effect::Effect<Self::Message, Self::OutMessage>> {
         match message {
             FileAction::New => {
+                if self.modified {
+                    Effect::Msg(Message::OpenConfirm(Box::new(ConfirmDialog::new(
+                        "Overwrite Tournament?".to_owned(),
+                        "All unsaved changes will be lost.".to_owned(),
+                        Message::TournFile(FileAction::ConfirmedNew),
+                        None,
+                    ))))
+                    .ok()
+                } else {
+                    Effect::msg(FileAction::ConfirmedNew).ok()
+                }
+            }
+            FileAction::ConfirmedNew => {
                 self.tournament = Tournament::new();
                 self.file = None;
                 Effect::msg(AppStateMsg::ClearOpenedFile).ok()
