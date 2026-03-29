@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 use crate::{
-    core::message::Message,
+    app::Message,
     effect::Effect,
     services::system::{load_from_file_async, project_dir, save_file_async},
     traits::{Component, ComponentUpdate},

@@ -12,7 +12,7 @@ use itertools::Itertools;
 use nerd_font_symbols::md::{MD_ARROW_DOWN, MD_ARROW_UP, MD_PLAYLIST_PLUS};
 
 use crate::{
-    core::message::Message,
+    app::Message,
     effect::Effect,
     traits::{Component, ComponentUpdate, ComponentView},
 };

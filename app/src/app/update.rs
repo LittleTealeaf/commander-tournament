@@ -2,11 +2,10 @@ use iced::Task;
 
 use crate::{
     App,
+    app::{Message, View},
     core::{
         file::FileAction,
-        message::Message,
         state::{AppState, AppStateMsg},
-        view::View,
     },
     effect::Effect,
     error::ErrorMsg,
@@ -85,10 +84,10 @@ impl ComponentUpdate for App {
 
 macro_rules! try_into {
     ($variant: ident, $type: ty) => {
-        impl<'a> TryFrom<&'a mut View> for &'a mut $type {
+        impl<'a> TryFrom<&'a mut crate::app::View> for &'a mut $type {
             type Error = ();
 
-            fn try_from(value: &'a mut View) -> Result<Self, Self::Error> {
+            fn try_from(value: &'a mut crate::app::View) -> Result<Self, Self::Error> {
                 if let View::$variant(state) = value {
                     Ok(state)
                 } else {

@@ -3,7 +3,7 @@ use edh_tourn::player::PlayerId;
 use edh_tourn::ranking::RankingMethod;
 use edh_tourn::{player::RegisteredPlayer, tournament::Tournament};
 
-use crate::core::message::Message;
+use crate::app::Message;
 use crate::effect::Effect;
 use crate::traits::{Component, ComponentUpdate, ComponentView};
 

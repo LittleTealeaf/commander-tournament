@@ -1,6 +1,7 @@
 use crate::{
+    app::Message,
     components::prompt::{self, PromptComponent, PromptMessage},
-    core::{message::Message, tournament::TournamentAction},
+    core::tournament::TournamentAction,
     effect::Effect,
     player_details::PlayerDetailsOut,
     traits::ComponentUpdate,

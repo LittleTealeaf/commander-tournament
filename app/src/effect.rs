@@ -3,7 +3,7 @@ use core::iter::once;
 use iced::Task;
 use iced_futures::MaybeSend;
 
-use crate::core::message::Message;
+use crate::app::Message;
 
 #[derive(Debug, Default)]
 pub enum Effect<M, O> {

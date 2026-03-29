@@ -1,5 +1,6 @@
+
 use crate::{
-    App, core::message::Message, error::Error, player_details::PlayerDetails, traits::ComponentView,
+    App, app::message::Message, error::Error, player_details::PlayerDetails, traits::ComponentView,
 };
 
 impl App {

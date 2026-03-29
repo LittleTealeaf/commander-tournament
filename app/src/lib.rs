@@ -1,3 +1,4 @@
+pub mod app;
 pub mod components;
 pub mod core;
 pub mod effect;
@@ -14,7 +15,8 @@ use edh_tourn::tournament::Tournament;
 use iced::Task;
 
 use crate::{
-    core::{message::Message, state::AppState, view::View},
+    app::{Message, View},
+    core::state::AppState,
     traits::Component,
 };
 
