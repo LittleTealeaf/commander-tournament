@@ -8,10 +8,6 @@ use crate::{
     traits::{Component, ComponentUpdate},
 };
 
-const QUALIFIER: &str = "io.github.littletealeaf";
-const ORGANIZATION: &str = "LittleTealeaf";
-const APPLICATION: &str = "commander-tournament";
-
 fn get_state_path() -> Option<PathBuf> {
     let project = project_dir()?;
     Some(

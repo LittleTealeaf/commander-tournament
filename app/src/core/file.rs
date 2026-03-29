@@ -1,5 +1,6 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
+use directories::UserDirs;
 use edh_tourn::tournament::Tournament;
 use iced::Task;
 use rfd::AsyncFileDialog;
@@ -48,10 +49,15 @@ async fn open_dialog() -> Message {
         .into()
 }
 
-async fn save_dialog() -> Message {
+async fn save_dialog(current_file: Option<PathBuf>) -> Message {
+    let base_dir = current_file
+        .and_then(|path| path.parent().map(Path::to_path_buf))
+        .or_else(|| UserDirs::new()?.document_dir().map(Path::to_path_buf))
+        .unwrap_or_else(|| PathBuf::from("."));
+
     let dialog = AsyncFileDialog::new()
         .add_filter("formats", &accepted_file_types())
-        .set_directory(".")
+        .set_directory(base_dir)
         .set_title("Save Tournament")
         .save_file();
 
@@ -121,7 +127,7 @@ impl HandleMessage<FileAction> for App {
                 }))
                 .ok()
             }
-            FileAction::SaveAs => Effect::future(save_dialog()).ok(),
+            FileAction::SaveAs => Effect::future(save_dialog(self.file.clone())).ok(),
             FileAction::FileOpened(path, tournament) => {
                 self.tournament = *tournament;
                 self.file = Some(path.clone());
