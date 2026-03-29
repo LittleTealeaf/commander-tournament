@@ -32,24 +32,12 @@ impl Matchup {
 
     #[must_use]
     pub fn get_player(&self, id: PlayerId) -> Option<&MatchPlayer> {
-        let [a, b, c, d] = &self.players();
-        if a.id() == id {
-            Some(a)
-        } else if b.id() == id {
-            Some(b)
-        } else if c.id() == id {
-            Some(c)
-        } else if d.id() == id {
-            Some(d)
-        } else {
-            None
-        }
+        self.players.iter().find(|p| p.id() == id)
     }
 
     #[must_use]
-    pub const fn ids(&self) -> [PlayerId; 4] {
-        let [player_a, player_b, player_c, player_d] = &self.players;
-        [player_a.id(), player_b.id(), player_c.id(), player_d.id()]
+    pub fn ids(&self) -> [PlayerId; 4] {
+        self.players.clone().map(|p| p.id())
     }
 
     pub fn record(self, winner: PlayerId) -> Result<GameRecord, TournamentError> {

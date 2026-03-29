@@ -94,11 +94,11 @@ where
         }
     }
 
-    fn inner_map<MN, ON, F>(self, map_out: &mut F) -> anyhow::Result<Effect<MN, ON>>
+    fn inner_map<MN, ON, F>(self, map_out: &F) -> anyhow::Result<Effect<MN, ON>>
     where
         MN: Send + MaybeSend + 'static,
         M: MaybeSend + 'static + Into<MN>,
-        F: FnMut(O) -> anyhow::Result<Effect<MN, ON>>,
+        F: Fn(O) -> anyhow::Result<Effect<MN, ON>>,
     {
         match self {
             Self::Done => Ok(Effect::Done),
@@ -122,13 +122,13 @@ where
         }
     }
 
-    pub fn map<MN, ON, F>(self, mut map_out: F) -> anyhow::Result<Effect<MN, ON>>
+    pub fn map<MN, ON, F>(self, map_out: F) -> anyhow::Result<Effect<MN, ON>>
     where
         MN: Send + MaybeSend + 'static,
         M: MaybeSend + 'static + Into<MN>,
         F: Fn(O) -> anyhow::Result<Effect<MN, ON>>,
     {
-        self.inner_map(&mut map_out)
+        self.inner_map(&map_out)
     }
 
     pub const fn is_done(&self) -> bool {
