@@ -54,10 +54,9 @@ impl ComponentUpdate for View {
                         Effect::Out(TournamentAction::DeletePlayer(player_id).into()).ok()
                     }
                     PlayerDetailsOut::OpenLink(link) => Effect::Out(Message::OpenLink(link)).ok(),
-                    PlayerDetailsOut::Save(player_id, player_info) => if let Some(id) = player_id {
-                        Effect::out(TournamentAction::SetPlayerInfo(id, player_info))
-                    } else {
-                        Effect::out(TournamentAction::Register(player_info))
+                    PlayerDetailsOut::Save(player_id, player_info) => match player_id {
+                        Some(id) => Effect::out(TournamentAction::SetPlayerInfo(id, player_info)),
+                        None => Effect::out(TournamentAction::Register(player_info)),
                     }
                     .ok(),
                     PlayerDetailsOut::ConfirmDialog(confirm_dialog) => {
