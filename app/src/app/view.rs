@@ -55,10 +55,11 @@ impl ComponentUpdate for View {
                     }
                     PlayerDetailsOut::OpenLink(link) => Effect::Out(Message::OpenLink(link)).ok(),
                     PlayerDetailsOut::Save(player_id, player_info) => match player_id {
-                        Some(id) => Effect::out(TournamentAction::SetPlayerInfo(id, player_info)),
-                        None => Effect::out(TournamentAction::Register(player_info)),
-                    }
-                    .ok(),
+                        Some(id) => {
+                            Effect::out(TournamentAction::SetPlayerInfo(id, player_info)).ok()
+                        }
+                        None => Effect::out(TournamentAction::Register(player_info)).ok(),
+                    },
                     PlayerDetailsOut::ConfirmDialog(confirm_dialog) => {
                         let confirm: ConfirmDialog<ViewMsg> = confirm_dialog.map();
                         Effect::out(Message::OpenConfirm(Box::new(confirm.map()))).ok()
