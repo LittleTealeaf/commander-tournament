@@ -3,7 +3,6 @@ use edh_tourn::player::PlayerId;
 use edh_tourn::ranking::RankingMethod;
 use edh_tourn::{player::RegisteredPlayer, tournament::Tournament};
 
-use crate::app::Message;
 use crate::effect::Effect;
 use crate::traits::{Component, ComponentUpdate, ComponentView};
 
@@ -33,6 +32,7 @@ pub enum RankingMsg {
 #[derive(Debug)]
 pub enum RankingOut {
     LoadGame([PlayerId; 4]),
+    OpenPlayerDetails(PlayerId),
 }
 
 impl Component for Ranking {
@@ -76,7 +76,7 @@ impl ComponentUpdate for Ranking {
                 Effect::done()
             }
             RankingMsg::OpenPlayerDetails(id) => {
-                Effect::global(Message::OpenPlayerDetails(Some(id))).ok()
+                Effect::out(RankingOut::OpenPlayerDetails(id)).ok()
             }
         }
     }

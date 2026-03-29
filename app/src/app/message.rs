@@ -37,10 +37,6 @@ impl App {
         match effect {
             Effect::Msg(message) => self.process_message(message),
             Effect::Out(()) | Effect::Done => Ok(Task::none()),
-            Effect::Global(message) => {
-                let effect = self.update(message, ())?;
-                self.process_effect(effect)
-            }
             Effect::Task(task) => Ok(task),
             Effect::Batch(effects) => Ok(Task::batch(effects.into_iter().map(|effect| {
                 self.process_effect(effect)

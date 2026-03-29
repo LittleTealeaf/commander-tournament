@@ -1,7 +1,5 @@
 use crate::{
-    app::Message,
     components::prompt::{self, PromptComponent, PromptMessage},
-    core::tournament::TournamentAction,
     effect::Effect,
     player_details::PlayerDetailsOut,
     traits::ComponentUpdate,
@@ -27,17 +25,14 @@ impl ComponentUpdate for super::PlayerDetails {
                 if Some(id) == self.id {
                     Effect::done()
                 } else {
-                    Effect::global(Message::OpenPlayerDetails(Some(id))).ok()
+                    Effect::out(PlayerDetailsOut::OpenPlayerDetails(id)).ok()
                 }
             }
             PlayerDetailsMsg::SaveAndClose => {
                 self.info.set_description(self.description.text());
-                Effect::global(match self.id {
-                    Some(id) => TournamentAction::SetPlayerInfo(id, self.info.clone()),
-                    None => TournamentAction::Register(self.info.clone()),
-                })
-                .chain(Effect::Out(PlayerDetailsOut::Close))
-                .ok()
+                Effect::out(PlayerDetailsOut::Save(self.id, self.info.clone()))
+                    .chain(Effect::Out(PlayerDetailsOut::Close))
+                    .ok()
             }
             PlayerDetailsMsg::SetName(name) => {
                 self.info.set_name(name);
@@ -60,14 +55,14 @@ impl ComponentUpdate for super::PlayerDetails {
                 self.stats = stats_tab;
                 Effect::done()
             }
-            PlayerDetailsMsg::OpenLink(link) => Effect::global(Message::OpenLink(link)).ok(),
+            PlayerDetailsMsg::OpenLink(link) => Effect::out(PlayerDetailsOut::OpenLink(link)).ok(),
             PlayerDetailsMsg::Close => Effect::Out(PlayerDetailsOut::Close).ok(),
             PlayerDetailsMsg::Dialog(message) => {
                 if let Some(dialog) = &mut self.prompt_confirm_delete {
                     return dialog.mapped_update(message, (), |message| match message {
                         PromptMessage::Accept => self
                             .id
-                            .map(|id| Effect::global(TournamentAction::DeletePlayer(id)))
+                            .map(|id| Effect::out(PlayerDetailsOut::DeletePlayer(id)))
                             .unwrap_or_default()
                             .chain(Effect::Out(PlayerDetailsOut::Close))
                             .ok(),

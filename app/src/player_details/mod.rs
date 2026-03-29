@@ -53,6 +53,10 @@ pub enum PlayerDetailsMsg {
 
 #[derive(Debug)]
 pub enum PlayerDetailsOut {
+    Save(Option<PlayerId>, PlayerInfo),
+    OpenPlayerDetails(PlayerId),
+    DeletePlayer(PlayerId),
+    OpenLink(String),
     Close,
 }
 

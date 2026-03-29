@@ -6,9 +6,10 @@ use crate::{
     core::{
         file::FileAction,
         state::{AppState, AppStateMsg},
+        tournament::TournamentAction,
     },
     effect::Effect,
-    home::HomeMsg,
+    home::{HomeMsg, HomeOut},
     player_details::PlayerDetails,
     services::system::open_link,
     traits::{ComponentUpdate, HandleMessage},
@@ -51,7 +52,7 @@ impl ComponentUpdate for App {
 
                 let path = last_opened.clone();
 
-                Effect::global(FileAction::OpenFile(path)).ok()
+                Effect::msg(FileAction::OpenFile(path)).ok()
             }
             Message::OnBoot => Effect::Task(Task::perform(
                 async { AppState::load().await.ok() },
@@ -96,7 +97,20 @@ impl HandleMessage<HomeMsg> for App {
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         self.home
             .handle_message(message, (&self.tournament, &self.file))?
-            .map_empty()
+            .map(|out| match out {
+                HomeOut::RecordGame(game_record) => {
+                    Effect::msg(TournamentAction::Record(game_record)).ok()
+                }
+                HomeOut::OpenLink(link) => Effect::msg(Message::OpenLink(link)).ok(),
+                HomeOut::FileNew => Effect::msg(FileAction::New).ok(),
+                HomeOut::FileOpen => Effect::msg(FileAction::Open).ok(),
+                HomeOut::FileSave => Effect::msg(FileAction::Save).ok(),
+                HomeOut::FileSaveAs => Effect::msg(FileAction::SaveAs).ok(),
+                HomeOut::OpenPlayerDetails(player_id) => {
+                    Effect::msg(Message::OpenPlayerDetails(Some(player_id))).ok()
+                }
+                HomeOut::OpenNewPlayer => Effect::msg(Message::OpenPlayerDetails(None)).ok(),
+            })
     }
 }
 

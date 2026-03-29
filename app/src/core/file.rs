@@ -72,7 +72,7 @@ impl HandleMessage<FileAction> for App {
             FileAction::New => {
                 self.tournament = Tournament::new();
                 self.file = None;
-                Effect::global(AppStateMsg::ClearOpenedFile).ok()
+                Effect::msg(AppStateMsg::ClearOpenedFile).ok()
             }
             FileAction::Open => Effect::future(open_dialog()).ok(),
             FileAction::OpenFile(path_buf) => Effect::Task(Task::perform(
@@ -111,13 +111,13 @@ impl HandleMessage<FileAction> for App {
                 self.tournament = *tournament;
                 self.file = Some(path.clone());
                 self.modified = false;
-                Effect::global(AppStateMsg::SetOpenedFile(path)).ok()
+                Effect::msg(AppStateMsg::SetOpenedFile(path)).ok()
             }
             FileAction::FileSaved(path_buf) => {
                 self.file = Some(path_buf.clone());
                 self.is_saving = false;
                 self.modified = false;
-                Effect::global(AppStateMsg::SetOpenedFile(path_buf)).ok()
+                Effect::msg(AppStateMsg::SetOpenedFile(path_buf)).ok()
             }
             FileAction::Cancelled => Effect::done(),
             FileAction::SaveError(err) => {

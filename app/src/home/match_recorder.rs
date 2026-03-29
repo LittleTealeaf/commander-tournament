@@ -1,5 +1,8 @@
 use edh_tourn::{
-    error::TournamentError, game::matchup::Matchup, player::PlayerId, tournament::Tournament,
+    error::TournamentError,
+    game::{matchup::Matchup, record::GameRecord},
+    player::PlayerId,
+    tournament::Tournament,
 };
 use iced::{
     Alignment, Length,
@@ -11,8 +14,6 @@ use nerd_font_symbols::md::{MD_CANCEL, MD_LINK_VARIANT, MD_LINK_VARIANT_PLUS};
 
 // Assuming you have these imported from your definitions
 use crate::{
-    app::Message,
-    core::tournament::TournamentAction,
     effect::Effect,
     traits::{Component, ComponentUpdate, ComponentView},
 };
@@ -46,19 +47,6 @@ impl Player {
             Self::PlayerD => 3,
         }
     }
-}
-
-#[derive(Clone, PartialEq, Eq, Debug)]
-pub enum MatchRecorderMsg {
-    SetPlayers([PlayerId; 4]),
-    SetPlayer(Player, Option<PlayerId>),
-    SetWinner(Option<PlayerId>),
-    AddPlayer(PlayerId),
-    SubmitGame,
-    Clear,
-    // Added local messages for handling links before escalating to OutMessage
-    OpenLink(String),
-    OpenLinks(Vec<String>),
 }
 
 impl MatchRecorder {
@@ -108,9 +96,28 @@ impl MatchRecorder {
     }
 }
 
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub enum MatchRecorderMsg {
+    SetPlayers([PlayerId; 4]),
+    SetPlayer(Player, Option<PlayerId>),
+    SetWinner(Option<PlayerId>),
+    AddPlayer(PlayerId),
+    SubmitGame,
+    Clear,
+    // Added local messages for handling links before escalating to OutMessage
+    OpenLink(String),
+    OpenLinks(Vec<String>),
+}
+
+#[derive(Clone, PartialEq, Debug)]
+pub enum MatchRecorderOut {
+    OpenLink(String),
+    RecordGame(Box<GameRecord>),
+}
+
 impl Component for MatchRecorder {
     type Message = MatchRecorderMsg;
-    type OutMessage = ();
+    type OutMessage = MatchRecorderOut;
 }
 
 impl ComponentUpdate for MatchRecorder {
@@ -150,7 +157,7 @@ impl ComponentUpdate for MatchRecorder {
 
                 let record = matchup.clone().record(winner)?;
 
-                Effect::global(TournamentAction::Record(Box::new(record)))
+                Effect::out(MatchRecorderOut::RecordGame(Box::new(record)))
                     .chain(Effect::msg(MatchRecorderMsg::Clear))
                     .ok()
             }
@@ -158,11 +165,11 @@ impl ComponentUpdate for MatchRecorder {
                 *self = Self::default();
                 Effect::done()
             }
-            MatchRecorderMsg::OpenLink(link) => Effect::Global(Message::OpenLink(link)).ok(),
+            MatchRecorderMsg::OpenLink(link) => Effect::out(MatchRecorderOut::OpenLink(link)).ok(),
             MatchRecorderMsg::OpenLinks(links) => Effect::sequence(
                 links
                     .into_iter()
-                    .map(|link| Effect::Global(Message::OpenLink(link))),
+                    .map(|link| Effect::out(MatchRecorderOut::OpenLink(link))),
             )
             .ok(),
         }

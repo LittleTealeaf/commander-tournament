@@ -3,11 +3,8 @@ use core::iter::once;
 use iced::Task;
 use iced_futures::MaybeSend;
 
-use crate::app::Message;
-
 #[derive(Debug, Default)]
 pub enum Effect<M, O> {
-    Global(Message),
     Msg(M),
     Out(O),
     Task(Task<M>),
@@ -29,18 +26,18 @@ where
         Self::Done.ok()
     }
 
+    pub fn out<Out>(message: Out) -> Self
+    where
+        Out: Into<O>,
+    {
+        Self::Out(message.into())
+    }
+
     pub fn msg<Msg>(message: Msg) -> Self
     where
         Msg: Into<M>,
     {
         Self::Msg(message.into())
-    }
-
-    pub fn global<Msg>(message: Msg) -> Self
-    where
-        Msg: Into<Message>,
-    {
-        Self::Global(message.into())
     }
 
     pub fn future<F>(future: F) -> Self
@@ -105,7 +102,6 @@ where
     {
         match self {
             Self::Done => Ok(Effect::Done),
-            Self::Global(message) => Ok(Effect::Global(message)),
             Self::Out(message) => map_out(message),
             Self::Task(task) => Ok(Effect::Task(task.map(Into::into))),
             Self::Msg(message) => Effect::Msg(message.into()).ok(),

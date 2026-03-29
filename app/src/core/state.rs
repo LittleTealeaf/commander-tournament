@@ -3,7 +3,6 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 use crate::{
-    app::Message,
     effect::Effect,
     services::system::{load_from_file_async, project_dir, save_file_async},
     traits::{Component, ComponentUpdate},
@@ -166,7 +165,7 @@ impl ComponentUpdate for AppState {
             AppStateMsg::Error(error) => {
                 self.is_saving = false;
                 self.is_modified = true;
-                Effect::Global(Message::Error(error)).ok()
+                Err(anyhow::anyhow!("{error:#}"))
             }
         }
     }

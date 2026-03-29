@@ -4,6 +4,7 @@ use iced::Element;
 use crate::{
     App,
     app::message::Message,
+    core::tournament::TournamentAction,
     effect::Effect,
     error::{Error, ErrorMsg},
     player_details::{PlayerDetails, PlayerDetailsMsg, PlayerDetailsOut},
@@ -43,6 +44,19 @@ impl ComponentUpdate for View {
             (Self::PlayerDetails(state), ViewMsg::PlayerDetails(msg)) => {
                 state.update(msg, ())?.map(|message| match message {
                     PlayerDetailsOut::Close => Effect::Out(Message::CloseView).ok(),
+                    PlayerDetailsOut::OpenPlayerDetails(player_id) => {
+                        Effect::Out(Message::OpenPlayerDetails(Some(player_id))).ok()
+                    }
+                    PlayerDetailsOut::DeletePlayer(player_id) => {
+                        Effect::Out(TournamentAction::DeletePlayer(player_id).into()).ok()
+                    }
+                    PlayerDetailsOut::OpenLink(link) => Effect::Out(Message::OpenLink(link)).ok(),
+                    PlayerDetailsOut::Save(player_id, player_info) => if let Some(id) = player_id {
+                        Effect::out(TournamentAction::SetPlayerInfo(id, player_info))
+                    } else {
+                        Effect::out(TournamentAction::Register(player_info))
+                    }
+                    .ok(),
                 })
             }
             (Self::Error(state), ViewMsg::Error(msg)) => {

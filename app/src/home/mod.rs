@@ -1,13 +1,13 @@
 use std::path::PathBuf;
 
-use edh_tourn::tournament::Tournament;
+use edh_tourn::{game::record::GameRecord, player::PlayerId, tournament::Tournament};
 use iced::widget::{column, container, row, rule};
 
 use crate::{
     effect::Effect,
     home::{
         leaderboard::{Leaderboard, LeaderboardMsg, LeaderboardOut},
-        match_recorder::{MatchRecorder, MatchRecorderMsg},
+        match_recorder::{MatchRecorder, MatchRecorderMsg, MatchRecorderOut},
         menu::{Menu, MenuMsg},
         ranking::{Ranking, RankingMsg, RankingOut},
     },
@@ -35,9 +35,21 @@ pub enum HomeMsg {
     Menu(MenuMsg),
 }
 
+#[derive(Debug, Clone, derive_more::From)]
+pub enum HomeOut {
+    RecordGame(Box<GameRecord>),
+    OpenPlayerDetails(PlayerId),
+    OpenNewPlayer,
+    OpenLink(String),
+    FileNew,
+    FileOpen,
+    FileSave,
+    FileSaveAs,
+}
+
 impl Component for Home {
     type Message = HomeMsg;
-    type OutMessage = ();
+    type OutMessage = HomeOut;
 }
 
 impl ComponentView for Home {
@@ -78,6 +90,10 @@ impl ComponentUpdate for Home {
                         LeaderboardOut::RankPlayer(id) => {
                             Effect::msg(RankingMsg::SelectPlayer(id)).ok()
                         }
+                        LeaderboardOut::OpenPlayerDetails(player_id) => {
+                            Effect::out(HomeOut::OpenPlayerDetails(player_id)).ok()
+                        }
+                        LeaderboardOut::OpenNewPlayer => Effect::out(HomeOut::OpenNewPlayer).ok(),
                     })
             }
             HomeMsg::Ranking(message) => {
@@ -86,10 +102,31 @@ impl ComponentUpdate for Home {
                         RankingOut::LoadGame(game) => {
                             Effect::msg(MatchRecorderMsg::SetPlayers(game)).ok()
                         }
+                        RankingOut::OpenPlayerDetails(player_id) => {
+                            Effect::Out(HomeOut::OpenPlayerDetails(player_id)).ok()
+                        }
                     })
             }
-            HomeMsg::GameRecord(message) => self.game_record.empty_update(message, tournament),
-            HomeMsg::Menu(message) => self.menu.empty_update(message, ()),
+            HomeMsg::GameRecord(message) => {
+                self.game_record
+                    .mapped_update(message, tournament, |out| match out {
+                        MatchRecorderOut::OpenLink(link) => {
+                            Effect::Out(HomeOut::OpenLink(link)).ok()
+                        }
+                        MatchRecorderOut::RecordGame(record) => {
+                            Effect::out(HomeOut::RecordGame(record)).ok()
+                        }
+                    })
+            }
+            HomeMsg::Menu(message) => self.menu.mapped_update(message, (), |out| {
+                Effect::out(match out {
+                    MenuMsg::New => HomeOut::FileNew,
+                    MenuMsg::Open => HomeOut::FileOpen,
+                    MenuMsg::Save => HomeOut::FileSave,
+                    MenuMsg::SaveAs => HomeOut::FileSaveAs,
+                })
+                .ok()
+            }),
         }
     }
 }
