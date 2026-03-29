@@ -3,15 +3,14 @@ use iced::Task;
 
 use crate::{
     App,
+    app::ViewMsg,
     core::{
         file::FileAction,
         state::{AppState, AppStateMsg},
         tournament::TournamentAction,
     },
     effect::Effect,
-    error::ErrorMsg,
     home::HomeMsg,
-    player_details::PlayerDetailsMsg,
     traits::ComponentUpdate,
 };
 
@@ -27,9 +26,8 @@ pub enum Message {
     CloseView,
     #[from(ignore)]
     Error(String),
-    ViewHome(HomeMsg),
-    ViewError(ErrorMsg),
-    ViewPlayer(PlayerDetailsMsg),
+    Home(HomeMsg),
+    View(ViewMsg),
     #[from(ignore)]
     OpenLink(String),
 }
@@ -66,7 +64,7 @@ impl App {
     pub fn handle_update(&mut self, message: Message) -> Task<Message> {
         self.process_message(message).unwrap_or_else(|error| {
             eprintln!("Error: {error}");
-            self.display_error(format!("{error}"));
+            self.error(format!("{error}"));
             Task::none()
         })
     }
