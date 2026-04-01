@@ -105,15 +105,15 @@ mod tests {
 
         let matchup = tournament.create_match([player_a; 4]).unwrap();
         let record = matchup.record(player_a).unwrap();
-        let _ = record.winner();
-        let _ = record.losers();
+        assert_eq!(record.winner(), player_a);
+        assert_eq!(record.losers(), [player_a; 3]);
 
         let player_b = tournament.register_debug_player().unwrap();
         let matchup = tournament
             .create_match([player_a, player_a, player_b, player_b])
             .unwrap();
         let record = matchup.record(player_a).unwrap();
-        let _ = record.winner();
-        let _ = record.losers();
+        assert_eq!(record.winner(), player_a);
+        assert_eq!(record.losers(), [player_a, player_b, player_b]);
     }
 }
