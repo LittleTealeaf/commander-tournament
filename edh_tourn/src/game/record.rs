@@ -53,9 +53,18 @@ impl GameRecord {
 
     #[must_use]
     pub fn losers(&self) -> [PlayerId; POD_SIZE - 1] {
+        let mut found = false;
+
         self.ids()
             .into_iter()
-            .filter(|&id| id != self.winner)
+            .filter(|&id| {
+                if id == self.winner && !found {
+                    found = true;
+                    false
+                } else {
+                    true
+                }
+            })
             .collect_array()
             .expect("Incorrect number of losers")
     }
@@ -82,5 +91,29 @@ impl GameRecord {
     #[must_use]
     pub const fn decompose(self) -> (Matchup, PlayerId) {
         (self.matchup, self.winner)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::tournament::Tournament;
+
+    #[test]
+    fn losers_with_duplicates() {
+        let mut tournament = Tournament::new();
+        let player_a = tournament.register_debug_player().unwrap();
+
+        let matchup = tournament.create_match([player_a; 4]).unwrap();
+        let record = matchup.record(player_a).unwrap();
+        assert_eq!(record.winner(), player_a);
+        assert_eq!(record.losers(), [player_a; 3]);
+
+        let player_b = tournament.register_debug_player().unwrap();
+        let matchup = tournament
+            .create_match([player_a, player_a, player_b, player_b])
+            .unwrap();
+        let record = matchup.record(player_a).unwrap();
+        assert_eq!(record.winner(), player_a);
+        assert_eq!(record.losers(), [player_a, player_b, player_b]);
     }
 }
