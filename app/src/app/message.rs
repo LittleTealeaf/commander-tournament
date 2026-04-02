@@ -2,11 +2,18 @@ use edh_tourn::player::PlayerId;
 use iced::Task;
 
 use crate::{
-    app::ViewMsg, components::confirm::ConfirmDialog, core::{
+    App,
+    app::ViewMsg,
+    components::confirm::ConfirmDialog,
+    core::{
         file::FileAction,
         state::{AppState, AppStateMsg},
         tournament::TournamentAction,
-    }, effect::Effect, home::HomeMsg, play::PlayMode, traits::ComponentUpdate, App
+    },
+    effect::Effect,
+    home::HomeMsg,
+    play::PlayMode,
+    traits::ComponentUpdate,
 };
 
 #[derive(Debug, Clone, derive_more::From)]
