@@ -10,6 +10,7 @@ use crate::{
     },
     effect::Effect,
     home::{HomeMsg, HomeOut},
+    play::PlayView,
     player_details::PlayerDetails,
     services::system::open_link,
     traits::{ComponentUpdate, HandleMessage},
@@ -89,6 +90,10 @@ impl ComponentUpdate for App {
                     Effect::done()
                 }
             }
+            Message::OpenPlay(play_mode) => {
+                self.push_view(PlayView::new(play_mode));
+                Effect::done()
+            }
         }
     }
 }
@@ -114,6 +119,7 @@ impl HandleMessage<HomeMsg> for App {
                     Effect::msg(Message::OpenPlayerDetails(Some(player_id))).ok()
                 }
                 HomeOut::OpenNewPlayer => Effect::msg(Message::OpenPlayerDetails(None)).ok(),
+                HomeOut::OpenPlayView(mode) => Effect::msg(Message::OpenPlay(mode)).ok(),
             })
     }
 }

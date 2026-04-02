@@ -2,23 +2,18 @@ use edh_tourn::player::PlayerId;
 use iced::Task;
 
 use crate::{
-    App,
-    app::ViewMsg,
-    components::confirm::ConfirmDialog,
-    core::{
+    app::ViewMsg, components::confirm::ConfirmDialog, core::{
         file::FileAction,
         state::{AppState, AppStateMsg},
         tournament::TournamentAction,
-    },
-    effect::Effect,
-    home::HomeMsg,
-    traits::ComponentUpdate,
+    }, effect::Effect, home::HomeMsg, play::PlayMode, traits::ComponentUpdate, App
 };
 
 #[derive(Debug, Clone, derive_more::From)]
 pub enum Message {
     OnBoot,
     Nothing,
+    OpenPlay(PlayMode),
     OpenConfirm(Box<ConfirmDialog<Self>>),
     AppState(AppStateMsg),
     AppStateLoaded(Option<AppState>),

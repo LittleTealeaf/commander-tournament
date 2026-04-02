@@ -8,6 +8,7 @@ use crate::{
     core::tournament::TournamentAction,
     effect::Effect,
     error::{Error, ErrorMsg},
+    play::{PlayMsg, PlayOut, PlayView},
     player_details::{PlayerDetails, PlayerDetailsMsg, PlayerDetailsOut},
     traits::{Component, ComponentUpdate, ComponentView},
 };
@@ -15,6 +16,7 @@ use crate::{
 #[derive(Clone, Debug, derive_more::From)]
 pub enum View {
     Error(Error),
+    Play(PlayView),
     PlayerDetails(PlayerDetails),
     Confirm(ConfirmDialog<Message>),
 }
@@ -23,6 +25,7 @@ pub enum View {
 pub enum ViewMsg {
     Error(ErrorMsg),
     PlayerDetails(PlayerDetailsMsg),
+    Play(PlayMsg),
     Confirm(ConfirmDialogMsg),
 }
 
@@ -41,7 +44,7 @@ impl ComponentUpdate for View {
     fn update(
         &mut self,
         message: Self::Message,
-        _: Self::UpdateContext<'_>,
+        context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::effect::Effect<Self::Message, Self::OutMessage>> {
         match (self, message) {
             (Self::PlayerDetails(state), ViewMsg::PlayerDetails(msg)) => {
@@ -77,6 +80,15 @@ impl ComponentUpdate for View {
                     ConfirmDialogOut::Close => Effect::out(Message::CloseView).ok(),
                 })
             }
+            (Self::Play(state), ViewMsg::Play(msg)) => {
+                state.update(msg, context.tourn)?.map(|out| match out {
+                    PlayOut::OpenLink(link) => Effect::out(Message::OpenLink(link)).ok(),
+                    PlayOut::RecordGame(game_record) => {
+                        Effect::out(TournamentAction::Record(game_record)).ok()
+                    }
+                    PlayOut::Close => Effect::out(Message::CloseView).ok(),
+                })
+            }
             (_, _) => Effect::done(),
         }
     }
@@ -92,6 +104,7 @@ impl ComponentView for View {
             Self::Error(error) => error.view_into(()),
             Self::PlayerDetails(player_details) => player_details.view_into(context.tournament()),
             Self::Confirm(confirm) => confirm.view_into(()),
+            Self::Play(play) => play.view_into(context.tournament()),
         }
     }
 }
