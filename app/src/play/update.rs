@@ -116,8 +116,12 @@ impl ComponentUpdate for PlayView {
                         .chain(Effect::msg(PlayMsg::RefreshMatchup))
                         .ok(),
                     MatchPreviewOut::OpenLink(link) => Effect::out(PlayOut::OpenLink(link)).ok(),
+                    MatchPreviewOut::OpenPlayerInfo(player_id) => {
+                        Effect::out(PlayOut::OpenPlayerInfo(player_id)).ok()
+                    }
                 })?
             }
+            PlayMsg::Close => Effect::out(PlayOut::Close),
         };
 
         if modified {

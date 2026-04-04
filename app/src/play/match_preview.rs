@@ -1,11 +1,11 @@
 use edh_tourn::{
-    game::{matchup::Matchup, record::GameRecord},
-    player::PlayerId,
+    game::{match_player::MatchPlayer, matchup::Matchup, record::GameRecord},
+    player::{PlayerId, info::PlayerInfo},
     tournament::Tournament,
 };
 use iced::{
-    Length,
-    widget::{button, column, container, pick_list, row, space, text},
+    Alignment, Length,
+    widget::{button, column, container, pick_list, row, table, text},
 };
 use itertools::Itertools;
 use nerd_font_symbols::md::{MD_LINK_VARIANT, MD_LINK_VARIANT_PLUS};
@@ -35,12 +35,14 @@ impl MatchPreview {
 pub enum MatchPreviewMsg {
     SelectWinner(PlayerId),
     OpenLink(String),
+    ClickPlayer(PlayerId),
     OpenMatchLinks,
     Submit,
 }
 
 #[derive(Debug, Clone)]
 pub enum MatchPreviewOut {
+    OpenPlayerInfo(PlayerId),
     RecordGame(Box<GameRecord>),
     OpenLink(String),
 }
@@ -85,6 +87,9 @@ impl ComponentUpdate for MatchPreview {
                 self.winner = Some(player_id);
                 Effect::done()
             }
+            MatchPreviewMsg::ClickPlayer(player_id) => {
+                Effect::out(MatchPreviewOut::OpenPlayerInfo(player_id)).ok()
+            }
         }
     }
 }
@@ -95,66 +100,61 @@ impl ComponentView for MatchPreview {
     where
         Self: 'a;
     fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
-        let tourn = context;
+        type RowType<'b> = (&'b MatchPlayer, &'b PlayerInfo);
 
-        let player_views = self.matchup.players().iter().filter_map(|player| {
-            let info = tourn.get_player_info(&player.id())?;
+        let players = self
+            .matchup
+            .players()
+            .iter()
+            .filter_map(|player| Some((player, context.get_player_info(&player.id())?)));
 
-            let text_stats = {
-                let stats = player.stats();
-                let str_wr = stats.wr().map_or_else(
-                    || "--% WR".to_owned(),
-                    |wr| format!("{}% WR", (wr * 100.0).round()),
-                );
-                text(format!("{} Elo, {str_wr}", stats.elo().round()))
-            };
-
-            let text_expected = {
-                text(format!(
-                    "Expected: {}% (+{}/-{})",
-                    (player.expected() * 100f64).round(),
-                    player.elo_win().round(),
-                    player.elo_loss().round()
-                ))
-            };
-
-            let player_info = row![
-                text_stats,
-                text(""),
-                space().width(Length::Fill),
-                text_expected
-            ];
-
-            Some(
-                container(
-                    column![
-                        row![
-                            text(info.name()),
-                            button(MD_LINK_VARIANT).on_press_maybe(
-                                info.moxfield_goldfish_link().map(MatchPreviewMsg::OpenLink)
-                            )
-                        ],
-                        player_info
-                    ]
-                    .spacing(5),
-                )
-                .into(),
-            )
-        });
-
-        let players_col = column(player_views).spacing(15);
+        let table = table(
+            [
+                table::column(text("Player"), |(player, info): RowType| {
+                    button(text(info.name()).size(12))
+                        .style(button::text)
+                        .on_press(MatchPreviewMsg::ClickPlayer(player.id()))
+                }),
+                table::column(text("Stats"), |(player, _): RowType| {
+                    let stats = player.stats();
+                    let str_wr = stats.wr().map_or_else(
+                        || "--% WR".to_owned(),
+                        |wr| format!("{}% WR", (wr * 100.0).round()),
+                    );
+                    text(format!("{} Elo, {str_wr}", stats.elo().round()))
+                }),
+                table::column(text("Expected"), |(player, _): RowType| {
+                    text(format!(
+                        "{}% (+{}/-{})",
+                        (player.expected() * 100f64).round(),
+                        player.elo_win().round(),
+                        player.elo_loss().round()
+                    ))
+                }),
+                table::column(
+                    button(MD_LINK_VARIANT_PLUS).on_press(MatchPreviewMsg::OpenMatchLinks),
+                    |(_, info): RowType| {
+                        button(MD_LINK_VARIANT).on_press_maybe(
+                            info.moxfield_goldfish_link().map(MatchPreviewMsg::OpenLink),
+                        )
+                    },
+                ),
+            ],
+            players,
+        )
+        .width(Length::Fill);
 
         let winner_options = self
             .matchup
             .players()
             .iter()
-            .filter_map(|player| tourn.get_registered_player(player.id()))
+            .filter_map(|player| context.get_registered_player(player.id()))
             .collect_vec();
 
         let selected_winner = self
             .winner
             .as_ref()
-            .and_then(|id| tourn.get_registered_player(*id));
+            .and_then(|id| context.get_registered_player(*id));
 
         let winner_selector = row![
             text("Winner: ").size(27),
@@ -162,18 +162,12 @@ impl ComponentView for MatchPreview {
                 MatchPreviewMsg::SelectWinner(picked.id())
             })
             .width(Length::Fill),
-            button(MD_LINK_VARIANT_PLUS).on_press(MatchPreviewMsg::OpenMatchLinks)
-        ];
+            button("Submit")
+                .on_press_maybe(self.winner.is_some().then_some(MatchPreviewMsg::Submit))
+        ]
+        .spacing(10)
+        .align_y(Alignment::Center);
 
-        container(
-            column![
-                players_col,
-                winner_selector,
-                button("Submit").on_press(MatchPreviewMsg::Submit)
-            ]
-            .spacing(10),
-        )
-        .padding(10)
-        .into()
+        container(column![table, winner_selector]).into()
     }
 }

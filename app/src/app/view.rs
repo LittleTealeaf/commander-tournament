@@ -87,6 +87,9 @@ impl ComponentUpdate for View {
                         Effect::out(TournamentAction::Record(game_record)).ok()
                     }
                     PlayOut::Close => Effect::out(Message::CloseView).ok(),
+                    PlayOut::OpenPlayerInfo(player_id) => {
+                        Effect::out(Message::OpenPlayerDetails(Some(player_id))).ok()
+                    }
                 })
             }
             (_, _) => Effect::done(),

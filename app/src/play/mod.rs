@@ -93,6 +93,7 @@ impl PlayView {
 
 #[derive(Clone, Debug, derive_more::From)]
 pub enum PlayMsg {
+    Close,
     RefreshMatchup,
     SetRankingMethod(RankingMethod),
     SetNextMode(PlayNextMode),
@@ -106,6 +107,7 @@ pub enum PlayMsg {
 pub enum PlayOut {
     OpenLink(String),
     RecordGame(Box<GameRecord>),
+    OpenPlayerInfo(PlayerId),
     Close,
 }
 

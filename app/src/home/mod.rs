@@ -128,6 +128,7 @@ impl ComponentUpdate for Home {
                     MenuMsg::Save => HomeOut::FileSave,
                     MenuMsg::SaveAs => HomeOut::FileSaveAs,
                     MenuMsg::OpenPlayNext => HomeOut::OpenPlayView(PlayMode::next()),
+                    MenuMsg::OpenPlayCustom => HomeOut::OpenPlayView(PlayMode::custom()),
                 })
                 .ok()
             }),

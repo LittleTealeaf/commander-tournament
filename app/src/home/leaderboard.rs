@@ -9,7 +9,7 @@ use iced::{
     widget::{button, container, row, scrollable, space, table, text},
 };
 use itertools::Itertools;
-use nerd_font_symbols::md::{MD_ARROW_DOWN, MD_ARROW_UP, MD_PLAYLIST_PLUS};
+use nerd_font_symbols::md::{MD_ARROW_DOWN, MD_ARROW_UP, MD_SWORD_CROSS};
 
 use crate::{
     effect::Effect,
@@ -186,7 +186,7 @@ impl ComponentView for Leaderboard {
                 table::column(
                     button("+").on_press(LeaderboardMsg::NewPlayer),
                     |p: RegisteredPlayer<'_>| {
-                        button(MD_PLAYLIST_PLUS)
+                        button(MD_SWORD_CROSS)
                             .style(button::text)
                             .on_press(LeaderboardMsg::RankPlayer(p.id()))
                     },
