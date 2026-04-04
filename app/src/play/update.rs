@@ -14,7 +14,7 @@ use crate::{
 };
 
 impl PlayMode {
-    fn create_matchup(&self, tournament: &Tournament) -> Option<Matchup> {
+    pub(super) fn create_matchup(&self, tournament: &Tournament) -> Option<Matchup> {
         match self {
             Self::Player { id, ranking } => {
                 let rankings = tournament.ranking().ranked(*id, *ranking).ok()?;

@@ -91,7 +91,7 @@ impl ComponentUpdate for App {
                 }
             }
             Message::OpenPlay(play_mode) => {
-                self.push_view(PlayView::new(play_mode));
+                self.push_view(PlayView::new(play_mode, &self.tournament));
                 Effect::done()
             }
         }

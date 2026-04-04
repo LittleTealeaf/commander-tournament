@@ -8,6 +8,7 @@ use edh_tourn::{
     game::{POD_SIZE, record::GameRecord},
     player::PlayerId,
     ranking::RankingMethod,
+    tournament::Tournament,
 };
 
 use crate::{
@@ -82,10 +83,10 @@ impl PlayMode {
 
 impl PlayView {
     #[must_use]
-    pub const fn new(mode: PlayMode) -> Self {
+    pub fn new(mode: PlayMode, tournament: &Tournament) -> Self {
         Self {
+            match_preview: mode.create_matchup(tournament).map(MatchPreview::new),
             mode,
-            match_preview: None,
         }
     }
 }
