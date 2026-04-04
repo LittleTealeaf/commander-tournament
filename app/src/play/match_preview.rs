@@ -123,7 +123,7 @@ impl ComponentView for MatchPreview {
                         || "--% WR".to_owned(),
                         |wr| format!("{}% WR", (wr * 100.0).round()),
                     );
-                    text(format!("{} Elo, {str_wr}", stats.elo().round()))
+                    text(format!("{:.0} Elo, {str_wr}", stats.elo()))
                 }),
                 table::column(text("Expected"), |(player, _): RowType| {
                     text(format!(

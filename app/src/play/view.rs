@@ -63,6 +63,7 @@ impl ComponentView for PlayView {
             ]
             .spacing(10),
             PlayMode::Custom { players } => {
+                // TODO: Optimize away vec allocations on view thread
                 let options = context.get_registered_players().collect::<Vec<_>>();
                 let selectors = players.iter().enumerate().map(|(index, player)| {
                     let reg_pl = player.and_then(|id| context.get_registered_player(id));
