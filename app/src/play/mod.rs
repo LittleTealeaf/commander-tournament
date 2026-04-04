@@ -93,6 +93,7 @@ impl PlayView {
 
 #[derive(Clone, Debug, derive_more::From)]
 pub enum PlayMsg {
+    RefreshMatchup,
     SetRankingMethod(RankingMethod),
     SetNextMode(PlayNextMode),
     OpenLink(String),

@@ -69,6 +69,10 @@ impl ComponentUpdate for PlayView {
         let mut modified = false;
 
         let effect = match message {
+            PlayMsg::RefreshMatchup => {
+                modified = true;
+                Effect::Done
+            }
             PlayMsg::SetRankingMethod(ranking_method) => match &mut self.mode {
                 PlayMode::Player { ranking, .. } | PlayMode::Next { ranking, .. } => {
                     *ranking = ranking_method;
@@ -108,9 +112,9 @@ impl ComponentUpdate for PlayView {
                     return Effect::done();
                 };
                 preview.update(msg, context)?.map(|out| match out {
-                    MatchPreviewOut::RecordGame(game) => {
-                        Effect::out(PlayOut::RecordGame(game)).ok()
-                    }
+                    MatchPreviewOut::RecordGame(game) => Effect::out(PlayOut::RecordGame(game))
+                        .chain(Effect::msg(PlayMsg::RefreshMatchup))
+                        .ok(),
                     MatchPreviewOut::OpenLink(link) => Effect::out(PlayOut::OpenLink(link)).ok(),
                 })?
             }
