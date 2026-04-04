@@ -30,7 +30,7 @@ nerd-font-symbols = "0.3.0"
 derive_more = {version = "2", features = ["from", "display"]}
 iced_futures = "0.14.0"
 tempfile = {version = "3.27.0", optional=true}
-tokio = {version = "1.50.0", features=["rt", "macros"]}
+tokio = {version = "1.51.0", features=["rt", "macros"]}
 
 [dev-dependencies]
 app = {path = ".", features = ["dev"]}
