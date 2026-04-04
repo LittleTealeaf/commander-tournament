@@ -1,5 +1,5 @@
 use core::iter::once;
-use std::collections::HashMap;
+use std::collections::HashSet;
 
 use edh_tourn::{game::matchup::Matchup, player::PlayerId, tournament::Tournament};
 use itertools::Itertools;
@@ -12,6 +12,26 @@ use crate::{
     },
     traits::ComponentUpdate,
 };
+
+fn get_longest_break(tournament: &Tournament) -> Option<PlayerId> {
+    let mut players = tournament.players().keys().collect::<HashSet<_>>();
+    for &id in &players {
+        if tournament.get_player_stats(*id).is_none() {
+            return Some(*id);
+        }
+    }
+
+    for game in tournament.games().iter().rev() {
+        for player in game.players() {
+            if players.len() == 1 {
+                return Some(*players.into_iter().next()?);
+            }
+
+            players.remove(&player.id());
+        }
+    }
+    Some(*players.into_iter().next()?)
+}
 
 impl PlayMode {
     pub(super) fn create_matchup(&self, tournament: &Tournament) -> Option<Matchup> {
@@ -29,21 +49,7 @@ impl PlayMode {
                         .sorted_by_key(|player| player.stats().games())
                         .next()?
                         .id(),
-                    PlayNextMode::LongestBreak => {
-                        let mut players: HashMap<PlayerId, usize> =
-                            tournament.players().keys().map(|id| (*id, 0)).collect();
-                        for (gameid, game) in tournament.games().iter().enumerate() {
-                            for player in game.players() {
-                                players.insert(player.id(), gameid);
-                            }
-                        }
-
-                        players
-                            .into_iter()
-                            .sorted_by_key(|(id, game)| (*game, *id))
-                            .next()?
-                            .0
-                    }
+                    PlayNextMode::LongestBreak => get_longest_break(tournament)?,
                 };
                 let rankings = tournament.ranking().ranked(id, *ranking).ok()?;
                 let opponents = rankings.into_iter().take(3).map(|p| p.id());
