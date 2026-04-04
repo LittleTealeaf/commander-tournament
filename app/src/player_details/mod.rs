@@ -4,7 +4,10 @@ mod view;
 use edh_tourn::player::{PlayerId, RegisteredPlayer, color::MtgColor, info::PlayerInfo};
 use iced::widget::text_editor;
 
-use crate::{components::confirm::ConfirmDialog, traits::Component};
+use crate::{
+    components::confirm::ConfirmDialog,
+    traits::{Component, ViewScreen},
+};
 
 #[derive(Debug, Clone)]
 pub struct PlayerDetails {
@@ -33,7 +36,6 @@ impl StatsTab {
 #[derive(Debug, Clone)]
 pub enum PlayerDetailsMsg {
     SaveAndClose,
-    Close,
     SetName(String),
     EditDescription(text_editor::Action),
     SetMoxfieldId(String),
@@ -48,12 +50,11 @@ pub enum PlayerDetailsMsg {
 
 #[derive(Debug)]
 pub enum PlayerDetailsOut {
-    Save(Option<PlayerId>, PlayerInfo),
+    SaveAndClose(Option<PlayerId>, PlayerInfo),
     OpenPlayerDetails(PlayerId),
     DeletePlayer(PlayerId),
     OpenLink(String),
     ConfirmDialog(Box<ConfirmDialog<PlayerDetailsMsg>>),
-    Close,
 }
 
 impl PlayerDetails {
@@ -80,4 +81,22 @@ impl PlayerDetails {
 impl Component for PlayerDetails {
     type Message = PlayerDetailsMsg;
     type OutMessage = PlayerDetailsOut;
+}
+
+impl ViewScreen for PlayerDetails {
+    fn title<'a>(&'a self, _: Self::ViewContext<'a>) -> String {
+        if self.id.is_some() {
+            self.initial_name.clone()
+        } else {
+            "New Player".to_owned()
+        }
+    }
+
+    fn save(&self) -> Option<Self::Message> {
+        Some(PlayerDetailsMsg::SaveAndClose)
+    }
+
+    fn delete(&self) -> Option<Self::Message> {
+        self.id.is_some().then_some(PlayerDetailsMsg::DeletePlayer)
+    }
 }

@@ -1,13 +1,14 @@
 use edh_tourn::tournament::Tournament;
 use iced::Element;
 
+use crate::traits::ViewScreen;
 use crate::{
     App,
     app::message::Message,
     components::confirm::{ConfirmDialog, ConfirmDialogMsg, ConfirmDialogOut},
     core::tournament::TournamentAction,
     effect::Effect,
-    error::{Error, ErrorMsg},
+    error::ErrorView,
     play::{PlayMsg, PlayOut, PlayView},
     player_details::{PlayerDetails, PlayerDetailsMsg, PlayerDetailsOut},
     traits::{Component, ComponentUpdate, ComponentView},
@@ -15,7 +16,7 @@ use crate::{
 
 #[derive(Clone, Debug, derive_more::From)]
 pub enum View {
-    Error(Error),
+    Error(ErrorView),
     Play(PlayView),
     PlayerDetails(PlayerDetails),
     Confirm(ConfirmDialog<Message>),
@@ -23,10 +24,10 @@ pub enum View {
 
 #[derive(Debug, Clone, derive_more::From)]
 pub enum ViewMsg {
-    Error(ErrorMsg),
     PlayerDetails(PlayerDetailsMsg),
     Play(PlayMsg),
     Confirm(ConfirmDialogMsg),
+    Close,
 }
 
 impl Component for View {
@@ -47,31 +48,28 @@ impl ComponentUpdate for View {
         context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::effect::Effect<Self::Message, Self::OutMessage>> {
         match (self, message) {
+            (_, ViewMsg::Close) => Effect::out(Message::CloseView).ok(),
             (Self::PlayerDetails(state), ViewMsg::PlayerDetails(msg)) => {
                 state.update(msg, ())?.map(|out| match out {
-                    PlayerDetailsOut::Close => Effect::Out(Message::CloseView).ok(),
                     PlayerDetailsOut::OpenPlayerDetails(player_id) => {
                         Effect::Out(Message::OpenPlayerDetails(Some(player_id))).ok()
                     }
                     PlayerDetailsOut::DeletePlayer(player_id) => {
-                        Effect::Out(TournamentAction::DeletePlayer(player_id).into()).ok()
+                        Effect::out(TournamentAction::DeletePlayer(player_id))
+                            .chain(Effect::out(Message::CloseView))
+                            .ok()
                     }
                     PlayerDetailsOut::OpenLink(link) => Effect::Out(Message::OpenLink(link)).ok(),
-                    PlayerDetailsOut::Save(player_id, player_info) => match player_id {
-                        Some(id) => {
-                            Effect::out(TournamentAction::SetPlayerInfo(id, player_info)).ok()
-                        }
-                        None => Effect::out(TournamentAction::Register(player_info)).ok(),
-                    },
+                    PlayerDetailsOut::SaveAndClose(player_id, player_info) => match player_id {
+                        Some(id) => Effect::out(TournamentAction::SetPlayerInfo(id, player_info)),
+                        None => Effect::out(TournamentAction::Register(player_info)),
+                    }
+                    .chain(Effect::out(Message::CloseView))
+                    .ok(),
                     PlayerDetailsOut::ConfirmDialog(confirm_dialog) => {
                         let confirm: ConfirmDialog<ViewMsg> = confirm_dialog.map();
                         Effect::out(Message::OpenConfirm(Box::new(confirm.map()))).ok()
                     }
-                })
-            }
-            (Self::Error(state), ViewMsg::Error(msg)) => {
-                state.update(msg, ())?.map(|out| match out {
-                    ErrorMsg::CloseError => Effect::Out(Message::CloseView).ok(),
                 })
             }
             (Self::Confirm(state), ViewMsg::Confirm(msg)) => {
@@ -86,7 +84,6 @@ impl ComponentUpdate for View {
                     PlayOut::RecordGame(game_record) => {
                         Effect::out(TournamentAction::Record(game_record)).ok()
                     }
-                    PlayOut::Close => Effect::out(Message::CloseView).ok(),
                     PlayOut::OpenPlayerInfo(player_id) => {
                         Effect::out(Message::OpenPlayerDetails(Some(player_id))).ok()
                     }
@@ -104,10 +101,12 @@ impl ComponentView for View {
         Self: 'a;
     fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> Element<'a, Self::Message> {
         match self {
-            Self::Error(error) => error.view_into(()),
-            Self::PlayerDetails(player_details) => player_details.view_into(context.tournament()),
+            Self::Error(error) => error.screen_view((), ViewMsg::Close),
+            Self::PlayerDetails(player_details) => {
+                player_details.screen_view(context.tournament(), ViewMsg::Close)
+            }
             Self::Confirm(confirm) => confirm.view_into(()),
-            Self::Play(play) => play.view_into(context.tournament()),
+            Self::Play(play) => play.screen_view(context.tournament(), ViewMsg::Close),
         }
     }
 }
@@ -127,7 +126,7 @@ impl App {
     }
 
     pub fn error(&mut self, error: String) {
-        self.push_view(Error::new(error));
+        self.push_view(ErrorView::new(error));
     }
 
     pub fn push_view<V>(&mut self, view: V)

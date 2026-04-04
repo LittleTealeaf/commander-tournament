@@ -4,7 +4,7 @@ mod stats;
 use edh_tourn::tournament::Tournament;
 use iced::{
     Alignment, Length,
-    widget::{button, column, container, row, space, text},
+    widget::{column, container, row, text},
 };
 use iced_aw::{TabBar, TabLabel};
 
@@ -28,14 +28,6 @@ impl ComponentView for super::PlayerDetails {
     where
         Self: 'a;
     fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
-        let title_text = if self.id.is_none() {
-            "Create New Player".to_owned()
-        } else {
-            self.initial_name.clone()
-        };
-
-        let title = text(title_text).width(Length::Fill).center().size(50);
-
         let info_panel = view_info_panel(self).max_width(700);
 
         let deck_progress = self.id.map(|id| {
@@ -68,29 +60,12 @@ impl ComponentView for super::PlayerDetails {
             .spacing(30)
         });
 
-        let bottom_row = row![
-            self.id.is_some().then_some(
-                button("Delete")
-                    .style(button::danger)
-                    .on_press(PlayerDetailsMsg::DeletePlayer)
-            ),
-            space().width(Length::Fill),
-            button("Close").on_press(PlayerDetailsMsg::Close),
-            button("Save").on_press(PlayerDetailsMsg::SaveAndClose)
-        ]
-        .spacing(20);
-
         container(
-            column![
-                title,
-                row![info_panel, deck_progress]
-                    .height(Length::Fill)
-                    .spacing(40),
-                bottom_row
-            ]
-            .spacing(20)
-            .width(Length::Fill)
-            .height(Length::Fill),
+            row![info_panel, deck_progress]
+                .height(Length::Fill)
+                .spacing(40)
+                .width(Length::Fill)
+                .height(Length::Fill),
         )
         .height(Length::Fill)
         .into()

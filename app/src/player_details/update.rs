@@ -22,9 +22,7 @@ impl ComponentUpdate for PlayerDetails {
             }
             PlayerDetailsMsg::SaveAndClose => {
                 self.info.set_description(self.description.text());
-                Effect::out(PlayerDetailsOut::Save(self.id, self.info.clone()))
-                    .chain(Effect::Out(PlayerDetailsOut::Close))
-                    .ok()
+                Effect::out(PlayerDetailsOut::SaveAndClose(self.id, self.info.clone())).ok()
             }
             PlayerDetailsMsg::SetName(name) => {
                 self.info.set_name(name);
@@ -48,12 +46,10 @@ impl ComponentUpdate for PlayerDetails {
                 Effect::done()
             }
             PlayerDetailsMsg::OpenLink(link) => Effect::out(PlayerDetailsOut::OpenLink(link)).ok(),
-            PlayerDetailsMsg::Close => Effect::Out(PlayerDetailsOut::Close).ok(),
             PlayerDetailsMsg::ConfirmDelete => self
                 .id
                 .map(|id| Effect::out(PlayerDetailsOut::DeletePlayer(id)))
                 .unwrap_or_default()
-                .chain(Effect::Out(PlayerDetailsOut::Close))
                 .ok(),
             PlayerDetailsMsg::DeletePlayer => Effect::out(PlayerDetailsOut::ConfirmDialog(
                 Box::new(ConfirmDialog::new(
