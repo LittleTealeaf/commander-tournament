@@ -12,6 +12,7 @@ use crate::{
     },
     effect::Effect,
     home::HomeMsg,
+    play::PlayMode,
     traits::ComponentUpdate,
 };
 
@@ -19,6 +20,7 @@ use crate::{
 pub enum Message {
     OnBoot,
     Nothing,
+    OpenPlay(PlayMode),
     OpenConfirm(Box<ConfirmDialog<Self>>),
     AppState(AppStateMsg),
     AppStateLoaded(Option<AppState>),

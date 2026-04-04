@@ -11,6 +11,7 @@ use crate::{
         menu::{Menu, MenuMsg},
         ranking::{Ranking, RankingMsg, RankingOut},
     },
+    play::PlayMode,
     traits::{Component, ComponentUpdate, ComponentView},
 };
 
@@ -37,6 +38,8 @@ pub enum HomeMsg {
 
 #[derive(Debug, Clone, derive_more::From)]
 pub enum HomeOut {
+    #[from(skip)]
+    OpenPlayView(PlayMode),
     RecordGame(Box<GameRecord>),
     OpenPlayerDetails(PlayerId),
     OpenNewPlayer,
@@ -88,7 +91,7 @@ impl ComponentUpdate for Home {
                 self.leaderboard
                     .mapped_update(message, (), |msg| match msg {
                         LeaderboardOut::RankPlayer(id) => {
-                            Effect::msg(RankingMsg::SelectPlayer(id)).ok()
+                            Effect::out(HomeOut::OpenPlayView(PlayMode::player(id))).ok()
                         }
                         LeaderboardOut::OpenPlayerDetails(player_id) => {
                             Effect::out(HomeOut::OpenPlayerDetails(player_id)).ok()
@@ -124,6 +127,8 @@ impl ComponentUpdate for Home {
                     MenuMsg::Open => HomeOut::FileOpen,
                     MenuMsg::Save => HomeOut::FileSave,
                     MenuMsg::SaveAs => HomeOut::FileSaveAs,
+                    MenuMsg::OpenPlayNext => HomeOut::OpenPlayView(PlayMode::next()),
+                    MenuMsg::OpenPlayCustom => HomeOut::OpenPlayView(PlayMode::custom()),
                 })
                 .ok()
             }),

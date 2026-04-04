@@ -1,6 +1,9 @@
 use std::path::PathBuf;
 
-use iced::widget::{button, row};
+use iced::{
+    Length,
+    widget::{button, row, space},
+};
 
 use crate::{
     effect::Effect,
@@ -16,6 +19,8 @@ pub enum MenuMsg {
     Open,
     Save,
     SaveAs,
+    OpenPlayNext,
+    OpenPlayCustom,
 }
 
 impl Component for Menu {
@@ -45,6 +50,9 @@ impl ComponentView for Menu {
             button("Open").on_press(MenuMsg::Open),
             button("SaveAs").on_press(MenuMsg::SaveAs),
             button("Save").on_press_maybe(context.is_some().then_some(MenuMsg::Save)),
+            space().width(Length::Fill),
+            button("Custom Game").on_press(MenuMsg::OpenPlayCustom),
+            button("Next Game").on_press(MenuMsg::OpenPlayNext),
         ]
         .spacing(5)
         .into()

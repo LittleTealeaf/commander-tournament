@@ -4,6 +4,7 @@ pub mod core;
 pub mod effect;
 pub mod error;
 pub mod home;
+pub mod play;
 pub mod player_details;
 pub mod services;
 pub mod style;
