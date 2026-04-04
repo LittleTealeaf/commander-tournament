@@ -1,7 +1,11 @@
 use core::iter::once;
 use std::collections::HashSet;
 
-use edh_tourn::{game::matchup::Matchup, player::PlayerId, tournament::Tournament};
+use edh_tourn::{
+    game::{POD_SIZE, matchup::Matchup},
+    player::PlayerId,
+    tournament::Tournament,
+};
 use itertools::Itertools;
 
 use crate::{
@@ -107,7 +111,10 @@ impl ComponentUpdate for PlayView {
                 };
 
                 let value = players.get_mut(index).ok_or_else(|| {
-                    anyhow::anyhow!("Player Index {index} invalid: Must be 0, 1, 2, or 3")
+                    anyhow::anyhow!(
+                        "Player Index {index} invalid: Must be between 0 and {}",
+                        POD_SIZE - 1
+                    )
                 })?;
                 *value = id;
                 modified = true;

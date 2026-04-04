@@ -100,20 +100,22 @@ impl ComponentView for MatchPreview {
     where
         Self: 'a;
     fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
-        type RowType<'b> = (&'b MatchPlayer, &'b PlayerInfo);
+        type RowType<'b> = (&'b MatchPlayer, Option<&'b PlayerInfo>);
 
         let players = self
             .matchup
             .players()
             .iter()
-            .filter_map(|player| Some((player, context.get_player_info(&player.id())?)));
+            .map(|player| (player, context.get_player_info(&player.id())));
 
         let table = table(
             [
                 table::column(text("Player"), |(player, info): RowType| {
-                    button(text(info.name()).size(12))
-                        .style(button::text)
-                        .on_press(MatchPreviewMsg::ClickPlayer(player.id()))
+                    button(
+                        text(info.map_or("Unknown Player", |info| info.name().as_ref())).size(12),
+                    )
+                    .style(button::text)
+                    .on_press(MatchPreviewMsg::ClickPlayer(player.id()))
                 }),
                 table::column(text("Stats"), |(player, _): RowType| {
                     let stats = player.stats();
@@ -135,7 +137,8 @@ impl ComponentView for MatchPreview {
                     button(MD_LINK_VARIANT_PLUS).on_press(MatchPreviewMsg::OpenMatchLinks),
                     |(_, info): RowType| {
                         button(MD_LINK_VARIANT).on_press_maybe(
-                            info.moxfield_goldfish_link().map(MatchPreviewMsg::OpenLink),
+                            info.and_then(PlayerInfo::moxfield_goldfish_link)
+                                .map(MatchPreviewMsg::OpenLink),
                         )
                     },
                 ),
