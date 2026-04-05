@@ -93,16 +93,16 @@ pub trait ViewScreen: ComponentView {
     fn primary_actions<'a>(
         &'a self,
         context: Self::ViewContext<'a>,
-    ) -> impl IntoIterator<Item = (String, Option<Self::Message>)> {
-        empty()
+    ) -> impl IntoIterator<Item = (impl ToString, Option<Self::Message>)> {
+        empty::<(&'static str, Option<Self::Message>)>()
     }
 
     #[allow(unused)]
     fn secondary_actions<'a>(
         &'a self,
         context: Self::ViewContext<'a>,
-    ) -> impl IntoIterator<Item = (String, Option<Self::Message>)> {
-        empty()
+    ) -> impl IntoIterator<Item = (impl ToString, Option<Self::Message>)> {
+        empty::<(&'static str, Option<Self::Message>)>()
     }
 
     fn screen_view<'a>(&'a self, context: Self::ViewContext<'a>) -> Element<'a, Self::Message>
@@ -112,10 +112,15 @@ pub trait ViewScreen: ComponentView {
         column![
             row![
                 row(once((MD_CLOSE.to_owned(), Some(Self::CLOSE_MESSAGE)))
-                    .chain(self.primary_actions(context.clone()))
+                    .chain(
+                        self.primary_actions(context.clone())
+                            .into_iter()
+                            .map(|(label, action)| (label.to_string(), action))
+                    )
                     .map(|(label, message)| {
                         button(text(label)).on_press_maybe(message).into()
-                    })),
+                    }))
+                .spacing(5),
                 space().width(10),
                 text(self.title(context.clone())).size(30),
                 space().width(Length::Fill),
@@ -123,8 +128,11 @@ pub trait ViewScreen: ComponentView {
                     .secondary_actions(context.clone())
                     .into_iter()
                     .map(|(label, message)| {
-                        button(text(label)).on_press_maybe(message).into()
-                    })),
+                        button(text(label.to_string()))
+                            .on_press_maybe(message)
+                            .into()
+                    }))
+                .spacing(5),
             ]
             .spacing(5)
             .align_y(Vertical::Top),

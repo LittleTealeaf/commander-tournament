@@ -30,15 +30,18 @@ impl ComponentUpdate for PlayerDetails {
             }
             PlayerDetailsMsg::EditDescription(action) => {
                 self.description.perform(action);
+                self.modified = true;
                 Effect::done()
             }
             PlayerDetailsMsg::SetMoxfieldId(id) => {
                 self.info.set_moxfield_id(id.clone());
                 self.moxfield_id = id;
+                self.modified = true;
                 Effect::done()
             }
             PlayerDetailsMsg::ToggleColor(mtg_color) => {
                 self.info.toggle_color(mtg_color);
+                self.modified = true;
                 Effect::done()
             }
             PlayerDetailsMsg::SetStatsTab(stats_tab) => {

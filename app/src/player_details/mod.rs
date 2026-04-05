@@ -3,6 +3,7 @@ mod view;
 
 use edh_tourn::player::{PlayerId, RegisteredPlayer, color::MtgColor, info::PlayerInfo};
 use iced::widget::text_editor;
+use nerd_font_symbols::md::{MD_CONTENT_SAVE, MD_DELETE};
 
 use crate::{
     components::confirm::ConfirmDialog,
@@ -89,6 +90,25 @@ impl Component for PlayerDetails {
 
 impl ViewScreen for PlayerDetails {
     const CLOSE_MESSAGE: Self::Message = PlayerDetailsMsg::Close;
+
+    fn primary_actions<'a>(
+        &'a self,
+        _: Self::ViewContext<'a>,
+    ) -> impl IntoIterator<Item = (impl ToString, Option<Self::Message>)> {
+        [(
+            MD_CONTENT_SAVE,
+            self.modified.then_some(PlayerDetailsMsg::SaveAndClose),
+        )]
+    }
+
+    fn secondary_actions<'a>(
+        &'a self,
+        _: Self::ViewContext<'a>,
+    ) -> impl IntoIterator<Item = (impl ToString, Option<Self::Message>)> {
+        self.id
+            .is_some()
+            .then_some((MD_DELETE, Some(PlayerDetailsMsg::DeletePlayer)))
+    }
 
     fn title<'a>(&'a self, _: Self::ViewContext<'a>) -> String {
         if self.id.is_some() {
