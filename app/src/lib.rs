@@ -31,6 +31,7 @@ pub struct App {
     file: Option<PathBuf>,
     views: Vec<View>,
     state: Option<AppState>,
+    close_requested: bool,
 }
 
 impl App {

@@ -36,6 +36,7 @@ pub enum Message {
     OpenLink(String),
     QuitRequested,
     QuitConfirmed,
+    QuitCancelled,
 }
 
 impl App {

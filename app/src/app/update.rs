@@ -96,20 +96,28 @@ impl ComponentUpdate for App {
                 Effect::done()
             }
             Message::QuitRequested => {
-                if self.modified {
+                if self.modified && !self.close_requested {
+                    self.close_requested = true;
                     Effect::msg(Message::OpenConfirm(Box::new(ConfirmDialog::new(
                         "Unsaved Changes".to_owned(),
                         "You have unsaved changes. Are you sure you want to exit without saving?"
                             .to_owned(),
                         Message::QuitConfirmed,
-                        None,
+                        Some(Message::QuitCancelled),
                     ))))
                     .ok()
                 } else {
                     Effect::Task(iced::exit()).ok()
                 }
             }
-            Message::QuitConfirmed => Effect::Task(iced::exit()).ok(),
+            Message::QuitConfirmed => {
+                self.close_requested = false;
+                Effect::Task(iced::exit()).ok()
+            }
+            Message::QuitCancelled => {
+                self.close_requested = false;
+                Effect::done()
+            }
         }
     }
 }
