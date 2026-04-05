@@ -35,6 +35,7 @@ impl StatsTab {
 
 #[derive(Debug, Clone)]
 pub enum PlayerDetailsMsg {
+    Close,
     SaveAndClose,
     SetName(String),
     EditDescription(text_editor::Action),
@@ -51,6 +52,7 @@ pub enum PlayerDetailsMsg {
 
 #[derive(Debug)]
 pub enum PlayerDetailsOut {
+    Close,
     SaveAndClose(Option<PlayerId>, PlayerInfo),
     OpenPlayerDetails(PlayerId),
     DeletePlayer(PlayerId),
@@ -86,19 +88,13 @@ impl Component for PlayerDetails {
 }
 
 impl ViewScreen for PlayerDetails {
+    const CLOSE_MESSAGE: Self::Message = PlayerDetailsMsg::Close;
+
     fn title<'a>(&'a self, _: Self::ViewContext<'a>) -> String {
         if self.id.is_some() {
             self.initial_name.clone()
         } else {
             "New Player".to_owned()
         }
-    }
-
-    fn save(&self) -> Option<Self::Message> {
-        Some(PlayerDetailsMsg::SaveAndClose)
-    }
-
-    fn delete(&self) -> Option<Self::Message> {
-        self.id.is_some().then_some(PlayerDetailsMsg::DeletePlayer)
     }
 }

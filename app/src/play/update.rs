@@ -134,6 +134,7 @@ impl ComponentUpdate for PlayView {
                     }
                 })?
             }
+            PlayMsg::Close => Effect::out(PlayOut::Close),
         };
 
         if modified {

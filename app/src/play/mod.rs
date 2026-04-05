@@ -93,6 +93,7 @@ impl PlayView {
 
 #[derive(Clone, Debug, derive_more::From)]
 pub enum PlayMsg {
+    Close,
     RefreshMatchup,
     SetRankingMethod(RankingMethod),
     SetNextMode(PlayNextMode),
@@ -104,6 +105,7 @@ pub enum PlayMsg {
 
 #[derive(Clone, Debug)]
 pub enum PlayOut {
+    Close,
     OpenLink(String),
     RecordGame(Box<GameRecord>),
     OpenPlayerInfo(PlayerId),
@@ -115,6 +117,7 @@ impl Component for PlayView {
 }
 
 impl ViewScreen for PlayView {
+    const CLOSE_MESSAGE: Self::Message = PlayMsg::Close;
     fn title<'a>(&'a self, context: Self::ViewContext<'a>) -> String {
         match &self.mode {
             PlayMode::Player { id, .. } => format!(

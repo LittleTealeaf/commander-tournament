@@ -68,6 +68,7 @@ impl ComponentUpdate for PlayerDetails {
                 .map(|id| Effect::out(PlayerDetailsOut::OpenPlayerMatches(id)))
                 .unwrap_or_default()
                 .ok(),
+            PlayerDetailsMsg::Close => Effect::out(PlayerDetailsOut::Close).ok(),
         }
     }
 }

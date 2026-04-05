@@ -4,7 +4,6 @@ use iced::{
 };
 
 use crate::{
-    app::ViewMsg,
     effect::Effect,
     traits::{Component, ComponentUpdate, ComponentView, ViewScreen},
 };
@@ -15,16 +14,12 @@ pub struct ErrorView {
 }
 
 #[derive(Clone, Debug)]
-pub struct ErrorMsg;
-
-impl From<ErrorMsg> for ViewMsg {
-    fn from(_: ErrorMsg) -> Self {
-        Self::Close
-    }
+pub enum ErrorMsg {
+    Close,
 }
 
 impl Component for ErrorView {
-    type OutMessage = ();
+    type OutMessage = ErrorMsg;
     type Message = ErrorMsg;
 }
 
@@ -47,6 +42,7 @@ impl ComponentView for ErrorView {
 }
 
 impl ViewScreen for ErrorView {
+    const CLOSE_MESSAGE: Self::Message = ErrorMsg::Close;
     fn title<'a>(&'a self, (): Self::ViewContext<'a>) -> String {
         "Application Error".to_owned()
     }

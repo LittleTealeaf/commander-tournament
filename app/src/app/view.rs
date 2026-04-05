@@ -1,6 +1,7 @@
 use edh_tourn::tournament::Tournament;
 use iced::Element;
 
+use crate::error::ErrorMsg;
 use crate::play::PlayMode;
 use crate::traits::ViewScreen;
 use crate::{
@@ -28,7 +29,7 @@ pub enum ViewMsg {
     PlayerDetails(PlayerDetailsMsg),
     Play(PlayMsg),
     Confirm(ConfirmDialogMsg),
-    Close,
+    Error(ErrorMsg),
 }
 
 impl Component for View {
@@ -48,8 +49,11 @@ impl ComponentUpdate for View {
         message: Self::Message,
         context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::effect::Effect<Self::Message, Self::OutMessage>> {
+        const CLOSE_VIEW: Effect<ViewMsg, Message> = Effect::Out(Message::CloseView);
+
+        // const CLOSE_VIEW: anyhow::Result<Effect<ViewMsg, Message>> = anyhow::Result::Ok(Effect::Out(Message::CloseView));
+
         match (self, message) {
-            (_, ViewMsg::Close) => Effect::out(Message::CloseView).ok(),
             (Self::PlayerDetails(state), ViewMsg::PlayerDetails(msg)) => {
                 state.update(msg, ())?.map(|out| match out {
                     PlayerDetailsOut::OpenPlayerDetails(player_id) => {
@@ -57,7 +61,7 @@ impl ComponentUpdate for View {
                     }
                     PlayerDetailsOut::DeletePlayer(player_id) => {
                         Effect::out(TournamentAction::DeletePlayer(player_id))
-                            .chain(Effect::out(Message::CloseView))
+                            .chain(CLOSE_VIEW)
                             .ok()
                     }
                     PlayerDetailsOut::OpenLink(link) => Effect::Out(Message::OpenLink(link)).ok(),
@@ -65,7 +69,7 @@ impl ComponentUpdate for View {
                         Some(id) => Effect::out(TournamentAction::SetPlayerInfo(id, player_info)),
                         None => Effect::out(TournamentAction::Register(player_info)),
                     }
-                    .chain(Effect::out(Message::CloseView))
+                    .chain(CLOSE_VIEW)
                     .ok(),
                     PlayerDetailsOut::ConfirmDialog(confirm_dialog) => {
                         let confirm: ConfirmDialog<ViewMsg> = confirm_dialog.map();
@@ -74,12 +78,13 @@ impl ComponentUpdate for View {
                     PlayerDetailsOut::OpenPlayerMatches(player_id) => {
                         Effect::out(Message::OpenPlay(PlayMode::player(player_id))).ok()
                     }
+                    PlayerDetailsOut::Close => CLOSE_VIEW.ok(),
                 })
             }
             (Self::Confirm(state), ViewMsg::Confirm(msg)) => {
                 state.update(msg, ())?.map(|out| match out {
                     ConfirmDialogOut::Message(message) => Effect::out(message).ok(),
-                    ConfirmDialogOut::Close => Effect::out(Message::CloseView).ok(),
+                    ConfirmDialogOut::Close => CLOSE_VIEW.ok(),
                 })
             }
             (Self::Play(state), ViewMsg::Play(msg)) => {
@@ -91,6 +96,7 @@ impl ComponentUpdate for View {
                     PlayOut::OpenPlayerInfo(player_id) => {
                         Effect::out(Message::OpenPlayerDetails(Some(player_id))).ok()
                     }
+                    PlayOut::Close => CLOSE_VIEW.ok(),
                 })
             }
             (_, _) => Effect::done(),
@@ -105,12 +111,12 @@ impl ComponentView for View {
         Self: 'a;
     fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> Element<'a, Self::Message> {
         match self {
-            Self::Error(error) => error.screen_view((), ViewMsg::Close),
+            Self::Error(error) => error.screen_view_into(()),
             Self::PlayerDetails(player_details) => {
-                player_details.screen_view(context.tournament(), ViewMsg::Close)
+                player_details.screen_view_into(context.tournament())
             }
             Self::Confirm(confirm) => confirm.view_into(()),
-            Self::Play(play) => play.screen_view(context.tournament(), ViewMsg::Close),
+            Self::Play(play) => play.screen_view_into(context.tournament()),
         }
     }
 }
