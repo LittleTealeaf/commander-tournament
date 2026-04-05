@@ -18,8 +18,13 @@ pub enum ErrorMsg {
     Close,
 }
 
+#[derive(Clone, Debug)]
+pub enum ErrorOut {
+    Close,
+}
+
 impl Component for ErrorView {
-    type OutMessage = ErrorMsg;
+    type OutMessage = ErrorOut;
     type Message = ErrorMsg;
 }
 
@@ -27,10 +32,12 @@ impl ComponentUpdate for ErrorView {
     type UpdateContext<'a> = ();
     fn update(
         &mut self,
-        _: Self::Message,
+        message: Self::Message,
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
-        Effect::done()
+        match message {
+            ErrorMsg::Close => Effect::out(ErrorOut::Close).ok(),
+        }
     }
 }
 

@@ -1,7 +1,7 @@
 use edh_tourn::tournament::Tournament;
 use iced::Element;
 
-use crate::error::ErrorMsg;
+use crate::error::{ErrorMsg, ErrorOut};
 use crate::play::PlayMode;
 use crate::traits::ViewScreen;
 use crate::{
@@ -97,6 +97,11 @@ impl ComponentUpdate for View {
                         Effect::out(Message::OpenPlayerDetails(Some(player_id))).ok()
                     }
                     PlayOut::Close => CLOSE_VIEW.ok(),
+                })
+            }
+            (Self::Error(state), ViewMsg::Error(msg)) => {
+                state.update(msg, ())?.map(|out| match out {
+                    ErrorOut::Close => CLOSE_VIEW.ok(),
                 })
             }
             (_, _) => Effect::done(),

@@ -26,6 +26,7 @@ impl ComponentUpdate for PlayerDetails {
             }
             PlayerDetailsMsg::SetName(name) => {
                 self.info.set_name(name);
+                self.modified = true;
                 Effect::done()
             }
             PlayerDetailsMsg::EditDescription(action) => {
