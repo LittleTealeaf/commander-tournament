@@ -1,7 +1,6 @@
 pub mod app;
 pub mod modals;
 pub mod widgets;
-pub mod components;
 pub mod core;
 pub mod effect;
 pub mod error;

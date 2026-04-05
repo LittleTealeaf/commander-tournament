@@ -5,10 +5,7 @@ use edh_tourn::player::{PlayerId, RegisteredPlayer, color::MtgColor, info::Playe
 use iced::widget::{button, text_editor};
 use nerd_font_symbols::md::{MD_CONTENT_SAVE, MD_DELETE};
 
-use crate::{
-    components::confirm::ConfirmDialog,
-    traits::{Component, ViewScreen},
-};
+use crate::traits::{Component, ViewScreen};
 
 #[derive(Debug, Clone)]
 pub struct PlayerDetails {
@@ -58,7 +55,6 @@ pub enum PlayerDetailsOut {
     OpenPlayerDetails(PlayerId),
     DeletePlayer(PlayerId),
     OpenLink(String),
-    ConfirmDialog(Box<ConfirmDialog<PlayerDetailsMsg>>),
     OpenPlayerMatches(PlayerId),
 }
 

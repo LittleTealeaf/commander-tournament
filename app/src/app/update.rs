@@ -34,10 +34,6 @@ impl ComponentUpdate for App {
         }
 
         match message {
-            Message::OpenConfirm(dialog) => {
-                self.push_view(*dialog);
-                Effect::done()
-            }
             Message::CloseView => {
                 self.views.pop();
                 Effect::done()

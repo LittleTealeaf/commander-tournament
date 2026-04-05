@@ -1,7 +1,6 @@
 use iced::{
-    Color, Element, Font, Length, Pixels,
+    Color, Element, Length,
     alignment::Horizontal,
-    application::IntoBoot,
     font,
     widget::{button, center, column, container, opaque, row, space, stack, text},
 };

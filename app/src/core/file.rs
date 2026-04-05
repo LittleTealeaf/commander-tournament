@@ -8,7 +8,6 @@ use rfd::AsyncFileDialog;
 use crate::{
     App,
     app::Message,
-    components::confirm::ConfirmDialog,
     core::state::AppStateMsg,
     effect::Effect,
     services::system::{
@@ -85,12 +84,12 @@ impl HandleMessage<FileAction> for App {
         match message {
             FileAction::New => {
                 if self.modified {
-                    Effect::Msg(Message::OpenConfirm(Box::new(ConfirmDialog::new(
-                        "Overwrite Tournament?".to_owned(),
-                        "All unsaved changes will be lost.".to_owned(),
+                    Effect::confirm(
+                        &"Overwrite Tournament?",
+                        &"All unsaved changes will be lost",
                         Message::TournFile(FileAction::ConfirmedNew),
                         None,
-                    ))))
+                    )
                     .ok()
                 } else {
                     Effect::msg(FileAction::ConfirmedNew).ok()
