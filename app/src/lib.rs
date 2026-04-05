@@ -9,7 +9,6 @@ pub mod player_details;
 pub mod services;
 pub mod style;
 pub mod traits;
-pub mod widgets;
 
 use std::path::PathBuf;
 
