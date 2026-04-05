@@ -71,20 +71,8 @@ impl ComponentView for PlayView {
             |preview| container(preview.view_into(context)),
         );
 
-        container(
-            column![
-                // row![
-                //     container(button(MD_CLOSE).on_press(PlayMsg::Close)).align_y(Vertical::Top),
-                //     header
-                // ]
-                // .spacing(15)
-                // .align_y(Vertical::Top),
-                options,
-                main_content
-            ]
-            .spacing(20),
-        )
-        .padding(5)
-        .into()
+        container(column![options, main_content].spacing(20))
+            .padding(5)
+            .into()
     }
 }
