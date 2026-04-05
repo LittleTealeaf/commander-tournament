@@ -35,6 +35,9 @@ pub enum Message {
     OpenLink(String),
     CloseModal,
     Modal(ModalMsg),
+    QuitRequested,
+    QuitConfirmed,
+    QuitCancelled,
 }
 
 impl App {

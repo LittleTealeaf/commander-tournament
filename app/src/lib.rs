@@ -14,7 +14,7 @@ pub mod widgets;
 use std::path::PathBuf;
 
 use edh_tourn::tournament::Tournament;
-use iced::Task;
+use iced::{Event, Subscription, Task, event, window};
 
 use crate::{
     app::{Message, View},
@@ -34,6 +34,7 @@ pub struct App {
     views: Vec<View>,
     modals: Vec<Modal<Message>>,
     state: Option<AppState>,
+    close_requested: bool,
 }
 
 impl App {
@@ -54,6 +55,13 @@ impl App {
         } else {
             APP_TITLE.to_owned()
         }
+    }
+
+    pub fn subscription(&self) -> Subscription<Message> {
+        event::listen_with(|event, _status, _window| -> Option<Message> {
+            (event == Event::Window(window::Event::CloseRequested))
+                .then_some(Message::QuitRequested)
+        })
     }
 }
 
