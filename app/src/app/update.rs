@@ -94,6 +94,19 @@ impl ComponentUpdate for App {
                 self.push_view(PlayView::new(play_mode, &self.tournament));
                 Effect::done()
             }
+            Message::CloseModal => {
+                self.modals.pop();
+                Effect::done()
+            }
+            Message::Modal(modal_msg) => {
+                if let Some(modal) = self.modals.last_mut() {
+                    modal
+                        .update(modal_msg, ())?
+                        .map(|out| Effect::msg(out).ok())
+                } else {
+                    Effect::done()
+                }
+            }
         }
     }
 }

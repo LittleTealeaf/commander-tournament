@@ -1,4 +1,5 @@
 pub mod app;
+pub mod modals;
 pub mod widgets;
 pub mod components;
 pub mod core;
@@ -17,9 +18,7 @@ use edh_tourn::tournament::Tournament;
 use iced::Task;
 
 use crate::{
-    app::{Message, View},
-    core::state::AppState,
-    traits::Component,
+    app::{Message, View}, core::state::AppState, modals::Modal, traits::Component
 };
 
 #[derive(Debug, Default)]
@@ -31,6 +30,7 @@ pub struct App {
     error: Option<String>,
     file: Option<PathBuf>,
     views: Vec<View>,
+    modals: Vec<Modal<Message>>,
     state: Option<AppState>,
 }
 

@@ -47,19 +47,21 @@ impl ComponentUpdate for PlayerDetails {
                 Effect::done()
             }
             PlayerDetailsMsg::OpenLink(link) => Effect::out(PlayerDetailsOut::OpenLink(link)).ok(),
-            PlayerDetailsMsg::ConfirmDelete => {
-                if self.confirm_delete {
-                    self.id
-                        .map(|id| Effect::out(PlayerDetailsOut::DeletePlayer(id)))
-                        .unwrap_or_default()
-                        .ok()
-                } else {
-                    Effect::done()
-                }
-            }
+            PlayerDetailsMsg::ConfirmDelete => self
+                .id
+                .map(|id| Effect::out(PlayerDetailsOut::DeletePlayer(id)))
+                .unwrap_or_default()
+                .ok(),
             PlayerDetailsMsg::RequestDelete => {
-                self.confirm_delete = true;
-                Effect::done()
+                Effect::confirm(
+                    &format!("Delete {}?", self.initial_name),
+                    &format!(
+                        "Are you sure you want to delete the player \"{}\"? All games this player has participated in will also be deleted.",
+                        self.initial_name
+                    ),
+                    PlayerDetailsMsg::ConfirmDelete,
+                    None,
+                ).ok()
             }
             PlayerDetailsMsg::OpenNextPlayerMatch => self
                 .id
@@ -67,10 +69,6 @@ impl ComponentUpdate for PlayerDetails {
                 .unwrap_or_default()
                 .ok(),
             PlayerDetailsMsg::Close => Effect::out(PlayerDetailsOut::Close).ok(),
-            PlayerDetailsMsg::CancelDelete => {
-                self.confirm_delete = false;
-                Effect::done()
-            }
         }
     }
 }

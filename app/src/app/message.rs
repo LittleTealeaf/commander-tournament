@@ -12,6 +12,7 @@ use crate::{
     },
     effect::Effect,
     home::HomeMsg,
+    modals::ModalMsg,
     play::PlayMode,
     traits::ComponentUpdate,
 };
@@ -34,6 +35,8 @@ pub enum Message {
     View(ViewMsg),
     #[from(ignore)]
     OpenLink(String),
+    CloseModal,
+    Modal(ModalMsg),
 }
 
 impl App {
@@ -52,6 +55,10 @@ impl App {
                     task = task.chain(self.process_effect(effect)?);
                 }
                 Ok(task)
+            }
+            Effect::Modal(modal) => {
+                self.modals.push(modal);
+                Ok(Task::none())
             }
         }
     }

@@ -2,6 +2,7 @@ use edh_tourn::tournament::Tournament;
 use iced::Element;
 
 use crate::error::{ErrorMsg, ErrorOut};
+use crate::modals::Modal;
 use crate::play::PlayMode;
 use crate::traits::ViewScreen;
 use crate::{
@@ -127,10 +128,16 @@ impl ComponentView for View {
 impl App {
     #[must_use]
     pub fn handle_view(&self) -> Element<'_, Message> {
-        self.views.last().map_or_else(
+        let content = self.views.last().map_or_else(
             || self.home.view_into((self.tournament(), &self.file)),
             |view| view.view_into(self),
-        )
+        );
+
+        if let Some(modal) = self.modals.last() {
+            modal.overlay(content)
+        } else {
+            content
+        }
     }
 
     #[must_use]
@@ -139,7 +146,7 @@ impl App {
     }
 
     pub fn error(&mut self, error: String) {
-        self.push_view(ErrorView::new(error));
+        self.modals.push(Modal::Error { error });
     }
 
     pub fn push_view<V>(&mut self, view: V)
