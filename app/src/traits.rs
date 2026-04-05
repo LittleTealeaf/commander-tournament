@@ -3,7 +3,7 @@ use core::iter::{empty, once};
 use iced::{
     Element, Length,
     alignment::Vertical,
-    widget::{button, column, row, space, text},
+    widget::{Button, button, column, row, space, text},
 };
 use iced_futures::MaybeSend;
 use nerd_font_symbols::md::MD_CLOSE;
@@ -93,16 +93,16 @@ pub trait ViewScreen: ComponentView {
     fn primary_actions<'a>(
         &'a self,
         context: Self::ViewContext<'a>,
-    ) -> impl IntoIterator<Item = (impl ToString, Option<Self::Message>)> {
-        empty::<(&'static str, Option<Self::Message>)>()
+    ) -> impl IntoIterator<Item = Button<'a, Self::Message>> {
+        empty()
     }
 
     #[allow(unused)]
     fn secondary_actions<'a>(
         &'a self,
         context: Self::ViewContext<'a>,
-    ) -> impl IntoIterator<Item = (impl ToString, Option<Self::Message>)> {
-        empty::<(&'static str, Option<Self::Message>)>()
+    ) -> impl IntoIterator<Item = Button<'a, Self::Message>> {
+        empty()
     }
 
     fn screen_view<'a>(&'a self, context: Self::ViewContext<'a>) -> Element<'a, Self::Message>
@@ -111,15 +111,9 @@ pub trait ViewScreen: ComponentView {
     {
         column![
             row![
-                row(once((MD_CLOSE.to_owned(), Some(Self::CLOSE_MESSAGE)))
-                    .chain(
-                        self.primary_actions(context.clone())
-                            .into_iter()
-                            .map(|(label, action)| (label.to_string(), action))
-                    )
-                    .map(|(label, message)| {
-                        button(text(label)).on_press_maybe(message).into()
-                    }))
+                row(once(button(MD_CLOSE).on_press(Self::CLOSE_MESSAGE))
+                    .chain(self.primary_actions(context.clone()))
+                    .map(Into::into))
                 .spacing(5),
                 space().width(10),
                 text(self.title(context.clone())).size(30),
@@ -127,11 +121,7 @@ pub trait ViewScreen: ComponentView {
                 row(self
                     .secondary_actions(context.clone())
                     .into_iter()
-                    .map(|(label, message)| {
-                        button(text(label.to_string()))
-                            .on_press_maybe(message)
-                            .into()
-                    }))
+                    .map(Into::into))
                 .spacing(5),
             ]
             .spacing(5)

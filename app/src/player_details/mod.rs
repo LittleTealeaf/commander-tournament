@@ -2,7 +2,7 @@ mod update;
 mod view;
 
 use edh_tourn::player::{PlayerId, RegisteredPlayer, color::MtgColor, info::PlayerInfo};
-use iced::widget::text_editor;
+use iced::widget::{button, text_editor};
 use nerd_font_symbols::md::{MD_CONTENT_SAVE, MD_DELETE};
 
 use crate::{
@@ -94,20 +94,20 @@ impl ViewScreen for PlayerDetails {
     fn primary_actions<'a>(
         &'a self,
         _: Self::ViewContext<'a>,
-    ) -> impl IntoIterator<Item = (impl ToString, Option<Self::Message>)> {
-        [(
-            MD_CONTENT_SAVE,
-            self.modified.then_some(PlayerDetailsMsg::SaveAndClose),
-        )]
+    ) -> impl IntoIterator<Item = iced::widget::Button<'a, Self::Message>> {
+        [button(MD_CONTENT_SAVE)
+            .on_press_maybe(self.modified.then_some(PlayerDetailsMsg::SaveAndClose))]
     }
 
     fn secondary_actions<'a>(
         &'a self,
         _: Self::ViewContext<'a>,
-    ) -> impl IntoIterator<Item = (impl ToString, Option<Self::Message>)> {
-        self.id
-            .is_some()
-            .then_some((MD_DELETE, Some(PlayerDetailsMsg::DeletePlayer)))
+    ) -> impl IntoIterator<Item = button::Button<'a, Self::Message>> {
+        self.id.is_some().then(|| {
+            button(MD_DELETE)
+                .style(button::danger)
+                .on_press(PlayerDetailsMsg::DeletePlayer)
+        })
     }
 
     fn title<'a>(&'a self, _: Self::ViewContext<'a>) -> String {
