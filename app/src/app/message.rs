@@ -34,6 +34,8 @@ pub enum Message {
     View(ViewMsg),
     #[from(ignore)]
     OpenLink(String),
+    QuitRequested,
+    QuitConfirmed,
 }
 
 impl App {

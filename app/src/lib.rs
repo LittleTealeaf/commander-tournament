@@ -13,7 +13,7 @@ pub mod traits;
 use std::path::PathBuf;
 
 use edh_tourn::tournament::Tournament;
-use iced::Task;
+use iced::{Event, Subscription, Task, event, window};
 
 use crate::{
     app::{Message, View},
@@ -51,6 +51,13 @@ impl App {
         } else {
             APP_TITLE.to_owned()
         }
+    }
+
+    pub fn subscription(&self) -> Subscription<Message> {
+        event::listen_with(|event, _status, _window| -> Option<Message> {
+            (event == Event::Window(window::Event::CloseRequested))
+                .then_some(Message::QuitRequested)
+        })
     }
 }
 

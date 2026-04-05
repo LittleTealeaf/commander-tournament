@@ -3,6 +3,7 @@ use iced::Task;
 use crate::{
     App,
     app::{Message, ViewUpdateContext},
+    components::confirm::ConfirmDialog,
     core::{
         file::FileAction,
         state::{AppState, AppStateMsg},
@@ -94,6 +95,21 @@ impl ComponentUpdate for App {
                 self.push_view(PlayView::new(play_mode, &self.tournament));
                 Effect::done()
             }
+            Message::QuitRequested => {
+                if self.modified {
+                    Effect::msg(Message::OpenConfirm(Box::new(ConfirmDialog::new(
+                        "Unsaved Changes".to_owned(),
+                        "You have unsaved changes. Are you sure you want to exit without saving?"
+                            .to_owned(),
+                        Message::QuitConfirmed,
+                        None,
+                    ))))
+                    .ok()
+                } else {
+                    Effect::Task(iced::exit()).ok()
+                }
+            }
+            Message::QuitConfirmed => Effect::Task(iced::exit()).ok(),
         }
     }
 }
