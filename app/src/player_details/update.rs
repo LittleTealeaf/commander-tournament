@@ -1,7 +1,4 @@
-use crate::{
-    components::confirm::ConfirmDialog, effect::Effect, player_details::PlayerDetailsOut,
-    traits::ComponentUpdate,
-};
+use crate::{effect::Effect, player_details::PlayerDetailsOut, traits::ComponentUpdate};
 
 use super::{PlayerDetails, PlayerDetailsMsg};
 
@@ -50,29 +47,30 @@ impl ComponentUpdate for PlayerDetails {
                 Effect::done()
             }
             PlayerDetailsMsg::OpenLink(link) => Effect::out(PlayerDetailsOut::OpenLink(link)).ok(),
-            PlayerDetailsMsg::ConfirmDelete => self
-                .id
-                .map(|id| Effect::out(PlayerDetailsOut::DeletePlayer(id)))
-                .unwrap_or_default()
-                .ok(),
-            PlayerDetailsMsg::DeletePlayer => Effect::out(PlayerDetailsOut::ConfirmDialog(
-                Box::new(ConfirmDialog::new(
-                    format!("Delete {}", self.initial_name),
-                    format!(
-                        "Are you sure you want to delete {} and all games they were a part of?",
-                        self.initial_name
-                    ),
-                    PlayerDetailsMsg::ConfirmDelete,
-                    None,
-                )),
-            ))
-            .ok(),
+            PlayerDetailsMsg::ConfirmDelete => {
+                if self.confirm_delete {
+                    self.id
+                        .map(|id| Effect::out(PlayerDetailsOut::DeletePlayer(id)))
+                        .unwrap_or_default()
+                        .ok()
+                } else {
+                    Effect::done()
+                }
+            }
+            PlayerDetailsMsg::RequestDelete => {
+                self.confirm_delete = true;
+                Effect::done()
+            }
             PlayerDetailsMsg::OpenNextPlayerMatch => self
                 .id
                 .map(|id| Effect::out(PlayerDetailsOut::OpenPlayerMatches(id)))
                 .unwrap_or_default()
                 .ok(),
             PlayerDetailsMsg::Close => Effect::out(PlayerDetailsOut::Close).ok(),
+            PlayerDetailsMsg::CancelDelete => {
+                self.confirm_delete = false;
+                Effect::done()
+            }
         }
     }
 }

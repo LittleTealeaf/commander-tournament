@@ -1,4 +1,5 @@
 pub mod app;
+pub mod widgets;
 pub mod components;
 pub mod core;
 pub mod effect;

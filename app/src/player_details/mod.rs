@@ -19,6 +19,7 @@ pub struct PlayerDetails {
     modified: bool,
     description: text_editor::Content,
     stats: StatsTab,
+    confirm_delete: bool,
 }
 
 #[derive(Copy, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord, derive_more::Display)]
@@ -46,8 +47,9 @@ pub enum PlayerDetailsMsg {
     SelectPlayerReference(PlayerId),
     OpenLink(String),
     /// Opens the dialog to delete the player
-    DeletePlayer,
+    RequestDelete,
     ConfirmDelete,
+    CancelDelete,
     OpenNextPlayerMatch,
 }
 
@@ -79,6 +81,7 @@ impl PlayerDetails {
             description,
             stats: StatsTab::Games,
             modified: false,
+            confirm_delete: false,
         }
     }
 }
@@ -106,7 +109,7 @@ impl ViewScreen for PlayerDetails {
         self.id.is_some().then(|| {
             button(MD_DELETE)
                 .style(button::danger)
-                .on_press(PlayerDetailsMsg::DeletePlayer)
+                .on_press(PlayerDetailsMsg::RequestDelete)
         })
     }
 

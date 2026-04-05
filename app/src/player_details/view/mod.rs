@@ -20,6 +20,7 @@ use crate::{
         },
     },
     traits::ComponentView,
+    widgets::modals::confirm_modal,
 };
 
 impl ComponentView for super::PlayerDetails {
@@ -60,14 +61,28 @@ impl ComponentView for super::PlayerDetails {
             .spacing(30)
         });
 
-        container(
+        let content = container(
             row![info_panel, deck_progress]
                 .height(Length::Fill)
                 .spacing(40)
                 .width(Length::Fill)
                 .height(Length::Fill),
         )
-        .height(Length::Fill)
-        .into()
+        .height(Length::Fill);
+
+        if self.confirm_delete {
+            confirm_modal(
+                content,
+                "Delete Player?",
+                format!(
+                    "Are you sure you want to delete the player {}? This will also delete all games that the player participated in",
+                    self.initial_name
+                ),
+                PlayerDetailsMsg::ConfirmDelete,
+                PlayerDetailsMsg::CancelDelete,
+            )
+        } else {
+            content.into()
+        }
     }
 }
