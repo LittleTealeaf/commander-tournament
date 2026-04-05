@@ -51,8 +51,6 @@ impl ComponentUpdate for View {
     ) -> anyhow::Result<crate::effect::Effect<Self::Message, Self::OutMessage>> {
         const CLOSE_VIEW: Effect<ViewMsg, Message> = Effect::Out(Message::CloseView);
 
-        // const CLOSE_VIEW: anyhow::Result<Effect<ViewMsg, Message>> = anyhow::Result::Ok(Effect::Out(Message::CloseView));
-
         match (self, message) {
             (Self::PlayerDetails(state), ViewMsg::PlayerDetails(msg)) => {
                 state.update(msg, ())?.map(|out| match out {
