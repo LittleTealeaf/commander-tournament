@@ -1,15 +1,15 @@
 pub mod app;
-pub mod modals;
-pub mod widgets;
 pub mod core;
 pub mod effect;
 pub mod error;
 pub mod home;
+pub mod modals;
 pub mod play;
 pub mod player_details;
 pub mod services;
 pub mod style;
 pub mod traits;
+pub mod widgets;
 
 use std::path::PathBuf;
 
@@ -17,7 +17,10 @@ use edh_tourn::tournament::Tournament;
 use iced::Task;
 
 use crate::{
-    app::{Message, View}, core::state::AppState, modals::Modal, traits::Component
+    app::{Message, View},
+    core::state::AppState,
+    modals::Modal,
+    traits::Component,
 };
 
 #[derive(Debug, Default)]
