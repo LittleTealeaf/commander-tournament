@@ -1,7 +1,4 @@
-use crate::{
-    components::confirm::ConfirmDialog, effect::Effect, player_details::PlayerDetailsOut,
-    traits::ComponentUpdate,
-};
+use crate::{effect::Effect, player_details::PlayerDetailsOut, traits::ComponentUpdate};
 
 use super::{PlayerDetails, PlayerDetailsMsg};
 
@@ -55,18 +52,17 @@ impl ComponentUpdate for PlayerDetails {
                 .map(|id| Effect::out(PlayerDetailsOut::DeletePlayer(id)))
                 .unwrap_or_default()
                 .ok(),
-            PlayerDetailsMsg::DeletePlayer => Effect::out(PlayerDetailsOut::ConfirmDialog(
-                Box::new(ConfirmDialog::new(
-                    format!("Delete {}", self.initial_name),
-                    format!(
-                        "Are you sure you want to delete {} and all games they were a part of?",
+            PlayerDetailsMsg::RequestDelete => {
+                Effect::confirm(
+                    &format!("Delete {}?", self.initial_name),
+                    &format!(
+                        "Are you sure you want to delete the player \"{}\"? All games this player has participated in will also be deleted.",
                         self.initial_name
                     ),
                     PlayerDetailsMsg::ConfirmDelete,
                     None,
-                )),
-            ))
-            .ok(),
+                ).ok()
+            }
             PlayerDetailsMsg::OpenNextPlayerMatch => self
                 .id
                 .map(|id| Effect::out(PlayerDetailsOut::OpenPlayerMatches(id)))

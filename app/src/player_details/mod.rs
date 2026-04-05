@@ -5,10 +5,7 @@ use edh_tourn::player::{PlayerId, RegisteredPlayer, color::MtgColor, info::Playe
 use iced::widget::{button, text_editor};
 use nerd_font_symbols::md::{MD_CONTENT_SAVE, MD_DELETE};
 
-use crate::{
-    components::confirm::ConfirmDialog,
-    traits::{Component, ViewScreen},
-};
+use crate::traits::{Component, ViewScreen};
 
 #[derive(Debug, Clone)]
 pub struct PlayerDetails {
@@ -46,7 +43,7 @@ pub enum PlayerDetailsMsg {
     SelectPlayerReference(PlayerId),
     OpenLink(String),
     /// Opens the dialog to delete the player
-    DeletePlayer,
+    RequestDelete,
     ConfirmDelete,
     OpenNextPlayerMatch,
 }
@@ -58,7 +55,6 @@ pub enum PlayerDetailsOut {
     OpenPlayerDetails(PlayerId),
     DeletePlayer(PlayerId),
     OpenLink(String),
-    ConfirmDialog(Box<ConfirmDialog<PlayerDetailsMsg>>),
     OpenPlayerMatches(PlayerId),
 }
 
@@ -106,7 +102,7 @@ impl ViewScreen for PlayerDetails {
         self.id.is_some().then(|| {
             button(MD_DELETE)
                 .style(button::danger)
-                .on_press(PlayerDetailsMsg::DeletePlayer)
+                .on_press(PlayerDetailsMsg::RequestDelete)
         })
     }
 

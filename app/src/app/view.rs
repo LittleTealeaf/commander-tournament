@@ -2,12 +2,12 @@ use edh_tourn::tournament::Tournament;
 use iced::Element;
 
 use crate::error::{ErrorMsg, ErrorOut};
+use crate::modals::Modal;
 use crate::play::PlayMode;
 use crate::traits::ViewScreen;
 use crate::{
     App,
     app::message::Message,
-    components::confirm::{ConfirmDialog, ConfirmDialogMsg, ConfirmDialogOut},
     core::tournament::TournamentAction,
     effect::Effect,
     error::ErrorView,
@@ -21,14 +21,12 @@ pub enum View {
     Error(ErrorView),
     Play(PlayView),
     PlayerDetails(PlayerDetails),
-    Confirm(ConfirmDialog<Message>),
 }
 
 #[derive(Debug, Clone, derive_more::From)]
 pub enum ViewMsg {
     PlayerDetails(PlayerDetailsMsg),
     Play(PlayMsg),
-    Confirm(ConfirmDialogMsg),
     Error(ErrorMsg),
 }
 
@@ -69,20 +67,10 @@ impl ComponentUpdate for View {
                     }
                     .chain(CLOSE_VIEW)
                     .ok(),
-                    PlayerDetailsOut::ConfirmDialog(confirm_dialog) => {
-                        let confirm: ConfirmDialog<ViewMsg> = confirm_dialog.map();
-                        Effect::out(Message::OpenConfirm(Box::new(confirm.map()))).ok()
-                    }
                     PlayerDetailsOut::OpenPlayerMatches(player_id) => {
                         Effect::out(Message::OpenPlay(PlayMode::player(player_id))).ok()
                     }
                     PlayerDetailsOut::Close => CLOSE_VIEW.ok(),
-                })
-            }
-            (Self::Confirm(state), ViewMsg::Confirm(msg)) => {
-                state.update(msg, ())?.map(|out| match out {
-                    ConfirmDialogOut::Message(message) => Effect::out(message).ok(),
-                    ConfirmDialogOut::Close => CLOSE_VIEW.ok(),
                 })
             }
             (Self::Play(state), ViewMsg::Play(msg)) => {
@@ -118,7 +106,6 @@ impl ComponentView for View {
             Self::PlayerDetails(player_details) => {
                 player_details.screen_view_into(context.tournament())
             }
-            Self::Confirm(confirm) => confirm.view_into(()),
             Self::Play(play) => play.screen_view_into(context.tournament()),
         }
     }
@@ -127,10 +114,16 @@ impl ComponentView for View {
 impl App {
     #[must_use]
     pub fn handle_view(&self) -> Element<'_, Message> {
-        self.views.last().map_or_else(
+        let content = self.views.last().map_or_else(
             || self.home.view_into((self.tournament(), &self.file)),
             |view| view.view_into(self),
-        )
+        );
+
+        if let Some(modal) = self.modals.last() {
+            modal.overlay(content)
+        } else {
+            content
+        }
     }
 
     #[must_use]
@@ -139,7 +132,7 @@ impl App {
     }
 
     pub fn error(&mut self, error: String) {
-        self.push_view(ErrorView::new(error));
+        self.modals.push(Modal::Error { error });
     }
 
     pub fn push_view<V>(&mut self, view: V)

@@ -4,7 +4,6 @@ use iced::Task;
 use crate::{
     App,
     app::ViewMsg,
-    components::confirm::ConfirmDialog,
     core::{
         file::FileAction,
         state::{AppState, AppStateMsg},
@@ -12,6 +11,7 @@ use crate::{
     },
     effect::Effect,
     home::HomeMsg,
+    modals::ModalMsg,
     play::PlayMode,
     traits::ComponentUpdate,
 };
@@ -21,7 +21,6 @@ pub enum Message {
     OnBoot,
     Nothing,
     OpenPlay(PlayMode),
-    OpenConfirm(Box<ConfirmDialog<Self>>),
     AppState(AppStateMsg),
     AppStateLoaded(Option<AppState>),
     Tournament(TournamentAction),
@@ -34,6 +33,8 @@ pub enum Message {
     View(ViewMsg),
     #[from(ignore)]
     OpenLink(String),
+    CloseModal,
+    Modal(ModalMsg),
     QuitRequested,
     QuitConfirmed,
     QuitCancelled,
@@ -55,6 +56,10 @@ impl App {
                     task = task.chain(self.process_effect(effect)?);
                 }
                 Ok(task)
+            }
+            Effect::Modal(modal) => {
+                self.modals.push(modal);
+                Ok(Task::none())
             }
         }
     }

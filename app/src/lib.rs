@@ -1,9 +1,9 @@
 pub mod app;
-pub mod components;
 pub mod core;
 pub mod effect;
 pub mod error;
 pub mod home;
+pub mod modals;
 pub mod play;
 pub mod player_details;
 pub mod services;
@@ -18,6 +18,7 @@ use iced::{Event, Subscription, Task, event, window};
 use crate::{
     app::{Message, View},
     core::state::AppState,
+    modals::Modal,
     traits::Component,
 };
 
@@ -30,6 +31,7 @@ pub struct App {
     error: Option<String>,
     file: Option<PathBuf>,
     views: Vec<View>,
+    modals: Vec<Modal<Message>>,
     state: Option<AppState>,
     close_requested: bool,
 }

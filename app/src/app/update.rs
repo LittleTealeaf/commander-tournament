@@ -3,7 +3,6 @@ use iced::Task;
 use crate::{
     App,
     app::{Message, ViewUpdateContext},
-    components::confirm::ConfirmDialog,
     core::{
         file::FileAction,
         state::{AppState, AppStateMsg},
@@ -35,10 +34,6 @@ impl ComponentUpdate for App {
         }
 
         match message {
-            Message::OpenConfirm(dialog) => {
-                self.push_view(*dialog);
-                Effect::done()
-            }
             Message::CloseView => {
                 self.views.pop();
                 Effect::done()
@@ -95,16 +90,28 @@ impl ComponentUpdate for App {
                 self.push_view(PlayView::new(play_mode, &self.tournament));
                 Effect::done()
             }
+            Message::CloseModal => {
+                self.modals.pop();
+                Effect::done()
+            }
+            Message::Modal(modal_msg) => {
+                if let Some(modal) = self.modals.last_mut() {
+                    modal
+                        .update(modal_msg, ())?
+                        .map(|out| Effect::msg(out).ok())
+                } else {
+                    Effect::done()
+                }
+            }
             Message::QuitRequested => {
                 if self.modified && !self.close_requested {
                     self.close_requested = true;
-                    Effect::msg(Message::OpenConfirm(Box::new(ConfirmDialog::new(
-                        "Unsaved Changes".to_owned(),
-                        "You have unsaved changes. Are you sure you want to exit without saving?"
-                            .to_owned(),
+                    Effect::confirm(
+                        &"Unsaved Changes",
+                        &"You have unsaved changes. Are you sure you want to exit without saving?",
                         Message::QuitConfirmed,
                         Some(Message::QuitCancelled),
-                    ))))
+                    )
                     .ok()
                 } else {
                     Effect::Task(iced::exit()).ok()
