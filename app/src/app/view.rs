@@ -1,6 +1,7 @@
 use edh_tourn::tournament::Tournament;
 use iced::Element;
 
+use crate::play::PlayMode;
 use crate::traits::ViewScreen;
 use crate::{
     App,
@@ -69,6 +70,9 @@ impl ComponentUpdate for View {
                     PlayerDetailsOut::ConfirmDialog(confirm_dialog) => {
                         let confirm: ConfirmDialog<ViewMsg> = confirm_dialog.map();
                         Effect::out(Message::OpenConfirm(Box::new(confirm.map()))).ok()
+                    }
+                    PlayerDetailsOut::OpenPlayerMatches(player_id) => {
+                        Effect::out(Message::OpenPlay(PlayMode::player(player_id))).ok()
                     }
                 })
             }

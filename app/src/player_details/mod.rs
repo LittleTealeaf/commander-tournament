@@ -46,6 +46,7 @@ pub enum PlayerDetailsMsg {
     /// Opens the dialog to delete the player
     DeletePlayer,
     ConfirmDelete,
+    OpenNextPlayerMatch,
 }
 
 #[derive(Debug)]
@@ -55,6 +56,7 @@ pub enum PlayerDetailsOut {
     DeletePlayer(PlayerId),
     OpenLink(String),
     ConfirmDialog(Box<ConfirmDialog<PlayerDetailsMsg>>),
+    OpenPlayerMatches(PlayerId),
 }
 
 impl PlayerDetails {

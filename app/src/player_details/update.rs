@@ -63,6 +63,11 @@ impl ComponentUpdate for PlayerDetails {
                 )),
             ))
             .ok(),
+            PlayerDetailsMsg::OpenNextPlayerMatch => self
+                .id
+                .map(|id| Effect::out(PlayerDetailsOut::OpenPlayerMatches(id)))
+                .unwrap_or_default()
+                .ok(),
         }
     }
 }

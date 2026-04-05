@@ -1,6 +1,9 @@
 use edh_tourn::player::color::MtgColor;
-use iced::widget::{button, column, container, row, text, text_editor, text_input};
-use nerd_font_symbols::md::MD_LINK_VARIANT;
+use iced::{
+    alignment::Horizontal,
+    widget::{button, column, container, row, text, text_editor, text_input},
+};
+use nerd_font_symbols::md::{MD_LINK_VARIANT, MD_SWORD};
 
 use crate::player_details::{PlayerDetails, PlayerDetailsMsg};
 
@@ -41,6 +44,11 @@ pub fn view_info_panel(
             row![edit_name, text_identity].spacing(20),
             row![edit_moxfieldid, button_link, deck_colors].spacing(20),
             edit_description,
+            state.id.is_some().then(|| container(
+                button(text(format!("{MD_SWORD} Open Next Match")))
+                    .on_press(PlayerDetailsMsg::OpenNextPlayerMatch)
+            )
+            .align_x(Horizontal::Center))
         ]
         .spacing(20),
     )
