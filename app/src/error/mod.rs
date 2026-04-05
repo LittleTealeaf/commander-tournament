@@ -1,60 +1,56 @@
 use iced::{
-    Alignment, Length,
-    alignment::Horizontal,
-    widget::{button, column, container, text},
+    Length,
+    widget::{container, text},
 };
 
 use crate::{
     effect::Effect,
-    traits::{Component, ComponentUpdate, ComponentView},
+    traits::{Component, ComponentUpdate, ComponentView, ViewScreen},
 };
 
 #[derive(Debug, Clone, derive_more::Constructor)]
-pub struct Error {
+pub struct ErrorView {
     message: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub enum ErrorMsg {
-    CloseError,
+    Close,
 }
 
-impl Component for Error {
-    type OutMessage = ErrorMsg;
+#[derive(Clone, Debug)]
+pub enum ErrorOut {
+    Close,
+}
+
+impl Component for ErrorView {
+    type OutMessage = ErrorOut;
     type Message = ErrorMsg;
 }
 
-impl ComponentUpdate for Error {
+impl ComponentUpdate for ErrorView {
     type UpdateContext<'a> = ();
     fn update(
         &mut self,
         message: Self::Message,
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
-        Effect::Out(message).ok()
+        match message {
+            ErrorMsg::Close => Effect::out(ErrorOut::Close).ok(),
+        }
     }
 }
 
-impl ComponentView for Error {
+impl ComponentView for ErrorView {
     type ViewContext<'a> = ();
     fn view<'a>(&'a self, (): Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
-        let title = text("An Error Occurred").size(24);
-        let message = text(&self.message).size(16).align_x(Horizontal::Center);
+        container(text(&self.message)).width(Length::Fill).into()
+    }
+}
 
-        let close_button = button(text("Close").align_x(Horizontal::Center))
-            .padding([8, 16])
-            .on_press(ErrorMsg::CloseError);
-
-        container(
-            column![title, message, close_button]
-                .spacing(20)
-                .align_x(Alignment::Center),
-        )
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .align_x(Alignment::Center)
-        .align_y(Alignment::Center)
-        .padding(20)
-        .into()
+impl ViewScreen for ErrorView {
+    const CLOSE_MESSAGE: Self::Message = ErrorMsg::Close;
+    fn title<'a>(&'a self, (): Self::ViewContext<'a>) -> String {
+        "Application Error".to_owned()
     }
 }

@@ -1,10 +1,8 @@
 use edh_tourn::{ranking::RankingMethod, tournament::Tournament};
 use iced::{
-    Length,
-    alignment::{Horizontal, Vertical},
-    widget::{button, column, container, pick_list, row, space, text},
+    alignment::Horizontal,
+    widget::{column, container, pick_list, row, text},
 };
-use nerd_font_symbols::md::MD_CLOSE;
 
 use crate::{
     play::{PlayMsg, PlayNextMode, PlayView},
@@ -20,15 +18,9 @@ impl ComponentView for PlayView {
         Self: 'a;
 
     fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
-        let header = match &self.mode {
-            PlayMode::Player { ranking, id } => {
-                let name = context
-                    .get_player_name(id)
-                    .map_or("Unknown Player", |name| name.as_str());
-
+        let options = match &self.mode {
+            PlayMode::Player { ranking, .. } => {
                 row![
-                    text(name).size(25),
-                    space().width(Length::Fill),
                     column![
                         text("Ranking Method"),
                         pick_list(
@@ -42,8 +34,6 @@ impl ComponentView for PlayView {
                 ]
             }
             PlayMode::Next { ranking, mode } => row![
-                text("Tournament Game").size(25),
-                space().width(Length::Fill),
                 column![
                     text("Select Mode"),
                     pick_list(PlayNextMode::VALUES, Some(mode), PlayMsg::SetNextMode)
@@ -63,7 +53,6 @@ impl ComponentView for PlayView {
             ]
             .spacing(10),
             PlayMode::Custom { players } => {
-                // TODO: Optimize away vec allocations on view thread
                 let options = context.get_registered_players().collect::<Vec<_>>();
                 let selectors = players.iter().enumerate().map(|(index, player)| {
                     let reg_pl = player.and_then(|id| context.get_registered_player(id));
@@ -73,11 +62,7 @@ impl ComponentView for PlayView {
                     .into()
                 });
 
-                row![
-                    container(text("Custom Game").size(25)).align_y(Vertical::Top),
-                    space().width(Length::Fill),
-                    column(selectors).spacing(10)
-                ]
+                row![column(selectors).spacing(10)]
             }
         };
 
@@ -86,19 +71,8 @@ impl ComponentView for PlayView {
             |preview| container(preview.view_into(context)),
         );
 
-        container(
-            column![
-                row![
-                    container(button(MD_CLOSE).on_press(PlayMsg::Close)).align_y(Vertical::Top),
-                    header
-                ]
-                .spacing(15)
-                .align_y(Vertical::Top),
-                main_content
-            ]
-            .spacing(20),
-        )
-        .padding(5)
-        .into()
+        container(column![options, main_content].spacing(20))
+            .padding(5)
+            .into()
     }
 }

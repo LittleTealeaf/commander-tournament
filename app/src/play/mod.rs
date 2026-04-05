@@ -13,7 +13,7 @@ use edh_tourn::{
 
 use crate::{
     play::match_preview::{MatchPreview, MatchPreviewMsg},
-    traits::Component,
+    traits::{Component, ViewScreen},
 };
 
 #[derive(Debug, Clone)]
@@ -105,13 +105,29 @@ pub enum PlayMsg {
 
 #[derive(Clone, Debug)]
 pub enum PlayOut {
+    Close,
     OpenLink(String),
     RecordGame(Box<GameRecord>),
     OpenPlayerInfo(PlayerId),
-    Close,
 }
 
 impl Component for PlayView {
     type Message = PlayMsg;
     type OutMessage = PlayOut;
+}
+
+impl ViewScreen for PlayView {
+    const CLOSE_MESSAGE: Self::Message = PlayMsg::Close;
+    fn title<'a>(&'a self, context: Self::ViewContext<'a>) -> String {
+        match &self.mode {
+            PlayMode::Player { id, .. } => format!(
+                "Play: {}",
+                context
+                    .get_player_name(id)
+                    .map_or("Unknown Player", |id| id.as_ref())
+            ),
+            PlayMode::Next { .. } => "Play Tournament".to_owned(),
+            PlayMode::Custom { .. } => "Custom Games".to_owned(),
+        }
+    }
 }
