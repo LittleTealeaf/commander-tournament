@@ -109,45 +109,48 @@ impl<M> Modal<M> {
             content.into(),
             opaque(
                 center(
-                    container(match self {
-                        Self::Confirm { title, details, .. } => {
-                            column![
-                                text(title)
-                                    .font(font::Font {
-                                        weight: font::Weight::Bold,
-                                        ..default_font()
-                                    })
-                                    .size(20),
-                                text(details)
-                                    .wrapping(text::Wrapping::Word)
-                                    .width(Length::Fill),
-                                space().height(10).width(500),
-                                row![
-                                    space().width(Length::Fill),
-                                    button("Cancel").on_press(ModalMsg::Cancel.into()),
-                                    button("Confirm").on_press(ModalMsg::Confirm.into()),
+                    container(
+                        container(match self {
+                            Self::Confirm { title, details, .. } => {
+                                column![
+                                    text(title)
+                                        .font(font::Font {
+                                            weight: font::Weight::Bold,
+                                            ..default_font()
+                                        })
+                                        .size(20),
+                                    text(details)
+                                        .wrapping(text::Wrapping::Word)
+                                        .width(Length::Fill),
+                                    row![
+                                        space().width(Length::Fill),
+                                        button("Cancel").on_press(ModalMsg::Cancel.into()),
+                                        button("Confirm").on_press(ModalMsg::Confirm.into()),
+                                    ]
+                                    .spacing(10)
+                                ]
+                            }
+                            Self::Error { error } => {
+                                column![
+                                    text("Application Error")
+                                        .font(font::Font {
+                                            weight: font::Weight::Bold,
+                                            ..default_font()
+                                        })
+                                        .size(20),
+                                    text(error)
+                                        .wrapping(text::Wrapping::Word)
+                                        .width(Length::Fill),
+                                    container(button("Close").on_press(ModalMsg::Close.into()))
+                                        .align_x(Horizontal::Right)
+                                        .width(Length::Fill)
                                 ]
                                 .spacing(10)
-                            ]
-                        }
-                        Self::Error { error } => {
-                            column![
-                                text("Application Error")
-                                    .font(font::Font {
-                                        weight: font::Weight::Bold,
-                                        ..default_font()
-                                    })
-                                    .size(20),
-                                text(error)
-                                    .wrapping(text::Wrapping::Word)
-                                    .width(Length::Fill),
-                                space().height(10).width(500),
-                                container(button("Close").on_press(ModalMsg::Close.into()))
-                                    .align_x(Horizontal::Right)
-                                    .width(Length::Fill)
-                            ]
-                        }
-                    })
+                            }
+                        })
+                        .width(250)
+                        .max_width(500)
+                    )
                     .width(Length::Shrink)
                     .padding(10)
                     .style(container::rounded_box)
