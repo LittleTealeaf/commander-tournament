@@ -137,13 +137,11 @@ impl ViewScreen for PlayView {
             PlayMode::Custom { .. } => "Custom Games".to_owned(),
         }
     }
-    
+
     fn secondary_actions<'a>(
-            &'a self,
-            _: Self::ViewContext<'a>,
-        ) -> impl IntoIterator<Item = iced::widget::Button<'a, Self::Message>> {
-        [
-            button(FA_GEAR).on_press(PlayMsg::OpenConfig)
-        ]
+        &'a self,
+        _: Self::ViewContext<'a>,
+    ) -> impl IntoIterator<Item = iced::widget::Button<'a, Self::Message>> {
+        [button(FA_GEAR).on_press(PlayMsg::OpenConfig)]
     }
 }

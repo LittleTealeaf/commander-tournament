@@ -1,11 +1,11 @@
 pub mod app;
 pub mod core;
 pub mod effect;
-pub mod play_config;
 pub mod error;
 pub mod home;
 pub mod modals;
 pub mod play;
+pub mod play_config;
 pub mod player_details;
 pub mod services;
 pub mod style;
