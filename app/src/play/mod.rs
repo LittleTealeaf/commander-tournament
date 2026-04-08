@@ -10,6 +10,8 @@ use edh_tourn::{
     ranking::RankingMethod,
     tournament::Tournament,
 };
+use iced::widget::button;
+use nerd_font_symbols::fa::FA_GEAR;
 
 use crate::{
     play::match_preview::{MatchPreview, MatchPreviewMsg},
@@ -50,6 +52,7 @@ pub enum PlayMode {
     Next {
         ranking: RankingMethod,
         mode: PlayNextMode,
+        ignore_precons: bool,
     },
     Custom {
         players: [Option<PlayerId>; POD_SIZE],
@@ -70,6 +73,7 @@ impl PlayMode {
         Self::Next {
             ranking: RankingMethod::Combined,
             mode: PlayNextMode::LongestBreak,
+            ignore_precons: false,
         }
     }
 
@@ -95,17 +99,20 @@ impl PlayView {
 pub enum PlayMsg {
     Close,
     RefreshMatchup,
+    OpenConfig,
     SetRankingMethod(RankingMethod),
     SetNextMode(PlayNextMode),
     OpenLink(String),
     OpenLinks(Vec<String>),
     SetPlayer(usize, Option<PlayerId>),
     Preview(MatchPreviewMsg),
+    IgnorePrecons(bool),
 }
 
 #[derive(Clone, Debug)]
 pub enum PlayOut {
     Close,
+    OpenPlayConfig,
     OpenLink(String),
     RecordGame(Box<GameRecord>),
     OpenPlayerInfo(PlayerId),
@@ -129,5 +136,12 @@ impl ViewScreen for PlayView {
             PlayMode::Next { .. } => "Play Tournament".to_owned(),
             PlayMode::Custom { .. } => "Custom Games".to_owned(),
         }
+    }
+
+    fn secondary_actions<'a>(
+        &'a self,
+        _: Self::ViewContext<'a>,
+    ) -> impl IntoIterator<Item = iced::widget::Button<'a, Self::Message>> {
+        [button(FA_GEAR).on_press(PlayMsg::OpenConfig)]
     }
 }
