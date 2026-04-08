@@ -3,12 +3,16 @@ use core::iter::{empty, once};
 use iced::{
     Element, Length,
     alignment::Vertical,
+    font::Weight,
     widget::{Button, button, column, row, space, text},
 };
 use iced_futures::MaybeSend;
 use nerd_font_symbols::md::MD_CLOSE;
 
-use crate::effect::Effect;
+use crate::{
+    effect::Effect,
+    style::{FontBuilder, font_default},
+};
 
 pub trait Component {
     type OutMessage;
@@ -116,7 +120,9 @@ pub trait ViewScreen: ComponentView {
                     .map(Into::into))
                 .spacing(5),
                 space().width(10),
-                text(self.title(context.clone())).size(30),
+                text(self.title(context.clone()))
+                    .size(30)
+                    .font(font_default().weight(Weight::Bold)),
                 space().width(Length::Fill),
                 row(self
                     .secondary_actions(context.clone())

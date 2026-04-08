@@ -11,12 +11,15 @@ use edh_tourn::{
 use iced::{
     Element, Length, Padding,
     alignment::{Horizontal, Vertical},
-    font,
+    font::Weight,
     widget::{Container, button, column, container, row, scrollable, space, table, text},
 };
 use itertools::Itertools;
 
-use crate::{player_details::PlayerDetailsMsg, style::default_font};
+use crate::{
+    player_details::PlayerDetailsMsg,
+    style::{FontBuilder, font_default},
+};
 
 pub fn stats_summary(stats: &PlayerStats) -> Container<'_, PlayerDetailsMsg> {
     container(
@@ -88,10 +91,9 @@ pub fn stats_game_history(
                             |name| format!("({elo}) {name}"),
                         ),
                 )
-                .font_maybe((player.id() == game.winner()).then_some(font::Font {
-                    weight: font::Weight::Bold,
-                    ..default_font()
-                })),
+                .font_maybe(
+                    (player.id() == game.winner()).then_some(font_default().weight(Weight::Bold)),
+                ),
             )
             .padding(Padding::new(0.0))
             .style(button::text)
