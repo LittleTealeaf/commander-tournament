@@ -155,7 +155,7 @@ impl ComponentView for Leaderboard {
                 table::column(
                     col_header("Name", Column::Name),
                     |p: RegisteredPlayer<'_>| {
-                        button(text(p.info().name().clone()).size(12))
+                        button(text(p.info().display_name()).size(12))
                             .style(button::text)
                             .on_press(LeaderboardMsg::OpenPlayer(p.id()))
                     },
