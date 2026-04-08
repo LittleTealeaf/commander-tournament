@@ -153,6 +153,7 @@ impl ComponentUpdate for PlayView {
                 modified = true;
                 Effect::Done
             }
+            PlayMsg::OpenConfig => Effect::out(PlayOut::OpenPlayConfig),
         };
 
         if modified {

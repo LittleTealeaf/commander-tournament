@@ -4,6 +4,7 @@ use iced::Element;
 use crate::error::{ErrorMsg, ErrorOut};
 use crate::modals::Modal;
 use crate::play::PlayMode;
+use crate::play_config::{PlayConfig, PlayConfigMsg, PlayConfigOut};
 use crate::traits::ViewScreen;
 use crate::{
     App,
@@ -20,12 +21,14 @@ use crate::{
 pub enum View {
     Error(ErrorView),
     Play(PlayView),
+    PlaySettings(PlayConfig),
     PlayerDetails(PlayerDetails),
 }
 
 #[derive(Debug, Clone, derive_more::From)]
 pub enum ViewMsg {
     PlayerDetails(PlayerDetailsMsg),
+    PlaySettings(PlayConfigMsg),
     Play(PlayMsg),
     Error(ErrorMsg),
 }
@@ -85,11 +88,23 @@ impl ComponentUpdate for View {
                         Effect::out(Message::OpenPlayerDetails(Some(player_id))).ok()
                     }
                     PlayOut::Close => CLOSE_VIEW.ok(),
+                    PlayOut::OpenPlayConfig => Effect::out(Message::OpenPlayConfig).ok(),
                 })
             }
             (Self::Error(state), ViewMsg::Error(msg)) => {
                 state.update(msg, ())?.map(|out| match out {
                     ErrorOut::Close => CLOSE_VIEW.ok(),
+                })
+            }
+            (Self::PlaySettings(state), ViewMsg::PlaySettings(msg)) => {
+                state.update(msg, context.tourn)?.map(|out| match out {
+                    PlayConfigOut::Close => CLOSE_VIEW.ok(),
+                    PlayConfigOut::SaveAndClose(ranking_config) => {
+                        Effect::out(TournamentAction::SetRankingConfig(ranking_config))
+                            .chain(CLOSE_VIEW)
+                            .chain(Effect::msg(PlayMsg::RefreshMatchup))
+                            .ok()
+                    }
                 })
             }
             (_, _) => Effect::done(),
@@ -104,6 +119,7 @@ impl ComponentView for View {
         Self: 'a;
     fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> Element<'a, Self::Message> {
         match self {
+            Self::PlaySettings(settings) => settings.screen_view_into(()),
             Self::Error(error) => error.screen_view_into(()),
             Self::PlayerDetails(player_details) => {
                 player_details.screen_view_into(context.tournament())

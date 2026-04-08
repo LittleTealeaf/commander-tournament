@@ -1,6 +1,7 @@
 pub mod app;
 pub mod core;
 pub mod effect;
+pub mod play_config;
 pub mod error;
 pub mod home;
 pub mod modals;

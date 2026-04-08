@@ -11,6 +11,7 @@ use crate::{
     effect::Effect,
     home::{HomeMsg, HomeOut},
     play::PlayView,
+    play_config::PlayConfig,
     player_details::PlayerDetails,
     services::system::open_link,
     traits::{ComponentUpdate, HandleMessage},
@@ -112,6 +113,10 @@ impl ComponentUpdate for App {
                 } else {
                     Effect::done()
                 }
+            }
+            Message::OpenPlayConfig => {
+                self.push_view(PlayConfig::new(self.tournament.ranking_config().clone()));
+                Effect::done()
             }
         }
     }

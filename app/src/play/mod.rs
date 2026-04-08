@@ -10,6 +10,8 @@ use edh_tourn::{
     ranking::RankingMethod,
     tournament::Tournament,
 };
+use iced::widget::button;
+use nerd_font_symbols::fa::FA_GEAR;
 
 use crate::{
     play::match_preview::{MatchPreview, MatchPreviewMsg},
@@ -97,6 +99,7 @@ impl PlayView {
 pub enum PlayMsg {
     Close,
     RefreshMatchup,
+    OpenConfig,
     SetRankingMethod(RankingMethod),
     SetNextMode(PlayNextMode),
     OpenLink(String),
@@ -109,6 +112,7 @@ pub enum PlayMsg {
 #[derive(Clone, Debug)]
 pub enum PlayOut {
     Close,
+    OpenPlayConfig,
     OpenLink(String),
     RecordGame(Box<GameRecord>),
     OpenPlayerInfo(PlayerId),
@@ -132,5 +136,14 @@ impl ViewScreen for PlayView {
             PlayMode::Next { .. } => "Play Tournament".to_owned(),
             PlayMode::Custom { .. } => "Custom Games".to_owned(),
         }
+    }
+    
+    fn secondary_actions<'a>(
+            &'a self,
+            _: Self::ViewContext<'a>,
+        ) -> impl IntoIterator<Item = iced::widget::Button<'a, Self::Message>> {
+        [
+            button(FA_GEAR).on_press(PlayMsg::OpenConfig)
+        ]
     }
 }
