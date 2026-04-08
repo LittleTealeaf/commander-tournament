@@ -17,24 +17,29 @@ use crate::{
     traits::ComponentUpdate,
 };
 
-fn get_longest_break(tournament: &Tournament) -> Option<PlayerId> {
-    let mut players = tournament.players().keys().collect::<HashSet<_>>();
-    for &id in &players {
-        if tournament.get_player_stats(*id).is_none() {
-            return Some(*id);
+fn get_longest_break(tournament: &Tournament, ignore_precons: bool) -> Option<PlayerId> {
+    let mut players = HashSet::with_capacity(tournament.players().keys().len());
+
+    for player in tournament.get_registered_players() {
+        if player.stats().games() == 0 {
+            return Some(player.id());
+        }
+        if !ignore_precons || !player.info().is_precon() {
+            players.insert(player.id());
         }
     }
 
     for game in tournament.games().iter().rev() {
         for player in game.players() {
             if players.len() == 1 {
-                return Some(*players.into_iter().next()?);
+                return players.into_iter().next();
             }
 
             players.remove(&player.id());
         }
     }
-    Some(*players.into_iter().next()?)
+
+    players.into_iter().next()
 }
 
 impl PlayMode {
@@ -46,14 +51,18 @@ impl PlayMode {
                 let players = once(*id).chain(opponents).collect_array()?;
                 tournament.create_match(players).ok()
             }
-            Self::Next { ranking, mode } => {
+            Self::Next {
+                ranking,
+                mode,
+                ignore_precons,
+            } => {
                 let id = match mode {
                     PlayNextMode::LeastGames => tournament
                         .get_registered_players()
-                        .sorted_by_key(|player| (player.stats().games(), player.id()))
-                        .next()?
+                        .filter(|player| !*ignore_precons || !player.info().is_precon())
+                        .min_by_key(|player| (player.stats().games(), player.id()))?
                         .id(),
-                    PlayNextMode::LongestBreak => get_longest_break(tournament)?,
+                    PlayNextMode::LongestBreak => get_longest_break(tournament, *ignore_precons)?,
                 };
                 let rankings = tournament.ranking().ranked(id, *ranking).ok()?;
                 let opponents = rankings.into_iter().take(3).map(|p| p.id());
@@ -135,6 +144,15 @@ impl ComponentUpdate for PlayView {
                 })?
             }
             PlayMsg::Close => Effect::out(PlayOut::Close),
+            PlayMsg::IgnorePrecons(value) => {
+                let PlayMode::Next { ignore_precons, .. } = &mut self.mode else {
+                    return Effect::done();
+                };
+
+                *ignore_precons = value;
+                modified = true;
+                Effect::Done
+            }
         };
 
         if modified {

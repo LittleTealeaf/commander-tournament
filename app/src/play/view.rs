@@ -1,7 +1,7 @@
 use edh_tourn::{ranking::RankingMethod, tournament::Tournament};
 use iced::{
-    alignment::Horizontal,
-    widget::{column, container, pick_list, row, text},
+    alignment::{Horizontal, Vertical},
+    widget::{checkbox, column, container, pick_list, row, text},
 };
 
 use crate::{
@@ -33,7 +33,11 @@ impl ComponentView for PlayView {
                     .align_x(Horizontal::Left)
                 ]
             }
-            PlayMode::Next { ranking, mode } => row![
+            PlayMode::Next {
+                ranking,
+                mode,
+                ignore_precons,
+            } => row![
                 column![
                     text("Select Mode"),
                     pick_list(PlayNextMode::VALUES, Some(mode), PlayMsg::SetNextMode)
@@ -50,7 +54,11 @@ impl ComponentView for PlayView {
                 ]
                 .spacing(5)
                 .align_x(Horizontal::Left),
+                checkbox(*ignore_precons)
+                    .label("Ignore Precons")
+                    .on_toggle(PlayMsg::IgnorePrecons)
             ]
+            .align_y(Vertical::Bottom)
             .spacing(10),
             PlayMode::Custom { players } => {
                 let options = context.get_registered_players().collect::<Vec<_>>();

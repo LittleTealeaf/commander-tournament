@@ -50,6 +50,7 @@ pub enum PlayMode {
     Next {
         ranking: RankingMethod,
         mode: PlayNextMode,
+        ignore_precons: bool,
     },
     Custom {
         players: [Option<PlayerId>; POD_SIZE],
@@ -70,6 +71,7 @@ impl PlayMode {
         Self::Next {
             ranking: RankingMethod::Combined,
             mode: PlayNextMode::LongestBreak,
+            ignore_precons: false,
         }
     }
 
@@ -101,6 +103,7 @@ pub enum PlayMsg {
     OpenLinks(Vec<String>),
     SetPlayer(usize, Option<PlayerId>),
     Preview(MatchPreviewMsg),
+    IgnorePrecons(bool),
 }
 
 #[derive(Clone, Debug)]
