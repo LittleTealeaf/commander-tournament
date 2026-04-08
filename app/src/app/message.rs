@@ -36,13 +36,22 @@ pub enum Message {
     CloseModal,
     Modal(ModalMsg),
     QuitRequested,
-    QuitConfirmed,
-    QuitCancelled,
+    QuitConfirm(bool),
 }
 
 impl App {
     fn process_effect(&mut self, effect: Effect<Message, ()>) -> anyhow::Result<Task<Message>> {
         match effect {
+            Effect::OnError(effect, on_error) => {
+                let result = self.process_effect(*effect);
+                match result {
+                    Ok(task) => Ok(task),
+                    Err(error) => {
+                        eprintln!("Gracefully caught error: {error:#}");
+                        self.process_message(on_error)
+                    }
+                }
+            }
             Effect::Msg(message) => self.process_message(message),
             Effect::Out(()) | Effect::Done => Ok(Task::none()),
             Effect::Task(task) => Ok(task),
