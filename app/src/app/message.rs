@@ -71,7 +71,7 @@ impl App {
                 if errors.is_empty() {
                     Ok(Task::batch(tasks))
                 } else {
-                    Err(anyhow::anyhow!("Multiple errors ocurred: {errors:?}"))
+                    Err(anyhow::anyhow!("Multiple errors occurred: {errors:?}"))
                 }
             }
             Effect::Sequence(effects) => {
