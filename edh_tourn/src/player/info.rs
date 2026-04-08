@@ -25,6 +25,18 @@ pub struct PlayerInfo {
         alias = "moxfield_id"
     )]
     moxfield_id: Option<String>,
+    #[serde(
+        skip_serializing_if = "is_false",
+        default,
+        rename = "pc",
+        alias = "precon"
+    )]
+    precon: bool,
+}
+
+#[allow(clippy::trivially_copy_pass_by_ref)]
+const fn is_false(b: &bool) -> bool {
+    !(*b)
 }
 
 fn convert_moxfield_id(id: String) -> Option<String> {
@@ -45,12 +57,22 @@ impl PlayerInfo {
             description: String::new(),
             identity: ColorIdentity::COLORLESS,
             moxfield_id: None,
+            precon: false,
         }
     }
 
     #[must_use]
     pub const fn name(&self) -> &String {
         &self.name
+    }
+
+    #[must_use]
+    pub fn display_name(&self) -> String {
+        if self.precon {
+            format!("{} (Precon)", self.name)
+        } else {
+            self.name.clone()
+        }
     }
 
     #[must_use]
@@ -146,6 +168,15 @@ impl PlayerInfo {
     #[must_use]
     pub fn into_name(self) -> String {
         self.name
+    }
+
+    #[must_use]
+    pub const fn is_precon(&self) -> bool {
+        self.precon
+    }
+
+    pub const fn set_precon(&mut self, precon: bool) {
+        self.precon = precon;
     }
 }
 

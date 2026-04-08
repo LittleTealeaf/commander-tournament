@@ -160,4 +160,9 @@ impl Tournament {
     pub fn get_player_name(&self, id: &PlayerId) -> Option<&String> {
         self.get_player_info(id).map(PlayerInfo::name)
     }
+
+    #[must_use]
+    pub fn get_player_display_name(&self, id: &PlayerId) -> Option<String> {
+        self.get_player_info(id).map(PlayerInfo::display_name)
+    }
 }

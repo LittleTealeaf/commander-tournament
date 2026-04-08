@@ -1,6 +1,6 @@
 use app::{
     App,
-    style::{FONT_BYTES, default_font},
+    style::{FONT_BYTES, font_default},
 };
 use iced::{Theme, application, window};
 
@@ -12,7 +12,7 @@ fn main() -> iced::Result {
     }
 
     app.theme(Theme::CatppuccinMocha)
-        .default_font(default_font())
+        .default_font(font_default())
         .window(window::Settings {
             exit_on_close_request: false,
             ..Default::default()

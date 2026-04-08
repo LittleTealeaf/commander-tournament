@@ -42,24 +42,16 @@ impl ComponentUpdate for App {
             Message::AppState(message) => self.handle_message(message, ()),
             Message::AppStateLoaded(maybe_settings) => {
                 self.state = maybe_settings;
-
-                let Some(settings) = &self.state else {
-                    return Effect::done();
-                };
-
-                let Some(last_opened) = settings.last_opened() else {
-                    return Effect::done();
-                };
-
-                let path = last_opened.clone();
-
-                Effect::msg(FileAction::OpenFile(path)).ok()
+                self.state
+                    .as_ref()
+                    .and_then(|state| state.last_opened().as_ref())
+                    .map(|last_opened| Effect::msg(FileAction::OpenFile(last_opened.clone())))
+                    .unwrap_or_default()
+                    .ok()
             }
-            Message::OnBoot => Effect::Task(Task::perform(
-                async { AppState::load().await.ok() },
-                Message::AppStateLoaded,
-            ))
-            .ok(),
+            Message::OnBoot => {
+                Effect::future(async { Message::AppStateLoaded(AppState::load().await.ok()) }).ok()
+            }
             Message::Tournament(action) => self.handle_message(action, ()),
             Message::Home(message) => self.handle_message(message, ()),
             Message::TournFile(message) => self.handle_message(message, ()),
@@ -70,13 +62,9 @@ impl ComponentUpdate for App {
                 ));
                 Effect::done()
             }
-            Message::OpenLink(link) => Effect::Task(Task::future(async {
-                if let Err(err) = open_link(link).await {
-                    eprintln!("Warning: {err}");
-                }
-                Message::Nothing
-            }))
-            .ok(),
+            Message::OpenLink(link) => {
+                Effect::Task(Task::future(async { open_link(link).await }).discard()).ok()
+            }
             Message::View(msg) => {
                 if let Some(view) = self.views.last_mut() {
                     view.mapped_update(msg, ViewUpdateContext::new(&self.tournament), |msg| {
@@ -109,21 +97,21 @@ impl ComponentUpdate for App {
                     Effect::confirm(
                         &"Unsaved Changes",
                         &"You have unsaved changes. Are you sure you want to exit without saving?",
-                        Message::QuitConfirmed,
-                        Some(Message::QuitCancelled),
+                        Message::QuitConfirm(true),
+                        Some(Message::QuitConfirm(false)),
                     )
                     .ok()
                 } else {
                     Effect::Task(iced::exit()).ok()
                 }
             }
-            Message::QuitConfirmed => {
+            Message::QuitConfirm(close) => {
                 self.close_requested = false;
-                Effect::Task(iced::exit()).ok()
-            }
-            Message::QuitCancelled => {
-                self.close_requested = false;
-                Effect::done()
+                if close {
+                    Effect::Task(iced::exit()).ok()
+                } else {
+                    Effect::done()
+                }
             }
         }
     }

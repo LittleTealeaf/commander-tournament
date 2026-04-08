@@ -1,7 +1,7 @@
 use edh_tourn::player::color::MtgColor;
 use iced::{
-    alignment::Horizontal,
-    widget::{button, column, container, row, text, text_editor, text_input},
+    alignment::{Horizontal, Vertical},
+    widget::{button, checkbox, column, container, row, text, text_editor, text_input},
 };
 use nerd_font_symbols::md::{MD_LINK_VARIANT, MD_SWORD};
 
@@ -34,6 +34,10 @@ pub fn view_info_panel(
     }))
     .spacing(5);
 
+    let checkbox_precon = checkbox(state.info.is_precon())
+        .label("Precon")
+        .on_toggle(PlayerDetailsMsg::SetIsPrecon);
+
     let button_link = button(MD_LINK_VARIANT)
         .on_press_maybe(state.info.moxfield_link().map(PlayerDetailsMsg::OpenLink));
 
@@ -41,8 +45,15 @@ pub fn view_info_panel(
 
     container(
         column![
-            row![edit_name, text_identity].spacing(20),
-            row![edit_moxfieldid, button_link, deck_colors].spacing(20),
+            row![edit_name, checkbox_precon]
+                .spacing(20)
+                .align_y(Vertical::Center),
+            row![edit_moxfieldid, button_link]
+                .spacing(20)
+                .align_y(Vertical::Center),
+            row![deck_colors, text_identity]
+                .spacing(20)
+                .align_y(Vertical::Center),
             edit_description,
             state.id.is_some().then(|| container(
                 button(text(format!("{MD_SWORD} Open Next Match")))

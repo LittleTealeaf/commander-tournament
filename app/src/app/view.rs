@@ -61,12 +61,14 @@ impl ComponentUpdate for View {
                             .ok()
                     }
                     PlayerDetailsOut::OpenLink(link) => Effect::Out(Message::OpenLink(link)).ok(),
-                    PlayerDetailsOut::SaveAndClose(player_id, player_info) => match player_id {
-                        Some(id) => Effect::out(TournamentAction::SetPlayerInfo(id, player_info)),
-                        None => Effect::out(TournamentAction::Register(player_info)),
+                    PlayerDetailsOut::SaveAndClose(player_id, player_info) => {
+                        Effect::out(match player_id {
+                            Some(id) => TournamentAction::SetPlayerInfo(id, player_info),
+                            None => TournamentAction::Register(player_info),
+                        })
+                        .chain(CLOSE_VIEW)
+                        .ok()
                     }
-                    .chain(CLOSE_VIEW)
-                    .ok(),
                     PlayerDetailsOut::OpenPlayerMatches(player_id) => {
                         Effect::out(Message::OpenPlay(PlayMode::player(player_id))).ok()
                     }

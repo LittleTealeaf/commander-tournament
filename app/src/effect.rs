@@ -13,6 +13,7 @@ pub enum Effect<M, O> {
     Batch(Vec<Self>),
     Sequence(Vec<Self>),
     Modal(Modal<M>),
+    OnError(Box<Self>, Option<M>),
     #[default]
     Done,
 }
@@ -41,6 +42,37 @@ where
         Msg: Into<M>,
     {
         Self::Msg(message.into())
+    }
+
+    pub fn delay_msg<Msg>(message: Msg) -> Self
+    where
+        Msg: Into<M>,
+    {
+        Self::Task(Task::done(message.into()))
+    }
+
+    #[must_use]
+    pub fn on_error<Msg>(self, effect: Msg) -> Self
+    where
+        Msg: Into<M>,
+    {
+        Self::OnError(Box::new(self), Some(effect.into()))
+    }
+
+    #[must_use]
+    pub fn ignore_error(self) -> Self {
+        Self::OnError(Box::new(self), None)
+    }
+
+    #[must_use]
+    pub fn maybe_on_error<Msg>(self, effect: Option<Msg>) -> Self
+    where
+        Msg: Into<M>,
+    {
+        match effect {
+            Some(msg) => self.on_error(msg),
+            None => self.ignore_error(),
+        }
     }
 
     pub fn confirm<Ttl, Dtl>(
@@ -117,6 +149,11 @@ where
         F: Fn(O) -> anyhow::Result<Effect<MN, ON>>,
     {
         match self {
+            Self::OnError(effect, on_error) => Effect::OnError(
+                Box::new(effect.inner_map(map_out)?),
+                on_error.map(Into::into),
+            )
+            .ok(),
             Self::Done => Ok(Effect::Done),
             Self::Out(message) => map_out(message),
             Self::Modal(modal) => Ok(Effect::Modal(modal.map())),

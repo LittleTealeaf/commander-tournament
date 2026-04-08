@@ -8,7 +8,7 @@ use iced::{
 use crate::{
     app::Message,
     effect::Effect,
-    style::default_font,
+    style::font_default,
     traits::{Component, ComponentUpdate},
 };
 
@@ -116,7 +116,7 @@ impl<M> Modal<M> {
                                     text(title)
                                         .font(font::Font {
                                             weight: font::Weight::Bold,
-                                            ..default_font()
+                                            ..font_default()
                                         })
                                         .size(20),
                                     text(details)
@@ -135,7 +135,7 @@ impl<M> Modal<M> {
                                     text("Application Error")
                                         .font(font::Font {
                                             weight: font::Weight::Bold,
-                                            ..default_font()
+                                            ..font_default()
                                         })
                                         .size(20),
                                     text(error)

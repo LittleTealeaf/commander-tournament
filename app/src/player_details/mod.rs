@@ -42,6 +42,7 @@ pub enum PlayerDetailsMsg {
     SetStatsTab(StatsTab),
     SelectPlayerReference(PlayerId),
     OpenLink(String),
+    SetIsPrecon(bool),
     /// Opens the dialog to delete the player
     RequestDelete,
     ConfirmDelete,

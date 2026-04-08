@@ -11,12 +11,15 @@ use edh_tourn::{
 use iced::{
     Element, Length, Padding,
     alignment::{Horizontal, Vertical},
-    font,
+    font::Weight,
     widget::{Container, button, column, container, row, scrollable, space, table, text},
 };
 use itertools::Itertools;
 
-use crate::{player_details::PlayerDetailsMsg, style::default_font};
+use crate::{
+    player_details::PlayerDetailsMsg,
+    style::{FontBuilder, font_default},
+};
 
 pub fn stats_summary(stats: &PlayerStats) -> Container<'_, PlayerDetailsMsg> {
     container(
@@ -80,16 +83,17 @@ pub fn stats_game_history(
         column(game.players().iter().map(|player| {
             let elo = player.stats().elo().round();
             button(
-                text(tournament.get_player_name(&player.id()).map_or_else(
-                    || format!("({elo}) {}", player.id()),
-                    |name| format!("({elo}) {name}"),
-                ))
-                .font_maybe((player.id() == game.winner()).then_some(
-                    font::Font {
-                        weight: font::Weight::Bold,
-                        ..default_font()
-                    },
-                )),
+                text(
+                    tournament
+                        .get_player_display_name(&player.id())
+                        .map_or_else(
+                            || format!("({elo}) {}", player.id()),
+                            |name| format!("({elo}) {name}"),
+                        ),
+                )
+                .font_maybe(
+                    (player.id() == game.winner()).then_some(font_default().weight(Weight::Bold)),
+                ),
             )
             .padding(Padding::new(0.0))
             .style(button::text)
@@ -155,7 +159,7 @@ pub fn stats_player_matchups(
         .rev();
 
     let col_player = |(player, _): RowType| {
-        button(text(player.info().name().to_owned()))
+        button(text(player.info().display_name()))
             .style(button::text)
             .padding(Padding::new(0.0))
             .on_press(super::PlayerDetailsMsg::SelectPlayerReference(player.id()))

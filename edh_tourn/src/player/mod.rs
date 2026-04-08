@@ -53,6 +53,6 @@ impl RegisteredPlayer<'_> {
 
 impl Display for RegisteredPlayer<'_> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{}", self.info.name())
+        write!(f, "{}", self.info.display_name())
     }
 }

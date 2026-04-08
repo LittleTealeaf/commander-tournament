@@ -36,20 +36,44 @@ pub enum Message {
     CloseModal,
     Modal(ModalMsg),
     QuitRequested,
-    QuitConfirmed,
-    QuitCancelled,
+    QuitConfirm(bool),
 }
 
 impl App {
     fn process_effect(&mut self, effect: Effect<Message, ()>) -> anyhow::Result<Task<Message>> {
         match effect {
+            Effect::OnError(effect, on_error) => {
+                let result = self.process_effect(*effect);
+                match result {
+                    Ok(task) => Ok(task),
+                    Err(error) => {
+                        eprintln!("Gracefully caught error: {error:#}");
+                        on_error.map_or_else(
+                            || Ok(Task::none()),
+                            |message| self.process_message(message),
+                        )
+                    }
+                }
+            }
             Effect::Msg(message) => self.process_message(message),
             Effect::Out(()) | Effect::Done => Ok(Task::none()),
             Effect::Task(task) => Ok(task),
-            Effect::Batch(effects) => Ok(Task::batch(effects.into_iter().map(|effect| {
-                self.process_effect(effect)
-                    .unwrap_or_else(|err| Task::done(Message::Error(err.to_string())))
-            }))),
+            Effect::Batch(effects) => {
+                let mut errors = Vec::new();
+                let mut tasks = Vec::new();
+                for effect in effects {
+                    match self.process_effect(effect) {
+                        Ok(task) => tasks.push(task),
+                        Err(error) => errors.push(error),
+                    }
+                }
+
+                if errors.is_empty() {
+                    Ok(Task::batch(tasks))
+                } else {
+                    Err(anyhow::anyhow!("Multiple errors occurred: {errors:?}"))
+                }
+            }
             Effect::Sequence(effects) => {
                 let mut task = Task::none();
                 for effect in effects {

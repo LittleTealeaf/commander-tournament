@@ -10,6 +10,11 @@ impl ComponentUpdate for PlayerDetails {
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         match message {
+            PlayerDetailsMsg::SetIsPrecon(is_precon) => {
+                self.info.set_precon(is_precon);
+                self.modified = true;
+                Effect::done()
+            }
             PlayerDetailsMsg::SelectPlayerReference(id) => {
                 if Some(id) == self.id {
                     Effect::done()
