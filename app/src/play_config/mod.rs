@@ -119,7 +119,7 @@ impl ComponentView for PlayConfig {
             ),
             (
                 "Lost With",
-                number_input(&self.config.lost_with, 0..1000, PlayConfigMsg::SetNemesis)
+                number_input(&self.config.lost_with, 0..1000, PlayConfigMsg::SetLostWith)
                     .ignore_buttons(true),
             ),
             (
@@ -127,7 +127,7 @@ impl ComponentView for PlayConfig {
                 number_input(
                     &self.config.elo_neighbor,
                     0..1000,
-                    PlayConfigMsg::SetNemesis,
+                    PlayConfigMsg::SetNeighbor,
                 )
                 .ignore_buttons(true),
             ),
@@ -141,7 +141,7 @@ impl ComponentView for PlayConfig {
                 number_input(
                     &self.config.expected_neighbor,
                     0..1000,
-                    PlayConfigMsg::SetNemesis,
+                    PlayConfigMsg::SetExpected,
                 )
                 .ignore_buttons(true),
             ),
