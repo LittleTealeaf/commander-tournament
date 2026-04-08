@@ -127,21 +127,25 @@ impl ComponentView for PlayConfig {
                 number_input(
                     &self.config.elo_neighbor,
                     0..1000,
-                    PlayConfigMsg::SetNeighbor,
+                    PlayConfigMsg::SetEloNeighbor,
                 )
                 .ignore_buttons(true),
             ),
             (
                 "WR Neighbor",
-                number_input(&self.config.wr_neighbor, 0..1000, PlayConfigMsg::SetNemesis)
-                    .ignore_buttons(true),
+                number_input(
+                    &self.config.wr_neighbor,
+                    0..1000,
+                    PlayConfigMsg::SetWrNeighbor,
+                )
+                .ignore_buttons(true),
             ),
             (
                 "Expected Neighbor",
                 number_input(
                     &self.config.expected_neighbor,
                     0..1000,
-                    PlayConfigMsg::SetExpected,
+                    PlayConfigMsg::SetExpectedNeighbor,
                 )
                 .ignore_buttons(true),
             ),
