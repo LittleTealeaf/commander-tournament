@@ -28,7 +28,6 @@ pub struct App {
     modified: bool,
     is_saving: bool,
     home: home::Home,
-    error: Option<String>,
     file: Option<PathBuf>,
     views: Vec<View>,
     modals: Vec<Modal<Message>>,

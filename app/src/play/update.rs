@@ -50,7 +50,7 @@ impl PlayMode {
                 let id = match mode {
                     PlayNextMode::LeastGames => tournament
                         .get_registered_players()
-                        .sorted_by_key(|player| player.stats().games())
+                        .sorted_by_key(|player| (player.stats().games(), player.id()))
                         .next()?
                         .id(),
                     PlayNextMode::LongestBreak => get_longest_break(tournament)?,
