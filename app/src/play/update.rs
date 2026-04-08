@@ -21,12 +21,13 @@ fn get_longest_break(tournament: &Tournament, ignore_precons: bool) -> Option<Pl
     let mut players = HashSet::with_capacity(tournament.players().keys().len());
 
     for player in tournament.get_registered_players() {
+        if ignore_precons && player.info().is_precon() {
+            continue;
+        }
         if player.stats().games() == 0 {
             return Some(player.id());
         }
-        if !ignore_precons || !player.info().is_precon() {
-            players.insert(player.id());
-        }
+        players.insert(player.id());
     }
 
     for game in tournament.games().iter().rev() {
