@@ -1,14 +1,13 @@
 use iced::{
     Color, Element, Length,
     alignment::Horizontal,
-    font,
     widget::{button, center, column, container, opaque, row, space, stack, text},
 };
 
 use crate::{
     app::Message,
     effect::Effect,
-    style::font_default,
+    fonts::FONT_BOLD,
     traits::{Component, ComponentUpdate},
 };
 
@@ -113,12 +112,7 @@ impl<M> Modal<M> {
                         container(match self {
                             Self::Confirm { title, details, .. } => {
                                 column![
-                                    text(title)
-                                        .font(font::Font {
-                                            weight: font::Weight::Bold,
-                                            ..font_default()
-                                        })
-                                        .size(20),
+                                    text(title).font(FONT_BOLD).size(20),
                                     text(details)
                                         .wrapping(text::Wrapping::Word)
                                         .width(Length::Fill),
@@ -129,15 +123,12 @@ impl<M> Modal<M> {
                                     ]
                                     .spacing(10)
                                 ]
+                                .spacing(10)
+                                .padding(10)
                             }
                             Self::Error { error } => {
                                 column![
-                                    text("Application Error")
-                                        .font(font::Font {
-                                            weight: font::Weight::Bold,
-                                            ..font_default()
-                                        })
-                                        .size(20),
+                                    text("Application Error").font(FONT_BOLD).size(20),
                                     text(error)
                                         .wrapping(text::Wrapping::Word)
                                         .width(Length::Fill),
@@ -146,6 +137,7 @@ impl<M> Modal<M> {
                                         .width(Length::Fill)
                                 ]
                                 .spacing(10)
+                                .padding(10)
                             }
                         })
                         .width(250)

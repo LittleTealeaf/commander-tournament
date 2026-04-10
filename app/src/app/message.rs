@@ -12,8 +12,8 @@ use crate::{
     effect::Effect,
     home::HomeMsg,
     modals::ModalMsg,
-    play::PlayMode,
     traits::ComponentUpdate,
+    views::play::PlayMode,
 };
 
 #[derive(Debug, Clone, derive_more::From)]

@@ -1,3 +1,4 @@
+use core::cmp::Ordering;
 use core::iter::once;
 use std::collections::HashSet;
 
@@ -10,24 +11,23 @@ use itertools::Itertools;
 
 use crate::{
     effect::Effect,
-    play::{
+    traits::ComponentUpdate,
+    views::play::{
         PlayMode, PlayMsg, PlayNextMode, PlayOut, PlayView,
         match_preview::{MatchPreview, MatchPreviewOut},
     },
-    traits::ComponentUpdate,
 };
 
-fn get_longest_break(tournament: &Tournament, ignore_precons: bool) -> Option<PlayerId> {
-    let mut players = HashSet::with_capacity(tournament.players().keys().len());
+fn get_longest_break<I>(tournament: &Tournament, players: I) -> Option<PlayerId>
+where
+    I: IntoIterator<Item = PlayerId>,
+{
+    let mut players = players.into_iter().collect::<HashSet<_>>();
 
-    for player in tournament.get_registered_players() {
-        if ignore_precons && player.info().is_precon() {
-            continue;
+    for player in &players {
+        if tournament.get_player_or_default_stats(*player).games() == 0 {
+            return Some(*player);
         }
-        if player.stats().games() == 0 {
-            return Some(player.id());
-        }
-        players.insert(player.id());
     }
 
     for game in tournament.games().iter().rev() {
@@ -57,13 +57,48 @@ impl PlayMode {
                 mode,
                 ignore_precons,
             } => {
+                let players = tournament
+                    .get_registered_players()
+                    .filter(|player| !*ignore_precons || !player.info().is_precon());
                 let id = match mode {
-                    PlayNextMode::LeastGames => tournament
-                        .get_registered_players()
-                        .filter(|player| !*ignore_precons || !player.info().is_precon())
+                    PlayNextMode::LeastGames => players
                         .min_by_key(|player| (player.stats().games(), player.id()))?
                         .id(),
-                    PlayNextMode::LongestBreak => get_longest_break(tournament, *ignore_precons)?,
+                    PlayNextMode::LongestBreak => {
+                        get_longest_break(tournament, players.map(|player| player.id()))?
+                    }
+                    PlayNextMode::LeastWins => players
+                        .min_by_key(|player| (player.stats().wins(), player.id()))?
+                        .id(),
+                    PlayNextMode::LowestWinrate => players
+                        .min_by(|a, b| {
+                            a.stats()
+                                .wr_unwrap()
+                                .partial_cmp(&b.stats().wr_unwrap())
+                                .unwrap_or(Ordering::Equal)
+                                .then_with(|| a.id().cmp(&b.id()))
+                        })?
+                        .id(),
+                    PlayNextMode::HighestWinrate => players
+                        .max_by(|a, b| {
+                            a.stats()
+                                .wr_unwrap()
+                                .partial_cmp(&b.stats().wr_unwrap())
+                                .unwrap_or(Ordering::Equal)
+                                .then_with(|| a.id().cmp(&b.id()))
+                        })?
+                        .id(),
+                    PlayNextMode::OutlierWinrate => players
+                        .max_by(|a, b| {
+                            let a_wr = a.stats().wr_unwrap();
+                            let b_wr = b.stats().wr_unwrap();
+                            #[allow(clippy::cast_precision_loss)]
+                            let target = 1.0 / (POD_SIZE as f64);
+                            let a_diff = (a_wr - target).abs();
+                            let b_diff = (b_wr - target).abs();
+                            a_diff.total_cmp(&b_diff).then_with(|| a.id().cmp(&b.id()))
+                        })?
+                        .id(),
                 };
                 let rankings = tournament.ranking().ranked(id, *ranking).ok()?;
                 let opponents = rankings.into_iter().take(3).map(|p| p.id());
@@ -154,7 +189,7 @@ impl ComponentUpdate for PlayView {
                 modified = true;
                 Effect::Done
             }
-            PlayMsg::OpenConfig => Effect::out(PlayOut::OpenPlayConfig),
+            PlayMsg::OpenConfig => Effect::out(PlayOut::OpenRankingConfig),
         };
 
         if modified {

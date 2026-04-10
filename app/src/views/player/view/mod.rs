@@ -9,7 +9,8 @@ use iced::{
 use iced_aw::{TabBar, TabLabel};
 
 use crate::{
-    player_details::{
+    traits::ComponentView,
+    views::player::{
         PlayerDetailsMsg, StatsTab,
         view::{
             info::view_info_panel,
@@ -19,10 +20,9 @@ use crate::{
             },
         },
     },
-    traits::ComponentView,
 };
 
-impl ComponentView for super::PlayerDetails {
+impl ComponentView for super::PlayerView {
     type ViewContext<'a>
         = &'a Tournament
     where
@@ -36,7 +36,7 @@ impl ComponentView for super::PlayerDetails {
                 StatsTab::VALUES
                     .into_iter()
                     .fold(
-                        TabBar::new(super::PlayerDetailsMsg::SetStatsTab),
+                        TabBar::new(crate::views::player::PlayerDetailsMsg::SetStatsTab),
                         |tab_bar, tab| { tab_bar.push(tab, TabLabel::Text(format!("{tab}"))) }
                     )
                     .set_active_tab(&self.stats),

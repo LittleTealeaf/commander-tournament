@@ -177,4 +177,9 @@ mod tests {
         let settings = AppState::load().await.unwrap();
         assert_ne!(system_path, settings.save_path);
     }
+
+    #[test]
+    fn state_path_exists() {
+        get_state_path().unwrap();
+    }
 }

@@ -5,8 +5,8 @@ use iced::{
 };
 
 use crate::{
-    play::{PlayMsg, PlayNextMode, PlayView},
     traits::ComponentView,
+    views::play::{PlayMsg, PlayNextMode, PlayView},
 };
 
 use super::PlayMode;

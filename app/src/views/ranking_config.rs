@@ -5,15 +5,16 @@ use nerd_font_symbols::md::{MD_CONTENT_SAVE, MD_RESTORE, MD_UNDO};
 
 use crate::{
     effect::Effect,
-    traits::{Component, ComponentUpdate, ComponentView, ViewScreen},
+    traits::{Component, ComponentUpdate, ComponentView},
+    views::ViewScreen,
 };
 
 #[derive(Debug, Clone)]
-pub struct PlayConfig {
+pub struct RankingConfigView {
     config: RankingConfig,
 }
 
-impl PlayConfig {
+impl RankingConfigView {
     #[must_use]
     pub const fn new(config: RankingConfig) -> Self {
         Self { config }
@@ -21,7 +22,7 @@ impl PlayConfig {
 }
 
 #[derive(Clone, Debug)]
-pub enum PlayConfigMsg {
+pub enum RankingConfigMsg {
     Close,
     Save,
     SetDefault,
@@ -35,17 +36,17 @@ pub enum PlayConfigMsg {
 }
 
 #[derive(Debug, Clone)]
-pub enum PlayConfigOut {
+pub enum RankingConfigOut {
     Close,
     SaveAndClose(RankingConfig),
 }
 
-impl Component for PlayConfig {
-    type Message = PlayConfigMsg;
-    type OutMessage = PlayConfigOut;
+impl Component for RankingConfigView {
+    type Message = RankingConfigMsg;
+    type OutMessage = RankingConfigOut;
 }
 
-impl ComponentUpdate for PlayConfig {
+impl ComponentUpdate for RankingConfigView {
     type UpdateContext<'a> = &'a Tournament;
     fn update(
         &mut self,
@@ -53,27 +54,27 @@ impl ComponentUpdate for PlayConfig {
         context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::effect::Effect<Self::Message, Self::OutMessage>> {
         match message {
-            PlayConfigMsg::Close => return Effect::out(PlayConfigOut::Close).ok(),
-            PlayConfigMsg::Save => {
-                return Effect::out(PlayConfigOut::SaveAndClose(self.config.clone())).ok();
+            RankingConfigMsg::Close => return Effect::out(RankingConfigOut::Close).ok(),
+            RankingConfigMsg::Save => {
+                return Effect::out(RankingConfigOut::SaveAndClose(self.config.clone())).ok();
             }
-            PlayConfigMsg::SetLeastPlayed(value) => {
+            RankingConfigMsg::SetLeastPlayed(value) => {
                 self.config.least_played = value;
             }
-            PlayConfigMsg::SetNemesis(value) => self.config.nemesis = value,
-            PlayConfigMsg::SetLostWith(value) => self.config.lost_with = value,
-            PlayConfigMsg::SetEloNeighbor(value) => self.config.elo_neighbor = value,
-            PlayConfigMsg::SetWrNeighbor(value) => self.config.wr_neighbor = value,
-            PlayConfigMsg::SetExpectedNeighbor(value) => self.config.expected_neighbor = value,
-            PlayConfigMsg::SetDefault => self.config = RankingConfig::default(),
-            PlayConfigMsg::Reset => self.config = context.ranking_config().clone(),
+            RankingConfigMsg::SetNemesis(value) => self.config.nemesis = value,
+            RankingConfigMsg::SetLostWith(value) => self.config.lost_with = value,
+            RankingConfigMsg::SetEloNeighbor(value) => self.config.elo_neighbor = value,
+            RankingConfigMsg::SetWrNeighbor(value) => self.config.wr_neighbor = value,
+            RankingConfigMsg::SetExpectedNeighbor(value) => self.config.expected_neighbor = value,
+            RankingConfigMsg::SetDefault => self.config = RankingConfig::default(),
+            RankingConfigMsg::Reset => self.config = context.ranking_config().clone(),
         }
         Effect::done()
     }
 }
 
-impl ViewScreen for PlayConfig {
-    const CLOSE_MESSAGE: Self::Message = PlayConfigMsg::Close;
+impl ViewScreen for RankingConfigView {
+    const CLOSE_MESSAGE: Self::Message = RankingConfigMsg::Close;
     fn title<'a>(&'a self, (): Self::ViewContext<'a>) -> String {
         "Play Settings".to_owned()
     }
@@ -82,7 +83,7 @@ impl ViewScreen for PlayConfig {
         &'a self,
         (): Self::ViewContext<'a>,
     ) -> impl IntoIterator<Item = iced::widget::Button<'a, Self::Message>> {
-        [button(MD_CONTENT_SAVE).on_press(PlayConfigMsg::Save)]
+        [button(MD_CONTENT_SAVE).on_press(RankingConfigMsg::Save)]
     }
 
     fn secondary_actions<'a>(
@@ -90,13 +91,13 @@ impl ViewScreen for PlayConfig {
         (): Self::ViewContext<'a>,
     ) -> impl IntoIterator<Item = button::Button<'a, Self::Message>> {
         [
-            button(MD_UNDO).on_press(PlayConfigMsg::Reset),
-            button(MD_RESTORE).on_press(PlayConfigMsg::SetDefault),
+            button(MD_UNDO).on_press(RankingConfigMsg::Reset),
+            button(MD_RESTORE).on_press(RankingConfigMsg::SetDefault),
         ]
     }
 }
 
-impl ComponentView for PlayConfig {
+impl ComponentView for RankingConfigView {
     type ViewContext<'a>
         = ()
     where
@@ -108,26 +109,30 @@ impl ComponentView for PlayConfig {
                 number_input(
                     &self.config.least_played,
                     0..1000,
-                    PlayConfigMsg::SetLeastPlayed,
+                    RankingConfigMsg::SetLeastPlayed,
                 )
                 .ignore_buttons(true),
             ),
             (
                 "Nemesis",
-                number_input(&self.config.nemesis, 0..1000, PlayConfigMsg::SetNemesis)
+                number_input(&self.config.nemesis, 0..1000, RankingConfigMsg::SetNemesis)
                     .ignore_buttons(true),
             ),
             (
                 "Lost With",
-                number_input(&self.config.lost_with, 0..1000, PlayConfigMsg::SetLostWith)
-                    .ignore_buttons(true),
+                number_input(
+                    &self.config.lost_with,
+                    0..1000,
+                    RankingConfigMsg::SetLostWith,
+                )
+                .ignore_buttons(true),
             ),
             (
                 "Elo Neighbor",
                 number_input(
                     &self.config.elo_neighbor,
                     0..1000,
-                    PlayConfigMsg::SetEloNeighbor,
+                    RankingConfigMsg::SetEloNeighbor,
                 )
                 .ignore_buttons(true),
             ),
@@ -136,7 +141,7 @@ impl ComponentView for PlayConfig {
                 number_input(
                     &self.config.wr_neighbor,
                     0..1000,
-                    PlayConfigMsg::SetWrNeighbor,
+                    RankingConfigMsg::SetWrNeighbor,
                 )
                 .ignore_buttons(true),
             ),
@@ -145,7 +150,7 @@ impl ComponentView for PlayConfig {
                 number_input(
                     &self.config.expected_neighbor,
                     0..1000,
-                    PlayConfigMsg::SetExpectedNeighbor,
+                    RankingConfigMsg::SetExpectedNeighbor,
                 )
                 .ignore_buttons(true),
             ),

@@ -10,12 +10,12 @@ use crate::{
     },
     effect::Effect,
     home::{HomeMsg, HomeOut},
-    play::PlayView,
-    play_config::PlayConfig,
-    player_details::PlayerDetails,
     services::system::open_link,
     traits::{ComponentUpdate, HandleMessage},
+    views::{play::PlayView, player::PlayerView, ranking_config::RankingConfigView},
 };
+
+use super::view::View;
 
 impl ComponentUpdate for App {
     type UpdateContext<'a> = ();
@@ -37,7 +37,13 @@ impl ComponentUpdate for App {
         match message {
             Message::CloseView => {
                 self.views.pop();
-                Effect::done()
+
+                self.views
+                    .last()
+                    .and_then(View::on_resume)
+                    .map(Effect::msg)
+                    .unwrap_or_default()
+                    .ok()
             }
             Message::Nothing => Effect::done(),
             Message::AppState(message) => self.handle_message(message, ()),
@@ -58,7 +64,7 @@ impl ComponentUpdate for App {
             Message::TournFile(message) => self.handle_message(message, ()),
             Message::Error(error) => Err(anyhow::anyhow!("{error}")),
             Message::OpenPlayerDetails(maybe_id) => {
-                self.push_view(PlayerDetails::new(
+                self.push_view(PlayerView::new(
                     maybe_id.and_then(|id| self.tournament().get_registered_player(id)),
                 ));
                 Effect::done()
@@ -115,7 +121,9 @@ impl ComponentUpdate for App {
                 }
             }
             Message::OpenPlayConfig => {
-                self.push_view(PlayConfig::new(self.tournament.ranking_config().clone()));
+                self.push_view(RankingConfigView::new(
+                    self.tournament.ranking_config().clone(),
+                ));
                 Effect::done()
             }
         }
