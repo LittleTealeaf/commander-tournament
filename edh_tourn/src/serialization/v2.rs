@@ -91,19 +91,26 @@ impl From<V2Tournament> for V3Tournament {
         };
 
         let ranking_config = RankingConfig {
-            least_played: value.config.match_weight_least_played.round() as usize,
-            nemesis: value.config.match_weight_nemesis.round() as usize,
-            lost_with: value.config.match_weight_lost_with.round() as usize,
-            elo_neighbor: value.config.match_weight_elo_neighbor.round() as usize,
-            wr_neighbor: value.config.match_weight_wr_neighbor.round() as usize,
-            expected_neighbor: value.config.match_weight_expected_neighbor.round() as usize,
+            least_played: (value.config.match_weight_least_played.round() as usize).max(1),
+            nemesis: (value.config.match_weight_nemesis.round() as usize).max(1),
+            lost_with: (value.config.match_weight_lost_with.round() as usize).max(1),
+            elo_neighbor: (value.config.match_weight_elo_neighbor.round() as usize).max(1),
+            wr_neighbor: (value.config.match_weight_wr_neighbor.round() as usize).max(1),
+            expected_neighbor: (value.config.match_weight_expected_neighbor.round() as usize)
+                .max(1),
         };
 
         Self {
             config: TournamentConfig {
                 game: game_config,
+                matchmaker: MatchmakerConfig {
+                    player_least_played: ranking_config.least_played,
+                    player_lost_with: ranking_config.lost_with,
+                    player_nemesis: ranking_config.nemesis,
+                    elo_neighbor: ranking_config.elo_neighbor,
+                    wr_neighbor: ranking_config.wr_neighbor,
+                },
                 ranking: ranking_config,
-                matchmaker: MatchmakerConfig::new(),
             },
             players: value
                 .players

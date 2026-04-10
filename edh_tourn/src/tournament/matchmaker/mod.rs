@@ -61,7 +61,9 @@ impl Matchmaker<'_> {
 
         self.0.create_match(players)
     }
+}
 
+impl Matchmaker<'_> {
     fn get_root_player(self, player: MatchmakingPlayer) -> Option<PlayerId> {
         match player {
             MatchmakingPlayer::Player(player_id) => Some(player_id),
@@ -95,7 +97,9 @@ impl Matchmaker<'_> {
 
         players.into_iter().next()
     }
+}
 
+impl Matchmaker<'_> {
     fn get_next_player(
         self,
         agg_stats: &AggregateStats,
@@ -140,7 +144,6 @@ impl Matchmaker<'_> {
             )
         )
     }
-
 }
 
 fn to_weight_rank<I, T>(ranking: I, weight: usize) -> impl Iterator<Item = (T, usize)>
