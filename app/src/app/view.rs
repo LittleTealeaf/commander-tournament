@@ -1,36 +1,46 @@
 use edh_tourn::tournament::Tournament;
 use iced::Element;
 
-use crate::error::{ErrorMsg, ErrorOut};
 use crate::modals::Modal;
-use crate::play::PlayMode;
-use crate::play_config::{PlayConfig, PlayConfigMsg, PlayConfigOut};
-use crate::traits::ViewScreen;
+use crate::views::ViewScreen;
+use crate::views::{
+    play::PlayMode,
+    ranking_config::{RankingConfigMsg, RankingConfigOut, RankingConfigView},
+};
 use crate::{
     App,
     app::message::Message,
     core::tournament::TournamentAction,
     effect::Effect,
-    error::ErrorView,
-    play::{PlayMsg, PlayOut, PlayView},
-    player_details::{PlayerDetails, PlayerDetailsMsg, PlayerDetailsOut},
     traits::{Component, ComponentUpdate, ComponentView},
+    views::{
+        play::{PlayMsg, PlayOut, PlayView},
+        player::{PlayerDetailsMsg, PlayerDetailsOut, PlayerView},
+    },
 };
 
 #[derive(Clone, Debug, derive_more::From)]
 pub enum View {
-    Error(ErrorView),
     Play(PlayView),
-    PlaySettings(PlayConfig),
-    PlayerDetails(PlayerDetails),
+    PlaySettings(RankingConfigView),
+    PlayerDetails(PlayerView),
+}
+
+impl View {
+    pub fn on_resume(&self) -> Option<ViewMsg> {
+        match self {
+            Self::Play(_) => PlayView::ON_RESUME.map(Into::into),
+            Self::PlaySettings(_) => RankingConfigView::ON_RESUME.map(Into::into),
+            Self::PlayerDetails(_) => PlayerView::ON_RESUME.map(Into::into),
+        }
+    }
 }
 
 #[derive(Debug, Clone, derive_more::From)]
 pub enum ViewMsg {
     PlayerDetails(PlayerDetailsMsg),
-    PlaySettings(PlayConfigMsg),
+    PlaySettings(RankingConfigMsg),
     Play(PlayMsg),
-    Error(ErrorMsg),
 }
 
 impl Component for View {
@@ -88,21 +98,15 @@ impl ComponentUpdate for View {
                         Effect::out(Message::OpenPlayerDetails(Some(player_id))).ok()
                     }
                     PlayOut::Close => CLOSE_VIEW.ok(),
-                    PlayOut::OpenPlayConfig => Effect::out(Message::OpenPlayConfig).ok(),
-                })
-            }
-            (Self::Error(state), ViewMsg::Error(msg)) => {
-                state.update(msg, ())?.map(|out| match out {
-                    ErrorOut::Close => CLOSE_VIEW.ok(),
+                    PlayOut::OpenRankingConfig => Effect::out(Message::OpenPlayConfig).ok(),
                 })
             }
             (Self::PlaySettings(state), ViewMsg::PlaySettings(msg)) => {
                 state.update(msg, context.tourn)?.map(|out| match out {
-                    PlayConfigOut::Close => CLOSE_VIEW.ok(),
-                    PlayConfigOut::SaveAndClose(ranking_config) => {
+                    RankingConfigOut::Close => CLOSE_VIEW.ok(),
+                    RankingConfigOut::SaveAndClose(ranking_config) => {
                         Effect::out(TournamentAction::SetRankingConfig(ranking_config))
                             .chain(CLOSE_VIEW)
-                            .chain(Effect::msg(PlayMsg::RefreshMatchup))
                             .ok()
                     }
                 })
@@ -120,7 +124,6 @@ impl ComponentView for View {
     fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> Element<'a, Self::Message> {
         match self {
             Self::PlaySettings(settings) => settings.screen_view_into(()),
-            Self::Error(error) => error.screen_view_into(()),
             Self::PlayerDetails(player_details) => {
                 player_details.screen_view_into(context.tournament())
             }

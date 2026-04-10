@@ -9,8 +9,8 @@ use crate::{
         leaderboard::{Leaderboard, LeaderboardMsg, LeaderboardOut},
         menu::{Menu, MenuMsg},
     },
-    play::PlayMode,
     traits::{Component, ComponentUpdate, ComponentView},
+    views::play::PlayMode,
 };
 
 pub mod leaderboard;

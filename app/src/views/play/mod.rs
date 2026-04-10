@@ -4,6 +4,7 @@ mod view;
 
 use core::fmt::Display;
 
+use auto_const_array::auto_const_array;
 use edh_tourn::{
     game::{POD_SIZE, record::GameRecord},
     player::PlayerId,
@@ -11,11 +12,14 @@ use edh_tourn::{
     tournament::Tournament,
 };
 use iced::widget::button;
-use nerd_font_symbols::fa::FA_GEAR;
+use nerd_font_symbols::md::MD_COG;
 
 use crate::{
-    play::match_preview::{MatchPreview, MatchPreviewMsg},
-    traits::{Component, ViewScreen},
+    traits::Component,
+    views::{
+        ViewScreen,
+        play::match_preview::{MatchPreview, MatchPreviewMsg},
+    },
 };
 
 #[derive(Debug, Clone)]
@@ -28,6 +32,10 @@ pub struct PlayView {
 pub enum PlayNextMode {
     LeastGames,
     LongestBreak,
+    LeastWins,
+    OutlierWinrate,
+    LowestWinrate,
+    HighestWinrate,
 }
 
 impl Display for PlayNextMode {
@@ -35,12 +43,25 @@ impl Display for PlayNextMode {
         f.write_str(match self {
             Self::LeastGames => "Least Games",
             Self::LongestBreak => "Longest Break",
+            Self::LeastWins => "Least Wins",
+            Self::OutlierWinrate => "Outlier Winrate",
+            Self::LowestWinrate => "Lowest Winrate",
+            Self::HighestWinrate => "Highest Winrate",
         })
     }
 }
 
 impl PlayNextMode {
-    const VALUES: [Self; 2] = [Self::LeastGames, Self::LongestBreak];
+    auto_const_array! {
+        const VALUES: [Self; _] = [
+            Self::LongestBreak,
+            Self::LeastGames,
+            Self::LeastWins,
+            Self::OutlierWinrate,
+            Self::LowestWinrate,
+            Self::HighestWinrate,
+        ]
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -112,7 +133,7 @@ pub enum PlayMsg {
 #[derive(Clone, Debug)]
 pub enum PlayOut {
     Close,
-    OpenPlayConfig,
+    OpenRankingConfig,
     OpenLink(String),
     RecordGame(Box<GameRecord>),
     OpenPlayerInfo(PlayerId),
@@ -125,6 +146,8 @@ impl Component for PlayView {
 
 impl ViewScreen for PlayView {
     const CLOSE_MESSAGE: Self::Message = PlayMsg::Close;
+    const ON_RESUME: Option<Self::Message> = Some(PlayMsg::RefreshMatchup);
+
     fn title<'a>(&'a self, context: Self::ViewContext<'a>) -> String {
         match &self.mode {
             PlayMode::Player { id, .. } => format!(
@@ -142,6 +165,7 @@ impl ViewScreen for PlayView {
         &'a self,
         _: Self::ViewContext<'a>,
     ) -> impl IntoIterator<Item = iced::widget::Button<'a, Self::Message>> {
-        [button(FA_GEAR).on_press(PlayMsg::OpenConfig)]
+        matches!(self.mode, PlayMode::Next { .. } | PlayMode::Player { .. })
+            .then_some(button(MD_COG).on_press(PlayMsg::OpenConfig))
     }
 }

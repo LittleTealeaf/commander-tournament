@@ -1,8 +1,8 @@
-use crate::{effect::Effect, player_details::PlayerDetailsOut, traits::ComponentUpdate};
+use crate::{effect::Effect, traits::ComponentUpdate, views::player::PlayerDetailsOut};
 
-use super::{PlayerDetails, PlayerDetailsMsg};
+use super::{PlayerDetailsMsg, PlayerView};
 
-impl ComponentUpdate for PlayerDetails {
+impl ComponentUpdate for PlayerView {
     type UpdateContext<'a> = ();
     fn update(
         &mut self,

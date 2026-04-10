@@ -5,10 +5,10 @@ use edh_tourn::player::{PlayerId, RegisteredPlayer, color::MtgColor, info::Playe
 use iced::widget::{button, text_editor};
 use nerd_font_symbols::md::{MD_CONTENT_SAVE, MD_DELETE};
 
-use crate::traits::{Component, ViewScreen};
+use crate::{traits::Component, views::ViewScreen};
 
 #[derive(Debug, Clone)]
-pub struct PlayerDetails {
+pub struct PlayerView {
     id: Option<PlayerId>,
     initial_name: String,
     info: PlayerInfo,
@@ -59,7 +59,7 @@ pub enum PlayerDetailsOut {
     OpenPlayerMatches(PlayerId),
 }
 
-impl PlayerDetails {
+impl PlayerView {
     #[must_use]
     pub fn new(player: Option<RegisteredPlayer<'_>>) -> Self {
         let id = player.as_ref().map(RegisteredPlayer::id);
@@ -80,12 +80,12 @@ impl PlayerDetails {
     }
 }
 
-impl Component for PlayerDetails {
+impl Component for PlayerView {
     type Message = PlayerDetailsMsg;
     type OutMessage = PlayerDetailsOut;
 }
 
-impl ViewScreen for PlayerDetails {
+impl ViewScreen for PlayerView {
     const CLOSE_MESSAGE: Self::Message = PlayerDetailsMsg::Close;
 
     fn primary_actions<'a>(
