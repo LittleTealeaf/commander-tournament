@@ -10,5 +10,4 @@ pub mod ranking;
 mod serialization;
 pub mod tournament;
 pub mod tsv;
-pub mod matchmaking;
 pub mod utils;

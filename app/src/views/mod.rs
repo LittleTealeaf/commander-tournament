@@ -1,6 +1,6 @@
 pub mod play;
 pub mod player;
-pub mod ranking_config;
+pub mod matchmaker_config;
 
 use core::iter::{empty, once};
 

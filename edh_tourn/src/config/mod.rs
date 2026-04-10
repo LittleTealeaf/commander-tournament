@@ -1,14 +1,17 @@
 use crate::config::{game::GameConfig, matchmaker::MatchmakerConfig, ranking::RankingConfig};
 
 pub mod game;
-pub mod ranking;
 pub mod matchmaker;
+pub mod ranking;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Default)]
 pub struct TournamentConfig {
+    #[serde(default)]
     pub(crate) game: GameConfig,
+    #[serde(default)]
     pub(crate) ranking: RankingConfig,
-    pub(crate) matchmaker: MatchmakerConfig
+    #[serde(default)]
+    pub(crate) matchmaker: MatchmakerConfig,
 }
 
 impl TournamentConfig {
@@ -17,7 +20,7 @@ impl TournamentConfig {
         Self {
             game: GameConfig::new(),
             ranking: RankingConfig::new(),
-            matchmaker: MatchmakerConfig::new()
+            matchmaker: MatchmakerConfig::new(),
         }
     }
 

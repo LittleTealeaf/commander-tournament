@@ -1,5 +1,5 @@
 use edh_tourn::{
-    config::{game::GameConfig, ranking::RankingConfig},
+    config::{game::GameConfig, matchmaker::MatchmakerConfig, ranking::RankingConfig},
     error::TournamentError,
     game::record::GameRecord,
     player::{PlayerId, info::PlayerInfo},
@@ -18,6 +18,7 @@ pub enum TournamentAction {
     Reload,
     SetGameConfig(GameConfig),
     SetRankingConfig(RankingConfig),
+    SetMatchmakerConfig(MatchmakerConfig),
 }
 
 impl TournamentAction {
@@ -37,6 +38,10 @@ impl TournamentAction {
             }
             Self::DeleteGame(index) => tournament.delete_game(index),
             Self::SetPlayerInfo(id, info) => tournament.set_player_info(id, info),
+            Self::SetMatchmakerConfig(config) => {
+                tournament.set_matchmaker_config(config);
+                Ok(())
+            }
         }
     }
 }

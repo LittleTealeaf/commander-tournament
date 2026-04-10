@@ -1,4 +1,4 @@
-use edh_tourn::{ranking::RankingMethod, tournament::Tournament};
+use edh_tourn::tournament::Tournament;
 use iced::{
     alignment::{Horizontal, Vertical},
     widget::{checkbox, column, container, pick_list, row, text},
@@ -19,47 +19,25 @@ impl ComponentView for PlayView {
 
     fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
         let options = match &self.mode {
-            PlayMode::Player { ranking, .. } => {
-                row![
-                    column![
-                        text("Ranking Method"),
-                        pick_list(
-                            RankingMethod::VALUES,
-                            Some(ranking),
-                            PlayMsg::SetRankingMethod
-                        )
-                    ]
-                    .spacing(5)
-                    .align_x(Horizontal::Left)
-                ]
-            }
+            PlayMode::Player(_) => None,
             PlayMode::Next {
-                ranking,
                 mode,
                 ignore_precons,
-            } => row![
-                column![
-                    text("Select Mode"),
-                    pick_list(PlayNextMode::VALUES, Some(mode), PlayMsg::SetNextMode)
+            } => Some(
+                row![
+                    column![
+                        text("Select Mode"),
+                        pick_list(PlayNextMode::VALUES, Some(mode), PlayMsg::SetNextMode)
+                    ]
+                    .spacing(5)
+                    .align_x(Horizontal::Left),
+                    checkbox(*ignore_precons)
+                        .label("Ignore Precons")
+                        .on_toggle(PlayMsg::IgnorePrecons)
                 ]
-                .spacing(5)
-                .align_x(Horizontal::Left),
-                column![
-                    text("Ranking Method"),
-                    pick_list(
-                        RankingMethod::VALUES,
-                        Some(ranking),
-                        PlayMsg::SetRankingMethod
-                    )
-                ]
-                .spacing(5)
-                .align_x(Horizontal::Left),
-                checkbox(*ignore_precons)
-                    .label("Ignore Precons")
-                    .on_toggle(PlayMsg::IgnorePrecons)
-            ]
-            .align_y(Vertical::Bottom)
-            .spacing(10),
+                .align_y(Vertical::Bottom)
+                .spacing(10),
+            ),
             PlayMode::Custom { players } => {
                 let options = context.get_registered_players().collect::<Vec<_>>();
                 let selectors = players.iter().enumerate().map(|(index, player)| {
@@ -70,7 +48,7 @@ impl ComponentView for PlayView {
                     .into()
                 });
 
-                row![column(selectors).spacing(10)]
+                Some(row![column(selectors).spacing(10)])
             }
         };
 

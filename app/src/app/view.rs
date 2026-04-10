@@ -4,8 +4,8 @@ use iced::Element;
 use crate::modals::Modal;
 use crate::views::ViewScreen;
 use crate::views::{
+    matchmaker_config::{MatchmakerConfigMsg, MatchmakerConfigOut, MatchmakerConfigView},
     play::PlayMode,
-    ranking_config::{RankingConfigMsg, RankingConfigOut, RankingConfigView},
 };
 use crate::{
     App,
@@ -22,7 +22,7 @@ use crate::{
 #[derive(Clone, Debug, derive_more::From)]
 pub enum View {
     Play(PlayView),
-    PlaySettings(RankingConfigView),
+    PlaySettings(MatchmakerConfigView),
     PlayerDetails(PlayerView),
 }
 
@@ -30,7 +30,7 @@ impl View {
     pub fn on_resume(&self) -> Option<ViewMsg> {
         match self {
             Self::Play(_) => PlayView::ON_RESUME.map(Into::into),
-            Self::PlaySettings(_) => RankingConfigView::ON_RESUME.map(Into::into),
+            Self::PlaySettings(_) => MatchmakerConfigView::ON_RESUME.map(Into::into),
             Self::PlayerDetails(_) => PlayerView::ON_RESUME.map(Into::into),
         }
     }
@@ -39,7 +39,7 @@ impl View {
 #[derive(Debug, Clone, derive_more::From)]
 pub enum ViewMsg {
     PlayerDetails(PlayerDetailsMsg),
-    PlaySettings(RankingConfigMsg),
+    PlaySettings(MatchmakerConfigMsg),
     Play(PlayMsg),
 }
 
@@ -103,9 +103,9 @@ impl ComponentUpdate for View {
             }
             (Self::PlaySettings(state), ViewMsg::PlaySettings(msg)) => {
                 state.update(msg, context.tourn)?.map(|out| match out {
-                    RankingConfigOut::Close => CLOSE_VIEW.ok(),
-                    RankingConfigOut::SaveAndClose(ranking_config) => {
-                        Effect::out(TournamentAction::SetRankingConfig(ranking_config))
+                    MatchmakerConfigOut::Close => CLOSE_VIEW.ok(),
+                    MatchmakerConfigOut::SaveAndClose(ranking_config) => {
+                        Effect::out(TournamentAction::SetMatchmakerConfig(ranking_config))
                             .chain(CLOSE_VIEW)
                             .ok()
                     }
