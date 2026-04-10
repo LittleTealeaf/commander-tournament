@@ -40,7 +40,7 @@ where
         }
     }
 
-    None
+    players.into_iter().next()
 }
 
 impl PlayMode {
