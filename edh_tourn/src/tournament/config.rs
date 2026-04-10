@@ -1,5 +1,7 @@
 use crate::{
-    config::{TournamentConfig, game::GameConfig, ranking::RankingConfig},
+    config::{
+        TournamentConfig, game::GameConfig, matchmaker::MatchmakerConfig, ranking::RankingConfig,
+    },
     error::TournamentError,
     tournament::Tournament,
 };
@@ -39,6 +41,15 @@ impl Tournament {
             },
             ..self
         }
+    }
+
+    #[must_use]
+    pub const fn matchmaker_config(&self) -> &MatchmakerConfig {
+        &self.config.matchmaker
+    }
+
+    pub const fn set_matchmaker_config(&mut self, config: MatchmakerConfig) {
+        self.config.matchmaker = config;
     }
 }
 

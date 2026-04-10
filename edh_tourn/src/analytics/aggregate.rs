@@ -54,12 +54,16 @@ impl From<&PlayerStats> for AggregateStats {
     }
 }
 
-impl AddAssign for AggregateStats {
-    fn add_assign(&mut self, rhs: Self) {
-        self.sum_elos += rhs.sum_elos;
-        self.count += rhs.count;
-        self.wins += rhs.wins;
-        self.games += rhs.games;
+impl<I> AddAssign<I> for AggregateStats
+where
+    I: Into<Self>,
+{
+    fn add_assign(&mut self, rhs: I) {
+        let agg = rhs.into();
+        self.sum_elos += agg.sum_elos;
+        self.count += agg.count;
+        self.wins += agg.wins;
+        self.games += agg.games;
     }
 }
 

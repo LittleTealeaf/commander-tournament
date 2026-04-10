@@ -1,7 +1,7 @@
+use core::cmp::Ord;
 use core::cmp::Ordering;
-use std::collections::HashSet;
 
-use itertools::{Itertools, chain};
+use itertools::Itertools;
 
 use crate::{
     analytics::winloss::MatchPerformance,
@@ -10,58 +10,17 @@ use crate::{
     tournament::ranking::Ranking,
 };
 
-fn closest_elo(
-    elo: f64,
-    player_a: &RegisteredPlayer<'_>,
-    player_b: &RegisteredPlayer<'_>,
-) -> Ordering {
-    let elo_diff_a = (elo - player_a.stats().elo()).abs();
-    let elo_diff_b = (elo - player_b.stats().elo()).abs();
-
-    let cmp = elo_diff_a.total_cmp(&elo_diff_b);
-
-    cmp.then_with(|| player_a.id().cmp(&player_b.id()))
-}
-
 impl<'a> Ranking<'a> {
-    fn player_match_performance(
-        self,
-        id: PlayerId,
-    ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)>, TournamentError>
-    {
-        let iter = self.0.analytics().player_vs_player_performance(id)?;
-        let mut missing = self.0.players().keys().copied().collect::<HashSet<_>>();
-        missing.remove(&id);
-        let players = iter
-            .map(|(player, perf)| {
-                missing.remove(&player.id());
-                (player, perf)
-            })
-            .collect::<Vec<_>>();
-
-        Ok(chain!(
-            players,
-            missing
-                .into_iter()
-                .filter_map(|id| self.0.get_registered_player(id))
-                .map(|player| (player, MatchPerformance::default()))
-        ))
-    }
-
     pub fn nemesis(
         self,
         id: PlayerId,
     ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)> + 'a, TournamentError>
     {
-        let iter = self.player_match_performance(id)?;
-        let elo_base = self.0.get_player_or_default_stats(id).elo();
-        let sorted = iter.sorted_by(|(player_a, perf_a), (player_b, perf_b)| {
-            perf_a
-                .cmp(perf_b)
-                .then_with(|| closest_elo(elo_base, player_a, player_b))
-        });
-
-        Ok(sorted)
+        let perfs = self.0.analytics().player_performance_all_others(id)?;
+        let elo = self.0.get_player_or_default_stats(id).elo();
+        Ok(self
+            .sort_nemesis(elo, perfs)
+            .filter_map(|(id, perf)| Some((self.0.get_registered_player(id)?, perf))))
     }
 
     pub fn lost_with(
@@ -69,18 +28,11 @@ impl<'a> Ranking<'a> {
         id: PlayerId,
     ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)> + 'a, TournamentError>
     {
-        let iter = self.player_match_performance(id)?;
-        let elo_base = self.0.get_player_or_default_stats(id).elo();
-        let sorted = iter.sorted_by(|(player_a, perf_a), (player_b, perf_b)| {
-            let score_a = perf_a.draws();
-            let score_b = perf_b.draws();
-
-            score_a
-                .cmp(&score_b)
-                .reverse()
-                .then_with(|| closest_elo(elo_base, player_a, player_b))
-        });
-        Ok(sorted)
+        let perfs = self.0.analytics().player_performance_all_others(id)?;
+        let elo = self.0.get_player_or_default_stats(id).elo();
+        Ok(self
+            .sort_lost_with(elo, perfs)
+            .filter_map(|(id, perf)| Some((self.0.get_registered_player(id)?, perf))))
     }
 
     pub fn least_played(
@@ -88,16 +40,70 @@ impl<'a> Ranking<'a> {
         id: PlayerId,
     ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)> + 'a, TournamentError>
     {
-        let iter = self.player_match_performance(id)?;
-        let elo_base = self.0.get_player_or_default_stats(id).elo();
-        let sorted = iter.sorted_by(|(player_a, perf_a), (player_b, perf_b)| {
-            let score_a = perf_a.played();
-            let score_b = perf_b.played();
-
-            score_a
-                .cmp(&score_b)
-                .then_with(|| closest_elo(elo_base, player_a, player_b))
-        });
-        Ok(sorted)
+        let perfs = self.0.analytics().player_performance_all_others(id)?;
+        let elo = self.0.get_player_or_default_stats(id).elo();
+        Ok(self
+            .sort_least_played(elo, perfs)
+            .filter_map(|(id, perf)| Some((self.0.get_registered_player(id)?, perf))))
     }
+
+    pub(crate) fn sort_least_played<I>(
+        self,
+        target_elo: f64,
+        performances: I,
+    ) -> impl Iterator<Item = (PlayerId, MatchPerformance)>
+    where
+        I: IntoIterator<Item = (PlayerId, MatchPerformance)>,
+    {
+        self.sort_by(target_elo, performances, |a, b| a.draws().cmp(&b.draws()))
+    }
+
+    pub(crate) fn sort_lost_with<I>(
+        self,
+        target_elo: f64,
+        performances: I,
+    ) -> impl Iterator<Item = (PlayerId, MatchPerformance)>
+    where
+        I: IntoIterator<Item = (PlayerId, MatchPerformance)>,
+    {
+        self.sort_by(target_elo, performances, |a, b| a.draws().cmp(&b.draws()))
+    }
+
+    pub(crate) fn sort_nemesis<I>(
+        self,
+        target_elo: f64,
+        performances: I,
+    ) -> impl Iterator<Item = (PlayerId, MatchPerformance)>
+    where
+        I: IntoIterator<Item = (PlayerId, MatchPerformance)>,
+    {
+        self.sort_by(target_elo, performances, Ord::cmp)
+    }
+
+    fn sort_by<F, I>(
+        self,
+        target_elo: f64,
+        performances: I,
+        sort_by: F,
+    ) -> impl Iterator<Item = (PlayerId, MatchPerformance)>
+    where
+        I: IntoIterator<Item = (PlayerId, MatchPerformance)>,
+        F: Fn(&MatchPerformance, &MatchPerformance) -> Ordering,
+    {
+        performances
+            .into_iter()
+            .map(|(id, perf)| (id, self.0.get_player_or_default_stats(id), perf))
+            .sorted_by(|(pa, sa, ma), (pb, sb, mb)| {
+                sort_by(ma, mb)
+                    .then_with(|| closest_to_value(target_elo, sa.elo(), sb.elo()))
+                    .then_with(|| pa.cmp(pb))
+            })
+            .map(|(id, _, perf)| (id, perf))
+    }
+}
+
+fn closest_to_value(target: f64, left: f64, right: f64) -> Ordering {
+    let elo_diff_left = (target - left).abs();
+    let elo_diff_right = (target - right).abs();
+    elo_diff_left.total_cmp(&elo_diff_right)
 }

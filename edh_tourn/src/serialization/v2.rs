@@ -1,7 +1,9 @@
 use std::collections::HashMap;
 
 use crate::{
-    config::{TournamentConfig, game::GameConfig, ranking::RankingConfig},
+    config::{
+        TournamentConfig, game::GameConfig, matchmaker::MatchmakerConfig, ranking::RankingConfig,
+    },
     game::entry::GameEntry,
     player::{PlayerId, info::PlayerInfo},
     serialization::{utils::DeserializableMap, v3::V3Tournament},
@@ -101,6 +103,7 @@ impl From<V2Tournament> for V3Tournament {
             config: TournamentConfig {
                 game: game_config,
                 ranking: ranking_config,
+                matchmaker: MatchmakerConfig::new(),
             },
             players: value
                 .players

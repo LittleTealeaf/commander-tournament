@@ -6,6 +6,7 @@ mod matches;
 mod players;
 mod ranking;
 mod stats;
+mod matchmaker;
 
 use std::collections::HashMap;
 

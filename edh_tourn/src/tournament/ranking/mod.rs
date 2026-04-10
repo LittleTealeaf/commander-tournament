@@ -20,10 +20,10 @@ impl Tournament {
     }
 }
 
-fn to_weight_rank<T>(
-    ranking: impl IntoIterator<Item = T>,
-    weight: usize,
-) -> impl Iterator<Item = (T, usize)> {
+fn to_weight_rank<I, T>(ranking: I, weight: usize) -> impl Iterator<Item = (T, usize)>
+where
+    I: IntoIterator<Item = T>,
+{
     ranking
         .into_iter()
         .enumerate()
@@ -34,14 +34,26 @@ impl<'a> Ranking<'a> {
     fn games_played(
         self,
         id: PlayerId,
-    ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, usize)> + 'a, TournamentError> {
+    ) -> Result<Vec<(RegisteredPlayer<'a>, usize)>, TournamentError> {
+        let perfs = self.0.analytics().player_performance_all_others(id)?;
         let config = self.0.ranking_config();
-        Ok(chain!(
-            to_weight_rank(self.least_played(id)?, config.least_played),
-            to_weight_rank(self.nemesis(id)?, config.nemesis),
-            to_weight_rank(self.lost_with(id)?, config.lost_with),
+        let target_elo = self.0.get_player_or_default_stats(id).elo();
+
+        let weights = chain!(
+            to_weight_rank(
+                self.sort_lost_with(target_elo, perfs.clone()),
+                config.lost_with
+            ),
+            to_weight_rank(self.sort_nemesis(target_elo, perfs.clone()), config.nemesis),
+            to_weight_rank(
+                self.sort_least_played(target_elo, perfs),
+                config.least_played
+            )
         )
-        .map(|((player, _), score)| (player, score)))
+        .filter_map(|((id, _), score)| Some((self.0.get_registered_player(id)?, score)))
+        .collect::<Vec<_>>();
+
+        Ok(weights)
     }
 
     fn neighbors(

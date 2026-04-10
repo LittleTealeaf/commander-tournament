@@ -51,11 +51,10 @@ where
 }
 
 impl<'a> Analytics<'a> {
-    fn player_vs_player_all_performances(
+    pub(crate) fn player_performance(
         self,
         id: PlayerId,
-    ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)> + 'a, TournamentError>
-    {
+    ) -> Result<HashMap<PlayerId, MatchPerformance>, TournamentError> {
         self.0.require_id_registered(id)?;
 
         Ok(self
@@ -63,7 +62,36 @@ impl<'a> Analytics<'a> {
             .get_player_games(id)?
             .flat_map(|game| game_match_perfs(game, |i| i == id))
             .into_grouping_map()
-            .sum()
+            .sum())
+    }
+
+    pub(crate) fn player_performance_all(
+        self,
+        id: PlayerId,
+    ) -> Result<HashMap<PlayerId, MatchPerformance>, TournamentError> {
+        let mut map = self.player_performance(id)?;
+        for id in self.0.players().keys() {
+            map.entry(*id).or_default();
+        }
+        Ok(map)
+    }
+
+    pub(crate) fn player_performance_all_others(
+        self,
+        id: PlayerId,
+    ) -> Result<HashMap<PlayerId, MatchPerformance>, TournamentError> {
+        let mut map = self.player_performance_all(id)?;
+        map.remove(&id);
+        Ok(map)
+    }
+
+    pub(crate) fn player_vs_player_all_performances(
+        self,
+        id: PlayerId,
+    ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)> + 'a, TournamentError>
+    {
+        Ok(self
+            .player_performance(id)?
             .into_iter()
             .filter_map(|(id, perf)| Some((self.0.get_registered_player(id)?, perf))))
     }
