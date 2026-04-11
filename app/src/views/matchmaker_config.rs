@@ -66,7 +66,7 @@ impl ComponentUpdate for MatchmakerConfigView {
             MatchmakerConfigMsg::SetEloNeighbor(value) => self.config.elo_neighbor = value,
             MatchmakerConfigMsg::SetWrNeighbor(value) => self.config.wr_neighbor = value,
             MatchmakerConfigMsg::SetExpectedNeighbor(value) => {
-                self.config.expected_neighbor = value
+                self.config.expected_neighbor = value;
             }
             MatchmakerConfigMsg::SetDefault => self.config = MatchmakerConfig::default(),
             MatchmakerConfigMsg::Reset => self.config = context.matchmaker_config().clone(),
