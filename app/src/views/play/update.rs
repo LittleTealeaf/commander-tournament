@@ -1,5 +1,4 @@
 use core::cmp::Ordering;
-use core::iter::once;
 use std::collections::HashSet;
 
 use edh_tourn::{
@@ -7,7 +6,6 @@ use edh_tourn::{
     player::PlayerId,
     tournament::Tournament,
 };
-use itertools::Itertools;
 
 use crate::{
     effect::Effect,
@@ -46,14 +44,8 @@ where
 impl PlayMode {
     pub(super) fn create_matchup(&self, tournament: &Tournament) -> Option<Matchup> {
         match self {
-            Self::Player { id, ranking } => {
-                let rankings = tournament.ranking().ranked(*id, *ranking).ok()?;
-                let opponents = rankings.into_iter().take(3).map(|p| p.id());
-                let players = once(*id).chain(opponents).collect_array()?;
-                tournament.create_match(players).ok()
-            }
+            Self::Player(id) => tournament.matchmaker().create_match(*id).ok(),
             Self::Next {
-                ranking,
                 mode,
                 ignore_precons,
             } => {
@@ -100,10 +92,7 @@ impl PlayMode {
                         })?
                         .id(),
                 };
-                let rankings = tournament.ranking().ranked(id, *ranking).ok()?;
-                let opponents = rankings.into_iter().take(3).map(|p| p.id());
-                let players = once(id).chain(opponents).collect_array()?;
-                tournament.create_match(players).ok()
+                tournament.matchmaker().create_match(id).ok()
             }
             Self::Custom { players } => {
                 let [a, b, c, d] = *players;
@@ -128,14 +117,6 @@ impl ComponentUpdate for PlayView {
                 modified = true;
                 Effect::Done
             }
-            PlayMsg::SetRankingMethod(ranking_method) => match &mut self.mode {
-                PlayMode::Player { ranking, .. } | PlayMode::Next { ranking, .. } => {
-                    *ranking = ranking_method;
-                    modified = true;
-                    Effect::Done
-                }
-                PlayMode::Custom { .. } => Effect::Done,
-            },
             PlayMsg::SetNextMode(play_next_mode) => {
                 let PlayMode::Next { mode, .. } = &mut self.mode else {
                     return Effect::done();

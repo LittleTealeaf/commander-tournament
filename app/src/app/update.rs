@@ -12,7 +12,7 @@ use crate::{
     home::{HomeMsg, HomeOut},
     services::system::open_link,
     traits::{ComponentUpdate, HandleMessage},
-    views::{play::PlayView, player::PlayerView, ranking_config::RankingConfigView},
+    views::{matchmaker_config::MatchmakerConfigView, play::PlayView, player::PlayerView},
 };
 
 use super::view::View;
@@ -121,8 +121,8 @@ impl ComponentUpdate for App {
                 }
             }
             Message::OpenPlayConfig => {
-                self.push_view(RankingConfigView::new(
-                    self.tournament.ranking_config().clone(),
+                self.push_view(MatchmakerConfigView::new(
+                    self.tournament.matchmaker_config().clone(),
                 ));
                 Effect::done()
             }

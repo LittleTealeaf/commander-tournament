@@ -1,10 +1,13 @@
 use std::collections::HashMap;
 
 use crate::{
-    config::{TournamentConfig, game::GameConfig, ranking::RankingConfig},
+    config::game::GameConfig,
     game::entry::GameEntry,
     player::{PlayerId, info::PlayerInfo},
-    serialization::{utils::DeserializableMap, v3::V3Tournament},
+    serialization::{
+        utils::DeserializableMap,
+        v3::{V3RankingConfig, V3Tournament, V3TournamentConfig},
+    },
 };
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
@@ -88,17 +91,18 @@ impl From<V2Tournament> for V3Tournament {
             game_wr_weight: value.config.game_wr_weight,
         };
 
-        let ranking_config = RankingConfig {
-            least_played: value.config.match_weight_least_played.round() as usize,
-            nemesis: value.config.match_weight_nemesis.round() as usize,
-            lost_with: value.config.match_weight_lost_with.round() as usize,
-            elo_neighbor: value.config.match_weight_elo_neighbor.round() as usize,
-            wr_neighbor: value.config.match_weight_wr_neighbor.round() as usize,
-            expected_neighbor: value.config.match_weight_expected_neighbor.round() as usize,
+        let ranking_config = V3RankingConfig {
+            least_played: (value.config.match_weight_least_played.round() as usize).max(1),
+            nemesis: (value.config.match_weight_nemesis.round() as usize).max(1),
+            lost_with: (value.config.match_weight_lost_with.round() as usize).max(1),
+            elo_neighbor: (value.config.match_weight_elo_neighbor.round() as usize).max(1),
+            wr_neighbor: (value.config.match_weight_wr_neighbor.round() as usize).max(1),
+            expected_neighbor: (value.config.match_weight_expected_neighbor.round() as usize)
+                .max(1),
         };
 
         Self {
-            config: TournamentConfig {
+            config: V3TournamentConfig {
                 game: game_config,
                 ranking: ranking_config,
             },

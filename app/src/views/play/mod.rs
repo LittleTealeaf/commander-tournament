@@ -8,7 +8,6 @@ use auto_const_array::auto_const_array;
 use edh_tourn::{
     game::{POD_SIZE, record::GameRecord},
     player::PlayerId,
-    ranking::RankingMethod,
     tournament::Tournament,
 };
 use iced::widget::button;
@@ -66,12 +65,8 @@ impl PlayNextMode {
 
 #[derive(Debug, Clone)]
 pub enum PlayMode {
-    Player {
-        id: PlayerId,
-        ranking: RankingMethod,
-    },
+    Player(PlayerId),
     Next {
-        ranking: RankingMethod,
         mode: PlayNextMode,
         ignore_precons: bool,
     },
@@ -83,16 +78,12 @@ pub enum PlayMode {
 impl PlayMode {
     #[must_use]
     pub const fn player(id: PlayerId) -> Self {
-        Self::Player {
-            id,
-            ranking: RankingMethod::Combined,
-        }
+        Self::Player(id)
     }
 
     #[must_use]
     pub const fn next() -> Self {
         Self::Next {
-            ranking: RankingMethod::Combined,
             mode: PlayNextMode::LongestBreak,
             ignore_precons: false,
         }
@@ -121,7 +112,6 @@ pub enum PlayMsg {
     Close,
     RefreshMatchup,
     OpenConfig,
-    SetRankingMethod(RankingMethod),
     SetNextMode(PlayNextMode),
     OpenLink(String),
     OpenLinks(Vec<String>),
@@ -150,7 +140,7 @@ impl ViewScreen for PlayView {
 
     fn title<'a>(&'a self, context: Self::ViewContext<'a>) -> String {
         match &self.mode {
-            PlayMode::Player { id, .. } => format!(
+            PlayMode::Player(id) => format!(
                 "Play: {}",
                 context
                     .get_player_name(id)

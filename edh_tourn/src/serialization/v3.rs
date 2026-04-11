@@ -1,13 +1,15 @@
 use std::collections::HashMap;
 
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer};
 
-use crate::error::TournamentError;
+use crate::config::TournamentConfig;
+use crate::config::game::GameConfig;
+use crate::config::matchmaker::MatchmakerConfig;
 use crate::game::entry::GameEntry;
 use crate::player::PlayerId;
+use crate::player::info::PlayerInfo;
 use crate::serialization::utils::DeserializableMap;
-use crate::tournament::Tournament;
-use crate::{config::TournamentConfig, player::info::PlayerInfo};
+use crate::serialization::v4::V4Tournament;
 
 fn player_info_deserialize<'de, D>(
     deserializer: D,
@@ -23,10 +25,41 @@ where
     )
 }
 
-#[derive(Deserialize, Debug, Serialize)]
+#[derive(Debug, Clone, serde::Deserialize, serde::Serialize, PartialEq, Eq)]
+pub struct V3RankingConfig {
+    pub least_played: usize,
+    pub nemesis: usize,
+    pub lost_with: usize,
+    pub elo_neighbor: usize,
+    pub wr_neighbor: usize,
+    pub expected_neighbor: usize,
+}
+
+impl Default for V3RankingConfig {
+    fn default() -> Self {
+        Self {
+            least_played: 6,
+            nemesis: 4,
+            lost_with: 5,
+            elo_neighbor: 3,
+            wr_neighbor: 3,
+            expected_neighbor: 4,
+        }
+    }
+}
+
+#[derive(Debug, Clone, serde::Deserialize, serde::Serialize, PartialEq)]
+pub struct V3TournamentConfig {
+    #[serde(default)]
+    pub game: GameConfig,
+    #[serde(default)]
+    pub ranking: V3RankingConfig,
+}
+
+#[derive(Deserialize, Debug, serde::Serialize)]
 pub struct V3Tournament {
     #[serde(rename = "cfg", alias = "config")]
-    pub(super) config: TournamentConfig,
+    pub(super) config: V3TournamentConfig,
     #[serde(
         deserialize_with = "player_info_deserialize",
         serialize_with = "super::utils::ordered_map",
@@ -38,39 +71,30 @@ pub struct V3Tournament {
     pub(super) games: Vec<GameEntry>,
 }
 
-impl From<Tournament> for V3Tournament {
-    fn from(value: Tournament) -> Self {
+impl From<V3Tournament> for V4Tournament {
+    fn from(value: V3Tournament) -> Self {
         Self {
-            config: value.config,
             players: value.players,
-            games: value.games.into_iter().map(GameEntry::from).collect(),
+            games: value.games,
+            config: TournamentConfig {
+                game: value.config.game,
+                matchmaker: MatchmakerConfig {
+                    player_nemesis: value.config.ranking.nemesis,
+                    player_lost_with: value.config.ranking.lost_with,
+                    player_least_played: value.config.ranking.least_played,
+                    elo_neighbor: value.config.ranking.elo_neighbor,
+                    wr_neighbor: value.config.ranking.wr_neighbor,
+                    expected_neighbor: value.config.ranking.expected_neighbor,
+                },
+            },
         }
-    }
-}
-
-impl TryFrom<V3Tournament> for Tournament {
-    type Error = TournamentError;
-    fn try_from(value: V3Tournament) -> Result<Self, Self::Error> {
-        let mut tournament = Self {
-            config: value.config,
-            players: value.players,
-            ..Self::default()
-        };
-        tournament.reload()?;
-        for game in value.games {
-            tournament.register_entry(game)?;
-        }
-
-        tournament.snapshot = 0;
-
-        Ok(tournament)
     }
 }
 
 #[cfg(test)]
 mod tests {
 
-    use super::*;
+    use crate::tournament::Tournament;
 
     #[test]
     fn deserialize() {

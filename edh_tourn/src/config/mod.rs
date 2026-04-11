@@ -1,12 +1,14 @@
-use crate::config::{game::GameConfig, ranking::RankingConfig};
+use crate::config::{game::GameConfig, matchmaker::MatchmakerConfig};
 
 pub mod game;
-pub mod ranking;
+pub mod matchmaker;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Default)]
 pub struct TournamentConfig {
+    #[serde(default)]
     pub(crate) game: GameConfig,
-    pub(crate) ranking: RankingConfig,
+    #[serde(default)]
+    pub(crate) matchmaker: MatchmakerConfig,
 }
 
 impl TournamentConfig {
@@ -14,7 +16,7 @@ impl TournamentConfig {
     pub const fn new() -> Self {
         Self {
             game: GameConfig::new(),
-            ranking: RankingConfig::new(),
+            matchmaker: MatchmakerConfig::new(),
         }
     }
 
@@ -24,7 +26,7 @@ impl TournamentConfig {
     }
 
     #[must_use]
-    pub const fn ranking_config(&self) -> &RankingConfig {
-        &self.ranking
+    pub const fn matchmaker_config(&self) -> &MatchmakerConfig {
+        &self.matchmaker
     }
 }

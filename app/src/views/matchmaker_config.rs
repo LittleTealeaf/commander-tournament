@@ -1,4 +1,4 @@
-use edh_tourn::{config::ranking::RankingConfig, tournament::Tournament};
+use edh_tourn::{config::matchmaker::MatchmakerConfig, tournament::Tournament};
 use iced::widget::{button, column, row, text};
 use iced_aw::number_input;
 use nerd_font_symbols::md::{MD_CONTENT_SAVE, MD_RESTORE, MD_UNDO};
@@ -10,19 +10,19 @@ use crate::{
 };
 
 #[derive(Debug, Clone)]
-pub struct RankingConfigView {
-    config: RankingConfig,
+pub struct MatchmakerConfigView {
+    config: MatchmakerConfig,
 }
 
-impl RankingConfigView {
+impl MatchmakerConfigView {
     #[must_use]
-    pub const fn new(config: RankingConfig) -> Self {
+    pub const fn new(config: MatchmakerConfig) -> Self {
         Self { config }
     }
 }
 
 #[derive(Clone, Debug)]
-pub enum RankingConfigMsg {
+pub enum MatchmakerConfigMsg {
     Close,
     Save,
     SetDefault,
@@ -36,17 +36,17 @@ pub enum RankingConfigMsg {
 }
 
 #[derive(Debug, Clone)]
-pub enum RankingConfigOut {
+pub enum MatchmakerConfigOut {
     Close,
-    SaveAndClose(RankingConfig),
+    SaveAndClose(MatchmakerConfig),
 }
 
-impl Component for RankingConfigView {
-    type Message = RankingConfigMsg;
-    type OutMessage = RankingConfigOut;
+impl Component for MatchmakerConfigView {
+    type Message = MatchmakerConfigMsg;
+    type OutMessage = MatchmakerConfigOut;
 }
 
-impl ComponentUpdate for RankingConfigView {
+impl ComponentUpdate for MatchmakerConfigView {
     type UpdateContext<'a> = &'a Tournament;
     fn update(
         &mut self,
@@ -54,27 +54,29 @@ impl ComponentUpdate for RankingConfigView {
         context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::effect::Effect<Self::Message, Self::OutMessage>> {
         match message {
-            RankingConfigMsg::Close => return Effect::out(RankingConfigOut::Close).ok(),
-            RankingConfigMsg::Save => {
-                return Effect::out(RankingConfigOut::SaveAndClose(self.config.clone())).ok();
+            MatchmakerConfigMsg::Close => return Effect::out(MatchmakerConfigOut::Close).ok(),
+            MatchmakerConfigMsg::Save => {
+                return Effect::out(MatchmakerConfigOut::SaveAndClose(self.config.clone())).ok();
             }
-            RankingConfigMsg::SetLeastPlayed(value) => {
-                self.config.least_played = value;
+            MatchmakerConfigMsg::SetLeastPlayed(value) => {
+                self.config.player_least_played = value;
             }
-            RankingConfigMsg::SetNemesis(value) => self.config.nemesis = value,
-            RankingConfigMsg::SetLostWith(value) => self.config.lost_with = value,
-            RankingConfigMsg::SetEloNeighbor(value) => self.config.elo_neighbor = value,
-            RankingConfigMsg::SetWrNeighbor(value) => self.config.wr_neighbor = value,
-            RankingConfigMsg::SetExpectedNeighbor(value) => self.config.expected_neighbor = value,
-            RankingConfigMsg::SetDefault => self.config = RankingConfig::default(),
-            RankingConfigMsg::Reset => self.config = context.ranking_config().clone(),
+            MatchmakerConfigMsg::SetNemesis(value) => self.config.player_nemesis = value,
+            MatchmakerConfigMsg::SetLostWith(value) => self.config.player_lost_with = value,
+            MatchmakerConfigMsg::SetEloNeighbor(value) => self.config.elo_neighbor = value,
+            MatchmakerConfigMsg::SetWrNeighbor(value) => self.config.wr_neighbor = value,
+            MatchmakerConfigMsg::SetExpectedNeighbor(value) => {
+                self.config.expected_neighbor = value;
+            }
+            MatchmakerConfigMsg::SetDefault => self.config = MatchmakerConfig::default(),
+            MatchmakerConfigMsg::Reset => self.config = context.matchmaker_config().clone(),
         }
         Effect::done()
     }
 }
 
-impl ViewScreen for RankingConfigView {
-    const CLOSE_MESSAGE: Self::Message = RankingConfigMsg::Close;
+impl ViewScreen for MatchmakerConfigView {
+    const CLOSE_MESSAGE: Self::Message = MatchmakerConfigMsg::Close;
     fn title<'a>(&'a self, (): Self::ViewContext<'a>) -> String {
         "Play Settings".to_owned()
     }
@@ -83,7 +85,7 @@ impl ViewScreen for RankingConfigView {
         &'a self,
         (): Self::ViewContext<'a>,
     ) -> impl IntoIterator<Item = iced::widget::Button<'a, Self::Message>> {
-        [button(MD_CONTENT_SAVE).on_press(RankingConfigMsg::Save)]
+        [button(MD_CONTENT_SAVE).on_press(MatchmakerConfigMsg::Save)]
     }
 
     fn secondary_actions<'a>(
@@ -91,13 +93,13 @@ impl ViewScreen for RankingConfigView {
         (): Self::ViewContext<'a>,
     ) -> impl IntoIterator<Item = button::Button<'a, Self::Message>> {
         [
-            button(MD_UNDO).on_press(RankingConfigMsg::Reset),
-            button(MD_RESTORE).on_press(RankingConfigMsg::SetDefault),
+            button(MD_UNDO).on_press(MatchmakerConfigMsg::Reset),
+            button(MD_RESTORE).on_press(MatchmakerConfigMsg::SetDefault),
         ]
     }
 }
 
-impl ComponentView for RankingConfigView {
+impl ComponentView for MatchmakerConfigView {
     type ViewContext<'a>
         = ()
     where
@@ -107,23 +109,27 @@ impl ComponentView for RankingConfigView {
             (
                 "Least Played",
                 number_input(
-                    &self.config.least_played,
+                    &self.config.player_least_played,
                     0..1000,
-                    RankingConfigMsg::SetLeastPlayed,
+                    MatchmakerConfigMsg::SetLeastPlayed,
                 )
                 .ignore_buttons(true),
             ),
             (
                 "Nemesis",
-                number_input(&self.config.nemesis, 0..1000, RankingConfigMsg::SetNemesis)
-                    .ignore_buttons(true),
+                number_input(
+                    &self.config.player_nemesis,
+                    0..1000,
+                    MatchmakerConfigMsg::SetNemesis,
+                )
+                .ignore_buttons(true),
             ),
             (
                 "Lost With",
                 number_input(
-                    &self.config.lost_with,
+                    &self.config.player_lost_with,
                     0..1000,
-                    RankingConfigMsg::SetLostWith,
+                    MatchmakerConfigMsg::SetLostWith,
                 )
                 .ignore_buttons(true),
             ),
@@ -132,7 +138,7 @@ impl ComponentView for RankingConfigView {
                 number_input(
                     &self.config.elo_neighbor,
                     0..1000,
-                    RankingConfigMsg::SetEloNeighbor,
+                    MatchmakerConfigMsg::SetEloNeighbor,
                 )
                 .ignore_buttons(true),
             ),
@@ -141,7 +147,7 @@ impl ComponentView for RankingConfigView {
                 number_input(
                     &self.config.wr_neighbor,
                     0..1000,
-                    RankingConfigMsg::SetWrNeighbor,
+                    MatchmakerConfigMsg::SetWrNeighbor,
                 )
                 .ignore_buttons(true),
             ),
@@ -150,7 +156,7 @@ impl ComponentView for RankingConfigView {
                 number_input(
                     &self.config.expected_neighbor,
                     0..1000,
-                    RankingConfigMsg::SetExpectedNeighbor,
+                    MatchmakerConfigMsg::SetExpectedNeighbor,
                 )
                 .ignore_buttons(true),
             ),
