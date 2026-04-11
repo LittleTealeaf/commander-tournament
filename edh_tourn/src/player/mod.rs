@@ -2,7 +2,7 @@ use core::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 
-use crate::player::{info::PlayerInfo, stats::PlayerStats};
+use crate::{game::matchable::Matchable, player::{info::PlayerInfo, stats::PlayerStats}};
 
 pub mod color;
 pub mod info;
@@ -48,6 +48,16 @@ impl RegisteredPlayer<'_> {
     #[must_use]
     pub const fn stats(&self) -> &PlayerStats {
         self.stats
+    }
+}
+
+impl Matchable for RegisteredPlayer<'_> {
+    fn wr(&self) -> Option<f64> {
+        self.stats().wr()
+    }
+
+    fn elo(&self) -> f64 {
+        self.stats().elo()
     }
 }
 

@@ -5,7 +5,8 @@ use itertools::{Itertools, chain};
 
 use crate::{
     analytics::{aggregate::AggregateStats, winloss::MatchPerformance},
-    player::PlayerId,
+    game::matchable::{Matchable, calculate_expected_values},
+    player::{PlayerId, stats::PlayerStats},
     tournament::matchmaker::{Matchmaker, to_weight_rank},
 };
 
@@ -98,28 +99,33 @@ impl Matchmaker<'_> {
 
     fn calc_expected_diff(self, stats: &AggregateStats, wr: Option<f64>, elo: f64) -> f64 {
         let config = self.0.game_config();
-        let compare_elo = stats
-            .avg_elo()
-            .unwrap_or_else(|| self.0.default_stats().elo());
 
-        let elo = elo.powf(config.game_elo_pow_scale);
-        let sum_elo = compare_elo.powf(config.game_elo_pow_scale) + elo;
+        let players = [
+            BaseMatchable {
+                elo: stats.avg_elo().unwrap_or(config.starting_elo),
+                wr: stats.wr(),
+            },
+            BaseMatchable { elo, wr },
+        ];
 
-        let wr = wr.unwrap_or(0.0).powf(config.game_wr_pow_scale);
-        let sum_wr = stats.wr().unwrap_or(0.0).powf(config.game_wr_pow_scale) + wr;
+        let [_, (_, expected)] = calculate_expected_values(config, players);
 
-        if sum_wr == 0.0 {
-            let perc = elo / sum_elo;
-            return perc;
-        }
+        (expected - 0.5).abs()
+    }
+}
 
-        let weight_total = config.game_wr_weight + config.game_elo_weight;
+#[derive(Debug)]
+struct BaseMatchable {
+    elo: f64,
+    wr: Option<f64>,
+}
 
-        let elo_coef = config.game_elo_weight / (weight_total * sum_elo);
-        let wr_coef = config.game_wr_weight / (weight_total * sum_wr);
+impl Matchable for BaseMatchable {
+    fn elo(&self) -> f64 {
+        self.elo
+    }
 
-        let expected = wr.mul_add(wr_coef, elo * elo_coef);
-
-        (0.5 - expected).abs()
+    fn wr(&self) -> Option<f64> {
+        self.wr
     }
 }
