@@ -1,7 +1,10 @@
 use crate::{
     error::TournamentError,
-    game::{entry::GameEntry, match_player::MatchPlayer, matchup::Matchup, record::GameRecord},
-    player::{PlayerId, stats::PlayerStats},
+    game::{
+        entry::GameEntry, match_player::MatchPlayer, matchable::calculate_expected_values,
+        matchup::Matchup, record::GameRecord,
+    },
+    player::PlayerId,
     tournament::Tournament,
 };
 
@@ -26,55 +29,24 @@ impl Tournament {
         &self,
         players: [PlayerId; T],
     ) -> [MatchPlayer; T] {
-        #[derive(Debug)]
-        struct TempMatchPlayer<'a> {
-            id: PlayerId,
-            stats: &'a PlayerStats,
-            scaled_elo: f64,
-            scaled_wr: f64,
-        }
-
         #[allow(clippy::cast_precision_loss)]
         let base_chance = 1.0 / (T as f64);
 
         let config = self.game_config();
 
-        let id_stats = players.map(|id| {
-            let stats = self.get_player_or_default_stats(id);
-            TempMatchPlayer {
-                scaled_wr: stats
-                    .wr()
-                    .unwrap_or(base_chance)
-                    .powf(config.game_wr_pow_scale),
-                scaled_elo: stats.elo().powf(config.game_elo_pow_scale),
-                stats,
-                id,
-            }
-        });
+        let players = players.map(|player| (player, self.get_player_or_default_stats(player)));
+        let expected = calculate_expected_values(config, players);
 
-        let sum_wr = id_stats.iter().map(|p| p.scaled_wr).sum::<f64>();
-        let sum_elo = id_stats.iter().map(|p| p.scaled_elo).sum::<f64>();
-
-        let wr_weight = if sum_wr > 0.0 {
-            config.game_wr_weight
-        } else {
-            0.0
-        };
-        let weight_total = wr_weight + config.game_elo_weight;
-        let coef_wr = if sum_wr > 0.0 {
-            config.game_wr_weight / (weight_total * sum_wr)
-        } else {
-            0.0
-        };
-        let coef_elo = config.game_elo_weight / (weight_total * sum_elo);
         let base_loss = 1.0 - base_chance;
 
-        id_stats.map(|player| {
-            let game_points = config.game_points;
-            let expected = coef_wr.mul_add(player.scaled_wr, coef_elo * player.scaled_elo);
-            let elo_win = game_points * (1.0 - expected) / base_loss;
-            let elo_loss = game_points * expected / base_loss;
-            MatchPlayer::new(player.id, player.stats.clone(), expected, elo_win, elo_loss)
+        expected.map(|((id, stats), expected)| {
+            MatchPlayer::new(
+                id,
+                stats.clone(),
+                expected,
+                config.game_points * (1.0 - expected) / base_loss,
+                config.game_points * expected / base_loss,
+            )
         })
     }
 

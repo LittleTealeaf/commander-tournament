@@ -81,6 +81,7 @@ impl PlayerStats {
         }
     }
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
