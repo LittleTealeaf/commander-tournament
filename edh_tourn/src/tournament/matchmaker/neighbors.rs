@@ -105,16 +105,18 @@ impl Matchmaker<'_> {
         let elo = elo.powf(config.game_elo_pow_scale);
         let sum_elo = compare_elo.powf(config.game_elo_pow_scale) + elo;
 
-        let (Some(wr), Some(compare_wr)) = (wr, stats.wr()) else {
+        let wr = wr.unwrap_or(0.0).powf(config.game_wr_pow_scale);
+        let sum_wr = stats.wr().unwrap_or(0.0).powf(config.game_wr_pow_scale) + wr;
+
+        if sum_wr == 0.0 {
             let perc = elo / sum_elo;
             return perc;
-        };
+        }
 
-        let elo_coef = config.game_elo_weight / sum_elo;
+        let weight_total = config.game_wr_weight + config.game_elo_weight;
 
-        let wr = wr.powf(config.game_wr_pow_scale);
-        let sum_wr = compare_wr.powf(config.game_wr_pow_scale) + wr;
-        let wr_coef = config.game_wr_weight / sum_wr;
+        let elo_coef = config.game_elo_weight / (weight_total * sum_elo);
+        let wr_coef = config.game_wr_weight / (weight_total * sum_wr);
 
         let expected = wr.mul_add(wr_coef, elo * elo_coef);
 
