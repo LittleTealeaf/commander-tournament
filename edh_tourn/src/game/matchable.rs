@@ -43,27 +43,36 @@ where
     let sum_wr = players.iter().map(|p| p.scaled_wr).sum::<f64>();
     let sum_elo = players.iter().map(|p| p.scaled_elo).sum::<f64>();
 
-    if sum_wr <= 0.0 {
-        if sum_elo <= 0.0 {
-            return players.map(|pl| (pl.player, base_chance));
-        }
+    let weight_wr = if sum_wr > 0.0 {
+        config.game_wr_weight
+    } else {
+        0.0
+    };
 
-        return players.map(|pl| (pl.player, pl.scaled_elo / sum_elo));
-    }
+    let weight_elo = if sum_elo > 0.0 {
+        config.game_elo_weight
+    } else {
+        0.0
+    };
 
-    let weight_total = config.game_wr_weight + config.game_elo_weight;
+    let weight_total = weight_wr + weight_elo;
 
-    if weight_total <= 0.0 {
-        return players.map(|pl| (pl.player, base_chance));
-    }
+    let coef_wr = if weight_wr > 0.0 {
+        weight_wr / (weight_total * sum_wr)
+    } else {
+        0.0
+    };
 
-    let coef_wr = config.game_wr_weight / (weight_total * sum_wr);
-    let coef_elo = config.game_elo_weight / (weight_total * sum_elo);
+    let coef_elo = if weight_elo > 0.0 {
+        weight_elo / (weight_total * sum_elo)
+    } else {
+        0.0
+    };
 
-    players.map(|pl| {
+    players.map(|p| {
         (
-            pl.player,
-            pl.scaled_elo.mul_add(coef_elo, pl.scaled_wr * coef_wr),
+            p.player,
+            p.scaled_elo.mul_add(coef_elo, p.scaled_wr * coef_wr),
         )
     })
 }
