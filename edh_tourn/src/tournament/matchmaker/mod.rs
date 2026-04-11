@@ -31,7 +31,9 @@ impl Matchmaker<'_> {
 
         let mut performances = self.0.analytics().player_performance(player)?;
         for player in self.0.players().keys() {
-            performances.entry(*player).or_default();
+            if !performances.contains_key(player) {
+                performances.insert(*player, MatchPerformance::default());
+            }
         }
         performances.remove(&player);
 
@@ -54,9 +56,7 @@ impl Matchmaker<'_> {
 
         self.0.create_match(players)
     }
-}
 
-impl Matchmaker<'_> {
     fn get_next_player(
         self,
         agg_stats: &AggregateStats,
