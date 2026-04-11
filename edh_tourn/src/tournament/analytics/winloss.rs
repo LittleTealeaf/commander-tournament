@@ -13,43 +13,6 @@ use crate::{
     tournament::analytics::Analytics,
 };
 
-fn game_match_perfs<F>(
-    game: &GameRecord,
-    check: F,
-) -> impl Iterator<Item = (PlayerId, MatchPerformance)>
-where
-    F: Fn(PlayerId) -> bool,
-{
-    let winner = game.winner();
-    let [loser_a, loser_b, loser_c] = game.losers();
-
-    [
-        check(winner).then_some([
-            (loser_a, MatchPerformance::WIN),
-            (loser_b, MatchPerformance::WIN),
-            (loser_c, MatchPerformance::WIN),
-        ]),
-        check(loser_a).then_some([
-            (winner, MatchPerformance::LOSS),
-            (loser_b, MatchPerformance::DRAW),
-            (loser_c, MatchPerformance::DRAW),
-        ]),
-        check(loser_b).then_some([
-            (winner, MatchPerformance::LOSS),
-            (loser_a, MatchPerformance::DRAW),
-            (loser_c, MatchPerformance::DRAW),
-        ]),
-        check(loser_c).then_some([
-            (winner, MatchPerformance::LOSS),
-            (loser_a, MatchPerformance::DRAW),
-            (loser_b, MatchPerformance::DRAW),
-        ]),
-    ]
-    .into_iter()
-    .flatten()
-    .flatten()
-}
-
 impl<'a> Analytics<'a> {
     pub(crate) fn player_performance(
         self,
@@ -192,4 +155,41 @@ impl Analytics<'_> {
             .into_grouping_map()
             .sum()
     }
+}
+
+fn game_match_perfs<F>(
+    game: &GameRecord,
+    check: F,
+) -> impl Iterator<Item = (PlayerId, MatchPerformance)>
+where
+    F: Fn(PlayerId) -> bool,
+{
+    let winner = game.winner();
+    let [loser_a, loser_b, loser_c] = game.losers();
+
+    [
+        check(winner).then_some([
+            (loser_a, MatchPerformance::WIN),
+            (loser_b, MatchPerformance::WIN),
+            (loser_c, MatchPerformance::WIN),
+        ]),
+        check(loser_a).then_some([
+            (winner, MatchPerformance::LOSS),
+            (loser_b, MatchPerformance::DRAW),
+            (loser_c, MatchPerformance::DRAW),
+        ]),
+        check(loser_b).then_some([
+            (winner, MatchPerformance::LOSS),
+            (loser_a, MatchPerformance::DRAW),
+            (loser_c, MatchPerformance::DRAW),
+        ]),
+        check(loser_c).then_some([
+            (winner, MatchPerformance::LOSS),
+            (loser_a, MatchPerformance::DRAW),
+            (loser_b, MatchPerformance::DRAW),
+        ]),
+    ]
+    .into_iter()
+    .flatten()
+    .flatten()
 }

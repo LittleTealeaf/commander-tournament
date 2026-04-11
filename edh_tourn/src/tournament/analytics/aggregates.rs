@@ -12,14 +12,6 @@ use crate::{
 };
 
 impl<'a> Analytics<'a> {
-    fn aggregated_player_stats(
-        self,
-    ) -> impl Iterator<Item = (RegisteredPlayer<'a>, AggregateStats)> {
-        self.0
-            .get_registered_players()
-            .map(|player| (player, player.stats().into()))
-    }
-
     #[must_use]
     pub fn aggregated_identity_stats(self) -> HashMap<ColorIdentity, AggregateStats> {
         self.aggregated_player_stats()
@@ -40,5 +32,13 @@ impl<'a> Analytics<'a> {
             })
             .into_grouping_map()
             .sum()
+    }
+
+    fn aggregated_player_stats(
+        self,
+    ) -> impl Iterator<Item = (RegisteredPlayer<'a>, AggregateStats)> {
+        self.0
+            .get_registered_players()
+            .map(|player| (player, player.stats().into()))
     }
 }
