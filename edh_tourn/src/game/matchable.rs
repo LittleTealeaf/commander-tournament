@@ -57,6 +57,10 @@ where
 
     let weight_total = weight_wr + weight_elo;
 
+    if weight_total <= 0.0 {
+        return players.map(|p| (p.player, base_chance));
+    }
+
     let coef_wr = if weight_wr > 0.0 {
         weight_wr / (weight_total * sum_wr)
     } else {
