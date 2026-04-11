@@ -65,7 +65,9 @@ impl ComponentUpdate for MatchmakerConfigView {
             MatchmakerConfigMsg::SetLostWith(value) => self.config.player_lost_with = value,
             MatchmakerConfigMsg::SetEloNeighbor(value) => self.config.elo_neighbor = value,
             MatchmakerConfigMsg::SetWrNeighbor(value) => self.config.wr_neighbor = value,
-            MatchmakerConfigMsg::SetExpectedNeighbor(_) => {}
+            MatchmakerConfigMsg::SetExpectedNeighbor(value) => {
+                self.config.expected_neighbor = value
+            }
             MatchmakerConfigMsg::SetDefault => self.config = MatchmakerConfig::default(),
             MatchmakerConfigMsg::Reset => self.config = context.matchmaker_config().clone(),
         }
@@ -149,15 +151,15 @@ impl ComponentView for MatchmakerConfigView {
                 )
                 .ignore_buttons(true),
             ),
-            // (
-            //     "Expected Neighbor",
-            //     number_input(
-            //         &self.config.expected_neighbor,
-            //         0..1000,
-            //         MatchmakerConfigMsg::SetExpectedNeighbor,
-            //     )
-            //     .ignore_buttons(true),
-            // ),
+            (
+                "Expected Neighbor",
+                number_input(
+                    &self.config.expected_neighbor,
+                    0..1000,
+                    MatchmakerConfigMsg::SetExpectedNeighbor,
+                )
+                .ignore_buttons(true),
+            ),
         ];
 
         column(options.map(|(label_text, input)| row![text(label_text), input].spacing(10).into()))

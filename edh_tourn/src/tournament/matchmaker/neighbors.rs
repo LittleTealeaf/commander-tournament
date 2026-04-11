@@ -35,6 +35,10 @@ impl Matchmaker<'_> {
                     performances.keys().copied()
                 ),
                 config.elo_neighbor
+            ),
+            to_weight_rank(
+                self.expected_neighbor(agg_stats, performances.keys().copied(),),
+                config.expected_neighbor
             )
         )
     }
@@ -68,5 +72,52 @@ impl Matchmaker<'_> {
                 ordered_by_proximity(target_wr, *wr_a, *wr_b).then_with(|| id_a.cmp(id_b))
             })
             .map(|(id, _)| id)
+    }
+
+    fn expected_neighbor<I>(
+        self,
+        stats: &AggregateStats,
+        players: I,
+    ) -> impl Iterator<Item = PlayerId>
+    where
+        I: IntoIterator<Item = PlayerId>,
+    {
+        players
+            .into_iter()
+            .map(|id| {
+                let player_stats = self.0.get_player_or_default_stats(id);
+                let expected_diff =
+                    self.calc_expected_diff(stats, player_stats.wr(), player_stats.elo());
+                (id, expected_diff)
+            })
+            .sorted_by(|(ida, diffa), (idb, diffb)| {
+                diffa.total_cmp(diffb).then_with(|| ida.cmp(idb))
+            })
+            .map(|(id, _)| id)
+    }
+
+    fn calc_expected_diff(self, stats: &AggregateStats, wr: Option<f64>, elo: f64) -> f64 {
+        let config = self.0.game_config();
+        let compare_elo = stats
+            .avg_elo()
+            .unwrap_or_else(|| self.0.default_stats().elo());
+
+        let elo = elo.powf(config.game_elo_pow_scale);
+        let sum_elo = compare_elo.powf(config.game_elo_pow_scale) + elo;
+
+        let (Some(wr), Some(compare_wr)) = (wr, stats.wr()) else {
+            let perc = elo / sum_elo;
+            return perc;
+        };
+
+        let elo_coef = config.game_elo_weight / sum_elo;
+
+        let wr = wr.powf(config.game_wr_pow_scale);
+        let sum_wr = compare_wr.powf(config.game_wr_pow_scale) + wr;
+        let wr_coef = config.game_wr_weight / sum_wr;
+
+        let expected = wr.mul_add(wr_coef, elo * elo_coef);
+
+        (0.5 - expected).abs()
     }
 }

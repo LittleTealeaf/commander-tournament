@@ -7,6 +7,7 @@ pub struct MatchmakerConfig {
     pub player_nemesis: usize,
     pub elo_neighbor: usize,
     pub wr_neighbor: usize,
+    pub expected_neighbor: usize,
 }
 
 impl MatchmakerConfig {
@@ -18,6 +19,7 @@ impl MatchmakerConfig {
             player_lost_with: 2,
             elo_neighbor: 4,
             wr_neighbor: 3,
+            expected_neighbor: 3,
         }
     }
 }

@@ -84,6 +84,7 @@ impl From<V3Tournament> for V4Tournament {
                     player_least_played: value.config.ranking.least_played,
                     elo_neighbor: value.config.ranking.elo_neighbor,
                     wr_neighbor: value.config.ranking.wr_neighbor,
+                    expected_neighbor: value.config.ranking.expected_neighbor,
                 },
             },
         }
