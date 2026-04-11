@@ -73,5 +73,5 @@ fn order_least_played(left: &MatchPerformance, right: &MatchPerformance) -> Orde
 }
 
 fn order_lost_with(left: &MatchPerformance, right: &MatchPerformance) -> Ordering {
-    left.draws().cmp(&right.draws())
+    left.draws().cmp(&right.draws()).reverse()
 }

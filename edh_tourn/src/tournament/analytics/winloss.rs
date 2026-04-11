@@ -34,7 +34,9 @@ impl<'a> Analytics<'a> {
     ) -> Result<HashMap<PlayerId, MatchPerformance>, TournamentError> {
         let mut map = self.player_performance(id)?;
         for id in self.0.players().keys() {
-            map.entry(*id).or_default();
+            if !map.contains_key(id) {
+                map.insert(*id, MatchPerformance::default());
+            }
         }
         Ok(map)
     }

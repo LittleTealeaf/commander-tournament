@@ -82,7 +82,8 @@ impl From<V3Tournament> for V4Tournament {
                     player_nemesis: value.config.ranking.nemesis,
                     player_lost_with: value.config.ranking.lost_with,
                     player_least_played: value.config.ranking.least_played,
-                    ..MatchmakerConfig::default()
+                    elo_neighbor: value.config.ranking.elo_neighbor,
+                    wr_neighbor: value.config.ranking.wr_neighbor,
                 },
             },
         }

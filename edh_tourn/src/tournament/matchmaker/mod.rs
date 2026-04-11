@@ -29,13 +29,7 @@ impl Matchmaker<'_> {
         let mut aggregate_stats = AggregateStats::from(self.0.get_player_or_default_stats(player));
         players.push(player);
 
-        let mut performances = self.0.analytics().player_performance(player)?;
-        for player in self.0.players().keys() {
-            if !performances.contains_key(player) {
-                performances.insert(*player, MatchPerformance::default());
-            }
-        }
-        performances.remove(&player);
+        let mut performances = self.0.analytics().player_performance_all_others(player)?;
 
         for _ in 1..POD_SIZE {
             let player = self
@@ -66,7 +60,7 @@ impl Matchmaker<'_> {
         let neighbors_ranked = self.ranked_neighbors(agg_stats, performances);
         let combined = chain!(games_played_ranked, neighbors_ranked);
         let scores = combined.into_grouping_map().sum();
-        Some(scores.into_iter().min_by_key(|(_, n)| *n)?.0)
+        Some(scores.into_iter().min_by_key(|&(id, n)| (n, id))?.0)
     }
 }
 
