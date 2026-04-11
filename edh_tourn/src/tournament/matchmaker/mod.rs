@@ -11,7 +11,6 @@ use crate::{
     game::{POD_SIZE, matchup::Matchup},
     player::PlayerId,
     tournament::Tournament,
-    utils::IntoCopiedIter,
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -37,7 +36,6 @@ impl Matchmaker<'_> {
         performances.remove(&player);
 
         for _ in 1..POD_SIZE {
-            #[allow(clippy::cast_precision_loss)]
             let player = self
                 .get_next_player(&aggregate_stats, &performances)
                 .ok_or(TournamentError::NotEnoughPlayers)?;
@@ -69,35 +67,6 @@ impl Matchmaker<'_> {
         let combined = chain!(games_played_ranked, neighbors_ranked);
         let scores = combined.into_grouping_map().sum();
         Some(scores.into_iter().min_by_key(|(_, n)| *n)?.0)
-    }
-
-    fn ranked_games_played(
-        self,
-        agg_stats: &AggregateStats,
-        performances: &HashMap<PlayerId, MatchPerformance>,
-    ) -> impl Iterator<Item = (PlayerId, usize)> {
-        let avg_elo = agg_stats
-            .avg_elo()
-            .unwrap_or_else(|| self.0.default_stats().elo());
-        let config = self.0.matchmaker_config();
-
-        chain!(
-            to_weight_rank(
-                self.sort_lost_with(avg_elo, performances.iter_copied())
-                    .map(|(id, _)| id),
-                config.player_lost_with
-            ),
-            to_weight_rank(
-                self.sort_nemesis(avg_elo, performances.iter_copied())
-                    .map(|(id, _)| id),
-                config.player_nemesis
-            ),
-            to_weight_rank(
-                self.sort_least_played(avg_elo, performances.iter_copied())
-                    .map(|(id, _)| id),
-                config.player_least_played
-            )
-        )
     }
 }
 
