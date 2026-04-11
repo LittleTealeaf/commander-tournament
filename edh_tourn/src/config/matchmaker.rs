@@ -27,4 +27,3 @@ impl Default for MatchmakerConfig {
         Self::new()
     }
 }
-

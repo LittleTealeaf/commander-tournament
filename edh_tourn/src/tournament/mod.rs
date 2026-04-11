@@ -3,9 +3,9 @@ mod config;
 #[cfg(feature = "dev")]
 mod dev;
 mod matches;
+mod matchmaker;
 mod players;
 mod stats;
-mod matchmaker;
 
 use std::collections::HashMap;
 
