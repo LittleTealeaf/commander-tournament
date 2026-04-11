@@ -1,5 +1,5 @@
 use edh_tourn::{
-    config::{game::GameConfig, matchmaker::MatchmakerConfig, ranking::RankingConfig},
+    config::{game::GameConfig, matchmaker::MatchmakerConfig},
     error::TournamentError,
     game::record::GameRecord,
     player::{PlayerId, info::PlayerInfo},
@@ -17,7 +17,6 @@ pub enum TournamentAction {
     Record(Box<GameRecord>),
     Reload,
     SetGameConfig(GameConfig),
-    SetRankingConfig(RankingConfig),
     SetMatchmakerConfig(MatchmakerConfig),
 }
 
@@ -32,10 +31,6 @@ impl TournamentAction {
             Self::Record(game_record) => tournament.register_record(*game_record),
             Self::Reload => tournament.reload(),
             Self::SetGameConfig(game_config) => tournament.set_game_config(game_config),
-            Self::SetRankingConfig(ranking_config) => {
-                tournament.set_ranking_config(ranking_config);
-                Ok(())
-            }
             Self::DeleteGame(index) => tournament.delete_game(index),
             Self::SetPlayerInfo(id, info) => tournament.set_player_info(id, info),
             Self::SetMatchmakerConfig(config) => {
@@ -162,20 +157,5 @@ mod tests {
             .unwrap();
         let ending_elo = tournament.get_player_or_default_stats(id).elo();
         assert_relative_eq!(starting_elo + 1500.0, ending_elo);
-    }
-
-    #[test]
-    fn set_ranking_config() {
-        let mut tournament = Tournament::new();
-        let start_ranking = tournament.ranking_config().clone();
-        let mut new_ranking = start_ranking.clone();
-        new_ranking.lost_with += 1;
-        TournamentAction::SetRankingConfig(new_ranking)
-            .apply(&mut tournament)
-            .unwrap();
-        assert_eq!(
-            start_ranking.lost_with + 1,
-            tournament.ranking_config().lost_with
-        );
     }
 }

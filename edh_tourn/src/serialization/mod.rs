@@ -2,12 +2,13 @@ pub mod utils;
 pub mod v1;
 pub mod v2;
 pub mod v3;
+pub mod v4;
 
 use serde::{Deserialize, Serialize};
 
 use crate::{
     error::TournamentError,
-    serialization::{v1::V1Tournament, v2::V2Tournament, v3::V3Tournament},
+    serialization::{v1::V1Tournament, v2::V2Tournament, v3::V3Tournament, v4::V4Tournament},
     tournament::Tournament,
 };
 
@@ -23,13 +24,15 @@ pub enum SerializedTournament {
 #[derive(Deserialize, Debug, Serialize)]
 #[serde(tag = "version")]
 pub enum SerdeTournament {
+    #[serde(rename = "4")]
+    V4(V4Tournament),
     #[serde(rename = "3")]
     V3(V3Tournament),
 }
 
 impl From<Tournament> for SerdeTournament {
     fn from(value: Tournament) -> Self {
-        Self::V3(value.into())
+        Self::V4(value.into())
     }
 }
 
@@ -38,8 +41,10 @@ impl TryFrom<SerializedTournament> for Tournament {
 
     fn try_from(value: SerializedTournament) -> Result<Self, Self::Error> {
         match value {
-            SerializedTournament::Tagged(SerdeTournament::V3(v3))
-            | SerializedTournament::V3(v3) => v3.try_into(),
+            SerializedTournament::Tagged(version) => version.try_into(),
+            SerializedTournament::V3(v3) => {
+                SerializedTournament::Tagged(SerdeTournament::V4(v3.into())).try_into()
+            }
             SerializedTournament::V2(v2) => SerializedTournament::V3(v2.into()).try_into(),
             SerializedTournament::V1(v1) => SerializedTournament::V2(v1.into()).try_into(),
         }
@@ -51,7 +56,8 @@ impl TryFrom<SerdeTournament> for Tournament {
 
     fn try_from(value: SerdeTournament) -> Result<Self, Self::Error> {
         match value {
-            SerdeTournament::V3(v3) => v3.try_into(),
+            SerdeTournament::V3(v3) => SerdeTournament::V4(v3.into()).try_into(),
+            SerdeTournament::V4(v4) => v4.try_into(),
         }
     }
 }

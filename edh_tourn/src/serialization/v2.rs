@@ -1,12 +1,13 @@
 use std::collections::HashMap;
 
 use crate::{
-    config::{
-        TournamentConfig, game::GameConfig, matchmaker::MatchmakerConfig, ranking::RankingConfig,
-    },
+    config::game::GameConfig,
     game::entry::GameEntry,
     player::{PlayerId, info::PlayerInfo},
-    serialization::{utils::DeserializableMap, v3::V3Tournament},
+    serialization::{
+        utils::DeserializableMap,
+        v3::{V3RankingConfig, V3Tournament, V3TournamentConfig},
+    },
 };
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
@@ -90,7 +91,7 @@ impl From<V2Tournament> for V3Tournament {
             game_wr_weight: value.config.game_wr_weight,
         };
 
-        let ranking_config = RankingConfig {
+        let ranking_config = V3RankingConfig {
             least_played: (value.config.match_weight_least_played.round() as usize).max(1),
             nemesis: (value.config.match_weight_nemesis.round() as usize).max(1),
             lost_with: (value.config.match_weight_lost_with.round() as usize).max(1),
@@ -101,15 +102,8 @@ impl From<V2Tournament> for V3Tournament {
         };
 
         Self {
-            config: TournamentConfig {
+            config: V3TournamentConfig {
                 game: game_config,
-                matchmaker: MatchmakerConfig {
-                    player_least_played: ranking_config.least_played,
-                    player_lost_with: ranking_config.lost_with,
-                    player_nemesis: ranking_config.nemesis,
-                    elo_neighbor: ranking_config.elo_neighbor,
-                    wr_neighbor: ranking_config.wr_neighbor,
-                },
                 ranking: ranking_config,
             },
             players: value
