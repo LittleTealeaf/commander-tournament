@@ -6,7 +6,7 @@ use itertools::{Itertools, chain};
 use crate::{
     analytics::{aggregate::AggregateStats, winloss::MatchPerformance},
     game::matchable::{Matchable, calculate_expected_values},
-    player::{PlayerId, stats::PlayerStats},
+    player::PlayerId,
     tournament::matchmaker::{Matchmaker, to_weight_rank},
 };
 

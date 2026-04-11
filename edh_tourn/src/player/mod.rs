@@ -2,7 +2,10 @@ use core::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{game::matchable::Matchable, player::{info::PlayerInfo, stats::PlayerStats}};
+use crate::{
+    game::matchable::Matchable,
+    player::{info::PlayerInfo, stats::PlayerStats},
+};
 
 pub mod color;
 pub mod info;
