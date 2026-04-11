@@ -1,3 +1,4 @@
+mod games_played;
 mod neighbors;
 
 use std::collections::HashMap;
@@ -79,24 +80,20 @@ impl Matchmaker<'_> {
             .avg_elo()
             .unwrap_or_else(|| self.0.default_stats().elo());
         let config = self.0.matchmaker_config();
-        let ranking = self.0.ranking();
 
         chain!(
             to_weight_rank(
-                ranking
-                    .sort_lost_with(avg_elo, performances.iter_copied())
+                self.sort_lost_with(avg_elo, performances.iter_copied())
                     .map(|(id, _)| id),
                 config.player_lost_with
             ),
             to_weight_rank(
-                ranking
-                    .sort_nemesis(avg_elo, performances.iter_copied())
+                self.sort_nemesis(avg_elo, performances.iter_copied())
                     .map(|(id, _)| id),
                 config.player_nemesis
             ),
             to_weight_rank(
-                ranking
-                    .sort_least_played(avg_elo, performances.iter_copied())
+                self.sort_least_played(avg_elo, performances.iter_copied())
                     .map(|(id, _)| id),
                 config.player_least_played
             )

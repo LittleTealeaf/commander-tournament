@@ -1,53 +1,13 @@
-use core::cmp::Ord;
 use core::cmp::Ordering;
 
 use itertools::Itertools;
 
 use crate::{
-    analytics::winloss::MatchPerformance,
-    error::TournamentError,
-    player::{PlayerId, RegisteredPlayer},
-    tournament::ranking::Ranking,
+    analytics::winloss::MatchPerformance, player::PlayerId, tournament::matchmaker::Matchmaker,
 };
 
-impl<'a> Ranking<'a> {
-    pub fn nemesis(
-        self,
-        id: PlayerId,
-    ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)> + 'a, TournamentError>
-    {
-        let perfs = self.0.analytics().player_performance_all_others(id)?;
-        let elo = self.0.get_player_or_default_stats(id).elo();
-        Ok(self
-            .sort_nemesis(elo, perfs)
-            .filter_map(|(id, perf)| Some((self.0.get_registered_player(id)?, perf))))
-    }
-
-    pub fn lost_with(
-        self,
-        id: PlayerId,
-    ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)> + 'a, TournamentError>
-    {
-        let perfs = self.0.analytics().player_performance_all_others(id)?;
-        let elo = self.0.get_player_or_default_stats(id).elo();
-        Ok(self
-            .sort_lost_with(elo, perfs)
-            .filter_map(|(id, perf)| Some((self.0.get_registered_player(id)?, perf))))
-    }
-
-    pub fn least_played(
-        self,
-        id: PlayerId,
-    ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)> + 'a, TournamentError>
-    {
-        let perfs = self.0.analytics().player_performance_all_others(id)?;
-        let elo = self.0.get_player_or_default_stats(id).elo();
-        Ok(self
-            .sort_least_played(elo, perfs)
-            .filter_map(|(id, perf)| Some((self.0.get_registered_player(id)?, perf))))
-    }
-
-    pub(crate) fn sort_least_played<I>(
+impl Matchmaker<'_> {
+    pub(super) fn sort_least_played<I>(
         self,
         target_elo: f64,
         performances: I,
@@ -58,7 +18,7 @@ impl<'a> Ranking<'a> {
         self.sort_by(target_elo, performances, |a, b| a.draws().cmp(&b.draws()))
     }
 
-    pub(crate) fn sort_lost_with<I>(
+    pub(super) fn sort_lost_with<I>(
         self,
         target_elo: f64,
         performances: I,
@@ -69,7 +29,7 @@ impl<'a> Ranking<'a> {
         self.sort_by(target_elo, performances, |a, b| a.draws().cmp(&b.draws()))
     }
 
-    pub(crate) fn sort_nemesis<I>(
+    pub(super) fn sort_nemesis<I>(
         self,
         target_elo: f64,
         performances: I,

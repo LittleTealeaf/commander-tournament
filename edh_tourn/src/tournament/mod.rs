@@ -4,7 +4,6 @@ mod config;
 mod dev;
 mod matches;
 mod players;
-mod ranking;
 mod stats;
 mod matchmaker;
 
