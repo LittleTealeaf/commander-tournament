@@ -4,31 +4,34 @@ use core::ops::{Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, Sub, S
 use itertools::Itertools;
 
 #[derive(
-    Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash, Copy,
+    Debug,
+    Clone,
+    serde::Serialize,
+    serde::Deserialize,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
+    Copy,
+    derive_more::Display,
 )]
 pub enum MtgColor {
     #[serde(rename = "w", alias = "White")]
+    #[display("White")]
     White = 1 << 0,
     #[serde(rename = "u", alias = "Blue")]
+    #[display("Blue")]
     Blue = 1 << 1,
     #[serde(rename = "b", alias = "Black")]
+    #[display("Black")]
     Black = 1 << 2,
     #[serde(rename = "r", alias = "Red")]
+    #[display("Red")]
     Red = 1 << 3,
     #[serde(rename = "g", alias = "Green")]
+    #[display("Green")]
     Green = 1 << 4,
-}
-
-impl Display for MtgColor {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.write_str(match self {
-            Self::White => "White",
-            Self::Blue => "Blue",
-            Self::Black => "Black",
-            Self::Red => "Red",
-            Self::Green => "Green",
-        })
-    }
 }
 
 impl MtgColor {

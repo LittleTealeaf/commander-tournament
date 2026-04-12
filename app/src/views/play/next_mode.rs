@@ -4,7 +4,7 @@ use auto_const_array::auto_const_array;
 use edh_tourn::game::POD_SIZE;
 use edh_tourn::player::PlayerId;
 use edh_tourn::{player::RegisteredPlayer, tournament::Tournament};
-use im::{OrdMap, OrdSet, ordset};
+use im::OrdSet;
 use itertools::Itertools;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, derive_more::Display, Default)]

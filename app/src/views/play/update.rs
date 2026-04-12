@@ -1,4 +1,3 @@
-use core::cmp::Ordering;
 use std::collections::HashSet;
 
 use edh_tourn::{
@@ -11,7 +10,7 @@ use crate::{
     effect::Effect,
     traits::ComponentUpdate,
     views::play::{
-        PlayMode, PlayMsg, PlayNextMode, PlayOut, PlayView,
+        PlayMode, PlayMsg, PlayOut, PlayView,
         match_preview::{MatchPreview, MatchPreviewOut},
     },
 };
