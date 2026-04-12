@@ -16,17 +16,41 @@ use crate::{
     },
 };
 
+impl PlayMode {
+    pub(super) fn create_matchup(&self, tournament: &Tournament) -> Option<Matchup> {
+        match self {
+            Self::Player(id) => tournament.matchmaker().create_match(*id).ok(),
+            Self::Next {
+                mode,
+                ignore_precons,
+            } => {
+                let players = tournament
+                    .get_registered_players()
+                    .filter(|player| !*ignore_precons || !player.info().is_precon());
+                let id = mode.get_player_from_list(tournament, players)?.id();
+                tournament.matchmaker().create_match(id).ok()
+            }
+            Self::Custom { players } => {
+                let [a, b, c, d] = *players;
+                tournament.create_match([a?, b?, c?, d?]).ok()
+            }
+        }
+    }
+}
+
 fn get_longest_break<I>(tournament: &Tournament, players: I) -> Option<PlayerId>
 where
     I: IntoIterator<Item = PlayerId>,
 {
-    let mut players = players.into_iter().collect::<HashSet<_>>();
+    let players = players.into_iter().collect::<Vec<_>>();
 
     for player in &players {
         if tournament.get_player_or_default_stats(*player).games() == 0 {
             return Some(*player);
         }
     }
+
+    let mut players = players.into_iter().collect::<HashSet<_>>();
 
     for game in tournament.games().iter().rev() {
         for player in game.players() {
@@ -41,65 +65,28 @@ where
     players.into_iter().next()
 }
 
-impl PlayMode {
-    pub(super) fn create_matchup(&self, tournament: &Tournament) -> Option<Matchup> {
-        match self {
-            Self::Player(id) => tournament.matchmaker().create_match(*id).ok(),
-            Self::Next {
-                mode,
-                ignore_precons,
-            } => {
-                let players = tournament
-                    .get_registered_players()
-                    .filter(|player| !*ignore_precons || !player.info().is_precon());
-                let id = match mode {
-                    PlayNextMode::LeastGames => players
-                        .min_by_key(|player| (player.stats().games(), player.id()))?
-                        .id(),
-                    PlayNextMode::LongestBreak => {
-                        get_longest_break(tournament, players.map(|player| player.id()))?
-                    }
-                    PlayNextMode::LeastWins => players
-                        .min_by_key(|player| (player.stats().wins(), player.id()))?
-                        .id(),
-                    PlayNextMode::LowestWinrate => players
-                        .min_by(|a, b| {
-                            a.stats()
-                                .wr_unwrap()
-                                .partial_cmp(&b.stats().wr_unwrap())
-                                .unwrap_or(Ordering::Equal)
-                                .then_with(|| a.id().cmp(&b.id()))
-                        })?
-                        .id(),
-                    PlayNextMode::HighestWinrate => players
-                        .max_by(|a, b| {
-                            a.stats()
-                                .wr_unwrap()
-                                .partial_cmp(&b.stats().wr_unwrap())
-                                .unwrap_or(Ordering::Equal)
-                                .then_with(|| a.id().cmp(&b.id()))
-                        })?
-                        .id(),
-                    PlayNextMode::OutlierWinrate => players
-                        .max_by(|a, b| {
-                            let a_wr = a.stats().wr_unwrap();
-                            let b_wr = b.stats().wr_unwrap();
-                            #[allow(clippy::cast_precision_loss)]
-                            let target = 1.0 / (POD_SIZE as f64);
-                            let a_diff = (a_wr - target).abs();
-                            let b_diff = (b_wr - target).abs();
-                            a_diff.total_cmp(&b_diff).then_with(|| a.id().cmp(&b.id()))
-                        })?
-                        .id(),
-                };
-                tournament.matchmaker().create_match(id).ok()
-            }
-            Self::Custom { players } => {
-                let [a, b, c, d] = *players;
-                tournament.create_match([a?, b?, c?, d?]).ok()
-            }
+fn get_longest_lead_break<I>(tournament: &Tournament, players: I) -> Option<PlayerId>
+where
+    I: IntoIterator<Item = PlayerId>,
+{
+    let players = players.into_iter().collect::<Vec<_>>();
+
+    for player in &players {
+        if tournament.get_player_or_default_stats(*player).games() == 0 {
+            return Some(*player);
         }
     }
+
+    let mut players = players.into_iter().collect::<HashSet<_>>();
+
+    for game in tournament.games().iter().rev() {
+        let [player, ..] = game.players();
+        if players.remove(&player.id()) && players.is_empty() {
+            return Some(player.id());
+        }
+    }
+
+    players.into_iter().next()
 }
 
 impl ComponentUpdate for PlayView {
