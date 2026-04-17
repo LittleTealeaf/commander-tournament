@@ -59,14 +59,12 @@ jobs:
       uses: baptiste0928/cargo-install@v3
       with:
         crate: cargo-llvm-cov
-    - name: Install LLVM Cov Pretty
-      uses: baptiste0928/cargo-install@v3
-      with:
-        crate: llvm-cov-pretty
     - name: Generate Coverage Output
-      run: cargo llvm-cov test --no-fail-fast --all --all-features --json > coverage.json
-    - name: Format Coverage
-      run: cat coverage.json | llvm-cov-pretty >> $GITHUB_STEP_SUMMARY
+      run: cargo llvm-cov test --no-fail-fast --all --all-features --lcov --output-path lcov.info
+    - name: Upload summarized coverage report
+      uses: livewing/lcov-job-summary@v1.2.0
+      with:
+        lcov: lcov.info
 
   build:
     name: Build
