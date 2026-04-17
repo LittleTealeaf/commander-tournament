@@ -178,4 +178,18 @@ mod tests {
         assert_relative_eq!(1900.0, stats.elo());
         assert_relative_eq!(2000.0, stats.elo_peak());
     }
+
+    #[test]
+    fn wr_unwraps_to_zero() {
+        let stats = PlayerStats::new(1500.0);
+        assert_relative_eq!(stats.wr_unwrap(), 0.0);
+    }
+
+    #[test]
+    fn wr_unwraps_to_wr() {
+        let mut stats = PlayerStats::new(1500.0);
+        stats.add_win(25.0);
+        stats.add_loss(25.0);
+        assert_relative_eq!(stats.wr_unwrap(), 0.5);
+    }
 }
