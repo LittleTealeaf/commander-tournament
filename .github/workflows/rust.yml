@@ -61,7 +61,9 @@ jobs:
         crate: cargo-llvm-cov
     - name: Generate Coverage Output
       run: cargo llvm-cov test --no-fail-fast --all --all-features --lcov --output-path lcov.info
-    - name: Upload summarized coverage report
+    - name: Fix absolute paths
+      run: sed -i "s|$GITHUB_WORKSPACE/||g" lcov.info
+    - name: Upload to Summary
       uses: livewing/lcov-job-summary@v1.2.0
       with:
         lcov: lcov.info
