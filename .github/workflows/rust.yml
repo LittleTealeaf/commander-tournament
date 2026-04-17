@@ -59,8 +59,12 @@ jobs:
       uses: baptiste0928/cargo-install@v3
       with:
         crate: cargo-llvm-cov
+    - name: Install LLVM Cov Pretty
+      uses: baptiste0928/cargo-install@v3
+      with:
+        crate: llvm-cov-pretty
     - name: Run Code Coverage
-      run: cargo llvm-cov test --no-fail-fast --all --all-features >> $GITHUB_STEP_SUMMARY
+      run: cargo llvm-cov test --no-fail-fast --all --all-features --json | llvm-cov-pretty --format markdown >> $GITHUB_STEP_SUMMARY
 
   build:
     name: Build
