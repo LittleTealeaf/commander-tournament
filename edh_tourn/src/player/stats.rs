@@ -8,17 +8,6 @@ pub struct PlayerStats {
     elo_peak: f64,
 }
 
-impl Default for PlayerStats {
-    fn default() -> Self {
-        Self {
-            elo: 0.0,
-            games: 0,
-            wins: 0,
-            elo_peak: 0.0,
-        }
-    }
-}
-
 impl PlayerStats {
     #[must_use]
     pub const fn new(elo: f64) -> Self {
