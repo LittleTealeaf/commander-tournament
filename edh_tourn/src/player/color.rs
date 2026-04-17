@@ -18,19 +18,14 @@ use itertools::Itertools;
 )]
 pub enum MtgColor {
     #[serde(rename = "w", alias = "White")]
-    #[display("White")]
     White = 1 << 0,
     #[serde(rename = "u", alias = "Blue")]
-    #[display("Blue")]
     Blue = 1 << 1,
     #[serde(rename = "b", alias = "Black")]
-    #[display("Black")]
     Black = 1 << 2,
     #[serde(rename = "r", alias = "Red")]
-    #[display("Red")]
     Red = 1 << 3,
     #[serde(rename = "g", alias = "Green")]
-    #[display("Green")]
     Green = 1 << 4,
 }
 

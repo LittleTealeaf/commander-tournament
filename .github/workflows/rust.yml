@@ -44,6 +44,24 @@ jobs:
     - name: Check Formatting
       uses: actions-rust-lang/rustfmt@v1
 
+  coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v6
+    - name: Setup Rust
+      uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: stable
+        components: clippy, rustfmt, llvm-tools
+    - name: Install Cargo LLVM Cov
+      uses: baptiste0928/cargo-install@v3
+      with:
+        crate: cargo-llvm-cov
+    - name: Run Code Coverage
+      run: cargo llvm-cov test --no-fail-fast --all --all-features >> $GITHUB_STEP_SUMMARY
+
   build:
     name: Build
     strategy:
