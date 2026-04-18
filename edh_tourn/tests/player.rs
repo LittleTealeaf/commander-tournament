@@ -200,3 +200,17 @@ fn get_registered_player() {
     t.unregister_player(id).unwrap();
     assert!(t.get_registered_player(id).is_none());
 }
+
+#[test]
+fn get_player_display_name() {
+    const NAME: &str = "Test";
+    let mut t = Tournament::new();
+
+    let id = t.register_player(NAME.to_owned()).unwrap();
+    let mut info = t.get_player_info(&id).unwrap().clone();
+    assert_eq!(t.get_player_display_name(&id).unwrap(), info.display_name());
+
+    info.set_precon(true);
+    t.set_player_info(id, info.clone()).unwrap();
+    assert_eq!(t.get_player_display_name(&id).unwrap(), info.display_name());
+}
