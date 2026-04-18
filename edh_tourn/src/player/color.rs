@@ -326,11 +326,10 @@ mod tests {
         for identity in ColorIdentity::IDENTITIES {
             let colors = identity.colors();
             let count = colors.map(|_| 1).sum::<u32>();
+            let num_colors = identity.num_colors();
             assert_eq!(
-                count,
-                identity.num_colors(),
-                "{identity} returns {} colors, expected {count}",
-                identity.num_colors()
+                count, num_colors,
+                "{identity} returns {num_colors} colors, expected {count}",
             );
         }
     }
@@ -388,6 +387,15 @@ mod tests {
         assert_eq!(ColorIdentity::BOROS, color);
         color.remove_color(MtgColor::Blue);
         assert_eq!(ColorIdentity::BOROS, color);
+    }
+
+    #[test]
+    fn sub_color() {
+        let ident = ColorIdentity::JESKAI;
+        let ident_1 = ident - MtgColor::Blue;
+        assert_eq!(ident_1, ColorIdentity::BOROS);
+        let ident_2 = ident - MtgColor::Blue;
+        assert_eq!(ident_2, ColorIdentity::BOROS);
     }
 
     #[test]
