@@ -1,8 +1,5 @@
-use std::collections::HashSet;
-
 use edh_tourn::{
     game::{POD_SIZE, matchup::Matchup},
-    player::PlayerId,
     tournament::Tournament,
 };
 
@@ -35,57 +32,6 @@ impl PlayMode {
             }
         }
     }
-}
-
-fn get_longest_break<I>(tournament: &Tournament, players: I) -> Option<PlayerId>
-where
-    I: IntoIterator<Item = PlayerId>,
-{
-    let players = players.into_iter().collect::<Vec<_>>();
-
-    for player in &players {
-        if tournament.get_player_or_default_stats(*player).games() == 0 {
-            return Some(*player);
-        }
-    }
-
-    let mut players = players.into_iter().collect::<HashSet<_>>();
-
-    for game in tournament.games().iter().rev() {
-        for player in game.players() {
-            if players.len() == 1 {
-                return players.into_iter().next();
-            }
-
-            players.remove(&player.id());
-        }
-    }
-
-    players.into_iter().next()
-}
-
-fn get_longest_lead_break<I>(tournament: &Tournament, players: I) -> Option<PlayerId>
-where
-    I: IntoIterator<Item = PlayerId>,
-{
-    let players = players.into_iter().collect::<Vec<_>>();
-
-    for player in &players {
-        if tournament.get_player_or_default_stats(*player).games() == 0 {
-            return Some(*player);
-        }
-    }
-
-    let mut players = players.into_iter().collect::<HashSet<_>>();
-
-    for game in tournament.games().iter().rev() {
-        let [player, ..] = game.players();
-        if players.remove(&player.id()) && players.is_empty() {
-            return Some(player.id());
-        }
-    }
-
-    players.into_iter().next()
 }
 
 impl ComponentUpdate for PlayView {
