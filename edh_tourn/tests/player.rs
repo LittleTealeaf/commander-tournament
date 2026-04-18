@@ -175,3 +175,28 @@ fn register_player_with_info() {
     t.register_player_with_info(PlayerInfo::new(String::new()))
         .unwrap_err();
 }
+
+#[test]
+fn get_registered_player() {
+    let mut t = Tournament::new();
+    let id = t.register_debug_player().unwrap();
+    for _ in 0..4 {
+        t.register_debug_player().unwrap();
+    }
+    for _ in 0..4 {
+        let game = t.random_game().unwrap();
+        t.register_entry(game).unwrap();
+    }
+
+    let player = t.get_registered_player(id).unwrap();
+    assert_eq!(player.id(), id);
+
+    let info = t.get_player_info(&id).unwrap();
+    assert_eq!(player.info(), info);
+
+    let stats = t.get_player_or_default_stats(id);
+    assert_eq!(player.stats(), stats);
+
+    t.unregister_player(id).unwrap();
+    assert!(t.get_registered_player(id).is_none());
+}
