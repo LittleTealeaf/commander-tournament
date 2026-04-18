@@ -136,7 +136,7 @@ impl ColorIdentity {
 
 impl Display for ColorIdentity {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.write_str(match self.0 & 0b11111 {
+        f.write_str(match self.0 {
             0 => "Colorless",
             1 => "White",
             2 => "Blue",
@@ -202,7 +202,7 @@ impl Add<MtgColor> for ColorIdentity {
 impl AddAssign<MtgColor> for ColorIdentity {
     #[allow(clippy::suspicious_op_assign_impl)]
     fn add_assign(&mut self, rhs: MtgColor) {
-        self.0 |= rhs as u8;
+        self.add_color(rhs);
     }
 }
 
@@ -215,8 +215,7 @@ impl Sub<MtgColor> for ColorIdentity {
 
 impl SubAssign<MtgColor> for ColorIdentity {
     fn sub_assign(&mut self, rhs: MtgColor) {
-        *self += rhs;
-        self.0 -= rhs as u8;
+        self.remove_color(rhs);
     }
 }
 
@@ -374,11 +373,29 @@ mod tests {
     }
 
     #[test]
+    fn add_assign_color() {
+        let mut ident = ColorIdentity::WHITE;
+        ident += MtgColor::Blue;
+        assert_eq!(ColorIdentity::AZORIUS, ident);
+        ident += MtgColor::Blue;
+        assert_eq!(ColorIdentity::AZORIUS, ident);
+    }
+
+    #[test]
     fn remove_color() {
         let mut color = ColorIdentity::JESKAI;
         color.remove_color(MtgColor::Blue);
         assert_eq!(ColorIdentity::BOROS, color);
         color.remove_color(MtgColor::Blue);
+        assert_eq!(ColorIdentity::BOROS, color);
+    }
+
+    #[test]
+    fn sub_assign_color() {
+        let mut color = ColorIdentity::JESKAI;
+        color -= MtgColor::Blue;
+        assert_eq!(ColorIdentity::BOROS, color);
+        color -= MtgColor::Blue;
         assert_eq!(ColorIdentity::BOROS, color);
     }
 
@@ -438,5 +455,28 @@ mod tests {
             white_blue,
             ColorIdentity::from_iter([MtgColor::White, MtgColor::Blue, MtgColor::Green])
         );
+    }
+
+    #[test]
+    #[should_panic(expected = "internal error: entered unreachable code: Unreachable")]
+    fn out_of_bounds_unreachable() {
+        let identity = ColorIdentity(32);
+        let string = format!("{identity}");
+        println!("{string}");
+    }
+
+    #[test]
+    fn color_to_letter() {
+        let tests = [
+            (MtgColor::White, "W"),
+            (MtgColor::Blue, "U"),
+            (MtgColor::Green, "G"),
+            (MtgColor::Red, "R"),
+            (MtgColor::Black, "B"),
+        ];
+
+        for (color, letter) in tests {
+            assert_eq!(color.letter(), letter);
+        }
     }
 }
