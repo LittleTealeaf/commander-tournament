@@ -54,6 +54,14 @@ fn matchup_sum_elo_always_zero() {
 
             sum_elo -= player.elo_loss();
             sum_elo -= player.elo_win();
+
+            // Test that the record elo sum is zero
+            let record = matchup.clone().record(player.id()).unwrap();
+            let mut sum_elo_change = 0.0;
+            for p in record.players() {
+                sum_elo_change += record.get_player_elo_change(p.id()).unwrap();
+            }
+            assert_abs_diff_eq!(sum_elo_change, 0.0, epsilon = 1.0e-10);
         }
     }
 }

@@ -96,6 +96,7 @@ impl GameRecord {
 
 #[cfg(test)]
 mod tests {
+
     use crate::tournament::Tournament;
 
     #[test]
@@ -115,5 +116,18 @@ mod tests {
         let record = matchup.record(player_a).unwrap();
         assert_eq!(record.winner(), player_a);
         assert_eq!(record.losers(), [player_a, player_b, player_b]);
+    }
+
+    #[test]
+    fn decomposes_into_values() {
+        let t = Tournament::generate_tournament(10, 10).unwrap();
+        let entry = t.random_game().unwrap();
+        let matchup = t.create_match(*entry.players()).unwrap();
+        let record = matchup.clone().record(entry.winner()).unwrap();
+
+        let (decomp_matchup, decomp_winner) = record.decompose();
+
+        assert_eq!(matchup, decomp_matchup);
+        assert_eq!(decomp_winner, entry.winner());
     }
 }
