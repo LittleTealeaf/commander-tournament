@@ -213,4 +213,7 @@ fn get_player_display_name() {
     info.set_precon(true);
     t.set_player_info(id, info.clone()).unwrap();
     assert_eq!(t.get_player_display_name(&id).unwrap(), info.display_name());
+
+    t.unregister_player(id).unwrap();
+    assert!(t.get_player_display_name(&id).is_none());
 }
