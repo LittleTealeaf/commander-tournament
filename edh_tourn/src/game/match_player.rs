@@ -1,6 +1,6 @@
 use crate::player::{PlayerId, stats::PlayerStats};
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default, PartialEq)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
 pub struct MatchPlayer {
     id: PlayerId,
     stats: PlayerStats,

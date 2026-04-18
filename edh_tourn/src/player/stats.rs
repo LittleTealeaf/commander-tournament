@@ -8,17 +8,6 @@ pub struct PlayerStats {
     elo_peak: f64,
 }
 
-impl Default for PlayerStats {
-    fn default() -> Self {
-        Self {
-            elo: 0.0,
-            games: 0,
-            wins: 0,
-            elo_peak: 0.0,
-        }
-    }
-}
-
 impl PlayerStats {
     #[must_use]
     pub const fn new(elo: f64) -> Self {
@@ -188,5 +177,19 @@ mod tests {
         stats.add_win(400.0);
         assert_relative_eq!(1900.0, stats.elo());
         assert_relative_eq!(2000.0, stats.elo_peak());
+    }
+
+    #[test]
+    fn wr_unwraps_to_zero() {
+        let stats = PlayerStats::new(1500.0);
+        assert_relative_eq!(stats.wr_unwrap(), 0.0);
+    }
+
+    #[test]
+    fn wr_unwraps_to_wr() {
+        let mut stats = PlayerStats::new(1500.0);
+        stats.add_win(25.0);
+        stats.add_loss(25.0);
+        assert_relative_eq!(stats.wr_unwrap(), 0.5);
     }
 }

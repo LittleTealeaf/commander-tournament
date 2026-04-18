@@ -1,10 +1,8 @@
 pub mod match_preview;
+pub mod next_mode;
 mod update;
 mod view;
 
-use core::fmt::Display;
-
-use auto_const_array::auto_const_array;
 use edh_tourn::{
     game::{POD_SIZE, record::GameRecord},
     player::PlayerId,
@@ -17,7 +15,10 @@ use crate::{
     traits::Component,
     views::{
         ViewScreen,
-        play::match_preview::{MatchPreview, MatchPreviewMsg},
+        play::{
+            match_preview::{MatchPreview, MatchPreviewMsg},
+            next_mode::PlayNextMode,
+        },
     },
 };
 
@@ -25,42 +26,6 @@ use crate::{
 pub struct PlayView {
     mode: PlayMode,
     match_preview: Option<MatchPreview>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum PlayNextMode {
-    LeastGames,
-    LongestBreak,
-    LeastWins,
-    OutlierWinrate,
-    LowestWinrate,
-    HighestWinrate,
-}
-
-impl Display for PlayNextMode {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.write_str(match self {
-            Self::LeastGames => "Least Games",
-            Self::LongestBreak => "Longest Break",
-            Self::LeastWins => "Least Wins",
-            Self::OutlierWinrate => "Outlier Winrate",
-            Self::LowestWinrate => "Lowest Winrate",
-            Self::HighestWinrate => "Highest Winrate",
-        })
-    }
-}
-
-impl PlayNextMode {
-    auto_const_array! {
-        const VALUES: [Self; _] = [
-            Self::LongestBreak,
-            Self::LeastGames,
-            Self::LeastWins,
-            Self::OutlierWinrate,
-            Self::LowestWinrate,
-            Self::HighestWinrate,
-        ]
-    }
 }
 
 #[derive(Debug, Clone)]
@@ -82,9 +47,9 @@ impl PlayMode {
     }
 
     #[must_use]
-    pub const fn next() -> Self {
+    pub fn next() -> Self {
         Self::Next {
-            mode: PlayNextMode::LongestBreak,
+            mode: PlayNextMode::default(),
             ignore_precons: false,
         }
     }

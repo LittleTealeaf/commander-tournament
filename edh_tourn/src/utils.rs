@@ -17,3 +17,18 @@ where
         self.iter().map(|(&k, &v)| (k, v))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[allow(clippy::indexing_slicing)]
+    fn is_copied() {
+        let map = HashMap::from([(1, 2), (3, 4), (5, 6)]);
+        let values = map.iter_copied();
+        for (key, value) in values {
+            assert_eq!(&map[&key], &value);
+        }
+    }
+}

@@ -4,7 +4,17 @@ use core::ops::{Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, Sub, S
 use itertools::Itertools;
 
 #[derive(
-    Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash, Copy,
+    Debug,
+    Clone,
+    serde::Serialize,
+    serde::Deserialize,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
+    Copy,
+    derive_more::Display,
 )]
 pub enum MtgColor {
     #[serde(rename = "w", alias = "White")]
@@ -17,18 +27,6 @@ pub enum MtgColor {
     Red = 1 << 3,
     #[serde(rename = "g", alias = "Green")]
     Green = 1 << 4,
-}
-
-impl Display for MtgColor {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.write_str(match self {
-            Self::White => "White",
-            Self::Blue => "Blue",
-            Self::Black => "Black",
-            Self::Red => "Red",
-            Self::Green => "Green",
-        })
-    }
 }
 
 impl MtgColor {
@@ -138,7 +136,7 @@ impl ColorIdentity {
 
 impl Display for ColorIdentity {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.write_str(match self.0 & 0b11111 {
+        f.write_str(match self.0 {
             0 => "Colorless",
             1 => "White",
             2 => "Blue",
@@ -204,7 +202,7 @@ impl Add<MtgColor> for ColorIdentity {
 impl AddAssign<MtgColor> for ColorIdentity {
     #[allow(clippy::suspicious_op_assign_impl)]
     fn add_assign(&mut self, rhs: MtgColor) {
-        self.0 |= rhs as u8;
+        self.add_color(rhs);
     }
 }
 
@@ -217,8 +215,7 @@ impl Sub<MtgColor> for ColorIdentity {
 
 impl SubAssign<MtgColor> for ColorIdentity {
     fn sub_assign(&mut self, rhs: MtgColor) {
-        *self += rhs;
-        self.0 -= rhs as u8;
+        self.remove_color(rhs);
     }
 }
 
@@ -329,11 +326,10 @@ mod tests {
         for identity in ColorIdentity::IDENTITIES {
             let colors = identity.colors();
             let count = colors.map(|_| 1).sum::<u32>();
+            let num_colors = identity.num_colors();
             assert_eq!(
-                count,
-                identity.num_colors(),
-                "{identity} returns {} colors, expected {count}",
-                identity.num_colors()
+                count, num_colors,
+                "{identity} returns {num_colors} colors, expected {count}",
             );
         }
     }
@@ -376,11 +372,38 @@ mod tests {
     }
 
     #[test]
+    fn add_assign_color() {
+        let mut ident = ColorIdentity::WHITE;
+        ident += MtgColor::Blue;
+        assert_eq!(ColorIdentity::AZORIUS, ident);
+        ident += MtgColor::Blue;
+        assert_eq!(ColorIdentity::AZORIUS, ident);
+    }
+
+    #[test]
     fn remove_color() {
         let mut color = ColorIdentity::JESKAI;
         color.remove_color(MtgColor::Blue);
         assert_eq!(ColorIdentity::BOROS, color);
         color.remove_color(MtgColor::Blue);
+        assert_eq!(ColorIdentity::BOROS, color);
+    }
+
+    #[test]
+    fn sub_color() {
+        let ident = ColorIdentity::JESKAI;
+        let ident_1 = ident - MtgColor::Blue;
+        assert_eq!(ident_1, ColorIdentity::BOROS);
+        let ident_2 = ident - MtgColor::Blue;
+        assert_eq!(ident_2, ColorIdentity::BOROS);
+    }
+
+    #[test]
+    fn sub_assign_color() {
+        let mut color = ColorIdentity::JESKAI;
+        color -= MtgColor::Blue;
+        assert_eq!(ColorIdentity::BOROS, color);
+        color -= MtgColor::Blue;
         assert_eq!(ColorIdentity::BOROS, color);
     }
 
@@ -440,5 +463,28 @@ mod tests {
             white_blue,
             ColorIdentity::from_iter([MtgColor::White, MtgColor::Blue, MtgColor::Green])
         );
+    }
+
+    #[test]
+    #[should_panic(expected = "internal error: entered unreachable code: Unreachable")]
+    fn out_of_bounds_unreachable() {
+        let identity = ColorIdentity(32);
+        let string = format!("{identity}");
+        println!("{string}");
+    }
+
+    #[test]
+    fn color_to_letter() {
+        let tests = [
+            (MtgColor::White, "W"),
+            (MtgColor::Blue, "U"),
+            (MtgColor::Green, "G"),
+            (MtgColor::Red, "R"),
+            (MtgColor::Black, "B"),
+        ];
+
+        for (color, letter) in tests {
+            assert_eq!(color.letter(), letter);
+        }
     }
 }

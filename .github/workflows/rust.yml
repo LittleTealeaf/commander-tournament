@@ -44,6 +44,30 @@ jobs:
     - name: Check Formatting
       uses: actions-rust-lang/rustfmt@v1
 
+  coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v6
+    - name: Setup Rust
+      uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: stable
+        components: llvm-tools
+    - name: Install Cargo LLVM Cov
+      uses: baptiste0928/cargo-install@v3
+      with:
+        crate: cargo-llvm-cov
+    - name: Generate Coverage Output
+      run: cargo llvm-cov test --no-fail-fast --all --all-features --lcov --output-path lcov.info
+    - name: Fix absolute paths
+      run: sed -i "s|$GITHUB_WORKSPACE/||g" lcov.info
+    - name: Upload to Summary
+      uses: livewing/lcov-job-summary@v1.2.0
+      with:
+        lcov: lcov.info
+
   build:
     name: Build
     strategy:

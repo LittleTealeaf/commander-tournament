@@ -12,16 +12,21 @@ pub mod info;
 pub mod stats;
 
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Ord, PartialOrd, Default,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    Serialize,
+    Deserialize,
+    Ord,
+    PartialOrd,
+    Default,
+    derive_more::Display,
 )]
 #[serde(transparent)]
 pub struct PlayerId(pub(crate) u32);
-
-impl Display for PlayerId {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct RegisteredPlayer<'a> {

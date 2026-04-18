@@ -101,18 +101,57 @@ fn into_fresh_resets_ids() {
 }
 
 #[test]
-fn merge_tournaments_merge_players() {
+fn merge_tournaments() {
     let players = ["a", "b", "c", "d"];
     let mut tournament_a = Tournament::new();
     for p in &players {
         tournament_a.register_player(p.to_string()).unwrap();
     }
+    for _ in 0..4 {
+        tournament_a
+            .register_entry(tournament_a.random_game().unwrap())
+            .unwrap();
+    }
     let mut tournament_b = Tournament::new();
     for p in &players {
         tournament_b.register_player(p.to_string()).unwrap();
+    }
+    for _ in 0..4 {
+        tournament_b
+            .register_entry(tournament_b.random_game().unwrap())
+            .unwrap();
     }
 
     tournament_a.merge(&tournament_b).unwrap();
 
     assert_eq!(4, tournament_a.players().len());
+    assert_eq!(8, tournament_a.games().len());
+}
+
+#[test]
+fn union_tournaments() {
+    let players = ["a", "b", "c", "d"];
+    let mut tournament_a = Tournament::new();
+    for p in &players {
+        tournament_a.register_player(p.to_string()).unwrap();
+    }
+    for _ in 0..4 {
+        tournament_a
+            .register_entry(tournament_a.random_game().unwrap())
+            .unwrap();
+    }
+    let mut tournament_b = Tournament::new();
+    for p in &players {
+        tournament_b.register_player(p.to_string()).unwrap();
+    }
+    for _ in 0..4 {
+        tournament_b
+            .register_entry(tournament_b.random_game().unwrap())
+            .unwrap();
+    }
+
+    let tourn = tournament_a.union(&tournament_b).unwrap();
+
+    assert_eq!(4, tourn.players().len());
+    assert_eq!(8, tourn.games().len());
 }
