@@ -20,6 +20,11 @@ impl GameConfigView {
     pub const fn new(config: GameConfig) -> Self {
         Self { config }
     }
+
+    #[must_use]
+    pub const fn config(&self) -> &GameConfig {
+        &self.config
+    }
 }
 
 #[derive(Clone, Debug)]
