@@ -40,6 +40,7 @@ pub enum HomeOut {
     FileOpen,
     FileSave,
     FileSaveAs,
+    OpenGameConfig,
 }
 
 impl Component for Home {
@@ -90,6 +91,7 @@ impl ComponentUpdate for Home {
                     MenuMsg::SaveAs => HomeOut::FileSaveAs,
                     MenuMsg::OpenPlayNext => HomeOut::OpenPlayView(PlayMode::next()),
                     MenuMsg::OpenPlayCustom => HomeOut::OpenPlayView(PlayMode::custom()),
+                    MenuMsg::OpenGameConfig => HomeOut::OpenGameConfig,
                 })
                 .ok()
             }),

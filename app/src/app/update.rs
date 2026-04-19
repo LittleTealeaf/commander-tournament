@@ -12,7 +12,10 @@ use crate::{
     home::{HomeMsg, HomeOut},
     services::system::open_link,
     traits::{ComponentUpdate, HandleMessage},
-    views::{matchmaker_config::MatchmakerConfigView, play::PlayView, player::PlayerView},
+    views::{
+        game_config::GameConfigView, matchmaker_config::MatchmakerConfigView, play::PlayView,
+        player::PlayerView,
+    },
 };
 
 use super::view::View;
@@ -63,12 +66,11 @@ impl ComponentUpdate for App {
             Message::Home(message) => self.handle_message(message, ()),
             Message::TournFile(message) => self.handle_message(message, ()),
             Message::Error(error) => Err(anyhow::anyhow!("{error}")),
-            Message::OpenPlayerDetails(maybe_id) => {
-                self.push_view(PlayerView::new(
+            Message::OpenPlayerDetails(maybe_id) => self
+                .push_view(PlayerView::new(
                     maybe_id.and_then(|id| self.tournament().get_registered_player(id)),
-                ));
-                Effect::done()
-            }
+                ))
+                .ok(),
             Message::OpenLink(link) => {
                 Effect::Task(Task::future(async { open_link(link).await }).discard()).ok()
             }
@@ -81,10 +83,9 @@ impl ComponentUpdate for App {
                     Effect::done()
                 }
             }
-            Message::OpenPlay(play_mode) => {
-                self.push_view(PlayView::new(play_mode, &self.tournament));
-                Effect::done()
-            }
+            Message::OpenPlay(play_mode) => self
+                .push_view(PlayView::new(play_mode, &self.tournament))
+                .ok(),
             Message::CloseModal => {
                 self.modals.pop();
                 Effect::done()
@@ -120,12 +121,14 @@ impl ComponentUpdate for App {
                     Effect::done()
                 }
             }
-            Message::OpenPlayConfig => {
-                self.push_view(MatchmakerConfigView::new(
+            Message::OpenPlayConfig => self
+                .push_view(MatchmakerConfigView::new(
                     self.tournament.matchmaker_config().clone(),
-                ));
-                Effect::done()
-            }
+                ))
+                .ok(),
+            Message::OpenGameConfig => self
+                .push_view(GameConfigView::new(self.tournament.game_config().clone()))
+                .ok(),
         }
     }
 }
@@ -152,6 +155,7 @@ impl HandleMessage<HomeMsg> for App {
                 }
                 HomeOut::OpenNewPlayer => Effect::msg(Message::OpenPlayerDetails(None)).ok(),
                 HomeOut::OpenPlayView(mode) => Effect::msg(Message::OpenPlay(mode)).ok(),
+                HomeOut::OpenGameConfig => Effect::msg(Message::OpenGameConfig).ok(),
             })
     }
 }
