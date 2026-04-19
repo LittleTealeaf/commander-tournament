@@ -44,3 +44,45 @@ impl Matchup {
         GameRecord::new(self, winner)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::tournament::Tournament;
+
+    use super::*;
+
+    fn create_matchup() -> Matchup {
+        let t = Tournament::generate_tournament(10, 10).unwrap();
+        let player = t.players().keys().next().copied().unwrap();
+        t.matchmaker().create_match(player).unwrap()
+    }
+
+    #[test]
+    fn test_has_player() {
+        let mut t = Tournament::new();
+        let id_a = t.register_debug_player().unwrap();
+        let id_b = t.register_debug_player().unwrap();
+        let id_c = t.register_debug_player().unwrap();
+        let id_d = t.register_debug_player().unwrap();
+        let id_not_included = t.register_debug_player().unwrap();
+        let m = t.create_match([id_a, id_b, id_c, id_d]).unwrap();
+
+        assert!(m.has_player(id_a));
+        assert!(m.has_player(id_b));
+        assert!(m.has_player(id_c));
+        assert!(m.has_player(id_d));
+        assert!(!m.has_player(id_not_included));
+    }
+
+    #[test]
+    fn test_ids() {
+        let mut t = Tournament::new();
+        let id_a = t.register_debug_player().unwrap();
+        let id_b = t.register_debug_player().unwrap();
+        let id_c = t.register_debug_player().unwrap();
+        let id_d = t.register_debug_player().unwrap();
+        let m = t.create_match([id_a, id_b, id_c, id_d]).unwrap();
+        let ids = m.ids();
+        assert_eq!(ids, [id_a, id_b, id_c, id_d]);
+    }
+}
