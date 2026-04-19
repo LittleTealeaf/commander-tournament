@@ -73,3 +73,62 @@ where
         .enumerate()
         .map(move |(score, val)| (val, score * weight))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashSet;
+
+    #[test]
+    fn too_few_players_fails() {
+        let mut t = Tournament::new();
+        let id = t.register_debug_player().unwrap();
+        t.matchmaker().create_match(id).unwrap_err();
+    }
+
+    #[test]
+    fn first_player_always_parameter() {
+        let mut t = Tournament::generate_tournament(4, 0).unwrap();
+        for _ in 0..10 {
+            let id = t.register_debug_player().unwrap();
+            let game = t.matchmaker().create_match(id).unwrap();
+            assert_eq!(id, game.players().first().unwrap().id());
+        }
+    }
+
+    #[test]
+    fn matchmaker_no_duplicate_players() {
+        let t = Tournament::generate_tournament(10, 20).unwrap();
+        let seed = *t.players().keys().next().unwrap();
+        let matchup = t.matchmaker().create_match(seed).unwrap();
+
+        let ids = matchup.ids();
+        let mut unique = HashSet::new();
+        for id in ids {
+            assert!(unique.insert(id), "Matchup contained duplicate players!");
+        }
+        assert_eq!(unique.len(), POD_SIZE);
+    }
+
+    #[test]
+    fn matchmaker_selects_exact_pod_size() {
+        let t = Tournament::generate_tournament(10, 5).unwrap();
+        let seed = *t.players().keys().next().unwrap();
+        let matchup = t.matchmaker().create_match(seed).unwrap();
+
+        assert_eq!(matchup.players().len(), POD_SIZE);
+    }
+
+    #[test]
+    fn test_to_weight_rank() {
+        let items = vec!["PlayerA", "PlayerB", "PlayerC"];
+        let weight = 5;
+        let result: Vec<_> = to_weight_rank(items, weight).collect();
+
+        // 0 * 5 = 0, 1 * 5 = 5, 2 * 5 = 10
+        assert_eq!(
+            result,
+            vec![("PlayerA", 0), ("PlayerB", 5), ("PlayerC", 10)]
+        );
+    }
+}
