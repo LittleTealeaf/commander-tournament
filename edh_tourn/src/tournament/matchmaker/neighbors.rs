@@ -129,3 +129,84 @@ impl Matchable for BaseMatchable {
         self.wr
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::tournament::Tournament;
+
+    #[test]
+    fn test_elo_neighbor_ranking() {
+        let t = Tournament::generate_tournament(15, 30).unwrap();
+        let mm = t.matchmaker();
+        let target_elo = 1550.0;
+        let players: Vec<PlayerId> = t.players().keys().copied().collect();
+
+        let ranked: Vec<PlayerId> = mm.elo_neighbor(target_elo, players).collect();
+
+        // Verify players are sorted by absolute distance to the target Elo
+        let mut previous_diff = -1.0;
+        for id in ranked {
+            let elo = t.get_player_or_default_stats(id).elo();
+            let diff = (target_elo - elo).abs();
+            assert!(
+                diff >= previous_diff,
+                "Elo neighbor ordering failed. Prev: {previous_diff}, Curr: {diff}",
+            );
+            previous_diff = diff;
+        }
+    }
+
+    #[test]
+    fn test_wr_neighbor_ranking() {
+        let t = Tournament::generate_tournament(15, 30).unwrap();
+        let mm = t.matchmaker();
+        let target_wr = 0.5;
+        let players: Vec<PlayerId> = t.players().keys().copied().collect();
+
+        let ranked: Vec<PlayerId> = mm.wr_neighbor(target_wr, players).collect();
+
+        // Verify players are sorted by absolute distance to the target Win Rate
+        let mut previous_diff = -1.0;
+        for id in ranked {
+            let wr = t.get_player_or_default_stats(id).wr().unwrap_or(0.0);
+            let diff = (target_wr - wr).abs();
+            assert!(
+                diff >= previous_diff,
+                "WR neighbor ordering failed. Prev: {previous_diff}, Curr: {diff}",
+            );
+            previous_diff = diff;
+        }
+    }
+
+    #[test]
+    fn test_expected_neighbor_ranking() {
+        let t = Tournament::generate_tournament(10, 20).unwrap();
+        let mm = t.matchmaker();
+
+        let seed_id = *t.players().keys().next().unwrap();
+        let agg_stats = AggregateStats::from(t.get_player_or_default_stats(seed_id));
+        let players: Vec<PlayerId> = t.players().keys().copied().collect();
+
+        let ranked: Vec<PlayerId> = mm.expected_neighbor(&agg_stats, players).collect();
+
+        // Verify sorting by absolute difference mapped against standard base expected probability (0.5)
+        let mut previous_diff = -1.0;
+        for id in ranked {
+            let stats = t.get_player_or_default_stats(id);
+            let diff = mm.calc_expected_diff(&agg_stats, stats.wr(), stats.elo());
+            assert!(
+                diff >= previous_diff,
+                "Expected neighbor ordering failed. Prev: {previous_diff}, Curr: {diff}",
+            );
+            previous_diff = diff;
+        }
+    }
+
+    #[test]
+    fn test_ordered_by_proximity_helper() {
+        assert_eq!(ordered_by_proximity(10.0, 9.0, 12.0), Ordering::Less); // Diff 1 vs 2
+        assert_eq!(ordered_by_proximity(10.0, 8.0, 11.0), Ordering::Greater); // Diff 2 vs 1
+        assert_eq!(ordered_by_proximity(10.0, 9.0, 11.0), Ordering::Equal); // Diff 1 vs 1
+    }
+}

@@ -4,6 +4,7 @@ use iced::{
     Length,
     widget::{button, row, space},
 };
+use nerd_font_symbols::md::MD_COG;
 
 use crate::{
     effect::Effect,
@@ -19,6 +20,7 @@ pub enum MenuMsg {
     Open,
     Save,
     SaveAs,
+    OpenGameConfig,
     OpenPlayNext,
     OpenPlayCustom,
 }
@@ -51,6 +53,7 @@ impl ComponentView for Menu {
             button("SaveAs").on_press(MenuMsg::SaveAs),
             button("Save").on_press_maybe(context.is_some().then_some(MenuMsg::Save)),
             space().width(Length::Fill),
+            button(MD_COG).on_press(MenuMsg::OpenGameConfig),
             button("Custom Game").on_press(MenuMsg::OpenPlayCustom),
             button("Next Game").on_press(MenuMsg::OpenPlayNext),
         ]

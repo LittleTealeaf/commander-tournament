@@ -75,3 +75,65 @@ fn order_least_played(left: &MatchPerformance, right: &MatchPerformance) -> Orde
 fn order_lost_with(left: &MatchPerformance, right: &MatchPerformance) -> Ordering {
     left.draws().cmp(&right.draws()).reverse()
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::tournament::Tournament;
+
+    use super::*;
+
+    #[test]
+    fn test_order_least_played() {
+        let p_few = MatchPerformance::new(2, 1, 1);
+        let p_many = MatchPerformance::new(10, 5, 5);
+        let p_equal = MatchPerformance::new(2, 0, 2);
+
+        assert_eq!(order_least_played(&p_few, &p_many), Ordering::Less);
+        assert_eq!(order_least_played(&p_many, &p_few), Ordering::Greater);
+        assert_eq!(order_least_played(&p_few, &p_equal), Ordering::Equal);
+    }
+
+    #[test]
+    fn test_order_lost_with() {
+        let p_high_draws = MatchPerformance::new(10, 2, 2);
+        let p_low_draws = MatchPerformance::new(10, 8, 1);
+
+        assert_eq!(order_lost_with(&p_high_draws, &p_low_draws), Ordering::Less);
+        assert_eq!(
+            order_lost_with(&p_low_draws, &p_high_draws),
+            Ordering::Greater
+        );
+    }
+
+    #[test]
+    fn test_sort_by_tie_breaker_uses_elo_proximity() {
+        let t = Tournament::generate_tournament(10, 20).unwrap();
+        let mm = t.matchmaker();
+
+        let target_elo = 1600.0;
+
+        // Pass identical default performances to force the tie breaker logic to kick in
+        let performances: Vec<(PlayerId, MatchPerformance)> = t
+            .players()
+            .keys()
+            .map(|&id| (id, MatchPerformance::default()))
+            .collect();
+
+        let ranked: Vec<PlayerId> = mm
+            .sort_by(target_elo, performances, |_, _| Ordering::Equal)
+            .map(|(id, _)| id)
+            .collect();
+
+        // Ensure the results are sorted ascendingly by distance to `target_elo`
+        let mut previous_diff = -1.0;
+        for id in ranked {
+            let elo = t.get_player_or_default_stats(id).elo();
+            let diff = (target_elo - elo).abs();
+            assert!(
+                diff >= previous_diff,
+                "List not sorted by elo proximity. Prev diff: {previous_diff}, Curr diff: {diff}",
+            );
+            previous_diff = diff;
+        }
+    }
+}

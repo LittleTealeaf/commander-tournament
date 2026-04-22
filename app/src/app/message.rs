@@ -27,6 +27,7 @@ pub enum Message {
     TournFile(FileAction),
     OpenPlayerDetails(Option<PlayerId>),
     OpenPlayConfig,
+    OpenGameConfig,
     CloseView,
     #[from(ignore)]
     Error(String),

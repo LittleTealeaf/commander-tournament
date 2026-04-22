@@ -3,6 +3,7 @@ use iced::Element;
 
 use crate::modals::Modal;
 use crate::views::ViewScreen;
+use crate::views::game_config::{GameConfigMsg, GameConfigOut, GameConfigView};
 use crate::views::{
     matchmaker_config::{MatchmakerConfigMsg, MatchmakerConfigOut, MatchmakerConfigView},
     play::PlayMode,
@@ -22,7 +23,8 @@ use crate::{
 #[derive(Clone, Debug, derive_more::From)]
 pub enum View {
     Play(PlayView),
-    PlaySettings(MatchmakerConfigView),
+    PlayConfig(MatchmakerConfigView),
+    GameConfig(GameConfigView),
     PlayerDetails(PlayerView),
 }
 
@@ -30,8 +32,9 @@ impl View {
     pub fn on_resume(&self) -> Option<ViewMsg> {
         match self {
             Self::Play(_) => PlayView::ON_RESUME.map(Into::into),
-            Self::PlaySettings(_) => MatchmakerConfigView::ON_RESUME.map(Into::into),
+            Self::PlayConfig(_) => MatchmakerConfigView::ON_RESUME.map(Into::into),
             Self::PlayerDetails(_) => PlayerView::ON_RESUME.map(Into::into),
+            Self::GameConfig(_) => GameConfigView::ON_RESUME.map(Into::into),
         }
     }
 }
@@ -39,7 +42,8 @@ impl View {
 #[derive(Debug, Clone, derive_more::From)]
 pub enum ViewMsg {
     PlayerDetails(PlayerDetailsMsg),
-    PlaySettings(MatchmakerConfigMsg),
+    PlayConfig(MatchmakerConfigMsg),
+    GameConfig(GameConfigMsg),
     Play(PlayMsg),
 }
 
@@ -101,11 +105,21 @@ impl ComponentUpdate for View {
                     PlayOut::OpenRankingConfig => Effect::out(Message::OpenPlayConfig).ok(),
                 })
             }
-            (Self::PlaySettings(state), ViewMsg::PlaySettings(msg)) => {
+            (Self::PlayConfig(state), ViewMsg::PlayConfig(msg)) => {
                 state.update(msg, context.tourn)?.map(|out| match out {
                     MatchmakerConfigOut::Close => CLOSE_VIEW.ok(),
                     MatchmakerConfigOut::SaveAndClose(ranking_config) => {
                         Effect::out(TournamentAction::SetMatchmakerConfig(ranking_config))
+                            .chain(CLOSE_VIEW)
+                            .ok()
+                    }
+                })
+            }
+            (Self::GameConfig(state), ViewMsg::GameConfig(msg)) => {
+                state.update(msg, context.tourn)?.map(|out| match out {
+                    GameConfigOut::Close => CLOSE_VIEW.ok(),
+                    GameConfigOut::SaveAndClose(game_config) => {
+                        Effect::out(TournamentAction::SetGameConfig(game_config))
                             .chain(CLOSE_VIEW)
                             .ok()
                     }
@@ -123,11 +137,12 @@ impl ComponentView for View {
         Self: 'a;
     fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> Element<'a, Self::Message> {
         match self {
-            Self::PlaySettings(settings) => settings.screen_view_into(()),
+            Self::PlayConfig(settings) => settings.screen_view_into(()),
             Self::PlayerDetails(player_details) => {
                 player_details.screen_view_into(context.tournament())
             }
             Self::Play(play) => play.screen_view_into(context.tournament()),
+            Self::GameConfig(game_config) => game_config.screen_view_into(()),
         }
     }
 }
@@ -156,10 +171,13 @@ impl App {
         self.modals.push(Modal::Error { error });
     }
 
-    pub fn push_view<V>(&mut self, view: V)
+    pub fn push_view<V>(&mut self, view: V) -> Effect<Message, ()>
     where
         V: Into<View>,
     {
-        self.views.push(view.into());
+        let view: View = view.into();
+        let on_resume = view.on_resume();
+        self.views.push(view);
+        on_resume.map(Effect::msg).unwrap_or_default()
     }
 }
