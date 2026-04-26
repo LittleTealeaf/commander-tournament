@@ -140,11 +140,37 @@ impl From<V1Tournament> for V2Tournament {
 
 #[cfg(test)]
 mod tests {
-    use crate::tournament::Tournament;
+    use crate::{player::color::ColorIdentity, tournament::Tournament};
 
     #[test]
     pub fn deserialize() {
+        const EXPECTED_PLAYERS: usize = 28;
+        const PLAYER_NAME: &str = "Aurelia, the Warleader";
+        const MOXFIELD_LINK: &str = "https://moxfield.com/decks/BtCcQ8eWg0uT8n4fFPK3Xg";
+        const COLOR_IDENTITY: ColorIdentity = ColorIdentity::BOROS;
+        const GAMES_PLAYED: u32 = 62;
+        const GAMES_WON: u32 = 22;
+
         let data = include_str!("../../../res/tests/compats/sample-v1.ron");
-        let _: Tournament = ron::from_str(data).unwrap();
+        let tourn: Tournament = ron::from_str(data).unwrap();
+        let player_count = tourn.players().len();
+        assert_eq!(
+            player_count, EXPECTED_PLAYERS,
+            "Expected {EXPECTED_PLAYERS} players, found {player_count}."
+        );
+
+        let id = tourn.get_player_id(&PLAYER_NAME.to_owned()).unwrap();
+        let info = tourn.get_player_info(&id).unwrap();
+        let moxfield = info.moxfield_link().unwrap();
+        assert_eq!(moxfield, MOXFIELD_LINK, "Expected same moxfield link");
+        assert_eq!(
+            info.color_identity(),
+            COLOR_IDENTITY,
+            "Expected correct color identity"
+        );
+
+        let stats = tourn.get_player_or_default_stats(id);
+        assert_eq!(stats.games(), GAMES_PLAYED);
+        assert_eq!(stats.wins(), GAMES_WON);
     }
 }

@@ -68,31 +68,52 @@ mod tests {
 
     #[test]
     fn ron_serialize_loop() {
-        for mut game in Tournament::test_tournaments() {
-            for _ in 0..3 {
-                let ser = ron::ser::to_string(&game).unwrap();
-                game = ron::from_str(&ser).unwrap();
-            }
+        let mut tournament = Tournament::generate_tournament(15, 100).unwrap();
+        for _ in 0..10 {
+            let ser = ron::ser::to_string(&tournament).unwrap();
+            let deser: Tournament = ron::from_str(&ser).unwrap();
+            assert_eq!(tournament.games().len(), deser.games().len());
+            assert_eq!(tournament.players().len(), deser.players().len());
+
+            tournament = deser;
+            tournament.register_debug_player().unwrap();
+            tournament
+                .register_entry(tournament.random_game().unwrap())
+                .unwrap();
         }
     }
 
     #[test]
     fn json_serialize_loop() {
-        for mut game in Tournament::test_tournaments() {
-            for _ in 0..3 {
-                let ser = serde_json::to_string(&game).unwrap();
-                game = serde_json::from_str(&ser).unwrap();
-            }
+        let mut tournament = Tournament::generate_tournament(15, 100).unwrap();
+        for _ in 0..10 {
+            let ser = serde_json::to_string(&tournament).unwrap();
+            let deser: Tournament = serde_json::from_str(&ser).unwrap();
+            assert_eq!(tournament.games().len(), deser.games().len());
+            assert_eq!(tournament.players().len(), deser.players().len());
+
+            tournament = deser;
+            tournament.register_debug_player().unwrap();
+            tournament
+                .register_entry(tournament.random_game().unwrap())
+                .unwrap();
         }
     }
 
     #[test]
     fn toml_serialize_loop() {
-        for mut game in Tournament::test_tournaments() {
-            for _ in 0..3 {
-                let ser = toml::to_string(&game).unwrap();
-                game = toml::from_str(&ser).unwrap();
-            }
+        let mut tournament = Tournament::generate_tournament(15, 100).unwrap();
+        for _ in 0..10 {
+            let ser = toml::to_string(&tournament).unwrap();
+            let deser: Tournament = toml::from_str(&ser).unwrap();
+            assert_eq!(tournament.games().len(), deser.games().len());
+            assert_eq!(tournament.players().len(), deser.players().len());
+
+            tournament = deser;
+            tournament.register_debug_player().unwrap();
+            tournament
+                .register_entry(tournament.random_game().unwrap())
+                .unwrap();
         }
     }
 
