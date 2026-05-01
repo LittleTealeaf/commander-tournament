@@ -25,7 +25,7 @@ toml = "1.1.2"
 thiserror = "2.0.18"
 edh_tourn = {path = "../edh_tourn/"}
 directories = "6.0.0"
-iced_aw = { version = "0.13.1", features = ["tab_bar", "tabs"] }
+iced_aw = { version = "0.14.1", features = ["tab_bar", "tabs"] }
 nerd-font-symbols = "0.3.0"
 derive_more = {version = "2", features = ["from", "display"]}
 iced_futures = "0.14.0"
