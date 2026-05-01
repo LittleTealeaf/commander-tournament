@@ -64,7 +64,7 @@ jobs:
     - name: Fix absolute paths
       run: sed -i "s|$GITHUB_WORKSPACE/||g" lcov.info
     - name: Upload to Summary
-      uses: livewing/lcov-job-summary@v1.2.0
+      uses: livewing/lcov-job-summary@v1.3.0
       with:
         lcov: lcov.info
 
