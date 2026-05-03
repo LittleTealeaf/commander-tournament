@@ -79,7 +79,7 @@ pub enum PlayMsg {
     OpenConfig,
     SetNextMode(PlayNextMode),
     OpenLink(String),
-    OpenLinks(Vec<String>),
+    // OpenLinks(Vec<String>),
     SetPlayer(usize, Option<PlayerId>),
     Preview(MatchPreviewMsg),
     IgnorePrecons(bool),
