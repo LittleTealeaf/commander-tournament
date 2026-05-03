@@ -44,7 +44,7 @@ where
         Self::Msg(message.into())
     }
 
-    pub fn delay_msg<Msg>(message: Msg) -> Self
+    pub fn delayed<Msg>(message: Msg) -> Self
     where
         Msg: Into<M>,
     {
@@ -99,15 +99,46 @@ where
     where
         I: IntoIterator<Item = Self>,
     {
-        effects.into_iter().fold(Self::Done, Self::merge)
+        let iter = effects.into_iter();
+        // Pre-allocate memory based on the iterator's size hint
+        let mut flat = Vec::with_capacity(iter.size_hint().0);
+
+        for effect in iter {
+            match effect {
+                Self::Done => {}
+                Self::Batch(mut items) => flat.append(&mut items),
+                other => flat.push(other),
+            }
+        }
+
+        match flat.len() {
+            0 => Self::Done,
+            1 => flat.pop().unwrap(), // Avoid wrapping a single item
+            _ => Self::Batch(flat),
+        }
     }
 
-    /// Notes: tasks are not spawned if any message fails to complete
     pub fn sequence<I>(effects: I) -> Self
     where
         I: IntoIterator<Item = Self>,
     {
-        effects.into_iter().fold(Self::Done, Self::chain)
+        let iter = effects.into_iter();
+        // Pre-allocate memory based on the iterator's size hint
+        let mut flat = Vec::with_capacity(iter.size_hint().0);
+
+        for effect in iter {
+            match effect {
+                Self::Done => {}
+                Self::Sequence(mut items) => flat.append(&mut items),
+                other => flat.push(other),
+            }
+        }
+
+        match flat.len() {
+            0 => Self::Done,
+            1 => flat.pop().unwrap(), // Avoid wrapping a single item
+            _ => Self::Sequence(flat),
+        }
     }
 
     #[must_use]
@@ -120,8 +151,9 @@ where
             (effect, Self::Sequence(effects)) => {
                 Self::Sequence(once(effect).chain(effects).collect())
             }
-            (Self::Sequence(effects), effect) => {
-                Self::Sequence(effects.into_iter().chain(once(effect)).collect())
+            (Self::Sequence(mut effects), effect) => {
+                effects.push(effect);
+                Self::Sequence(effects)
             }
             (left, right) => Self::Sequence(vec![left, right]),
         }
@@ -159,20 +191,18 @@ where
             Self::Modal(modal) => Ok(Effect::Modal(modal.map())),
             Self::Task(task) => Ok(Effect::Task(task.map(Into::into))),
             Self::Msg(message) => Effect::Msg(message.into()).ok(),
-            Self::Batch(batch) => {
-                let mut effects = Vec::new();
-                for effect in batch {
-                    effects.push(effect.inner_map(map_out)?);
-                }
-                Ok(Effect::Batch(effects))
-            }
-            Self::Sequence(sequence) => {
-                let mut effects = Vec::new();
-                for effect in sequence {
-                    effects.push(effect.inner_map(map_out)?);
-                }
-                Ok(Effect::Sequence(effects))
-            }
+            Self::Batch(batch) => Ok(Effect::Batch(
+                batch
+                    .into_iter()
+                    .map(|effect| effect.inner_map(map_out))
+                    .collect::<anyhow::Result<Vec<_>>>()?,
+            )),
+            Self::Sequence(sequence) => Ok(Effect::Batch(
+                sequence
+                    .into_iter()
+                    .map(|effect| effect.inner_map(map_out))
+                    .collect::<anyhow::Result<Vec<_>>>()?,
+            )),
         }
     }
 
