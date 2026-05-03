@@ -2,6 +2,7 @@ use core::cmp::Reverse;
 
 use auto_const_array::auto_const_array;
 use edh_tourn::game::POD_SIZE;
+use edh_tourn::game::record::GameRecord;
 use edh_tourn::player::PlayerId;
 use edh_tourn::{player::RegisteredPlayer, tournament::Tournament};
 use im::OrdSet;
@@ -20,6 +21,8 @@ pub enum PlayNextMode {
     LeastWins,
     #[display("Outlier Winrate")]
     OutlierWinrate,
+    #[display("Longest Since Win")]
+    LongestSinceWin,
 }
 
 impl PlayNextMode {
@@ -30,6 +33,7 @@ impl PlayNextMode {
             Self::LeastGames,
             Self::LeastWins,
             Self::OutlierWinrate,
+            Self::LongestSinceWin,
         ]
     }
 
@@ -50,6 +54,32 @@ impl PlayNextMode {
         let players = players.into_iter();
 
         match self {
+            Self::LongestSinceWin => {
+                let players = players.collect::<Vec<_>>();
+                for player in &players {
+                    if player.stats().wins() == 0 {
+                        return Some(*player);
+                    }
+                }
+
+                let ids = players
+                    .into_iter()
+                    .map(|player| player.id())
+                    .collect::<OrdSet<PlayerId>>();
+
+                let (id, _) = tournament
+                    .games()
+                    .iter()
+                    .map(GameRecord::winner)
+                    .filter(|winner| ids.contains(winner))
+                    .enumerate()
+                    .map(|(game, player)| (player, game))
+                    .into_grouping_map()
+                    .max()
+                    .into_iter()
+                    .min_by_key(|(_, i)| *i)?;
+                tournament.get_registered_player(id)
+            }
             Self::LeastGames => players.min_by_key(|player| (player.stats().games(), player.id())),
             Self::LeastWins => players.min_by_key(|player| {
                 (
