@@ -55,17 +55,17 @@ impl PlayNextMode {
 
         match self {
             Self::LongestSinceWin => {
-                let players = players.collect::<Vec<_>>();
-                for player in &players {
+                let mut ids = OrdSet::new();
+                for player in players {
                     if player.stats().wins() == 0 {
-                        return Some(*player);
+                        return Some(player);
                     }
+                    ids.insert(player.id());
                 }
 
-                let ids = players
-                    .into_iter()
-                    .map(|player| player.id())
-                    .collect::<OrdSet<PlayerId>>();
+                if ids.is_empty() {
+                    return None;
+                }
 
                 let (id, _) = tournament
                     .games()

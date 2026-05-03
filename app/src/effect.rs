@@ -197,7 +197,7 @@ where
                     .map(|effect| effect.inner_map(map_out))
                     .collect::<anyhow::Result<Vec<_>>>()?,
             )),
-            Self::Sequence(sequence) => Ok(Effect::Batch(
+            Self::Sequence(sequence) => Ok(Effect::Sequence(
                 sequence
                     .into_iter()
                     .map(|effect| effect.inner_map(map_out))
