@@ -28,7 +28,7 @@ impl TournamentAction {
                 Ok(())
             }
             Self::DeletePlayer(id) => tournament.unregister_player(id),
-            Self::Record(game_record) => tournament.register_record(*game_record),
+            Self::Record(game_record) => tournament.record_game(*game_record),
             Self::Reload => tournament.reload(),
             Self::SetGameConfig(game_config) => tournament.set_game_config(game_config),
             Self::DeleteGame(index) => tournament.delete_game(index),

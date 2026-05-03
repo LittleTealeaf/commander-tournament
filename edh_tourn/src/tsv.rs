@@ -27,7 +27,7 @@ impl Tournament {
             let record = GameEntry::new([a_id, b_id, c_id, d_id], w_id)?;
 
             // Register record
-            tourn.register_entry(record)?;
+            tourn.record_entry(record)?;
         }
 
         Ok(tourn)

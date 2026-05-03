@@ -58,7 +58,7 @@ impl TryFrom<V4Tournament> for Tournament {
         };
         tournament.reload()?;
         for game in value.games {
-            tournament.register_entry(game)?;
+            tournament.record_entry(game)?;
         }
 
         tournament.snapshot = 0;

@@ -150,3 +150,48 @@ impl PlayNextMode {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use edh_tourn::game::entry::GameEntry;
+
+    use super::*;
+
+    #[test]
+    fn longest_since_win_prioritizes_zero_wins() {
+        let mut tournament = Tournament::new();
+
+        // Create players
+        let players: [PlayerId; 4] = tournament.register_debug_players().unwrap();
+        let [target, others @ ..] = players;
+
+        for winner in others {
+            let entry = GameEntry::new(players, winner).unwrap();
+            tournament.record_entry(entry).unwrap();
+        }
+
+        let next_player = PlayNextMode::LongestSinceWin
+            .get_player(&tournament)
+            .unwrap();
+        assert_eq!(next_player.id(), target);
+    }
+
+    #[test]
+    fn longest_since_win_takes_oldest_win() {
+        let mut tournament = Tournament::new();
+        let players: [PlayerId; 4] = tournament.register_debug_players().unwrap();
+
+        for winner in players {
+            let entry = GameEntry::new(players, winner).unwrap();
+            tournament.record_entry(entry).unwrap();
+        }
+
+        let [target, ..] = players;
+
+        let next_player = PlayNextMode::LongestSinceWin
+            .get_player(&tournament)
+            .unwrap();
+
+        assert_eq!(next_player.id(), target);
+    }
+}

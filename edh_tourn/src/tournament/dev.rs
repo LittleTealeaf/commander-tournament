@@ -43,7 +43,7 @@ impl Tournament {
             let players = ids.sample(&mut rng, 4).copied().next_array().unwrap();
             let winner = *players.choose(&mut rng).unwrap();
             let entry = GameEntry::new(players, winner)?;
-            tournament.register_entry(entry)?;
+            tournament.record_entry(entry)?;
         }
 
         Ok(tournament)
@@ -88,9 +88,21 @@ impl Tournament {
         let max = self.players.keys().max().map_or(0, |id| id.0 + 1);
         self.register_player(format!("debug-{max}"))
     }
+
+    pub fn register_debug_players<const N: usize>(
+        &mut self,
+    ) -> Result<[PlayerId; N], TournamentError> {
+        let first = self.register_debug_player()?;
+        let mut values = [first; N];
+        for value in values.iter_mut().skip(1) {
+            *value = self.register_debug_player()?;
+        }
+        Ok(values)
+    }
 }
 
 mod tests {
+
     #[allow(unused)]
     use super::*;
 
@@ -121,5 +133,27 @@ mod tests {
     #[test]
     fn sample_game_loads() {
         let _ = Tournament::sample_game();
+    }
+
+    #[test]
+    fn debug_players_are_all_different() {
+        use std::collections::HashSet;
+
+        let mut t = Tournament::new();
+        let tests = [
+            Vec::from(t.register_debug_players::<1>().unwrap()),
+            Vec::from(t.register_debug_players::<2>().unwrap()),
+            Vec::from(t.register_debug_players::<3>().unwrap()),
+            Vec::from(t.register_debug_players::<4>().unwrap()),
+            Vec::from(t.register_debug_players::<5>().unwrap()),
+        ];
+
+        for test in tests {
+            let mut ids = HashSet::new();
+            for id in test {
+                assert!(!ids.contains(&id));
+                ids.insert(id);
+            }
+        }
     }
 }
