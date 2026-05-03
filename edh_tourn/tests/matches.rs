@@ -81,7 +81,7 @@ fn winner_gains_elo() {
         let starting_elo = matchup.players().get(i).unwrap().stats().elo();
         let winner = ids.get(i).unwrap();
         let record = matchup.record(*winner).unwrap();
-        tourn.register_record(record).unwrap();
+        tourn.record_game(record).unwrap();
         let elo = tourn.get_player_or_default_stats(*winner).elo();
         assert!(
             elo.total_cmp(&starting_elo).is_gt(),
@@ -113,7 +113,7 @@ fn loser_loses_elo() -> anyhow::Result<()> {
             }
             let loser_id = &ids[loser_i];
             let starting_elo = matchup.players().get(loser_i).unwrap().stats().elo();
-            tourn.register_record(matchup.record(*winner_id)?)?;
+            tourn.record_game(matchup.record(*winner_id)?)?;
             let elo = tourn.get_player_or_default_stats(*loser_id).elo();
             assert!(elo.total_cmp(&starting_elo).is_le());
         }
@@ -130,7 +130,7 @@ fn winner_only_counted_once() -> anyhow::Result<()> {
     let id = tourn.register_player(String::from("sample"))?;
     let matchup = tourn.create_match([id, id, id, id])?;
     let starting_elo = matchup.players()[0].stats().elo();
-    tourn.register_record(matchup.record(id)?)?;
+    tourn.record_game(matchup.record(id)?)?;
     let elo = tourn.get_player_or_default_stats(id).elo();
     assert!(
         (starting_elo - elo).abs() <= 1e-10,

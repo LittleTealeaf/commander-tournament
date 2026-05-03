@@ -3,7 +3,7 @@ mod view;
 
 use edh_tourn::player::{PlayerId, RegisteredPlayer, color::MtgColor, info::PlayerInfo};
 use iced::widget::{button, text_editor};
-use nerd_font_symbols::md::{MD_CONTENT_SAVE, MD_DELETE};
+use nerd_font_symbols::md::{MD_CONTENT_SAVE, MD_DELETE, MD_SWORD};
 
 use crate::{traits::Component, views::ViewScreen};
 
@@ -92,8 +92,17 @@ impl ViewScreen for PlayerView {
         &'a self,
         _: Self::ViewContext<'a>,
     ) -> impl IntoIterator<Item = iced::widget::Button<'a, Self::Message>> {
-        [button(MD_CONTENT_SAVE)
-            .on_press_maybe(self.modified.then_some(PlayerDetailsMsg::SaveAndClose))]
+        [
+            Some(
+                button(MD_CONTENT_SAVE)
+                    .on_press_maybe(self.modified.then_some(PlayerDetailsMsg::SaveAndClose)),
+            ),
+            self.id
+                .is_some()
+                .then(|| button(MD_SWORD).on_press(PlayerDetailsMsg::OpenNextPlayerMatch)),
+        ]
+        .into_iter()
+        .flatten()
     }
 
     fn secondary_actions<'a>(

@@ -12,7 +12,7 @@ impl Tournament {
         let mut games = Vec::new();
         core::mem::swap(&mut self.games, &mut games);
         for record in games {
-            self.register_entry(record.into())?;
+            self.record_entry(record.into())?;
         }
         self.snapshot = version + 1;
         Ok(())

@@ -109,7 +109,7 @@ fn merge_tournaments() {
     }
     for _ in 0..4 {
         tournament_a
-            .register_entry(tournament_a.random_game().unwrap())
+            .record_entry(tournament_a.random_game().unwrap())
             .unwrap();
     }
     let mut tournament_b = Tournament::new();
@@ -118,7 +118,7 @@ fn merge_tournaments() {
     }
     for _ in 0..4 {
         tournament_b
-            .register_entry(tournament_b.random_game().unwrap())
+            .record_entry(tournament_b.random_game().unwrap())
             .unwrap();
     }
 
@@ -137,7 +137,7 @@ fn union_tournaments() {
     }
     for _ in 0..4 {
         tournament_a
-            .register_entry(tournament_a.random_game().unwrap())
+            .record_entry(tournament_a.random_game().unwrap())
             .unwrap();
     }
     let mut tournament_b = Tournament::new();
@@ -146,7 +146,7 @@ fn union_tournaments() {
     }
     for _ in 0..4 {
         tournament_b
-            .register_entry(tournament_b.random_game().unwrap())
+            .record_entry(tournament_b.random_game().unwrap())
             .unwrap();
     }
 

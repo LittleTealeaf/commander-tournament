@@ -60,7 +60,8 @@ impl Tournament {
 
         Ok(Matchup::new(self.create_match_players(ids), self.snapshot))
     }
-    pub fn register_entry(&mut self, entry: GameEntry) -> Result<(), TournamentError> {
+
+    pub fn record_entry(&mut self, entry: GameEntry) -> Result<(), TournamentError> {
         let matchup = self.create_match(*entry.players())?;
         let record = matchup.record(entry.winner())?;
         self.insert_game_record(record);
@@ -68,7 +69,7 @@ impl Tournament {
         Ok(())
     }
 
-    pub fn register_record(&mut self, record: GameRecord) -> Result<(), TournamentError> {
+    pub fn record_game(&mut self, record: GameRecord) -> Result<(), TournamentError> {
         self.insert_game_record(self.update_record(record)?);
         self.snapshot += 1;
         Ok(())

@@ -68,7 +68,7 @@ impl Tournament {
         let snapshot = self.snapshot;
 
         for game in &other.games {
-            self.register_entry(GameEntry::from(game).map_ids(&id_map)?)?;
+            self.record_entry(GameEntry::from(game).map_ids(&id_map)?)?;
         }
 
         self.snapshot = snapshot + 1;
