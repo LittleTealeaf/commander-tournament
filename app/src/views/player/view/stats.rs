@@ -153,10 +153,14 @@ pub fn stats_player_matchups(
         .rev();
 
     let col_player = |(player, _): RowType| {
-        button(text(player.info().display_name()))
-            .style(button::text)
-            .padding(Padding::new(0.0))
-            .on_press(super::PlayerDetailsMsg::SelectPlayerReference(player.id()))
+        button(text(format!(
+            "({}) {}",
+            player.stats().elo().round(),
+            player.info().display_name()
+        )))
+        .style(button::text)
+        .padding(Padding::new(0.0))
+        .on_press(super::PlayerDetailsMsg::SelectPlayerReference(player.id()))
     };
 
     let col_identity = |(player, _): RowType| text(player.info().color_identity().to_string());

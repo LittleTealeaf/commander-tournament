@@ -2,6 +2,7 @@ use core::cmp::Reverse;
 
 use auto_const_array::auto_const_array;
 use edh_tourn::game::POD_SIZE;
+use edh_tourn::game::record::GameRecord;
 use edh_tourn::player::PlayerId;
 use edh_tourn::{player::RegisteredPlayer, tournament::Tournament};
 use im::OrdSet;
@@ -20,6 +21,8 @@ pub enum PlayNextMode {
     LeastWins,
     #[display("Outlier Winrate")]
     OutlierWinrate,
+    #[display("Longest Since Win")]
+    LongestSinceWin,
 }
 
 impl PlayNextMode {
@@ -30,6 +33,7 @@ impl PlayNextMode {
             Self::LeastGames,
             Self::LeastWins,
             Self::OutlierWinrate,
+            Self::LongestSinceWin,
         ]
     }
 
@@ -50,6 +54,32 @@ impl PlayNextMode {
         let players = players.into_iter();
 
         match self {
+            Self::LongestSinceWin => {
+                let mut ids = OrdSet::new();
+                for player in players {
+                    if player.stats().wins() == 0 {
+                        return Some(player);
+                    }
+                    ids.insert(player.id());
+                }
+
+                if ids.is_empty() {
+                    return None;
+                }
+
+                let (id, _) = tournament
+                    .games()
+                    .iter()
+                    .map(GameRecord::winner)
+                    .filter(|winner| ids.contains(winner))
+                    .enumerate()
+                    .map(|(game, player)| (player, game))
+                    .into_grouping_map()
+                    .max()
+                    .into_iter()
+                    .min_by_key(|(_, i)| *i)?;
+                tournament.get_registered_player(id)
+            }
             Self::LeastGames => players.min_by_key(|player| (player.stats().games(), player.id())),
             Self::LeastWins => players.min_by_key(|player| {
                 (
@@ -118,5 +148,50 @@ impl PlayNextMode {
                 tournament.get_registered_player(id)
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use edh_tourn::game::entry::GameEntry;
+
+    use super::*;
+
+    #[test]
+    fn longest_since_win_prioritizes_zero_wins() {
+        let mut tournament = Tournament::new();
+
+        // Create players
+        let players: [PlayerId; 4] = tournament.register_debug_players().unwrap();
+        let [target, others @ ..] = players;
+
+        for winner in others {
+            let entry = GameEntry::new(players, winner).unwrap();
+            tournament.record_entry(entry).unwrap();
+        }
+
+        let next_player = PlayNextMode::LongestSinceWin
+            .get_player(&tournament)
+            .unwrap();
+        assert_eq!(next_player.id(), target);
+    }
+
+    #[test]
+    fn longest_since_win_takes_oldest_win() {
+        let mut tournament = Tournament::new();
+        let players: [PlayerId; 4] = tournament.register_debug_players().unwrap();
+
+        for winner in players {
+            let entry = GameEntry::new(players, winner).unwrap();
+            tournament.record_entry(entry).unwrap();
+        }
+
+        let [target, ..] = players;
+
+        let next_player = PlayNextMode::LongestSinceWin
+            .get_player(&tournament)
+            .unwrap();
+
+        assert_eq!(next_player.id(), target);
     }
 }

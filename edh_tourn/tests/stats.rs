@@ -35,7 +35,7 @@ fn get_player_or_default_returns_player() {
     let player_4 = tourn.register_player("4".to_owned()).unwrap();
 
     tourn
-        .register_record(
+        .record_game(
             tourn
                 .create_match([player_1, player_2, player_3, player_4])
                 .unwrap()

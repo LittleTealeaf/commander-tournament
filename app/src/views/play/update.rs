@@ -58,11 +58,6 @@ impl ComponentUpdate for PlayView {
                 Effect::Done
             }
             PlayMsg::OpenLink(link) => Effect::out(PlayOut::OpenLink(link)),
-            PlayMsg::OpenLinks(links) => Effect::sequence(
-                links
-                    .into_iter()
-                    .map(|link| Effect::out(PlayOut::OpenLink(link))),
-            ),
             PlayMsg::SetPlayer(index, id) => {
                 let PlayMode::Custom { players } = &mut self.mode else {
                     return Effect::done();

@@ -185,7 +185,7 @@ fn get_registered_player() {
     }
     for _ in 0..4 {
         let game = t.random_game().unwrap();
-        t.register_entry(game).unwrap();
+        t.record_entry(game).unwrap();
     }
 
     let player = t.get_registered_player(id).unwrap();
