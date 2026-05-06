@@ -73,7 +73,7 @@ impl ComponentUpdate for Home {
         match message {
             HomeMsg::Leaderboard(message) => {
                 self.leaderboard
-                    .mapped_update(message, (), |msg| match msg {
+                    .map_update(message, (), |msg| match msg {
                         LeaderboardOut::RankPlayer(id) => {
                             Effect::out(HomeOut::OpenPlayView(PlayMode::player(id))).ok()
                         }
@@ -83,7 +83,7 @@ impl ComponentUpdate for Home {
                         LeaderboardOut::OpenNewPlayer => Effect::out(HomeOut::OpenNewPlayer).ok(),
                     })
             }
-            HomeMsg::Menu(message) => self.menu.mapped_update(message, (), |out| {
+            HomeMsg::Menu(message) => self.menu.map_update(message, (), |out| {
                 Effect::out(match out {
                     MenuMsg::New => HomeOut::FileNew,
                     MenuMsg::Open => HomeOut::FileOpen,

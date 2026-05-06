@@ -31,7 +31,7 @@ pub trait ComponentUpdate: Component {
         context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>>;
 
-    fn mapped_update<M, O, F>(
+    fn map_update<M, O, F>(
         &mut self,
         message: Self::Message,
         context: Self::UpdateContext<'_>,

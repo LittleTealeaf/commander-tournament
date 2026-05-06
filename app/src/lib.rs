@@ -15,7 +15,7 @@ use iced::{Event, Subscription, Task, event, window};
 
 use crate::{
     app::{Message, View},
-    core::state::AppState,
+    core::{file::FileAction, state::AppState},
     modals::Modal,
     traits::Component,
 };
@@ -55,8 +55,16 @@ impl App {
 
     pub fn subscription(&self) -> Subscription<Message> {
         event::listen_with(|event, _status, _window| -> Option<Message> {
-            (event == Event::Window(window::Event::CloseRequested))
-                .then_some(Message::QuitRequested)
+            match event {
+                Event::Window(window::Event::CloseRequested) => Some(Message::QuitRequested),
+                Event::Window(window::Event::FileDropped(path_buf)) => {
+                    Some(Message::TournFile(FileAction::RequestOpenFile(path_buf)))
+                }
+                Event::Keyboard(event) => Message::from_keyboard_event(event),
+                _ => None,
+            }
+            // (event == Event::Window(window::Event::CloseRequested))
+            //     .then_some(Message::QuitRequested)
         })
     }
 }

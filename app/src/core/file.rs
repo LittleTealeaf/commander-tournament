@@ -19,9 +19,10 @@ use crate::{
 #[derive(Clone, Debug)]
 pub enum FileAction {
     Open,
-    New,
+    RequestNew,
     /// Use [`Self::New`] to prompt the user if the file is unsaved.
-    ConfirmedNew,
+    New,
+    RequestOpenFile(PathBuf),
     OpenFile(PathBuf),
     FileOpened(PathBuf, Box<Tournament>),
     SaveFile(PathBuf),
@@ -82,25 +83,39 @@ impl HandleMessage<FileAction> for App {
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::effect::Effect<Self::Message, Self::OutMessage>> {
         match message {
-            FileAction::New => {
+            FileAction::RequestNew => {
                 if self.modified {
                     Effect::confirm(
                         &"Overwrite Tournament?",
                         &"All unsaved changes will be lost",
-                        Message::TournFile(FileAction::ConfirmedNew),
+                        Message::TournFile(FileAction::New),
                         None,
                     )
                     .ok()
                 } else {
-                    Effect::msg(FileAction::ConfirmedNew).ok()
+                    Effect::msg(FileAction::New).ok()
                 }
             }
-            FileAction::ConfirmedNew => {
+            FileAction::New => {
                 self.tournament = Tournament::new();
                 self.file = None;
                 Effect::msg(AppStateMsg::ClearOpenedFile).ok()
             }
             FileAction::Open => Effect::future(open_dialog(self.file.clone())).ok(),
+            FileAction::RequestOpenFile(path_buf) => {
+                let action = FileAction::OpenFile(path_buf);
+                if self.modified {
+                    Effect::confirm(
+                        &"Lose Changes",
+                        &"All unsaved changes will be lost",
+                        Message::TournFile(action),
+                        None,
+                    )
+                    .ok()
+                } else {
+                    Effect::msg(action).ok()
+                }
+            }
             FileAction::OpenFile(path_buf) => Effect::Task(Task::perform(
                 load_from_file_async(path_buf.clone()),
                 |res| match res {

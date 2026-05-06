@@ -78,7 +78,7 @@ mod tests {
             tournament = deser;
             tournament.register_debug_player().unwrap();
             tournament
-                .register_entry(tournament.random_game().unwrap())
+                .record_entry(tournament.random_game().unwrap())
                 .unwrap();
         }
     }
@@ -95,7 +95,7 @@ mod tests {
             tournament = deser;
             tournament.register_debug_player().unwrap();
             tournament
-                .register_entry(tournament.random_game().unwrap())
+                .record_entry(tournament.random_game().unwrap())
                 .unwrap();
         }
     }
@@ -112,7 +112,7 @@ mod tests {
             tournament = deser;
             tournament.register_debug_player().unwrap();
             tournament
-                .register_entry(tournament.random_game().unwrap())
+                .record_entry(tournament.random_game().unwrap())
                 .unwrap();
         }
     }
