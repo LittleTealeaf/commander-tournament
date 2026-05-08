@@ -60,9 +60,9 @@ jobs:
       with:
         crate: cargo-llvm-cov
     - name: Generate Coverage Output
-      run: cargo llvm-cov test --no-fail-fast --all --all-features --lcov --output-path lcov-raw.info
+      run: cargo llvm-cov test --no-fail-fast --all --all-features --lcov --output-path lcov_raw.info
     - name: Remove Files with 100% Coverage
-      run: awk '/SF:/{p=1; b=$0; next} p{b=b RS $0} /LF:/{f=$2} /LH:/{h=$2} /end_of_record/{if(f!=h) print b; p=0}' FS=: lcov-raw.info > lcov.info
+      run: awk '/SF:/{p=1; b=$0; next} p{b=b RS $0} /LF:/{f=$2} /LH:/{h=$2} /end_of_record/{if(f!=h) print b; p=0}' FS=: lcov_raw.info > lcov.info
     - name: Fix absolute paths
       run: sed -i "s|$GITHUB_WORKSPACE/||g" lcov.info
     - name: Upload to Summary
