@@ -20,7 +20,8 @@ use crate::{
 pub enum FileAction {
     Open,
     RequestNew,
-    /// Use [`Self::New`] to prompt the user if the file is unsaved.
+    /// Creates a new tournament, bypassing unsaved changes check. Use [`Self::RequestNew`] to prompt
+    /// the user if there are unsaved changes
     New,
     RequestOpenFile(PathBuf),
     OpenFile(PathBuf),

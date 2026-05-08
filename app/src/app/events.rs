@@ -13,7 +13,7 @@ impl Message {
     pub fn from_event(event: Event) -> Option<Self> {
         match event {
             Event::Keyboard(event) => Self::from_keyboard_event(event),
-            Event::Window(event) => Self::from_window_even(event),
+            Event::Window(event) => Self::from_window_event(event),
             _ => None,
         }
     }
@@ -47,7 +47,7 @@ impl Message {
         }
     }
 
-    fn from_window_even(event: window::Event) -> Option<Self> {
+    fn from_window_event(event: window::Event) -> Option<Self> {
         match event {
             window::Event::CloseRequested => Some(Self::QuitRequested),
             window::Event::FileDropped(path_buf) => {

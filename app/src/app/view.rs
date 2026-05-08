@@ -126,7 +126,7 @@ impl ComponentUpdate for View {
                 })
             }
             (_, message) => {
-                eprintln!("Recieved Message {message:?} when view did not expect it.");
+                eprintln!("Received Message {message:?} when view did not expect it.");
                 Effect::done()
             }
         }
