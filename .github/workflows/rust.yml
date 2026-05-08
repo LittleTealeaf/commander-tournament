@@ -62,7 +62,7 @@ jobs:
     - name: Generate Coverage Output
       run: cargo llvm-cov test --no-fail-fast --all --all-features --lcov --output-path lcov_raw.info
     - name: Filter and Format Coverages
-      run: .github/workflows/coverages.bash
+      run: chmod +x .github/workflows/coverages.bash && .github/workflows/coverages.bash
     - name: Upload to Summary
       uses: livewing/lcov-job-summary@v1.3.0
       with:
