@@ -72,16 +72,15 @@ impl ComponentUpdate for Home {
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         match message {
             HomeMsg::Leaderboard(message) => {
-                self.leaderboard
-                    .map_update(message, (), |msg| match msg {
-                        LeaderboardOut::RankPlayer(id) => {
-                            Effect::out(HomeOut::OpenPlayView(PlayMode::player(id))).ok()
-                        }
-                        LeaderboardOut::OpenPlayerDetails(player_id) => {
-                            Effect::out(HomeOut::OpenPlayerDetails(player_id)).ok()
-                        }
-                        LeaderboardOut::OpenNewPlayer => Effect::out(HomeOut::OpenNewPlayer).ok(),
-                    })
+                self.leaderboard.map_update(message, (), |msg| match msg {
+                    LeaderboardOut::RankPlayer(id) => {
+                        Effect::out(HomeOut::OpenPlayView(PlayMode::player(id))).ok()
+                    }
+                    LeaderboardOut::OpenPlayerDetails(player_id) => {
+                        Effect::out(HomeOut::OpenPlayerDetails(player_id)).ok()
+                    }
+                    LeaderboardOut::OpenNewPlayer => Effect::out(HomeOut::OpenNewPlayer).ok(),
+                })
             }
             HomeMsg::Menu(message) => self.menu.map_update(message, (), |out| {
                 Effect::out(match out {
