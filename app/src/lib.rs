@@ -11,11 +11,11 @@ pub mod views;
 use std::path::PathBuf;
 
 use edh_tourn::tournament::Tournament;
-use iced::{Event, Subscription, Task, event, window};
+use iced::{Subscription, Task, event};
 
 use crate::{
     app::{Message, View},
-    core::{file::FileAction, state::AppState},
+    core::state::AppState,
     modals::Modal,
     traits::Component,
 };
@@ -35,7 +35,10 @@ pub struct App {
 
 impl App {
     pub fn boot() -> (Self, Task<Message>) {
-        (Self::default(), Task::done(Message::OnBoot))
+        (
+            Self::default(),
+            Task::future(async { Message::AppStateLoaded(AppState::load().await.ok()) }),
+        )
     }
 
     #[must_use]
@@ -55,16 +58,7 @@ impl App {
 
     pub fn subscription(&self) -> Subscription<Message> {
         event::listen_with(|event, _status, _window| -> Option<Message> {
-            match event {
-                Event::Window(window::Event::CloseRequested) => Some(Message::QuitRequested),
-                Event::Window(window::Event::FileDropped(path_buf)) => {
-                    Some(Message::TournFile(FileAction::RequestOpenFile(path_buf)))
-                }
-                Event::Keyboard(event) => Message::from_keyboard_event(event),
-                _ => None,
-            }
-            // (event == Event::Window(window::Event::CloseRequested))
-            //     .then_some(Message::QuitRequested)
+            Message::from_event(event)
         })
     }
 }

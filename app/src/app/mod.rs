@@ -1,4 +1,4 @@
-mod keyboard;
+mod events;
 mod message;
 mod update;
 mod view;

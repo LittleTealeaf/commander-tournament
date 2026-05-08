@@ -3,11 +3,7 @@ use iced::Task;
 use crate::{
     App,
     app::{Message, ViewUpdateContext},
-    core::{
-        file::FileAction,
-        state::{AppState, AppStateMsg},
-        tournament::TournamentAction,
-    },
+    core::{file::FileAction, state::AppStateMsg, tournament::TournamentAction},
     effect::Effect,
     home::{HomeMsg, HomeOut},
     services::system::open_link,
@@ -58,9 +54,6 @@ impl ComponentUpdate for App {
                     .map(|last_opened| Effect::msg(FileAction::OpenFile(last_opened.clone())))
                     .unwrap_or_default()
                     .ok()
-            }
-            Message::OnBoot => {
-                Effect::future(async { Message::AppStateLoaded(AppState::load().await.ok()) }).ok()
             }
             Message::Tournament(action) => self.handle_message(action, ()),
             Message::Home(message) => self.handle_message(message, ()),

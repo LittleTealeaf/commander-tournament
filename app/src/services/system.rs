@@ -18,7 +18,12 @@ pub fn project_dir() -> Option<ProjectDirs> {
 
 #[must_use]
 pub fn accepted_file_types() -> Vec<&'static str> {
-    vec!["ron", "json", "toml"]
+    let mut types = vec!["ron"];
+    #[cfg(feature = "serde_json")]
+    types.push("json");
+    #[cfg(feature = "serde_toml")]
+    types.push("toml");
+    types
 }
 
 #[must_use]
@@ -41,7 +46,9 @@ where
 {
     Ok(match extension {
         "ron" => ron::from_str(data)?,
+        #[cfg(feature = "serde_json")]
         "json" => serde_json::from_str(data)?,
+        #[cfg(feature = "serde_toml")]
         "toml" => toml::from_str(data)?,
         ext => return Err(anyhow!("File type not supported: {ext}")),
     })
@@ -53,7 +60,9 @@ where
 {
     Ok(match extension {
         "ron" => ron::to_string(data)?,
+        #[cfg(feature = "serde_json")]
         "json" => serde_json::to_string(data)?,
+        #[cfg(feature = "serde_toml")]
         "toml" => toml::to_string(data)?,
         ext => return Err(anyhow!("File type not supported: {ext}")),
     })

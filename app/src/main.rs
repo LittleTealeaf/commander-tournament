@@ -2,21 +2,26 @@ use app::{
     App,
     fonts::{FONT_BYTES, FONT_NORMAL},
 };
-use iced::{Theme, application, window};
+use iced::{Application, Theme, application, window};
 
 fn main() -> iced::Result {
-    let mut app = application(App::boot, App::handle_update, App::handle_view).title(App::title);
+    let settings = window::Settings {
+        exit_on_close_request: false,
+        ..Default::default()
+    };
 
-    for font in FONT_BYTES {
-        app = app.font(font);
-    }
-
-    app.theme(Theme::CatppuccinMocha)
-        .default_font(FONT_NORMAL)
-        .window(window::Settings {
-            exit_on_close_request: false,
-            ..Default::default()
-        })
+    // Initialize and configure methods
+    let app = application(App::boot, App::handle_update, App::handle_view)
+        .title(App::title)
         .subscription(App::subscription)
-        .run()
+        .window(settings);
+
+    // Fonts and Theme
+    let app = FONT_BYTES
+        .into_iter()
+        .fold(app, Application::font)
+        .default_font(FONT_NORMAL)
+        .theme(Theme::CatppuccinMocha);
+
+    app.run()
 }
