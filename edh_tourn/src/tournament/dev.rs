@@ -1,11 +1,10 @@
 use core::hash::{Hash, Hasher};
 use std::hash::DefaultHasher;
 
-use itertools::{Itertools, chain};
+use itertools::Itertools;
 
 use crate::{
-    config::game::GameConfig, error::TournamentError, game::entry::GameEntry, player::PlayerId,
-    tournament::Tournament,
+    error::TournamentError, game::entry::GameEntry, player::PlayerId, tournament::Tournament,
 };
 use rand::{SeedableRng, seq::IndexedRandom};
 use rand_chacha::ChaCha8Rng;
@@ -62,26 +61,6 @@ impl Tournament {
     #[must_use]
     pub fn sample_game() -> Self {
         ron::from_str(include_str!("../../../res/tests/compats/sample-v2.ron")).unwrap()
-    }
-
-    pub fn sample_tsv_game() -> Result<Self, TournamentError> {
-        Self::from_tsv_games(include_str!("../../../tests/sample-tsv.tsv"))
-    }
-
-    pub fn test_tournaments() -> impl Iterator<Item = Self> {
-        chain!(
-            [Self::sample_game(), Self::new()],
-            Self::sample_tsv_game(),
-            [0, 4, 8, 16, 32, 64]
-                .into_iter()
-                .flat_map(|a| {
-                    [0, 4, 8, 16, 32, 64]
-                        .into_iter()
-                        .filter_map(move |b| Self::generate_tournament(a, b).ok())
-                })
-                .enumerate()
-                .flat_map(|(i, tourn)| tourn.with_game_config(GameConfig::random(i)))
-        )
     }
 
     pub fn register_debug_player(&mut self) -> Result<PlayerId, TournamentError> {

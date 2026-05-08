@@ -1,3 +1,4 @@
+mod events;
 mod message;
 mod update;
 mod view;

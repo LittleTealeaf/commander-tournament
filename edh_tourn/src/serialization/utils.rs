@@ -1,10 +1,11 @@
 use core::hash::BuildHasher;
 use core::num::ParseIntError;
-use std::collections::{BTreeMap, HashMap};
+use std::{
+    collections::{BTreeMap, HashMap},
+    hash::RandomState,
+};
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-
-use crate::game::{entry::GameEntry, record::GameRecord};
 
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
@@ -26,8 +27,7 @@ where
     }
 }
 
-#[allow(clippy::implicit_hasher)]
-impl<T> TryFrom<DeserializableMap<T>> for HashMap<u32, T> {
+impl<T> TryFrom<DeserializableMap<T>> for HashMap<u32, T, RandomState> {
     type Error = ParseIntError;
     fn try_from(value: DeserializableMap<T>) -> Result<Self, Self::Error> {
         match value {
@@ -50,15 +50,4 @@ where
 {
     let ordered: BTreeMap<_, _> = value.iter().collect();
     ordered.serialize(serializer)
-}
-
-pub fn convert_games<S>(items: &[GameRecord], serializer: S) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    let values = items
-        .iter()
-        .flat_map(|record| GameEntry::new(record.ids(), record.winner()))
-        .collect::<Vec<_>>();
-    values.serialize(serializer)
 }

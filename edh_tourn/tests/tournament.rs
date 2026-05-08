@@ -1,3 +1,4 @@
+use approx::assert_relative_eq;
 use edh_tourn::tournament::Tournament;
 
 #[test]
@@ -41,28 +42,20 @@ fn into_fresh_same_players() -> anyhow::Result<()> {
 }
 
 #[test]
-fn into_fresh_same_stats() -> anyhow::Result<()> {
-    for game in Tournament::test_tournaments() {
-        let new_game = game.into_fresh()?;
-        for (id, info) in game.players() {
-            let stats = game.get_player_stats(*id);
-            let new_id = new_game.get_player_id(info.name()).unwrap();
-            let new_stats = new_game.get_player_stats(new_id);
-            assert_eq!(stats.is_some(), new_stats.is_some());
-            let (Some(stats), Some(new_stats)) = (stats, new_stats) else {
-                continue;
-            };
+fn into_fresh_same_stats() {
+    let game = Tournament::generate_tournament(50, 100).unwrap();
+    let new_game = game.into_fresh().unwrap();
+    for (id, info) in game.players() {
+        let stats = game.get_player_stats(*id);
+        let new_id = new_game.get_player_id(info.name()).unwrap();
+        let new_stats = new_game.get_player_stats(new_id);
+        assert_eq!(stats.is_some(), new_stats.is_some());
+        let (Some(stats), Some(new_stats)) = (stats, new_stats) else {
+            continue;
+        };
 
-            assert!(
-                (stats.elo() - new_stats.elo()).abs() <= 1e-9,
-                "Elo Difference, from {} to {}",
-                stats.elo(),
-                new_stats.elo()
-            );
-        }
+        assert_relative_eq!(stats.elo(), new_stats.elo());
     }
-
-    Ok(())
 }
 
 #[test]

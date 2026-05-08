@@ -3,11 +3,7 @@ use iced::Task;
 use crate::{
     App,
     app::{Message, ViewUpdateContext},
-    core::{
-        file::FileAction,
-        state::{AppState, AppStateMsg},
-        tournament::TournamentAction,
-    },
+    core::{file::FileAction, state::AppStateMsg, tournament::TournamentAction},
     effect::Effect,
     home::{HomeMsg, HomeOut},
     services::system::open_link,
@@ -59,9 +55,6 @@ impl ComponentUpdate for App {
                     .unwrap_or_default()
                     .ok()
             }
-            Message::OnBoot => {
-                Effect::future(async { Message::AppStateLoaded(AppState::load().await.ok()) }).ok()
-            }
             Message::Tournament(action) => self.handle_message(action, ()),
             Message::Home(message) => self.handle_message(message, ()),
             Message::TournFile(message) => self.handle_message(message, ()),
@@ -74,15 +67,11 @@ impl ComponentUpdate for App {
             Message::OpenLink(link) => {
                 Effect::Task(Task::future(async { open_link(link).await }).discard()).ok()
             }
-            Message::View(msg) => {
-                if let Some(view) = self.views.last_mut() {
-                    view.mapped_update(msg, ViewUpdateContext::new(&self.tournament), |msg| {
-                        Effect::Msg(msg).ok()
-                    })
-                } else {
-                    Effect::done()
-                }
-            }
+            Message::View(msg) => self.views.last_mut().map_or(Effect::done(), |view| {
+                view.map_update(msg, ViewUpdateContext::new(&self.tournament), |msg| {
+                    Effect::msg(msg).ok()
+                })
+            }),
             Message::OpenPlay(play_mode) => self
                 .push_view(PlayView::new(play_mode, &self.tournament))
                 .ok(),
@@ -140,13 +129,12 @@ impl HandleMessage<HomeMsg> for App {
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         self.home
-            .handle_message(message, (&self.tournament, &self.file))?
-            .map(|out| match out {
+            .map_update(message, (&self.tournament, &self.file), |out| match out {
                 HomeOut::RecordGame(game_record) => {
                     Effect::msg(TournamentAction::Record(game_record)).ok()
                 }
                 HomeOut::OpenLink(link) => Effect::msg(Message::OpenLink(link)).ok(),
-                HomeOut::FileNew => Effect::msg(FileAction::New).ok(),
+                HomeOut::FileNew => Effect::msg(FileAction::RequestNew).ok(),
                 HomeOut::FileOpen => Effect::msg(FileAction::Open).ok(),
                 HomeOut::FileSave => Effect::msg(FileAction::Save).ok(),
                 HomeOut::FileSaveAs => Effect::msg(FileAction::SaveAs).ok(),

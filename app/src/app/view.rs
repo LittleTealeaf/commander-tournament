@@ -68,7 +68,7 @@ impl ComponentUpdate for View {
 
         match (self, message) {
             (Self::PlayerDetails(state), ViewMsg::PlayerDetails(msg)) => {
-                state.update(msg, ())?.map(|out| match out {
+                state.map_update(msg, (), |out| match out {
                     PlayerDetailsOut::OpenPlayerDetails(player_id) => {
                         Effect::Out(Message::OpenPlayerDetails(Some(player_id))).ok()
                     }
@@ -93,7 +93,7 @@ impl ComponentUpdate for View {
                 })
             }
             (Self::Play(state), ViewMsg::Play(msg)) => {
-                state.update(msg, context.tourn)?.map(|out| match out {
+                state.map_update(msg, context.tourn, |out| match out {
                     PlayOut::OpenLink(link) => Effect::out(Message::OpenLink(link)).ok(),
                     PlayOut::RecordGame(game_record) => {
                         Effect::out(TournamentAction::Record(game_record)).ok()
@@ -106,7 +106,7 @@ impl ComponentUpdate for View {
                 })
             }
             (Self::PlayConfig(state), ViewMsg::PlayConfig(msg)) => {
-                state.update(msg, context.tourn)?.map(|out| match out {
+                state.map_update(msg, context.tourn, |out| match out {
                     MatchmakerConfigOut::Close => CLOSE_VIEW.ok(),
                     MatchmakerConfigOut::SaveAndClose(ranking_config) => {
                         Effect::out(TournamentAction::SetMatchmakerConfig(ranking_config))
@@ -116,7 +116,7 @@ impl ComponentUpdate for View {
                 })
             }
             (Self::GameConfig(state), ViewMsg::GameConfig(msg)) => {
-                state.update(msg, context.tourn)?.map(|out| match out {
+                state.map_update(msg, context.tourn, |out| match out {
                     GameConfigOut::Close => CLOSE_VIEW.ok(),
                     GameConfigOut::SaveAndClose(game_config) => {
                         Effect::out(TournamentAction::SetGameConfig(game_config))
@@ -125,7 +125,10 @@ impl ComponentUpdate for View {
                     }
                 })
             }
-            (_, _) => Effect::done(),
+            (_, message) => {
+                eprintln!("Received Message {message:?} when view did not expect it.");
+                Effect::done()
+            }
         }
     }
 }
