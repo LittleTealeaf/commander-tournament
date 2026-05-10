@@ -30,7 +30,7 @@ impl Matchmaker<'_> {
                 sort_by_proximity(
                     performances.keys().copied(),
                     agg_stats.wr().unwrap_or(0.0),
-                    |id| self.0.get_player_or_default_stats(*id).wr().unwrap_or(0.0)
+                    |id| { self.0.get_player_or_default_stats(*id).wr().unwrap_or(0.0) }
                 ),
                 config.wr_neighbor
             ),
@@ -40,7 +40,7 @@ impl Matchmaker<'_> {
                     agg_stats
                         .avg_elo()
                         .unwrap_or_else(|| self.0.default_stats().elo()),
-                    |id| self.0.get_player_or_default_stats(*id).elo()
+                    |id| { self.0.get_player_or_default_stats(*id).elo() }
                 ),
                 config.elo_neighbor
             ),
