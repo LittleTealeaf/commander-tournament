@@ -20,10 +20,7 @@ impl ComponentView for PlayView {
     fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
         let options = match &self.mode {
             PlayMode::Player(_) => None,
-            PlayMode::Next {
-                mode,
-                ignore_precons,
-            } => Some(
+            PlayMode::Next { mode, ignore_precons } => Some(
                 row![
                     column![
                         text("Select Mode"),

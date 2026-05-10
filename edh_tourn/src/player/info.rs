@@ -25,12 +25,7 @@ pub struct PlayerInfo {
         alias = "moxfield_id"
     )]
     moxfield_id: Option<String>,
-    #[serde(
-        skip_serializing_if = "is_false",
-        default,
-        rename = "pc",
-        alias = "precon"
-    )]
+    #[serde(skip_serializing_if = "is_false", default, rename = "pc", alias = "precon")]
     precon: bool,
 }
 
@@ -109,10 +104,7 @@ impl PlayerInfo {
 
     #[must_use]
     pub fn with_description(self, description: String) -> Self {
-        Self {
-            description,
-            ..self
-        }
+        Self { description, ..self }
     }
 
     pub fn clear_moxfield_id(&mut self) {
@@ -222,9 +214,7 @@ mod tests {
     #[test]
     fn set_moxfield_accepts_goldfish_links() {
         let mut info = new_player_info();
-        info.set_moxfield_id(format!(
-            "https://moxfield.com/decks/{TEST_MOXFIELD_ID}/goldfish"
-        ));
+        info.set_moxfield_id(format!("https://moxfield.com/decks/{TEST_MOXFIELD_ID}/goldfish"));
         assert!(info.moxfield_id().is_some());
     }
 

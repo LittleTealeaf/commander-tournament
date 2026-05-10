@@ -72,18 +72,14 @@ impl ComponentUpdate for App {
                     Effect::msg(msg).ok()
                 })
             }),
-            Message::OpenPlay(play_mode) => self
-                .push_view(PlayView::new(play_mode, &self.tournament))
-                .ok(),
+            Message::OpenPlay(play_mode) => self.push_view(PlayView::new(play_mode, &self.tournament)).ok(),
             Message::CloseModal => {
                 self.modals.pop();
                 Effect::done()
             }
             Message::Modal(modal_msg) => {
                 if let Some(modal) = self.modals.last_mut() {
-                    modal
-                        .update(modal_msg, ())?
-                        .map(|out| Effect::msg(out).ok())
+                    modal.update(modal_msg, ())?.map(|out| Effect::msg(out).ok())
                 } else {
                     Effect::done()
                 }
@@ -93,8 +89,7 @@ impl ComponentUpdate for App {
                     self.close_requested = true;
                     Effect::confirm(
                         "Unsaved Changes".to_owned(),
-                        "You have unsaved changes. Are you sure you want to exit without saving?"
-                            .to_owned(),
+                        "You have unsaved changes. Are you sure you want to exit without saving?".to_owned(),
                         Message::QuitConfirm(true),
                         Some(Message::QuitConfirm(false)),
                     )
@@ -131,9 +126,7 @@ impl HandleMessage<HomeMsg> for App {
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         self.home
             .map_update(message, (&self.tournament, &self.file), |out| match out {
-                HomeOut::RecordGame(game_record) => {
-                    Effect::msg(TournamentAction::Record(game_record)).ok()
-                }
+                HomeOut::RecordGame(game_record) => Effect::msg(TournamentAction::Record(game_record)).ok(),
                 HomeOut::OpenLink(link) => Effect::msg(Message::OpenLink(link)).ok(),
                 HomeOut::FileNew => Effect::msg(FileAction::RequestNew).ok(),
                 HomeOut::FileOpen => Effect::msg(FileAction::Open).ok(),

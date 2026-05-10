@@ -141,12 +141,12 @@ impl HandleMessage<FileAction> for App {
                 };
                 Effect::future(future).ok()
             }
-            FileAction::Save => {
-                Effect::msg(self.file.as_ref().map_or(FileAction::SaveAs, |path| {
-                    FileAction::SaveFile(path.clone())
-                }))
-                .ok()
-            }
+            FileAction::Save => Effect::msg(
+                self.file
+                    .as_ref()
+                    .map_or(FileAction::SaveAs, |path| FileAction::SaveFile(path.clone())),
+            )
+            .ok(),
             FileAction::SaveAs => Effect::future(save_dialog(self.file.clone())).ok(),
             FileAction::FileOpened(path, tournament) => {
                 self.tournament = *tournament;

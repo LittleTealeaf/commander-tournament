@@ -14,10 +14,7 @@ impl<T> Matchable for (T, &PlayerStats) {
     }
 }
 
-pub fn calculate_expected_values<M, const T: usize>(
-    config: &GameConfig,
-    players: [M; T],
-) -> [(M, f64); T]
+pub fn calculate_expected_values<M, const T: usize>(config: &GameConfig, players: [M; T]) -> [(M, f64); T]
 where
     M: Matchable,
 {
@@ -33,21 +30,14 @@ where
 
     let players = players.map(|player| TempMatchPlayer {
         scaled_elo: player.elo().powf(config.game_elo_pow_scale),
-        scaled_wr: player
-            .wr()
-            .unwrap_or(base_chance)
-            .powf(config.game_wr_pow_scale),
+        scaled_wr: player.wr().unwrap_or(base_chance).powf(config.game_wr_pow_scale),
         player,
     });
 
     let sum_wr = players.iter().map(|p| p.scaled_wr).sum::<f64>();
     let sum_elo = players.iter().map(|p| p.scaled_elo).sum::<f64>();
 
-    let weight_wr = if sum_wr > 0.0 {
-        config.game_wr_weight
-    } else {
-        0.0
-    };
+    let weight_wr = if sum_wr > 0.0 { config.game_wr_weight } else { 0.0 };
 
     let weight_elo = if sum_elo > 0.0 {
         config.game_elo_weight
@@ -73,12 +63,7 @@ where
         0.0
     };
 
-    players.map(|p| {
-        (
-            p.player,
-            p.scaled_elo.mul_add(coef_elo, p.scaled_wr * coef_wr),
-        )
-    })
+    players.map(|p| (p.player, p.scaled_elo.mul_add(coef_elo, p.scaled_wr * coef_wr)))
 }
 
 #[cfg(test)]

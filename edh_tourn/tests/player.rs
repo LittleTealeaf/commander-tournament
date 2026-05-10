@@ -26,9 +26,7 @@ fn get_invalid_player_name() {
 fn get_player_info() {
     let mut t = Tournament::new();
     let id = t.register_player("test".to_owned()).unwrap();
-    let info = t
-        .get_player_info(&id)
-        .expect("Expected Info to be Returned");
+    let info = t.get_player_info(&id).expect("Expected Info to be Returned");
     assert_eq!("test", info.name(), "Expected correct info to be returned");
 }
 
@@ -102,10 +100,7 @@ fn unregister_player_removes_player() {
     );
 
     for game in t.games() {
-        assert!(
-            !game.has_player(id),
-            "Found game with the unregistered player"
-        );
+        assert!(!game.has_player(id), "Found game with the unregistered player");
     }
 }
 

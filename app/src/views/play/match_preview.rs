@@ -111,11 +111,9 @@ impl ComponentView for MatchPreview {
         let table = table(
             [
                 table::column(text("Player"), |(player, info): RowType| {
-                    button(
-                        text(info.map_or("Unknown Player", |info| info.name().as_ref())).size(12),
-                    )
-                    .style(button::text)
-                    .on_press(MatchPreviewMsg::ClickPlayer(player.id()))
+                    button(text(info.map_or("Unknown Player", |info| info.name().as_ref())).size(12))
+                        .style(button::text)
+                        .on_press(MatchPreviewMsg::ClickPlayer(player.id()))
                 }),
                 table::column(text("Stats"), |(player, _): RowType| {
                     let stats = player.stats();
@@ -165,8 +163,7 @@ impl ComponentView for MatchPreview {
                 MatchPreviewMsg::SelectWinner(picked.id())
             })
             .width(Length::Fill),
-            button("Submit")
-                .on_press_maybe(self.winner.is_some().then_some(MatchPreviewMsg::Submit))
+            button("Submit").on_press_maybe(self.winner.is_some().then_some(MatchPreviewMsg::Submit))
         ]
         .spacing(10)
         .align_y(Alignment::Center);

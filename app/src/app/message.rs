@@ -49,10 +49,7 @@ impl App {
                     Ok(task) => Ok(task),
                     Err(error) => {
                         eprintln!("Gracefully caught error: {error:#}");
-                        on_error.map_or_else(
-                            || Ok(Task::none()),
-                            |message| self.process_message(message),
-                        )
+                        on_error.map_or_else(|| Ok(Task::none()), |message| self.process_message(message))
                     }
                 }
             }

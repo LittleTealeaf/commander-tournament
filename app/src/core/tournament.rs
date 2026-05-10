@@ -91,16 +91,9 @@ mod tests {
     fn delete_player() {
         let mut tournament = Tournament::generate_tournament(50, 50).unwrap();
         // Gets an id of a player that is in at least one game
-        let id = tournament
-            .games()
-            .iter()
-            .map(GameRecord::winner)
-            .next()
-            .unwrap();
+        let id = tournament.games().iter().map(GameRecord::winner).next().unwrap();
 
-        TournamentAction::DeletePlayer(id)
-            .apply(&mut tournament)
-            .unwrap();
+        TournamentAction::DeletePlayer(id).apply(&mut tournament).unwrap();
 
         // Player does not exist
         assert!(tournament.get_registered_player(id).is_none());
@@ -116,9 +109,7 @@ mod tests {
         let mut tournament = Tournament::generate_tournament(20, 100).unwrap();
         let id = 5;
         let next_record = GameEntry::from(tournament.games().get(id + 1).unwrap().clone());
-        TournamentAction::DeleteGame(id)
-            .apply(&mut tournament)
-            .unwrap();
+        TournamentAction::DeleteGame(id).apply(&mut tournament).unwrap();
         let record = GameEntry::from(tournament.games().get(id).unwrap().clone());
         assert_eq!(record, next_record);
         assert_eq!(99, tournament.games().len());

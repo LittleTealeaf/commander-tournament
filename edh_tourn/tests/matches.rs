@@ -70,13 +70,7 @@ fn matchup_sum_elo_always_zero() {
 fn winner_gains_elo() {
     for i in 0..4 {
         let mut tourn = Tournament::generate_tournament(4, 0).unwrap();
-        let ids: [PlayerId; 4] = tourn
-            .players()
-            .keys()
-            .take(4)
-            .copied()
-            .collect_array()
-            .unwrap();
+        let ids: [PlayerId; 4] = tourn.players().keys().take(4).copied().collect_array().unwrap();
         let matchup = tourn.create_match(ids).unwrap();
         let starting_elo = matchup.players().get(i).unwrap().stats().elo();
         let winner = ids.get(i).unwrap();
@@ -96,13 +90,7 @@ fn winner_gains_elo() {
 fn loser_loses_elo() -> anyhow::Result<()> {
     for winner_i in 0..4 {
         let tourn = Tournament::generate_tournament(4, 0)?;
-        let ids: [PlayerId; 4] = tourn
-            .players()
-            .keys()
-            .take(4)
-            .copied()
-            .collect_array()
-            .unwrap();
+        let ids: [PlayerId; 4] = tourn.players().keys().take(4).copied().collect_array().unwrap();
         let winner_id = &ids[winner_i];
         let matchup = tourn.create_match(ids)?;
         for loser_i in 0..4 {

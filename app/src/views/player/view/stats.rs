@@ -61,9 +61,7 @@ fn col_wins<'a, T: 'a>(
     text(format!("{}", performance.wins()))
 }
 
-fn table_wrapper(
-    table: table::Table<'_, super::PlayerDetailsMsg>,
-) -> Container<'_, super::PlayerDetailsMsg> {
+fn table_wrapper(table: table::Table<'_, super::PlayerDetailsMsg>) -> Container<'_, super::PlayerDetailsMsg> {
     container(
         scrollable(table.width(Length::Fill))
             .width(Length::Fill)
@@ -79,14 +77,10 @@ pub fn stats_game_history(
         column(game.players().iter().map(|player| {
             let elo = player.stats().elo().round();
             button(
-                text(
-                    tournament
-                        .get_player_display_name(&player.id())
-                        .map_or_else(
-                            || format!("({elo}) {}", player.id()),
-                            |name| format!("({elo}) {name}"),
-                        ),
-                )
+                text(tournament.get_player_display_name(&player.id()).map_or_else(
+                    || format!("({elo}) {}", player.id()),
+                    |name| format!("({elo}) {name}"),
+                ))
                 .font_maybe((player.id() == game.winner()).then_some(FONT_BOLD)),
             )
             .padding(Padding::new(0.0))
@@ -104,19 +98,15 @@ pub fn stats_game_history(
             format!("{}", elo_change.round())
         };
 
-        let old_elo = game.get_player(id).map_or_else(
-            || tournament.default_stats().elo(),
-            |player| player.stats().elo(),
-        );
+        let old_elo = game
+            .get_player(id)
+            .map_or_else(|| tournament.default_stats().elo(), |player| player.stats().elo());
 
         let new_elo = (old_elo + elo_change).round();
 
-        column![
-            text(format!("{new_elo}")).size(20),
-            text(elo_change_str).size(15)
-        ]
-        .spacing(5)
-        .padding(5)
+        column![text(format!("{new_elo}")).size(20), text(elo_change_str).size(15)]
+            .spacing(5)
+            .padding(5)
     };
 
     let games = tournament
@@ -188,15 +178,11 @@ pub fn stats_identity_matchups(
         .ok()?
         .into_iter()
         .sorted_by(|(player_a, perf_a), (player_b, perf_b)| {
-            perf_a
-                .cmp(perf_b)
-                .reverse()
-                .then_with(|| player_a.cmp(player_b))
+            perf_a.cmp(perf_b).reverse().then_with(|| player_a.cmp(player_b))
         });
 
     let col_identity = |(identity, _): RowType| text(format!("{identity}"));
-    let col_colors =
-        |(identity, _): RowType| text(identity.colors().map(MtgColor::letter).join(""));
+    let col_colors = |(identity, _): RowType| text(identity.colors().map(MtgColor::letter).join(""));
 
     Some(table_wrapper(table(
         [
@@ -221,10 +207,7 @@ pub fn stats_color_matchups(
         .ok()?
         .into_iter()
         .sorted_by(|(color_a, perf_a), (color_b, perf_b)| {
-            perf_a
-                .cmp(perf_b)
-                .reverse()
-                .then_with(|| color_a.cmp(color_b))
+            perf_a.cmp(perf_b).reverse().then_with(|| color_a.cmp(color_b))
         });
 
     let col_color = |(color, _): RowType| text(format!("{color}"));

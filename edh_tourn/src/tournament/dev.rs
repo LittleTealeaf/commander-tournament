@@ -3,9 +3,7 @@ use std::hash::DefaultHasher;
 
 use itertools::Itertools;
 
-use crate::{
-    error::TournamentError, game::entry::GameEntry, player::PlayerId, tournament::Tournament,
-};
+use crate::{error::TournamentError, game::entry::GameEntry, player::PlayerId, tournament::Tournament};
 use rand::{SeedableRng, seq::IndexedRandom};
 use rand_chacha::ChaCha8Rng;
 
@@ -68,9 +66,7 @@ impl Tournament {
         self.register_player(format!("debug-{max}"))
     }
 
-    pub fn register_debug_players<const N: usize>(
-        &mut self,
-    ) -> Result<[PlayerId; N], TournamentError> {
+    pub fn register_debug_players<const N: usize>(&mut self) -> Result<[PlayerId; N], TournamentError> {
         let first = self.register_debug_player()?;
         let mut values = [first; N];
         for value in values.iter_mut().skip(1) {

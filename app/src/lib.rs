@@ -57,9 +57,7 @@ impl App {
     }
 
     pub fn subscription(&self) -> Subscription<Message> {
-        event::listen_with(|event, _status, _window| -> Option<Message> {
-            Message::from_event(event)
-        })
+        event::listen_with(|event, _status, _window| -> Option<Message> { Message::from_event(event) })
     }
 }
 

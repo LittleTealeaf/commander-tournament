@@ -104,9 +104,7 @@ impl ComponentUpdate for Leaderboard {
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         match message {
-            LeaderboardMsg::OpenPlayer(id) => {
-                Effect::out(LeaderboardOut::OpenPlayerDetails(id)).ok()
-            }
+            LeaderboardMsg::OpenPlayer(id) => Effect::out(LeaderboardOut::OpenPlayerDetails(id)).ok(),
             LeaderboardMsg::NewPlayer => Effect::out(LeaderboardOut::OpenNewPlayer).ok(),
             LeaderboardMsg::RankPlayer(id) => Effect::Out(LeaderboardOut::RankPlayer(id)).ok(),
             LeaderboardMsg::Sort(column) => {
@@ -152,37 +150,29 @@ impl ComponentView for Leaderboard {
 
         let tbl = table(
             [
-                table::column(
-                    col_header("Name", Column::Name),
-                    |p: RegisteredPlayer<'_>| {
-                        button(text(p.info().display_name()).size(12))
-                            .style(button::text)
-                            .on_press(LeaderboardMsg::OpenPlayer(p.id()))
-                    },
-                ),
+                table::column(col_header("Name", Column::Name), |p: RegisteredPlayer<'_>| {
+                    button(text(p.info().display_name()).size(12))
+                        .style(button::text)
+                        .on_press(LeaderboardMsg::OpenPlayer(p.id()))
+                }),
                 table::column(col_header("Elo", Column::Elo), |p: RegisteredPlayer<'_>| {
                     text(format!("{:.0}", p.stats().elo())).size(12)
                 }),
-                table::column(
-                    col_header("Games", Column::Games),
-                    |p: RegisteredPlayer<'_>| text(p.stats().games()).size(12),
-                ),
-                table::column(
-                    col_header("Wins", Column::Wins),
-                    |p: RegisteredPlayer<'_>| text(p.stats().wins()).size(12),
-                ),
-                table::column(
-                    col_header("WR", Column::WinRate),
-                    |p: RegisteredPlayer<'_>| {
-                        text(
-                            p.stats()
-                                .wr()
-                                .map(|wr| format!("{:.1}%", wr * 100.0))
-                                .unwrap_or_default(),
-                        )
-                        .size(12)
-                    },
-                ),
+                table::column(col_header("Games", Column::Games), |p: RegisteredPlayer<'_>| {
+                    text(p.stats().games()).size(12)
+                }),
+                table::column(col_header("Wins", Column::Wins), |p: RegisteredPlayer<'_>| {
+                    text(p.stats().wins()).size(12)
+                }),
+                table::column(col_header("WR", Column::WinRate), |p: RegisteredPlayer<'_>| {
+                    text(
+                        p.stats()
+                            .wr()
+                            .map(|wr| format!("{:.1}%", wr * 100.0))
+                            .unwrap_or_default(),
+                    )
+                    .size(12)
+                }),
                 table::column(
                     button("+").on_press(LeaderboardMsg::NewPlayer),
                     |p: RegisteredPlayer<'_>| {

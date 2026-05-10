@@ -45,17 +45,7 @@ impl MtgColor {
 }
 
 #[derive(
-    Default,
-    Debug,
-    Clone,
-    serde::Serialize,
-    serde::Deserialize,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Hash,
-    Copy,
+    Default, Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash, Copy,
 )]
 #[serde(transparent)]
 pub struct ColorIdentity(u8);
@@ -127,9 +117,9 @@ impl ColorIdentity {
     identity_const!(
         0,
         [
-            COLORLESS, WHITE, BLUE, AZORIUS, BLACK, ORZHOV, DIMIR, ESPER, RED, BOROS, IZZET,
-            JESKAI, RAKDOS, MARDU, GRIXIS, YORE, GREEN, SELESNYA, SIMIC, BANT, GOLGARI, ABZAN,
-            SULTAI, WITCH, GRUUL, NAYA, TEMUR, INK, JUND, DUNE, GLINT, WUBRG
+            COLORLESS, WHITE, BLUE, AZORIUS, BLACK, ORZHOV, DIMIR, ESPER, RED, BOROS, IZZET, JESKAI, RAKDOS,
+            MARDU, GRIXIS, YORE, GREEN, SELESNYA, SIMIC, BANT, GOLGARI, ABZAN, SULTAI, WITCH, GRUUL, NAYA,
+            TEMUR, INK, JUND, DUNE, GLINT, WUBRG
         ]
     );
 }
@@ -176,12 +166,7 @@ impl Display for ColorIdentity {
 
 impl FromIterator<MtgColor> for ColorIdentity {
     fn from_iter<T: IntoIterator<Item = MtgColor>>(iter: T) -> Self {
-        Self(
-            iter.into_iter()
-                .unique()
-                .map(|color| color as u8)
-                .sum::<u8>(),
-        )
+        Self(iter.into_iter().unique().map(|color| color as u8).sum::<u8>())
     }
 }
 
@@ -414,14 +399,8 @@ mod tests {
         let white_green = ColorIdentity::from_iter([MtgColor::White, MtgColor::Green]);
 
         assert_eq!(white_blue & blue_green, ColorIdentity::from(MtgColor::Blue));
-        assert_eq!(
-            white_blue & white_green,
-            ColorIdentity::from(MtgColor::White)
-        );
-        assert_eq!(
-            blue_green & white_green,
-            ColorIdentity::from(MtgColor::Green)
-        );
+        assert_eq!(white_blue & white_green, ColorIdentity::from(MtgColor::White));
+        assert_eq!(blue_green & white_green, ColorIdentity::from(MtgColor::Green));
     }
 
     #[test]

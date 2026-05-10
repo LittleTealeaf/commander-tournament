@@ -78,11 +78,9 @@ impl ComponentUpdate for Modal<Message> {
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::effect::Effect<Self::Message, Self::OutMessage>> {
         match (self, message) {
-            (Self::Confirm { on_confirm, .. }, ModalMsg::Confirm) => {
-                Effect::out(on_confirm.clone())
-                    .chain(Effect::out(Message::CloseModal))
-                    .ok()
-            }
+            (Self::Confirm { on_confirm, .. }, ModalMsg::Confirm) => Effect::out(on_confirm.clone())
+                .chain(Effect::out(Message::CloseModal))
+                .ok(),
             (Self::Confirm { on_cancel, .. }, ModalMsg::Cancel) => on_cancel
                 .clone()
                 .map_or(Effect::Done, Effect::out)
@@ -111,9 +109,7 @@ impl<M> Modal<M> {
                             Self::Confirm { title, details, .. } => {
                                 column![
                                     text(title).font(FONT_BOLD).size(20),
-                                    text(details)
-                                        .wrapping(text::Wrapping::Word)
-                                        .width(Length::Fill),
+                                    text(details).wrapping(text::Wrapping::Word).width(Length::Fill),
                                     row![
                                         space().width(Length::Fill),
                                         button("Cancel").on_press(ModalMsg::Cancel.into()),
@@ -127,9 +123,7 @@ impl<M> Modal<M> {
                             Self::Error { error } => {
                                 column![
                                     text("Application Error").font(FONT_BOLD).size(20),
-                                    text(error)
-                                        .wrapping(text::Wrapping::Word)
-                                        .width(Length::Fill),
+                                    text(error).wrapping(text::Wrapping::Word).width(Length::Fill),
                                     container(button("Close").on_press(ModalMsg::Close.into()))
                                         .align_x(Horizontal::Right)
                                         .width(Length::Fill)

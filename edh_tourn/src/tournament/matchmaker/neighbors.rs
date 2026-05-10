@@ -76,9 +76,7 @@ where
     players
         .into_iter()
         .map(|id| (id, (target - value_by(&id)).abs()))
-        .sorted_by(|(id_a, val_a), (id_b, val_b)| {
-            val_a.total_cmp(val_b).then_with(|| id_a.cmp(id_b))
-        })
+        .sorted_by(|(id_a, val_a), (id_b, val_b)| val_a.total_cmp(val_b).then_with(|| id_a.cmp(id_b)))
         .map(|(id, _)| id)
 }
 

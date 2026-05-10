@@ -9,18 +9,14 @@ use crate::serialization::utils::DeserializableMap;
 use crate::tournament::Tournament;
 use crate::{config::TournamentConfig, player::info::PlayerInfo};
 
-fn player_info_deserialize<'de, D>(
-    deserializer: D,
-) -> Result<HashMap<PlayerId, PlayerInfo>, D::Error>
+fn player_info_deserialize<'de, D>(deserializer: D) -> Result<HashMap<PlayerId, PlayerInfo>, D::Error>
 where
     D: Deserializer<'de>,
 {
-    Ok(
-        DeserializableMap::<PlayerInfo>::deserialize_to_map(deserializer)?
-            .into_iter()
-            .map(|(id, info)| (PlayerId(id), info))
-            .collect(),
-    )
+    Ok(DeserializableMap::<PlayerInfo>::deserialize_to_map(deserializer)?
+        .into_iter()
+        .map(|(id, info)| (PlayerId(id), info))
+        .collect())
 }
 
 #[derive(Deserialize, Debug, Serialize)]

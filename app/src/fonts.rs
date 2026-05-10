@@ -76,9 +76,7 @@ pub const FONT_BYTES: [&[u8]; 16] = [
 
 // Generate all combinations!
 font_styles!(
-    [
-        Bold, ExtraBold, ExtraLight, Normal, Light, Medium, Semibold, Thin
-    ],
+    [Bold, ExtraBold, ExtraLight, Normal, Light, Medium, Semibold, Thin],
     [Normal, Italic, Oblique]
 );
 

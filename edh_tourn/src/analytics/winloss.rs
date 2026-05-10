@@ -4,9 +4,7 @@ use core::{
     ops::{Add, AddAssign},
 };
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, Default,
-)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, Default)]
 pub struct MatchPerformance {
     played: usize,
     won: usize,
