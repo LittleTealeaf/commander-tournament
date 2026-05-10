@@ -79,6 +79,15 @@ where
         Self::Modal(Modal::confirm(title, details, on_confirm, on_cancel))
     }
 
+    pub fn perform<Fun, Out, H>(future: Fun, handler: H) -> Self
+    where
+        Fun: core::future::Future<Output = Out> + Send + 'static,
+        H: Fn(Out) -> M + iced_futures::MaybeSend + 'static,
+        Out: iced_futures::MaybeSend + 'static,
+    {
+        Self::Task(Task::perform(future, handler))
+    }
+
     pub fn future<F>(future: F) -> Self
     where
         F: core::future::Future<Output = M> + Send + 'static,
