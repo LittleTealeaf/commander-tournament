@@ -92,8 +92,9 @@ impl ComponentUpdate for App {
                 if self.modified && !self.close_requested {
                     self.close_requested = true;
                     Effect::confirm(
-                        &"Unsaved Changes",
-                        &"You have unsaved changes. Are you sure you want to exit without saving?",
+                        "Unsaved Changes".to_owned(),
+                        "You have unsaved changes. Are you sure you want to exit without saving?"
+                            .to_owned(),
                         Message::QuitConfirm(true),
                         Some(Message::QuitConfirm(false)),
                     )

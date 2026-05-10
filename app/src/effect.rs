@@ -75,16 +75,7 @@ where
         }
     }
 
-    pub fn confirm<Ttl, Dtl>(
-        title: &Ttl,
-        details: &Dtl,
-        on_confirm: M,
-        on_cancel: Option<M>,
-    ) -> Self
-    where
-        Ttl: ToString,
-        Dtl: ToString,
-    {
+    pub fn confirm(title: String, details: String, on_confirm: M, on_cancel: Option<M>) -> Self {
         Self::Modal(Modal::confirm(title, details, on_confirm, on_cancel))
     }
 

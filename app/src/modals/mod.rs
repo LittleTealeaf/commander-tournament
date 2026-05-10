@@ -25,15 +25,13 @@ pub enum Modal<M> {
 }
 
 impl<M> Modal<M> {
-    pub fn confirm<T, D, C>(title: &T, details: &D, on_confirm: M, on_cancel: C) -> Self
+    pub fn confirm<C>(title: String, details: String, on_confirm: M, on_cancel: C) -> Self
     where
-        T: ToString,
-        D: ToString,
         C: Into<Option<M>>,
     {
         Self::Confirm {
-            title: title.to_string(),
-            details: details.to_string(),
+            title,
+            details,
             on_confirm,
             on_cancel: on_cancel.into(),
         }

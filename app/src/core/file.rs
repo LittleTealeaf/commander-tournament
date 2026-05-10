@@ -87,8 +87,8 @@ impl HandleMessage<FileAction> for App {
             FileAction::RequestNew => {
                 if self.modified {
                     Effect::confirm(
-                        &"Overwrite Tournament?",
-                        &"All unsaved changes will be lost",
+                        "Overwrite Tournament?".to_owned(),
+                        "All unsaved changes will be lost".to_owned(),
                         Message::TournFile(FileAction::New),
                         None,
                     )
@@ -107,8 +107,8 @@ impl HandleMessage<FileAction> for App {
                 let action = FileAction::OpenFile(path_buf);
                 if self.modified {
                     Effect::confirm(
-                        &"Lose Changes",
-                        &"All unsaved changes will be lost",
+                        "Lose Changes".to_owned(),
+                        "All unsaved changes will be lost".to_owned(),
                         Message::TournFile(action),
                         None,
                     )

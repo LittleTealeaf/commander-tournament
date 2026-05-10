@@ -33,6 +33,7 @@ impl StatsTab {
 
 #[derive(Debug, Clone)]
 pub enum PlayerDetailsMsg {
+    RequestClose,
     Close,
     SaveAndClose,
     SetName(String),
