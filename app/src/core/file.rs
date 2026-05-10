@@ -2,7 +2,6 @@ use std::path::{Path, PathBuf};
 
 use directories::UserDirs;
 use edh_tourn::tournament::Tournament;
-use iced::{Task, widget::canvas::path::lyon_path::path_buffer};
 use rfd::AsyncFileDialog;
 
 use crate::{
