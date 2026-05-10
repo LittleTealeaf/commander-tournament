@@ -48,13 +48,10 @@ impl ComponentUpdate for PlayerView {
                 Effect::done()
             }
             PlayerDetailsMsg::SetStatsTab(stats_tab) => {
-                self.stats = stats_tab;
+                        self.stats = stats_tab;
                 Effect::done()
             }
-            PlayerDetailsMsg::OpenLink(link) => Effect::out(PlayerDetailsOut::OpenLink(link)).ok(),
-            PlayerDetailsMsg::ConfirmDelete => self.id.map(|id| Effect::out(PlayerDetailsOut::DeletePlayer(id))).unwrap_or_default().ok(),
-            PlayerDetailsMsg::RequestDelete => Effect::confirm(
-                format!("Delete {}?", self.initial_name),
+            PlayerDetailsMsg::OpenLink(link) => Effect::out(PlayerDetailsOut::OpenLink(link)).ok(), PlayerDetailsMsg::ConfirmDelete => self.id.map(|id| Effect::out(PlayerDetailsOut::DeletePlayer(id))).unwrap_or_default().ok(), PlayerDetailsMsg::RequestDelete => Effect::confirm( format!("Delete {}?", self.initial_name),
                 format!(
                     "Are you sure you want to delete the player \"{}\"? All games this player has participated in will also be deleted.",
                     self.initial_name
