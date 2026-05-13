@@ -45,6 +45,7 @@ impl Matchup {
     }
 }
 
+
 #[cfg(test)]
 mod tests {
     use crate::tournament::Tournament;

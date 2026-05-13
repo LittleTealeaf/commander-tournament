@@ -1,6 +1,9 @@
 #[cfg(test)]
 extern crate approx;
 
+#[cfg(feature = "dev")]
+mod dev;
+
 pub mod analytics;
 pub mod config;
 pub mod error;
