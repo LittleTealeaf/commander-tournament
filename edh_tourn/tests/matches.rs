@@ -74,7 +74,7 @@ fn get_player_games_unregistered() {
 }
 
 #[test]
-fn delete_index_out_of_bounds() {
+fn delete_game_index_out_of_bounds() {
     let mut tour = Tournament::generate_tournament(10, 100).unwrap();
     tour.delete_game(101).unwrap_err();
 }
