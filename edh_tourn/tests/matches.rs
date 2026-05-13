@@ -55,6 +55,31 @@ fn mirror_matchup_equal_expected() {
 }
 
 #[test]
+fn create_match_unregistered_player() {
+    let mut tourn = Tournament::new();
+    let players: [_; 4] = tourn.register_debug_players().unwrap();
+    for id in &players {
+        let mut t = tourn.clone();
+        t.unregister_player(*id).unwrap();
+        t.create_match(players).unwrap_err();
+    }
+}
+
+#[test]
+fn get_player_games_unregistered() {
+    let mut tour = Tournament::generate_tournament(10, 100).unwrap();
+    let id = *tour.players().keys().next().unwrap();
+    tour.unregister_player(id).unwrap();
+    assert!(tour.get_player_games(id).is_err());
+}
+
+#[test]
+fn delete_index_out_of_bounds() {
+    let mut tour = Tournament::generate_tournament(10, 100).unwrap();
+    tour.delete_game(101).unwrap_err();
+}
+
+#[test]
 fn matchup_sum_elo_always_zero() {
     let tourn = Tournament::generate_tournament(20, 100).unwrap();
     for (a, b, c, d) in tourn.players().keys().copied().tuple_windows() {
