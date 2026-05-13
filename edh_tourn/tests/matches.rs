@@ -41,7 +41,7 @@ fn update_record_newer_snapshot() {
     let record = matchup.debug_record().unwrap();
     t.reload().unwrap();
     let updated = t.update_record(record.clone()).unwrap();
-    assert!(record.eq(&updated));
+    assert!(!record.eq(&updated));
 }
 
 #[test]
