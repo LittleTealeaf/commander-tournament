@@ -1,26 +1,47 @@
 use core::f64;
 
-use approx::{assert_abs_diff_eq, assert_relative_eq, assert_relative_ne};
+use approx::{assert_abs_diff_eq, assert_relative_eq};
 use edh_tourn::{player::PlayerId, tournament::Tournament};
 use itertools::Itertools;
 
 #[test]
-fn update_match_updates_matches() {
+fn update_match_same_snapshot() {
     let mut t = Tournament::new();
-    let id = t.register_debug_player().unwrap();
-    let matchup = t.create_match([id, id, id, id]).unwrap();
-    let elo_before = matchup.players().first().unwrap().stats().elo();
+    let players = t.register_debug_players().unwrap();
+    let matchup = t.create_match(players).unwrap();
+    let updated = t.update_match(matchup.clone()).unwrap();
+    assert!(matchup.eq(&updated));
+}
 
-    let mut config = t.game_config().clone();
-    config.starting_elo += 1500.0;
-    let new_elo = config.starting_elo;
-    t.set_game_config(config).unwrap();
+#[test]
+fn update_match_newer_snapshot() {
+    let mut t = Tournament::new();
+    let players = t.register_debug_players().unwrap();
+    let matchup = t.create_match(players).unwrap();
+    t.reload().unwrap();
+    let updated = t.update_match(matchup.clone()).unwrap();
+    assert!(!matchup.eq(&updated));
+}
 
-    assert_relative_ne!(elo_before, t.get_player_or_default_stats(id).elo());
-    assert_relative_eq!(elo_before, matchup.players().first().unwrap().stats().elo());
+#[test]
+fn update_record_same_snapshot() {
+    let mut t = Tournament::new();
+    let players = t.register_debug_players().unwrap();
+    let matchup = t.create_match(players).unwrap();
+    let record = matchup.debug_record().unwrap();
+    let updated = t.update_record(record.clone()).unwrap();
+    assert!(record.eq(&updated));
+}
 
-    let updated = t.update_match(matchup).unwrap();
-    assert_relative_eq!(new_elo, updated.players().first().unwrap().stats().elo());
+#[test]
+fn update_record_newer_snapshot() {
+    let mut t = Tournament::new();
+    let players = t.register_debug_players().unwrap();
+    let matchup = t.create_match(players).unwrap();
+    let record = matchup.debug_record().unwrap();
+    t.reload().unwrap();
+    let updated = t.update_record(record.clone()).unwrap();
+    assert!(record.eq(&updated));
 }
 
 #[test]
