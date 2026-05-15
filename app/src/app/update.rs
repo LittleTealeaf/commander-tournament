@@ -79,7 +79,9 @@ impl ComponentUpdate for App {
             }
             Message::Modal(modal_msg) => {
                 if let Some(modal) = self.modals.last_mut() {
-                    modal.update(modal_msg, ())?.map(|out| Effect::msg(out).ok())
+                    modal
+                        .update(modal_msg, &self.tournament)?
+                        .map(|out| Effect::msg(out).ok())
                 } else {
                     Effect::done()
                 }

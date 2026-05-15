@@ -3,7 +3,10 @@ use core::iter::once;
 use iced::Task;
 use iced_futures::MaybeSend;
 
-use crate::modals::Modal;
+use crate::{
+    modals::{Modal, confirm::ConfirmModal},
+    traits::Mapped,
+};
 
 #[derive(Debug, Default)]
 pub enum Effect<M, O> {
@@ -75,8 +78,15 @@ where
         }
     }
 
+    pub fn modal<A>(modal: A) -> Self
+    where
+        A: Into<Modal<M>>,
+    {
+        Self::Modal(modal.into())
+    }
+
     pub fn confirm(title: String, details: String, on_confirm: M, on_cancel: Option<M>) -> Self {
-        Self::Modal(Modal::confirm(title, details, on_confirm, on_cancel))
+        Self::modal(ConfirmModal::new(title, details, on_confirm, on_cancel))
     }
 
     pub fn perform<Fun, Out, H>(future: Fun, handler: H) -> Self

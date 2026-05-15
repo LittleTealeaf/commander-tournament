@@ -76,3 +76,7 @@ impl<T: Component + ComponentUpdate> HandleMessage<T::Message> for T {
         self.update(message, context)
     }
 }
+
+pub trait Mapped<T> {
+    fn map(self) -> T;
+}

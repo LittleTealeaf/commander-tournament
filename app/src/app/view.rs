@@ -1,7 +1,6 @@
 use edh_tourn::tournament::Tournament;
 use iced::Element;
 
-use crate::modals::Modal;
 use crate::views::ViewScreen;
 use crate::views::game_config::{GameConfigMsg, GameConfigOut, GameConfigView};
 use crate::views::{
@@ -155,7 +154,7 @@ impl App {
         );
 
         if let Some(modal) = self.modals.last() {
-            modal.overlay(content)
+            modal.overlay(content, &self.tournament)
         } else {
             content
         }
@@ -167,7 +166,7 @@ impl App {
     }
 
     pub fn error(&mut self, error: String) {
-        self.modals.push(Modal::Error { error });
+        todo!()
     }
 
     pub fn push_view<V>(&mut self, view: V) -> Effect<Message, ()>
