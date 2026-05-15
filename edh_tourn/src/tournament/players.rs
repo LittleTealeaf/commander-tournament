@@ -98,7 +98,6 @@ impl Tournament {
         I: Into<PlayerInfo>,
     {
         let info = info.into();
-
         if info.name().is_empty() {
             return Err(TournamentError::InvalidPlayerName(String::new()));
         }
