@@ -4,186 +4,283 @@ use edh_tourn::{
     tournament::Tournament,
 };
 
-#[test]
-fn get_player_name() {
-    let mut t = Tournament::new();
-    let id = t.register_player("test".to_owned()).unwrap();
-    assert_eq!(
-        "test",
-        t.get_player_name(&id).expect("Expected Player to be found")
-    );
+mod get_player_name {
+    use super::*;
+
+    #[test]
+    fn gets_name() {
+        let mut t = Tournament::new();
+        let id = t.register_player("test".to_owned()).unwrap();
+        assert_eq!(
+            "test",
+            t.get_player_name(&id).expect("Expected Player to be found")
+        );
+    }
+
+    #[test]
+    fn returns_none_when_invalid() {
+        let mut t = Tournament::new();
+        let id = t.register_debug_player().unwrap();
+        t.unregister_player(id).unwrap();
+        assert!(t.get_player_name(&id).is_none());
+    }
 }
 
-#[test]
-fn get_invalid_player_name() {
-    let mut t = Tournament::new();
-    let id = t.register_debug_player().unwrap();
-    t.unregister_player(id).unwrap();
-    assert!(t.get_player_name(&id).is_none());
+mod get_player_info {
+    use super::*;
+
+    #[test]
+    fn gets_info() {
+        let mut t = Tournament::new();
+        let id = t.register_player("test".to_owned()).unwrap();
+        let info = t.players().get(&id).unwrap();
+        assert_eq!("test", info.name(), "Expected correct info to be returned");
+    }
+
+    #[test]
+    fn returns_none_when_invalid() {
+        let mut t = Tournament::new();
+        let id = t.register_debug_player().unwrap();
+        t.unregister_player(id).unwrap();
+        assert!(!t.players().contains_key(&id));
+    }
 }
 
-#[test]
-fn get_player_info() {
-    let mut t = Tournament::new();
-    let id = t.register_player("test".to_owned()).unwrap();
-    let info = t.get_player_info(&id).expect("Expected Info to be Returned");
-    assert_eq!("test", info.name(), "Expected correct info to be returned");
+mod register_player {
+    use super::*;
+
+    #[test]
+    fn with_name() {
+        let mut t = Tournament::new();
+        let id = t.register_player("name".to_owned()).unwrap();
+        assert!(
+            t.players().keys().any(|i| i == &id),
+            "Expected id to be valid player"
+        );
+    }
+
+    #[test]
+    fn with_info() {
+        let mut t = Tournament::new();
+        let id = t.register_player(PlayerInfo::new("name".to_owned())).unwrap();
+        assert!(
+            t.players().keys().any(|i| i == &id),
+            "Expected id to be valid player"
+        );
+    }
+
+    #[test]
+    fn name_already_exists() {
+        let mut t = Tournament::new();
+        let _ = t.register_player("name".to_owned());
+        t.register_player("name".to_owned()).unwrap_err();
+    }
+
+    #[test]
+    fn empty_name() {
+        let mut t = Tournament::new();
+        t.register_player(String::new()).unwrap_err();
+    }
+
+    #[test]
+    fn updates_get_id() {
+        let mut t = Tournament::new();
+        let id = t.register_player("test".to_owned()).unwrap();
+        assert_eq!(id, t.get_player_id(&"test".to_owned()).unwrap());
+    }
 }
 
-#[test]
-fn get_invalid_player_info() {
-    let mut t = Tournament::new();
-    let id = t.register_debug_player().unwrap();
-    t.unregister_player(id).unwrap();
-    assert!(t.get_player_info(&id).is_none());
+mod set_player_info {
+    use super::*;
+
+    #[test]
+    fn sets_name() {
+        let mut t = Tournament::new();
+        let id = t.register_player("a".to_owned()).unwrap();
+        let info = PlayerInfo::new("b".to_owned());
+        t.set_player_info(id, info).unwrap();
+        let found_info = t.players().get(&id).unwrap();
+        assert_eq!(found_info.name(), "b");
+    }
+
+    #[test]
+    fn duplicate_name() {
+        let mut t = Tournament::new();
+        let _ = t.register_player("a".to_owned()).unwrap();
+        let b = t.register_player("b".to_owned()).unwrap();
+        let info = PlayerInfo::new("a".to_owned());
+        t.set_player_info(b, info).unwrap_err();
+    }
+
+    #[test]
+    fn invalid_name() {
+        let mut t = Tournament::new();
+        let id = t.register_debug_player().unwrap();
+        let info = PlayerInfo::new(String::new());
+        t.set_player_info(id, info).unwrap_err();
+    }
+
+    #[test]
+    fn updates_get_id() {
+        let mut t = Tournament::new();
+        let id = t.register_player("abc".to_owned()).unwrap();
+        let info = PlayerInfo::new("def".to_owned());
+        t.set_player_info(id, info).unwrap();
+        assert!(t.get_player_id(&"abc".to_owned()).is_none());
+        assert_eq!(id, t.get_player_id(&"def".to_owned()).unwrap());
+    }
 }
 
-#[test]
-fn register_name_already_exists() {
-    let mut t = Tournament::new();
-    let _ = t.register_player("name".to_owned());
-    t.register_player("name".to_owned()).unwrap_err();
-}
+mod unregister_player {
+    use super::*;
 
-#[test]
-fn register_with_info_name_already_exists() {
-    let mut t = Tournament::new();
-    let _ = t.register_player("name".to_owned());
-    t.register_player_with_info(PlayerInfo::new("name".to_owned()))
-        .unwrap_err();
-}
+    #[test]
+    fn removes_from_players() {
+        let mut t = Tournament::new();
+        let id = t.register_debug_player().unwrap();
+        t.unregister_player(id).unwrap();
+        assert!(!t.players().keys().any(|i| i == &id));
+    }
 
-#[test]
-fn set_player_info_duplicate_name() {
-    let mut t = Tournament::new();
-    let id_1 = t.register_debug_player().unwrap();
-    let id_2 = t.register_debug_player().unwrap();
-    let name = t.get_player_name(&id_1).unwrap().to_owned();
-    let mut info = t.get_player_info(&id_2).unwrap().clone();
-    info.set_name(name);
-    t.set_player_info(id_2, info).unwrap_err();
-}
+    #[test]
+    fn removes_registered_player() {
+        let mut t = Tournament::new();
+        let id = t.register_debug_player().unwrap();
+        t.unregister_player(id).unwrap();
+        assert!(t.get_registered_player(id).is_none());
+    }
 
-#[test]
-fn set_player_info_updates_get_id() {
-    let mut t = Tournament::new();
-    let id = t.register_player("tester".to_owned()).unwrap();
-    let mut info = t.get_player_info(&id).unwrap().clone();
-    info.set_name("testing".to_owned());
-    t.set_player_info(id, info).unwrap();
-    let new_id = t.get_player_id(&"testing".to_owned()).unwrap();
-    assert_eq!(id, new_id);
-}
+    #[test]
+    fn removes_player_info() {
+        let mut t = Tournament::new();
+        let id = t.register_debug_player().unwrap();
+        t.unregister_player(id).unwrap();
+        assert!(t.get_player_info(&id).is_none());
+    }
 
-#[test]
-fn register_player_updates_get_id() {
-    let mut t = Tournament::new();
-    t.register_player("test".to_owned()).unwrap();
-    t.get_player_id(&"test".to_owned()).unwrap();
-}
+    #[test]
+    fn removes_from_id_lookups() {
+        let mut t = Tournament::new();
+        let id = t.register_player("Hello".to_owned()).unwrap();
+        t.unregister_player(id).unwrap();
+        assert!(t.get_player_id(&"Hello".to_owned()).is_none());
+    }
 
-#[test]
-fn unregister_player_removes_player() {
-    const GAME_COUNT: usize = 30;
-    const PLAYER_COUNT: usize = 10;
-    const EXTRA_GAMES: usize = 20;
-    let mut t = Tournament::generate_tournament(PLAYER_COUNT, GAME_COUNT).unwrap();
-    let id = t.register_debug_player().unwrap();
-    let info = t.get_player_info(&id).unwrap().clone();
+    #[test]
+    fn removes_participated_games() {
+        const PLAYER_COUNT: usize = 4;
+        const GAME_COUNT: usize = 5;
+        let mut t = Tournament::generate_tournament(PLAYER_COUNT, GAME_COUNT).unwrap();
 
-    for _ in 0..EXTRA_GAMES {
+        let id = t.register_debug_player().unwrap();
         let matchup = t.matchmaker().create_match(id).unwrap();
         let record = matchup.debug_record().unwrap();
         t.record_game(record).unwrap();
+
+        assert_eq!(t.games().len(), GAME_COUNT + 1);
+
+        t.unregister_player(id).unwrap();
+
+        assert_eq!(t.games().len(), GAME_COUNT);
+
+        for game in t.games() {
+            assert!(
+                !game.has_player(id),
+                "Found game containing the unregistered player"
+            );
+        }
     }
 
-    assert_eq!(GAME_COUNT + EXTRA_GAMES, t.games().len());
-    assert_eq!(PLAYER_COUNT + 1, t.players().len());
-
-    t.unregister_player(id).unwrap();
-
-    assert!(
-        t.get_player_id(info.name()).is_none(),
-        "Name still exists for unregistered player"
-    );
-    assert!(
-        t.get_player_info(&id).is_none(),
-        "Found info for the unregistered player"
-    );
-
-    assert_eq!(t.games().len(), GAME_COUNT);
-    assert_eq!(PLAYER_COUNT, t.players().len());
-
-    for game in t.games() {
-        assert!(!game.has_player(id), "Fouhnd game with the unregistered player");
+    #[test]
+    fn invalid_id() {
+        let mut t = Tournament::new();
+        let id = t.register_debug_player().unwrap();
+        t.unregister_player(id).unwrap();
+        t.unregister_player(id).unwrap_err();
     }
 }
 
-#[test]
-fn require_id_registered() {
-    let mut t = Tournament::new();
-    let id = t.register_debug_player().unwrap();
+mod require_id {
+    use super::*;
 
-    t.require_id_registered(id).unwrap();
-    t.unregister_player(id).unwrap();
-    t.require_id_registered(id).unwrap_err();
+    #[test]
+    fn registered_id() {
+        let mut t = Tournament::new();
+        let id = t.register_debug_player().unwrap();
+        t.require_id_registered(id).unwrap();
+    }
+
+    #[test]
+    fn unregistered_id() {
+        let mut t = Tournament::new();
+        let id = t.register_debug_player().unwrap();
+        t.unregister_player(id).unwrap();
+        t.require_id_registered(id).unwrap_err();
+    }
 }
 
-#[test]
-fn get_or_register_player() {
-    let mut t = Tournament::new();
-    let id = t.register_debug_player().unwrap();
-    let name = t.get_player_name(&id).unwrap().to_owned();
+mod get_or_register {
+    use super::*;
 
-    let found_id = t.get_or_register_player(name.clone()).unwrap();
-    assert_eq!(found_id, id, "Expected original player id to be returned");
+    #[test]
+    fn gets_player() {
+        let mut t = Tournament::new();
+        let id = t.register_player("test").unwrap();
+        let found = t.get_or_register_player("test".to_owned()).unwrap();
+        assert_eq!(id, found);
+    }
 
-    let cloned = t.clone();
-    let new_name = format!("new_{name}");
-    let new_id = t.get_or_register_player(new_name).unwrap();
-    assert_ne!(new_id, id, "Expected different name to return a new id");
-    assert!(
-        !cloned.is_id_registered(&new_id),
-        "Expected id to not exist before"
-    );
+    #[test]
+    fn registers_player() {
+        let mut t = Tournament::new();
+        let id = t.get_or_register_player("test".to_owned()).unwrap();
+        let name = t.get_player_name(&id).unwrap();
+        assert_eq!(name, "test");
+    }
 }
 
-#[test]
-fn update_or_register_player_with_info() {
-    let mut t = Tournament::new();
-    t.register_debug_player().unwrap();
-    let mut info = PlayerInfo::new("Testing".to_owned());
-    info.set_color_identity(ColorIdentity::RED);
-    let id = t.update_or_register_player_with_info(info.clone()).unwrap();
-    let found_info = t.get_player_info(&id).unwrap();
-    assert_eq!(
-        found_info.color_identity(),
-        ColorIdentity::RED,
-        "Info was not properly specified"
-    );
+mod update_or_register {
+    use super::*;
 
-    info.set_color_identity(ColorIdentity::BLUE);
-    let new_id = t.update_or_register_player_with_info(info.clone()).unwrap();
-    assert_eq!(id, new_id, "Expected id to be found");
+    #[test]
+    fn new_player() {
+        let mut t = Tournament::new();
+        t.register_debug_player().unwrap();
 
-    let found_info = t.get_player_info(&id).unwrap();
-    assert_eq!(
-        found_info.color_identity(),
-        ColorIdentity::BLUE,
-        "Info was not properly specified"
-    );
-}
+        let mut info = PlayerInfo::new("Testing".to_owned());
+        info.set_color_identity(ColorIdentity::RED);
 
-#[test]
-fn register_player_with_info() {
-    let mut t = Tournament::new();
-    let info = PlayerInfo::new("Testing".to_owned());
-    let id = t.register_player_with_info(info.clone()).unwrap();
-    assert_eq!(t.get_player_info(&id).unwrap(), &info);
+        let id = t.update_or_register_player(info).unwrap();
+        let found_info = t.get_player_info(&id).unwrap();
 
-    t.register_player_with_info(info).unwrap_err();
-    t.register_player_with_info(PlayerInfo::new(String::new()))
-        .unwrap_err();
+        assert_eq!(
+            found_info.color_identity(),
+            ColorIdentity::RED,
+            "Info was not properly specified"
+        );
+    }
+
+    #[test]
+    fn update_existing() {
+        let mut t = Tournament::new();
+        t.register_debug_player().unwrap();
+
+        let mut info = PlayerInfo::new("Testing".to_owned());
+        info.set_color_identity(ColorIdentity::RED);
+        let id = t.update_or_register_player(info.clone()).unwrap();
+
+        info.set_color_identity(ColorIdentity::BLUE);
+        let new_id = t.update_or_register_player(info).unwrap();
+
+        assert_eq!(id, new_id, "Expected id to be found");
+
+        let found_info = t.get_player_info(&id).unwrap();
+        assert_eq!(
+            found_info.color_identity(),
+            ColorIdentity::BLUE,
+            "Info was not properly specified"
+        );
+    }
 }
 
 #[test]

@@ -129,7 +129,7 @@ impl HandleMessage<HomeMsg> for App {
                 HomeOut::RecordGame(game_record) => Effect::msg(TournamentAction::Record(game_record)).ok(),
                 HomeOut::OpenLink(link) => Effect::msg(Message::OpenLink(link)).ok(),
                 HomeOut::FileNew => Effect::msg(FileAction::RequestNew).ok(),
-                HomeOut::FileOpen => Effect::msg(FileAction::Open).ok(),
+                HomeOut::FileOpen => Effect::msg(FileAction::RequestOpen).ok(),
                 HomeOut::FileSave => Effect::msg(FileAction::Save).ok(),
                 HomeOut::FileSaveAs => Effect::msg(FileAction::SaveAs).ok(),
                 HomeOut::OpenPlayerDetails(player_id) => {

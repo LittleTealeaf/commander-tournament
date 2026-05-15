@@ -24,7 +24,7 @@ impl TournamentAction {
     pub fn apply(self, tournament: &mut Tournament) -> Result<(), TournamentError> {
         match self {
             Self::Register(player_info) => {
-                tournament.register_player_with_info(player_info)?;
+                tournament.register_player(player_info)?;
                 Ok(())
             }
             Self::DeletePlayer(id) => tournament.unregister_player(id),
@@ -67,13 +67,15 @@ mod tests {
         TournamentAction::Register(info.clone())
             .apply(&mut tournament)
             .unwrap();
-        let _ = tournament.get_player_id(info.name()).unwrap();
+        tournament.get_player_id(info.name()).unwrap();
     }
 
     #[test]
     fn set_player_info() {
         let mut tournament = Tournament::new();
         let id = tournament.register_debug_player().unwrap();
+
+        // Updating Player Name
         let name = tournament.get_player_name(&id).unwrap();
         let new_name = format!("new-{name}");
         let info = PlayerInfo::new(new_name.clone());
@@ -81,27 +83,15 @@ mod tests {
             .apply(&mut tournament)
             .unwrap();
         assert_eq!(&new_name, tournament.get_player_name(&id).unwrap());
-
-        TournamentAction::SetPlayerInfo(id, PlayerInfo::new(String::new()))
-            .apply(&mut tournament)
-            .unwrap_err();
     }
 
     #[test]
     fn delete_player() {
-        let mut tournament = Tournament::generate_tournament(50, 50).unwrap();
-        // Gets an id of a player that is in at least one game
-        let id = tournament.games().iter().map(GameRecord::winner).next().unwrap();
-
+        let mut tournament = Tournament::new();
+        let id = tournament.register_debug_player().unwrap();
+        assert!(tournament.is_id_registered(&id));
         TournamentAction::DeletePlayer(id).apply(&mut tournament).unwrap();
-
-        // Player does not exist
-        assert!(tournament.get_registered_player(id).is_none());
-
-        // No games have the player
-        for game in tournament.games() {
-            assert!(!game.has_player(id));
-        }
+        assert!(!tournament.is_id_registered(&id));
     }
 
     #[test]
