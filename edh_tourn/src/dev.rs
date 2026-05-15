@@ -1,10 +1,14 @@
+#! Dev/Test helper functions
 use core::hash::{Hash, Hasher};
 use std::hash::DefaultHasher;
 
 use itertools::Itertools;
 
 use crate::{
-    error::TournamentError, game::entry::GameEntry, player::PlayerId, tournament::Tournament,
+    error::TournamentError,
+    game::{entry::GameEntry, matchup::Matchup, record::GameRecord},
+    player::PlayerId,
+    tournament::Tournament,
 };
 use rand::{SeedableRng, seq::IndexedRandom};
 use rand_chacha::ChaCha8Rng;
@@ -60,7 +64,7 @@ impl Tournament {
 
     #[must_use]
     pub fn sample_game() -> Self {
-        ron::from_str(include_str!("../../../res/tests/compats/sample-v2.ron")).unwrap()
+        ron::from_str(include_str!("../../res/tests/compats/sample-v2.ron")).unwrap()
     }
 
     pub fn register_debug_player(&mut self) -> Result<PlayerId, TournamentError> {
@@ -68,15 +72,24 @@ impl Tournament {
         self.register_player(format!("debug-{max}"))
     }
 
-    pub fn register_debug_players<const N: usize>(
-        &mut self,
-    ) -> Result<[PlayerId; N], TournamentError> {
+    pub fn register_debug_players<const N: usize>(&mut self) -> Result<[PlayerId; N], TournamentError> {
         let first = self.register_debug_player()?;
         let mut values = [first; N];
         for value in values.iter_mut().skip(1) {
             *value = self.register_debug_player()?;
         }
         Ok(values)
+    }
+}
+
+impl Matchup {
+    #[must_use]
+    pub fn debug_record(self) -> Option<GameRecord> {
+        let players = self.players().clone().map(|player| format!("{player:?}"));
+        let seed = hash_to_u64(players);
+        let mut rng = ChaCha8Rng::seed_from_u64(seed);
+        let winner = self.players().choose(&mut rng)?.id();
+        self.record(winner).ok()
     }
 }
 

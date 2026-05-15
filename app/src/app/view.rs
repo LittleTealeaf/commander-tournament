@@ -78,14 +78,12 @@ impl ComponentUpdate for View {
                             .ok()
                     }
                     PlayerDetailsOut::OpenLink(link) => Effect::Out(Message::OpenLink(link)).ok(),
-                    PlayerDetailsOut::SaveAndClose(player_id, player_info) => {
-                        Effect::out(match player_id {
-                            Some(id) => TournamentAction::SetPlayerInfo(id, player_info),
-                            None => TournamentAction::Register(player_info),
-                        })
-                        .chain(CLOSE_VIEW)
-                        .ok()
-                    }
+                    PlayerDetailsOut::SaveAndClose(player_id, player_info) => Effect::out(match player_id {
+                        Some(id) => TournamentAction::SetPlayerInfo(id, player_info),
+                        None => TournamentAction::Register(player_info),
+                    })
+                    .chain(CLOSE_VIEW)
+                    .ok(),
                     PlayerDetailsOut::OpenPlayerMatches(player_id) => {
                         Effect::out(Message::OpenPlay(PlayMode::player(player_id))).ok()
                     }
@@ -141,9 +139,7 @@ impl ComponentView for View {
     fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> Element<'a, Self::Message> {
         match self {
             Self::PlayConfig(settings) => settings.screen_view_into(()),
-            Self::PlayerDetails(player_details) => {
-                player_details.screen_view_into(context.tournament())
-            }
+            Self::PlayerDetails(player_details) => player_details.screen_view_into(context.tournament()),
             Self::Play(play) => play.screen_view_into(context.tournament()),
             Self::GameConfig(game_config) => game_config.screen_view_into(()),
         }

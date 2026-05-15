@@ -43,9 +43,7 @@ impl AppState {
         let path = {
             #[cfg(feature = "dev")]
             {
-                tempfile::NamedTempFile::with_suffix(".ron")?
-                    .path()
-                    .to_path_buf()
+                tempfile::NamedTempFile::with_suffix(".ron")?.path().to_path_buf()
             }
             #[cfg(not(feature = "dev"))]
             {

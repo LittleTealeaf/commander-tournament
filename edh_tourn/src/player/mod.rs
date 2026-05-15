@@ -11,6 +11,9 @@ pub mod color;
 pub mod info;
 pub mod stats;
 
+/**
+ * Identifies a unique player. The specific implementation may vary.
+ */
 #[derive(
     Debug,
     Clone,
@@ -28,6 +31,9 @@ pub mod stats;
 #[serde(transparent)]
 pub struct PlayerId(pub(crate) u32);
 
+/**
+ * Represents a reference to a registered player.
+ */
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct RegisteredPlayer<'a> {
     id: PlayerId,
@@ -43,16 +49,23 @@ impl<'a> RegisteredPlayer<'a> {
 }
 
 impl RegisteredPlayer<'_> {
+    /// Returns the direct [`PlayerId`] identifier of the registered player.
     #[must_use]
     pub const fn id(&self) -> PlayerId {
         self.id
     }
 
+    /// Returns a reference to the [`PlayerInfo`].
     #[must_use]
     pub const fn info(&self) -> &PlayerInfo {
         self.info
     }
 
+    /**
+     * Returns a reference to the current [`PlayerStats`].
+     * If the player has no modified stats, this will be
+     * a reference to the default stats.
+     */
     #[must_use]
     pub const fn stats(&self) -> &PlayerStats {
         self.stats

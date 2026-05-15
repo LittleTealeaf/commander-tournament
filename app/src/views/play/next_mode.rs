@@ -140,9 +140,7 @@ impl PlayNextMode {
                     lead.id()
                 });
                 let filtered_leads = leads.filter(|id| filtered_ids.contains(id));
-                let enumerated = filtered_leads
-                    .enumerate()
-                    .map(|(game, player)| (player, game));
+                let enumerated = filtered_leads.enumerate().map(|(game, player)| (player, game));
                 let max_game_id = enumerated.into_grouping_map().max();
                 let (id, _) = max_game_id.into_iter().min_by_key(|(_, i)| *i)?;
                 tournament.get_registered_player(id)
@@ -170,9 +168,7 @@ mod tests {
             tournament.record_entry(entry).unwrap();
         }
 
-        let next_player = PlayNextMode::LongestSinceWin
-            .get_player(&tournament)
-            .unwrap();
+        let next_player = PlayNextMode::LongestSinceWin.get_player(&tournament).unwrap();
         assert_eq!(next_player.id(), target);
     }
 
@@ -188,9 +184,7 @@ mod tests {
 
         let [target, ..] = players;
 
-        let next_player = PlayNextMode::LongestSinceWin
-            .get_player(&tournament)
-            .unwrap();
+        let next_player = PlayNextMode::LongestSinceWin.get_player(&tournament).unwrap();
 
         assert_eq!(next_player.id(), target);
     }

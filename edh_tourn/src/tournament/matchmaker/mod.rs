@@ -126,9 +126,6 @@ mod tests {
         let result: Vec<_> = to_weight_rank(items, weight).collect();
 
         // 0 * 5 = 0, 1 * 5 = 5, 2 * 5 = 10
-        assert_eq!(
-            result,
-            vec![("PlayerA", 0), ("PlayerB", 5), ("PlayerC", 10)]
-        );
+        assert_eq!(result, vec![("PlayerA", 0), ("PlayerB", 5), ("PlayerC", 10)]);
     }
 }

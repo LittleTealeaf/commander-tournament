@@ -33,6 +33,7 @@ impl StatsTab {
 
 #[derive(Debug, Clone)]
 pub enum PlayerDetailsMsg {
+    RequestClose,
     Close,
     SaveAndClose,
     SetName(String),
@@ -86,7 +87,7 @@ impl Component for PlayerView {
 }
 
 impl ViewScreen for PlayerView {
-    const CLOSE_MESSAGE: Self::Message = PlayerDetailsMsg::Close;
+    const CLOSE_MESSAGE: Self::Message = PlayerDetailsMsg::RequestClose;
 
     fn primary_actions<'a>(
         &'a self,

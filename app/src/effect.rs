@@ -75,17 +75,17 @@ where
         }
     }
 
-    pub fn confirm<Ttl, Dtl>(
-        title: &Ttl,
-        details: &Dtl,
-        on_confirm: M,
-        on_cancel: Option<M>,
-    ) -> Self
-    where
-        Ttl: ToString,
-        Dtl: ToString,
-    {
+    pub fn confirm(title: String, details: String, on_confirm: M, on_cancel: Option<M>) -> Self {
         Self::Modal(Modal::confirm(title, details, on_confirm, on_cancel))
+    }
+
+    pub fn perform<Fun, Out, H>(future: Fun, handler: H) -> Self
+    where
+        Fun: core::future::Future<Output = Out> + Send + 'static,
+        H: Fn(Out) -> M + iced_futures::MaybeSend + 'static,
+        Out: iced_futures::MaybeSend + 'static,
+    {
+        Self::Task(Task::perform(future, handler))
     }
 
     pub fn future<F>(future: F) -> Self
@@ -148,9 +148,7 @@ where
             (Self::Sequence(left), Self::Sequence(right)) => {
                 Self::Sequence(left.into_iter().chain(right).collect())
             }
-            (effect, Self::Sequence(effects)) => {
-                Self::Sequence(once(effect).chain(effects).collect())
-            }
+            (effect, Self::Sequence(effects)) => Self::Sequence(once(effect).chain(effects).collect()),
             (Self::Sequence(mut effects), effect) => {
                 effects.push(effect);
                 Self::Sequence(effects)
@@ -163,9 +161,7 @@ where
     pub fn merge(self, other: Self) -> Self {
         match (self, other) {
             (Self::Done, eff) | (eff, Self::Done) => eff,
-            (Self::Batch(left), Self::Batch(right)) => {
-                Self::Batch(left.into_iter().chain(right).collect())
-            }
+            (Self::Batch(left), Self::Batch(right)) => Self::Batch(left.into_iter().chain(right).collect()),
             (effect, Self::Batch(mut effects)) | (Self::Batch(mut effects), effect) => {
                 effects.push(effect);
                 Self::Batch(effects)
@@ -181,11 +177,9 @@ where
         F: Fn(O) -> anyhow::Result<Effect<MN, ON>>,
     {
         match self {
-            Self::OnError(effect, on_error) => Effect::OnError(
-                Box::new(effect.inner_map(map_out)?),
-                on_error.map(Into::into),
-            )
-            .ok(),
+            Self::OnError(effect, on_error) => {
+                Effect::OnError(Box::new(effect.inner_map(map_out)?), on_error.map(Into::into)).ok()
+            }
             Self::Done => Ok(Effect::Done),
             Self::Out(message) => map_out(message),
             Self::Modal(modal) => Ok(Effect::Modal(modal.map())),

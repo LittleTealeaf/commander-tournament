@@ -53,8 +53,7 @@ impl<'a> Analytics<'a> {
     pub(crate) fn player_vs_player_all_performances(
         self,
         id: PlayerId,
-    ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)> + 'a, TournamentError>
-    {
+    ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)> + 'a, TournamentError> {
         Ok(self
             .player_performance(id)?
             .into_iter()
@@ -64,8 +63,7 @@ impl<'a> Analytics<'a> {
     pub fn player_vs_player_performance(
         self,
         id: PlayerId,
-    ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)> + 'a, TournamentError>
-    {
+    ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)> + 'a, TournamentError> {
         let players = self.player_vs_player_all_performances(id)?;
         let filtered = players.filter(move |(player, _)| player.id() != id);
         Ok(filtered)
@@ -137,10 +135,7 @@ impl Analytics<'_> {
 
 impl Analytics<'_> {
     #[must_use]
-    pub fn color_vs_color_performance(
-        self,
-        color: MtgColor,
-    ) -> HashMap<MtgColor, MatchPerformance> {
+    pub fn color_vs_color_performance(self, color: MtgColor) -> HashMap<MtgColor, MatchPerformance> {
         self.0
             .games()
             .iter()
@@ -159,10 +154,7 @@ impl Analytics<'_> {
     }
 }
 
-fn game_match_perfs<F>(
-    game: &GameRecord,
-    check: F,
-) -> impl Iterator<Item = (PlayerId, MatchPerformance)>
+fn game_match_perfs<F>(game: &GameRecord, check: F) -> impl Iterator<Item = (PlayerId, MatchPerformance)>
 where
     F: Fn(PlayerId) -> bool,
 {

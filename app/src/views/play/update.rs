@@ -16,10 +16,7 @@ impl PlayMode {
     pub(super) fn create_matchup(&self, tournament: &Tournament) -> Option<Matchup> {
         match self {
             Self::Player(id) => tournament.matchmaker().create_match(*id).ok(),
-            Self::Next {
-                mode,
-                ignore_precons,
-            } => {
+            Self::Next { mode, ignore_precons } => {
                 let players = tournament
                     .get_registered_players()
                     .filter(|player| !*ignore_precons || !player.info().is_precon());

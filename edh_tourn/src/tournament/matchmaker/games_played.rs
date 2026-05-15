@@ -99,10 +99,7 @@ mod tests {
         let p_low_draws = MatchPerformance::new(10, 8, 1);
 
         assert_eq!(order_lost_with(&p_high_draws, &p_low_draws), Ordering::Less);
-        assert_eq!(
-            order_lost_with(&p_low_draws, &p_high_draws),
-            Ordering::Greater
-        );
+        assert_eq!(order_lost_with(&p_low_draws, &p_high_draws), Ordering::Greater);
     }
 
     #[test]

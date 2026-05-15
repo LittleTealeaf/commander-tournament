@@ -1,8 +1,8 @@
 use crate::{
     error::TournamentError,
     game::{
-        entry::GameEntry, match_player::MatchPlayer, matchable::calculate_expected_values,
-        matchup::Matchup, record::GameRecord,
+        entry::GameEntry, match_player::MatchPlayer, matchable::calculate_expected_values, matchup::Matchup,
+        record::GameRecord,
     },
     player::PlayerId,
     tournament::Tournament,
@@ -25,10 +25,7 @@ impl Tournament {
     }
 
     #[must_use]
-    pub(crate) fn create_match_players<const T: usize>(
-        &self,
-        players: [PlayerId; T],
-    ) -> [MatchPlayer; T] {
+    pub(crate) fn create_match_players<const T: usize>(&self, players: [PlayerId; T]) -> [MatchPlayer; T] {
         #[allow(clippy::cast_precision_loss)]
         let base_chance = 1.0 / (T as f64);
 

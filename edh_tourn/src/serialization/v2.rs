@@ -70,10 +70,7 @@ pub struct V2GameEntry {
 pub struct V2Tournament {
     #[serde(alias = "c")]
     pub(super) config: V2TournamentConfig,
-    #[serde(
-        alias = "p",
-        deserialize_with = "DeserializableMap::deserialize_to_map"
-    )]
+    #[serde(alias = "p", deserialize_with = "DeserializableMap::deserialize_to_map")]
     pub(super) players: HashMap<u32, PlayerInfo>,
     #[serde(alias = "g")]
     pub(super) games: Vec<V2GameEntry>,
@@ -97,8 +94,7 @@ impl From<V2Tournament> for V3Tournament {
             lost_with: (value.config.match_weight_lost_with.round() as usize).max(1),
             elo_neighbor: (value.config.match_weight_elo_neighbor.round() as usize).max(1),
             wr_neighbor: (value.config.match_weight_wr_neighbor.round() as usize).max(1),
-            expected_neighbor: (value.config.match_weight_expected_neighbor.round() as usize)
-                .max(1),
+            expected_neighbor: (value.config.match_weight_expected_neighbor.round() as usize).max(1),
         };
 
         Self {
@@ -114,9 +110,7 @@ impl From<V2Tournament> for V3Tournament {
             games: value
                 .games
                 .into_iter()
-                .filter_map(|game| {
-                    GameEntry::new(game.players.map(PlayerId), PlayerId(game.winner)).ok()
-                })
+                .filter_map(|game| GameEntry::new(game.players.map(PlayerId), PlayerId(game.winner)).ok())
                 .collect(),
         }
     }

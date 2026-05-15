@@ -62,9 +62,7 @@ impl ComponentUpdate for GameConfigView {
     ) -> anyhow::Result<crate::effect::Effect<Self::Message, Self::OutMessage>> {
         match message {
             GameConfigMsg::Close => Effect::out(GameConfigOut::Close).ok(),
-            GameConfigMsg::Save => {
-                Effect::out(GameConfigOut::SaveAndClose(self.config.clone())).ok()
-            }
+            GameConfigMsg::Save => Effect::out(GameConfigOut::SaveAndClose(self.config.clone())).ok(),
             GameConfigMsg::SetDefault => {
                 self.config = GameConfig::new();
                 Effect::done()

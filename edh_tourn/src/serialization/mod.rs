@@ -125,12 +125,7 @@ mod tests {
         let serialized = ron::to_string(&tourn).unwrap();
         let de_tourn: Tournament = ron::from_str(&serialized).unwrap();
 
-        assert_eq!(
-            id,
-            de_tourn
-                .get_player_id(&String::from("Test String"))
-                .unwrap()
-        );
+        assert_eq!(id, de_tourn.get_player_id(&String::from("Test String")).unwrap());
     }
 
     #[test]

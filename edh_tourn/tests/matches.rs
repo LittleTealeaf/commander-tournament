@@ -1,26 +1,47 @@
 use core::f64;
 
-use approx::{assert_abs_diff_eq, assert_relative_eq, assert_relative_ne};
+use approx::{assert_abs_diff_eq, assert_relative_eq};
 use edh_tourn::{player::PlayerId, tournament::Tournament};
 use itertools::Itertools;
 
 #[test]
-fn update_match_updates_matches() {
+fn update_match_same_snapshot() {
     let mut t = Tournament::new();
-    let id = t.register_debug_player().unwrap();
-    let matchup = t.create_match([id, id, id, id]).unwrap();
-    let elo_before = matchup.players().first().unwrap().stats().elo();
+    let players = t.register_debug_players().unwrap();
+    let matchup = t.create_match(players).unwrap();
+    let updated = t.update_match(matchup.clone()).unwrap();
+    assert!(matchup.eq(&updated));
+}
 
-    let mut config = t.game_config().clone();
-    config.starting_elo += 1500.0;
-    let new_elo = config.starting_elo;
-    t.set_game_config(config).unwrap();
+#[test]
+fn update_match_newer_snapshot() {
+    let mut t = Tournament::new();
+    let players = t.register_debug_players().unwrap();
+    let matchup = t.create_match(players).unwrap();
+    t.reload().unwrap();
+    let updated = t.update_match(matchup.clone()).unwrap();
+    assert!(!matchup.eq(&updated));
+}
 
-    assert_relative_ne!(elo_before, t.get_player_or_default_stats(id).elo());
-    assert_relative_eq!(elo_before, matchup.players().first().unwrap().stats().elo());
+#[test]
+fn update_record_same_snapshot() {
+    let mut t = Tournament::new();
+    let players = t.register_debug_players().unwrap();
+    let matchup = t.create_match(players).unwrap();
+    let record = matchup.debug_record().unwrap();
+    let updated = t.update_record(record.clone()).unwrap();
+    assert!(record.eq(&updated));
+}
 
-    let updated = t.update_match(matchup).unwrap();
-    assert_relative_eq!(new_elo, updated.players().first().unwrap().stats().elo());
+#[test]
+fn update_record_newer_snapshot() {
+    let mut t = Tournament::new();
+    let players = t.register_debug_players().unwrap();
+    let matchup = t.create_match(players).unwrap();
+    let record = matchup.debug_record().unwrap();
+    t.reload().unwrap();
+    let updated = t.update_record(record.clone()).unwrap();
+    assert!(!record.eq(&updated));
 }
 
 #[test]
@@ -31,6 +52,31 @@ fn mirror_matchup_equal_expected() {
     for p in mu.players() {
         assert_relative_eq!(0.25, *p.expected());
     }
+}
+
+#[test]
+fn create_match_unregistered_player() {
+    let mut tourn = Tournament::new();
+    let players: [_; 4] = tourn.register_debug_players().unwrap();
+    for id in &players {
+        let mut t = tourn.clone();
+        t.unregister_player(*id).unwrap();
+        t.create_match(players).unwrap_err();
+    }
+}
+
+#[test]
+fn get_player_games_unregistered() {
+    let mut tour = Tournament::generate_tournament(10, 100).unwrap();
+    let id = *tour.players().keys().next().unwrap();
+    tour.unregister_player(id).unwrap();
+    assert!(tour.get_player_games(id).is_err());
+}
+
+#[test]
+fn delete_game_index_out_of_bounds() {
+    let mut tour = Tournament::generate_tournament(10, 100).unwrap();
+    tour.delete_game(101).unwrap_err();
 }
 
 #[test]
@@ -70,13 +116,7 @@ fn matchup_sum_elo_always_zero() {
 fn winner_gains_elo() {
     for i in 0..4 {
         let mut tourn = Tournament::generate_tournament(4, 0).unwrap();
-        let ids: [PlayerId; 4] = tourn
-            .players()
-            .keys()
-            .take(4)
-            .copied()
-            .collect_array()
-            .unwrap();
+        let ids: [PlayerId; 4] = tourn.players().keys().take(4).copied().collect_array().unwrap();
         let matchup = tourn.create_match(ids).unwrap();
         let starting_elo = matchup.players().get(i).unwrap().stats().elo();
         let winner = ids.get(i).unwrap();
@@ -96,13 +136,7 @@ fn winner_gains_elo() {
 fn loser_loses_elo() -> anyhow::Result<()> {
     for winner_i in 0..4 {
         let tourn = Tournament::generate_tournament(4, 0)?;
-        let ids: [PlayerId; 4] = tourn
-            .players()
-            .keys()
-            .take(4)
-            .copied()
-            .collect_array()
-            .unwrap();
+        let ids: [PlayerId; 4] = tourn.players().keys().take(4).copied().collect_array().unwrap();
         let winner_id = &ids[winner_i];
         let matchup = tourn.create_match(ids)?;
         for loser_i in 0..4 {

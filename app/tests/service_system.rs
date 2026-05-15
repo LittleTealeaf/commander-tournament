@@ -3,6 +3,8 @@ use serde::{Deserialize, Serialize};
 use std::path::Path;
 use tempfile::tempdir;
 
+const SUPPORTED_EXTENSIONS: [&str; 3] = ["json", "toml", "ron"];
+
 #[test]
 fn project_dir_exists() {
     project_dir().unwrap();
@@ -16,9 +18,11 @@ struct TestData {
 
 #[test]
 fn test_extensions() {
-    let valid_path = Path::new("config.json");
-    assert_eq!(get_extension(valid_path), Some("json"));
-    assert_eq!(require_extension(valid_path).unwrap(), "json");
+    for ext in SUPPORTED_EXTENSIONS {
+        let valid_path = Path::new(&format!("config.{ext}")).to_owned();
+        assert_eq!(get_extension(&valid_path), Some(ext));
+        assert_eq!(require_extension(&valid_path).unwrap(), ext);
+    }
 
     let invalid_path = Path::new("config");
     assert_eq!(get_extension(invalid_path), None);

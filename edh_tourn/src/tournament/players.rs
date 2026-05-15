@@ -46,9 +46,9 @@ impl Tournament {
     }
 
     pub fn get_registered_players(&self) -> impl Iterator<Item = RegisteredPlayer<'_>> {
-        self.players().iter().map(|(id, info)| {
-            RegisteredPlayer::new(*id, info, self.get_player_or_default_stats(*id))
-        })
+        self.players()
+            .iter()
+            .map(|(id, info)| RegisteredPlayer::new(*id, info, self.get_player_or_default_stats(*id)))
     }
 
     pub fn unregister_player(&mut self, id: PlayerId) -> Result<(), TournamentError> {
@@ -96,19 +96,13 @@ impl Tournament {
         self.register_player_with_info(PlayerInfo::new(name))
     }
 
-    pub fn register_player_with_info(
-        &mut self,
-        info: PlayerInfo,
-    ) -> Result<PlayerId, TournamentError> {
+    pub fn register_player_with_info(&mut self, info: PlayerInfo) -> Result<PlayerId, TournamentError> {
         if info.name().is_empty() {
             return Err(TournamentError::InvalidPlayerName(String::new()));
         }
 
         if let Some(id) = self.player_names.get(info.name()) {
-            return Err(TournamentError::PlayerAlreadyRegistered(
-                info.into_name(),
-                *id,
-            ));
+            return Err(TournamentError::PlayerAlreadyRegistered(info.into_name(), *id));
         }
 
         let id = self.players.keys().max().map_or(0, |i| i.0 + 1);
@@ -120,11 +114,7 @@ impl Tournament {
         Ok(id)
     }
 
-    pub fn set_player_info(
-        &mut self,
-        player: PlayerId,
-        info: PlayerInfo,
-    ) -> Result<(), TournamentError> {
+    pub fn set_player_info(&mut self, player: PlayerId, info: PlayerInfo) -> Result<(), TournamentError> {
         let saved_info = self
             .players
             .get_mut(&player)

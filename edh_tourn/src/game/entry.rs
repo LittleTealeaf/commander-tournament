@@ -7,9 +7,7 @@ use crate::{
 };
 
 /// Stores only the player IDs and the winner ID. Primarily used for serialization or conversions
-#[derive(
-    Debug, Clone, serde::Serialize, serde::Deserialize, Default, PartialEq, Copy, Eq, Hash,
-)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default, PartialEq, Copy, Eq, Hash)]
 pub struct GameEntry {
     #[serde(rename = "p", alias = "players")]
     players: [PlayerId; POD_SIZE],
@@ -78,31 +76,11 @@ mod test {
 
     #[test]
     fn winner_must_be_player() {
-        GameEntry::new(
-            [PlayerId(0), PlayerId(1), PlayerId(2), PlayerId(3)],
-            PlayerId(0),
-        )
-        .unwrap();
-        GameEntry::new(
-            [PlayerId(0), PlayerId(1), PlayerId(2), PlayerId(3)],
-            PlayerId(1),
-        )
-        .unwrap();
-        GameEntry::new(
-            [PlayerId(0), PlayerId(1), PlayerId(2), PlayerId(3)],
-            PlayerId(2),
-        )
-        .unwrap();
-        GameEntry::new(
-            [PlayerId(0), PlayerId(1), PlayerId(2), PlayerId(3)],
-            PlayerId(3),
-        )
-        .unwrap();
-        GameEntry::new(
-            [PlayerId(0), PlayerId(1), PlayerId(2), PlayerId(3)],
-            PlayerId(4),
-        )
-        .unwrap_err();
+        GameEntry::new([PlayerId(0), PlayerId(1), PlayerId(2), PlayerId(3)], PlayerId(0)).unwrap();
+        GameEntry::new([PlayerId(0), PlayerId(1), PlayerId(2), PlayerId(3)], PlayerId(1)).unwrap();
+        GameEntry::new([PlayerId(0), PlayerId(1), PlayerId(2), PlayerId(3)], PlayerId(2)).unwrap();
+        GameEntry::new([PlayerId(0), PlayerId(1), PlayerId(2), PlayerId(3)], PlayerId(3)).unwrap();
+        GameEntry::new([PlayerId(0), PlayerId(1), PlayerId(2), PlayerId(3)], PlayerId(4)).unwrap_err();
     }
 
     #[test]
@@ -136,11 +114,7 @@ mod test {
             .take(4)
             .collect_array()
             .unwrap();
-        let record = tournament
-            .create_match(ids)
-            .unwrap()
-            .record(ids[0])
-            .unwrap();
+        let record = tournament.create_match(ids).unwrap().record(ids[0]).unwrap();
         let entry = GameEntry::from(record);
         assert_eq!(ids, entry.players);
         assert_eq!(ids[0], entry.winner);
@@ -156,11 +130,7 @@ mod test {
             .take(4)
             .collect_array()
             .unwrap();
-        let record = tournament
-            .create_match(ids)
-            .unwrap()
-            .record(ids[0])
-            .unwrap();
+        let record = tournament.create_match(ids).unwrap().record(ids[0]).unwrap();
         let entry = GameEntry::from(&record);
         assert_eq!(ids, entry.players);
         assert_eq!(ids[0], entry.winner);

@@ -83,14 +83,8 @@ fn into_fresh_resets_ids() {
 
     assert_eq!(60, new_game.players().len());
 
-    assert_ne!(
-        new_game.players().keys().max(),
-        tourn.players().keys().max()
-    );
-    assert_ne!(
-        new_game.players().keys().min(),
-        tourn.players().keys().min()
-    );
+    assert_ne!(new_game.players().keys().max(), tourn.players().keys().max());
+    assert_ne!(new_game.players().keys().min(), tourn.players().keys().min());
 }
 
 #[test]

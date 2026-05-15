@@ -34,9 +34,7 @@ impl<'a> Analytics<'a> {
             .sum()
     }
 
-    fn aggregated_player_stats(
-        self,
-    ) -> impl Iterator<Item = (RegisteredPlayer<'a>, AggregateStats)> {
+    fn aggregated_player_stats(self) -> impl Iterator<Item = (RegisteredPlayer<'a>, AggregateStats)> {
         self.0
             .get_registered_players()
             .map(|player| (player, player.stats().into()))

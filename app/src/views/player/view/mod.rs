@@ -15,8 +15,8 @@ use crate::{
         view::{
             info::view_info_panel,
             stats::{
-                stats_color_matchups, stats_game_history, stats_identity_matchups,
-                stats_player_matchups, stats_summary,
+                stats_color_matchups, stats_game_history, stats_identity_matchups, stats_player_matchups,
+                stats_summary,
             },
         },
     },

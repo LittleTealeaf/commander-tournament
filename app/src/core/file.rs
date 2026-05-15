@@ -2,7 +2,6 @@ use std::path::{Path, PathBuf};
 
 use directories::UserDirs;
 use edh_tourn::tournament::Tournament;
-use iced::Task;
 use rfd::AsyncFileDialog;
 
 use crate::{
@@ -87,8 +86,8 @@ impl HandleMessage<FileAction> for App {
             FileAction::RequestNew => {
                 if self.modified {
                     Effect::confirm(
-                        &"Overwrite Tournament?",
-                        &"All unsaved changes will be lost",
+                        "Overwrite Tournament?".to_owned(),
+                        "All unsaved changes will be lost".to_owned(),
                         Message::TournFile(FileAction::New),
                         None,
                     )
@@ -107,8 +106,8 @@ impl HandleMessage<FileAction> for App {
                 let action = FileAction::OpenFile(path_buf);
                 if self.modified {
                     Effect::confirm(
-                        &"Lose Changes",
-                        &"All unsaved changes will be lost",
+                        "Lose Changes".to_owned(),
+                        "All unsaved changes will be lost".to_owned(),
                         Message::TournFile(action),
                         None,
                     )
@@ -117,14 +116,13 @@ impl HandleMessage<FileAction> for App {
                     Effect::msg(action).ok()
                 }
             }
-            FileAction::OpenFile(path_buf) => Effect::Task(Task::perform(
-                load_from_file_async(path_buf.clone()),
-                |res| match res {
-                    Ok(value) => FileAction::FileOpened(path_buf, value).into(),
+            FileAction::OpenFile(path_buf) => {
+                Effect::perform(load_from_file_async(path_buf.clone()), move |res| match res {
+                    Ok(value) => FileAction::FileOpened(path_buf.clone(), value).into(),
                     Err(err) => Message::Error(err.to_string()),
-                },
-            ))
-            .ok(),
+                })
+                .ok()
+            }
             FileAction::SaveFile(path_buf) => {
                 if self.is_saving {
                     return Effect::done();
@@ -132,21 +130,23 @@ impl HandleMessage<FileAction> for App {
                 self.is_saving = true;
                 let extension = require_extension(&path_buf)?;
                 let serialized = serialize_by_extension(&self.tournament, extension)?;
-                let future = async move {
-                    let res = async_fs::write(path_buf.clone(), serialized).await;
-                    match res {
+                let path = path_buf.clone();
+
+                Effect::perform(
+                    async move { async_fs::write(path, serialized).await },
+                    move |res| match res {
                         Ok(()) => FileAction::FileSaved(path_buf.clone()).into(),
                         Err(e) => FileAction::SaveError(e.to_string()).into(),
-                    }
-                };
-                Effect::future(future).ok()
-            }
-            FileAction::Save => {
-                Effect::msg(self.file.as_ref().map_or(FileAction::SaveAs, |path| {
-                    FileAction::SaveFile(path.clone())
-                }))
+                    },
+                )
                 .ok()
             }
+            FileAction::Save => Effect::msg(
+                self.file
+                    .as_ref()
+                    .map_or(FileAction::SaveAs, |path| FileAction::SaveFile(path.clone())),
+            )
+            .ok(),
             FileAction::SaveAs => Effect::future(save_dialog(self.file.clone())).ok(),
             FileAction::FileOpened(path, tournament) => {
                 self.tournament = *tournament;

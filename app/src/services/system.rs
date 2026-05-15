@@ -50,7 +50,9 @@ where
         "json" => serde_json::from_str(data)?,
         #[cfg(feature = "serde_toml")]
         "toml" => toml::from_str(data)?,
-        ext => return Err(anyhow!("File type not supported: {ext}")),
+        ext => {
+            return Err(anyhow!("File type not supported: {ext}"));
+        }
     })
 }
 
@@ -64,7 +66,9 @@ where
         "json" => serde_json::to_string(data)?,
         #[cfg(feature = "serde_toml")]
         "toml" => toml::to_string(data)?,
-        ext => return Err(anyhow!("File type not supported: {ext}")),
+        ext => {
+            return Err(anyhow!("File type not supported: {ext}"));
+        }
     })
 }
 

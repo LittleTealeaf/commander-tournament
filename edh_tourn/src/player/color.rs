@@ -45,17 +45,7 @@ impl MtgColor {
 }
 
 #[derive(
-    Default,
-    Debug,
-    Clone,
-    serde::Serialize,
-    serde::Deserialize,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Hash,
-    Copy,
+    Default, Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash, Copy,
 )]
 #[serde(transparent)]
 pub struct ColorIdentity(u8);
@@ -127,9 +117,9 @@ impl ColorIdentity {
     identity_const!(
         0,
         [
-            COLORLESS, WHITE, BLUE, AZORIUS, BLACK, ORZHOV, DIMIR, ESPER, RED, BOROS, IZZET,
-            JESKAI, RAKDOS, MARDU, GRIXIS, YORE, GREEN, SELESNYA, SIMIC, BANT, GOLGARI, ABZAN,
-            SULTAI, WITCH, GRUUL, NAYA, TEMUR, INK, JUND, DUNE, GLINT, WUBRG
+            COLORLESS, WHITE, BLUE, AZORIUS, BLACK, ORZHOV, DIMIR, ESPER, RED, BOROS, IZZET, JESKAI, RAKDOS,
+            MARDU, GRIXIS, YORE, GREEN, SELESNYA, SIMIC, BANT, GOLGARI, ABZAN, SULTAI, WITCH, GRUUL, NAYA,
+            TEMUR, INK, JUND, DUNE, GLINT, WUBRG
         ]
     );
 }
@@ -176,12 +166,7 @@ impl Display for ColorIdentity {
 
 impl FromIterator<MtgColor> for ColorIdentity {
     fn from_iter<T: IntoIterator<Item = MtgColor>>(iter: T) -> Self {
-        Self(
-            iter.into_iter()
-                .unique()
-                .map(|color| color as u8)
-                .sum::<u8>(),
-        )
+        Self(iter.into_iter().unique().map(|color| color as u8).sum::<u8>())
     }
 }
 
@@ -253,24 +238,25 @@ mod tests {
 
     macro_rules! test_colors {
         ($($color:ident),+; $id: ident) => {
-            let identity = crate::player::color::ColorIdentity::$id;
-            assert!(crate::player::color::ColorIdentity::IDENTITIES.contains(&identity), "Expected IDENTITIES const to include {identity}");
-            let colors = [$(crate::player::color::MtgColor::$color),+];
-            assert_eq!(identity, colors.clone().into_iter().collect());
-            assert_eq!(
-                crate::player::color::ColorIdentity::$id,
-                [$(crate::player::color::MtgColor::$color),+].into_iter().rev().collect()
-            );
+            {
+                let identity = crate::player::color::ColorIdentity::$id;
+                let identity_colors = [$(crate::player::color::MtgColor::$color),+];
+                assert!(crate::player::color::ColorIdentity::IDENTITIES.contains(&identity), "Expected IDENTITIES const to include {identity}");
+                assert_eq!(identity, identity_colors.clone().into_iter().collect());
+                assert_eq!(identity, identity_colors.into_iter().rev().collect());
 
-            let colors = identity.colors().collect::<Vec<_>>();
-            $(
-                let color = crate::player::color::MtgColor::$color;
-                assert!(colors.contains(&color), "Expected {color} to be found in {identity}");
-                assert!(identity.has_color(color), "Expected {identity} to return `true` for has_color({color})");
-            )+
-            for color in crate::player::color::MtgColor::COLORS {
-                if !colors.contains(&color) {
-                    assert!(!identity.has_color(color), "Expected {identity} to return `false` for has_color({color})");
+                let colors = identity.colors().collect::<Vec<_>>();
+                $(
+                    {
+                        let color = crate::player::color::MtgColor::$color;
+                        assert!(colors.contains(&color), "Expected {color} to be found in {identity}.colors()");
+                        assert!(identity.has_color(color), "Expected {identity} to return `true` for has_color({color})");
+                    }
+                )+
+                for color in crate::player::color::MtgColor::COLORS {
+                    if !identity_colors.contains(&color) {
+                        assert!(!identity.has_color(color), "Expected {identity} to return `false` for has_color({color})");
+                    }
                 }
             }
         };
@@ -414,14 +400,8 @@ mod tests {
         let white_green = ColorIdentity::from_iter([MtgColor::White, MtgColor::Green]);
 
         assert_eq!(white_blue & blue_green, ColorIdentity::from(MtgColor::Blue));
-        assert_eq!(
-            white_blue & white_green,
-            ColorIdentity::from(MtgColor::White)
-        );
-        assert_eq!(
-            blue_green & white_green,
-            ColorIdentity::from(MtgColor::Green)
-        );
+        assert_eq!(white_blue & white_green, ColorIdentity::from(MtgColor::White));
+        assert_eq!(blue_green & white_green, ColorIdentity::from(MtgColor::Green));
     }
 
     #[test]

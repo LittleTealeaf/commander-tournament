@@ -54,7 +54,9 @@ impl ComponentUpdate for MatchmakerConfigView {
         context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::effect::Effect<Self::Message, Self::OutMessage>> {
         match message {
-            MatchmakerConfigMsg::Close => return Effect::out(MatchmakerConfigOut::Close).ok(),
+            MatchmakerConfigMsg::Close => {
+                return Effect::out(MatchmakerConfigOut::Close).ok();
+            }
             MatchmakerConfigMsg::Save => {
                 return Effect::out(MatchmakerConfigOut::SaveAndClose(self.config.clone())).ok();
             }

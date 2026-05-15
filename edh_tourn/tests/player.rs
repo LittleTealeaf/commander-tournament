@@ -26,9 +26,7 @@ fn get_invalid_player_name() {
 fn get_player_info() {
     let mut t = Tournament::new();
     let id = t.register_player("test".to_owned()).unwrap();
-    let info = t
-        .get_player_info(&id)
-        .expect("Expected Info to be Returned");
+    let info = t.get_player_info(&id).expect("Expected Info to be Returned");
     assert_eq!("test", info.name(), "Expected correct info to be returned");
 }
 
@@ -86,10 +84,22 @@ fn register_player_updates_get_id() {
 
 #[test]
 fn unregister_player_removes_player() {
-    let mut t = Tournament::generate_tournament(10, 20).unwrap();
-    let (id, info) = t.players().iter().next().unwrap();
-    let id = *id;
-    let info = info.clone();
+    const GAME_COUNT: usize = 30;
+    const PLAYER_COUNT: usize = 10;
+    const EXTRA_GAMES: usize = 20;
+    let mut t = Tournament::generate_tournament(PLAYER_COUNT, GAME_COUNT).unwrap();
+    let id = t.register_debug_player().unwrap();
+    let info = t.get_player_info(&id).unwrap().clone();
+
+    for _ in 0..EXTRA_GAMES {
+        let matchup = t.matchmaker().create_match(id).unwrap();
+        let record = matchup.debug_record().unwrap();
+        t.record_game(record).unwrap();
+    }
+
+    assert_eq!(GAME_COUNT + EXTRA_GAMES, t.games().len());
+    assert_eq!(PLAYER_COUNT + 1, t.players().len());
+
     t.unregister_player(id).unwrap();
 
     assert!(
@@ -101,11 +111,11 @@ fn unregister_player_removes_player() {
         "Found info for the unregistered player"
     );
 
+    assert_eq!(t.games().len(), GAME_COUNT);
+    assert_eq!(PLAYER_COUNT, t.players().len());
+
     for game in t.games() {
-        assert!(
-            !game.has_player(id),
-            "Found game with the unregistered player"
-        );
+        assert!(!game.has_player(id), "Fouhnd game with the unregistered player");
     }
 }
 
