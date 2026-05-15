@@ -45,8 +45,12 @@ jobs:
       uses: actions-rust-lang/rustfmt@v1
 
   coverage:
-    name: Code Coverage
+    name: Code Coverage (${{ matrix.package }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [edh_tourn, app]
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v6
@@ -60,7 +64,7 @@ jobs:
       with:
         crate: cargo-llvm-cov
     - name: Generate Coverage Output
-      run: cargo llvm-cov test --no-fail-fast --all --all-features --lcov --output-path lcov_raw.info
+      run: cargo llvm-cov test -p ${{ matrix.package }} --no-fail-fast --all-features --lcov --output-path lcov_raw.info
     - name: Filter and Format Coverages
       run: chmod +x .github/workflows/coverages.bash && .github/workflows/coverages.bash
     - name: Upload to Summary
@@ -92,7 +96,7 @@ jobs:
       if: github.event_name == 'push'
       uses: actions/upload-artifact@v7
       with:
-        name: "commander-tournaemnt-${{ matrix.os }}"
+        name: "commander-tournament-${{ matrix.os }}"
         path: |
           target/release/commander-tournament
           target/release/commander-tournament.exe

@@ -73,30 +73,32 @@ impl Tournament {
             .players()
             .iter()
             .map(|(id, player)| {
-                let new_id = self.update_or_register_player_with_info(player.clone())?;
+                let new_id = self.update_or_register_player(player.clone())?;
                 Ok((*id, new_id))
             })
             .collect()
     }
 
-    pub fn update_or_register_player_with_info(
-        &mut self,
-        info: PlayerInfo,
-    ) -> Result<PlayerId, TournamentError> {
+    pub fn update_or_register_player<I>(&mut self, info: I) -> Result<PlayerId, TournamentError>
+    where
+        I: Into<PlayerInfo>,
+    {
+        let info = info.into();
         match self.get_player_id(info.name()) {
             Some(id) => {
                 self.set_player_info(id, info)?;
                 Ok(id)
             }
-            None => self.register_player_with_info(info),
+            None => self.register_player(info),
         }
     }
 
-    pub fn register_player(&mut self, name: String) -> Result<PlayerId, TournamentError> {
-        self.register_player_with_info(PlayerInfo::new(name))
-    }
+    pub fn register_player<I>(&mut self, info: I) -> Result<PlayerId, TournamentError>
+    where
+        I: Into<PlayerInfo>,
+    {
+        let info = info.into();
 
-    pub fn register_player_with_info(&mut self, info: PlayerInfo) -> Result<PlayerId, TournamentError> {
         if info.name().is_empty() {
             return Err(TournamentError::InvalidPlayerName(String::new()));
         }

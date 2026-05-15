@@ -17,6 +17,7 @@ use crate::{
 
 #[derive(Clone, Debug)]
 pub enum FileAction {
+    RequestOpen,
     Open,
     RequestNew,
     /// Creates a new tournament, bypassing unsaved changes check. Use [`Self::RequestNew`] to prompt
@@ -83,6 +84,19 @@ impl HandleMessage<FileAction> for App {
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::effect::Effect<Self::Message, Self::OutMessage>> {
         match message {
+            FileAction::RequestOpen => {
+                if self.modified {
+                    Effect::confirm(
+                        "Overwrite Tournament?".to_owned(),
+                        "All unsaved changes will be lost".to_owned(),
+                        Message::TournFile(FileAction::Open),
+                        None,
+                    )
+                    .ok()
+                } else {
+                    Effect::msg(FileAction::Open).ok()
+                }
+            }
             FileAction::RequestNew => {
                 if self.modified {
                     Effect::confirm(

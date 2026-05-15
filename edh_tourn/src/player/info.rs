@@ -172,6 +172,18 @@ impl PlayerInfo {
     }
 }
 
+impl From<String> for PlayerInfo {
+    fn from(value: String) -> Self {
+        Self::new(value)
+    }
+}
+
+impl From<&str> for PlayerInfo {
+    fn from(value: &str) -> Self {
+        Self::new(value.to_owned())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
