@@ -23,6 +23,8 @@ pub enum PlayNextMode {
     OutlierWinrate,
     #[display("Longest Since Win")]
     LongestSinceWin,
+    #[display("Closest to Peak")]
+    PeakElo,
 }
 
 impl PlayNextMode {
@@ -34,6 +36,7 @@ impl PlayNextMode {
             Self::LeastWins,
             Self::OutlierWinrate,
             Self::LongestSinceWin,
+            Self::PeakElo
         ]
     }
 
@@ -54,6 +57,18 @@ impl PlayNextMode {
         let players = players.into_iter();
 
         match self {
+            Self::PeakElo => players.min_by(|a, b| {
+                let elo_a = a.stats().elo();
+                let diff_a = a.stats().elo_peak() - elo_a;
+
+                let elo_b = b.stats().elo();
+                let diff_b = b.stats().elo_peak() - elo_b;
+
+                diff_a
+                    .total_cmp(&diff_b)
+                    .then_with(|| elo_a.total_cmp(&elo_b).reverse())
+                    .then_with(|| a.id().cmp(&b.id()))
+            }),
             Self::LongestSinceWin => {
                 let mut ids = OrdSet::new();
                 for player in players {
