@@ -1,6 +1,7 @@
 use edh_tourn::tournament::Tournament;
 use iced::Element;
 
+use crate::modals::errors::ErrorModal;
 use crate::views::ViewScreen;
 use crate::views::game_config::{GameConfigMsg, GameConfigOut, GameConfigView};
 use crate::views::{
@@ -166,7 +167,7 @@ impl App {
     }
 
     pub fn error(&mut self, error: String) {
-        todo!()
+        self.modals.push(ErrorModal::new(error).into());
     }
 
     pub fn push_view<V>(&mut self, view: V) -> Effect<Message, ()>

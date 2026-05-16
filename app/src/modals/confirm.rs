@@ -1,5 +1,10 @@
+use iced::widget::{button, text};
+
 use crate::{
-    app::Message, effect::Effect, traits::{Component, ComponentUpdate, ComponentView, Mapped}
+    app::Message,
+    effect::Effect,
+    modals::ModalType,
+    traits::{Component, ComponentUpdate, ComponentView, Mapped},
 };
 
 #[derive(Debug)]
@@ -13,13 +18,13 @@ pub struct ConfirmModal<M> {
 impl<M> ConfirmModal<M> {
     pub fn new<T, D, C>(title: T, details: D, confirm: M, cancel: C) -> Self
     where
-        T: ToString,
-        D: ToString,
+        T: Into<String>,
+        D: Into<String>,
         C: Into<Option<M>>,
     {
         Self {
-            title: title.to_string(),
-            details: details.to_string(),
+            title: title.into(),
+            details: details.into(),
             on_confirm: confirm,
             on_cancel: cancel.into(),
         }
@@ -37,8 +42,7 @@ pub enum ConfirmOut<M>
 where
     M: Clone,
 {
-    Confirm(M),
-    Cancel(Option<M>),
+    Close(Option<M>),
 }
 
 impl<M, N> Mapped<ConfirmModal<N>> for ConfirmModal<M>
@@ -60,7 +64,7 @@ where
     M: Clone,
 {
     type Message = ConfirmMsg;
-    type OutMessage = ConfirmOut<M>;
+    type OutMessage = Option<M>;
 }
 
 impl<M> ComponentUpdate for ConfirmModal<M>
@@ -75,19 +79,36 @@ where
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::effect::Effect<Self::Message, Self::OutMessage>> {
         Effect::out(match message {
-            ConfirmMsg::Confirm => ConfirmOut::Confirm(self.on_confirm.clone()),
-            ConfirmMsg::Cancel => ConfirmOut::Cancel(self.on_cancel.clone()),
+            ConfirmMsg::Confirm => Some(self.on_confirm.clone()),
+            ConfirmMsg::Cancel => self.on_cancel.clone(),
         })
         .ok()
     }
 }
 
+impl ModalType for ConfirmModal<Message> {
+    fn title<'a>(&'a self, (): Self::ViewContext<'a>) -> String {
+        self.title.clone()
+    }
+
+    fn options<'a>(
+        &'a self,
+        (): Self::ViewContext<'a>,
+    ) -> impl Iterator<Item = iced::widget::Button<'a, Self::Message>> {
+        [
+            button("Cancel").on_press(ConfirmMsg::Cancel),
+            button("Confirm").on_press(ConfirmMsg::Confirm),
+        ]
+        .into_iter()
+    }
+}
+
 impl ComponentView for ConfirmModal<Message> {
-   type ViewContext<'a> = ()
-        where
-            Self: 'a; 
-   fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
-       
-       todo!()
-   }
+    type ViewContext<'a>
+        = ()
+    where
+        Self: 'a;
+    fn view<'a>(&'a self, (): Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
+        text(&self.details).into()
+    }
 }
