@@ -49,8 +49,6 @@ impl Matchup {
 mod tests {
     use crate::tournament::Tournament;
 
-    use super::*;
-
     #[test]
     fn test_has_player() {
         let mut t = Tournament::new();
