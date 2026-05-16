@@ -1,6 +1,7 @@
 use core::f64;
 
 use approx::{assert_abs_diff_eq, assert_relative_eq};
+use edh_tourn::game::entry::GameEntry;
 use edh_tourn::{player::PlayerId, tournament::Tournament};
 use itertools::Itertools;
 
@@ -73,10 +74,31 @@ fn get_player_games_unregistered() {
     assert!(tour.get_player_games(id).is_err());
 }
 
-#[test]
-fn delete_game_index_out_of_bounds() {
-    let mut tour = Tournament::generate_tournament(10, 100).unwrap();
-    tour.delete_game(101).unwrap_err();
+mod delete_games {
+
+    use super::*;
+
+    #[test]
+    fn valid_game() {
+        let mut tour = Tournament::generate_tournament(5, 50).unwrap();
+        let count = tour.games().len();
+        let game = tour.games().get(5).unwrap().clone();
+        let entry = GameEntry::from(game);
+
+        tour.delete_game(5).unwrap();
+
+        assert_eq!(tour.games().len(), count - 1);
+
+        let new_game = tour.games().get(5).unwrap().clone();
+        let new_entry = GameEntry::from(new_game);
+        assert_ne!(entry, new_entry);
+    }
+
+    #[test]
+    fn index_out_of_bounds() {
+        let mut tour = Tournament::generate_tournament(10, 100).unwrap();
+        tour.delete_game(101).unwrap_err();
+    }
 }
 
 #[test]
