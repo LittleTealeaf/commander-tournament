@@ -68,6 +68,10 @@ impl ColorIdentity {
             .flatten()
     }
 
+    pub const fn contains(&self, other: &Self) -> bool {
+        (self.0 & other.0) == self.0
+    }
+
     #[must_use]
     pub const fn has_color(&self, color: MtgColor) -> bool {
         (self.0 & (color as u8)) == (color as u8)

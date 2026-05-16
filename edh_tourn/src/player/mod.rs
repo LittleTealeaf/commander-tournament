@@ -10,6 +10,7 @@ use crate::{
 pub mod color;
 pub mod info;
 pub mod stats;
+pub mod filter;
 
 /**
  * Identifies a unique player. The specific implementation may vary.

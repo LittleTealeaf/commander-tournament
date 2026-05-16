@@ -1,5 +1,6 @@
 pub mod confirm;
 pub mod errors;
+pub mod player_filter;
 
 use core::iter::once;
 
