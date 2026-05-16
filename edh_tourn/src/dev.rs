@@ -99,6 +99,12 @@ mod tests {
     use super::*;
 
     #[test]
+    fn snapshot_returns() {
+        let t = Tournament::generate_tournament(50, 100).unwrap();
+        assert_eq!(t.snapshot(), t.snapshot);
+    }
+
+    #[test]
     fn generator_errors_when_few_players() {
         for i in 0..3 {
             Tournament::generate_tournament(i, 0).unwrap();
