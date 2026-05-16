@@ -58,11 +58,13 @@ impl PlayNextMode {
 
         match self {
             Self::PeakElo => players.min_by(|a, b| {
-                let elo_a = a.stats().elo();
-                let diff_a = a.stats().elo_peak() - elo_a;
+                let stats_a = a.stats();
+                let elo_a = stats_a.elo();
+                let diff_a = stats_a.elo_peak() - elo_a;
 
-                let elo_b = b.stats().elo();
-                let diff_b = b.stats().elo_peak() - elo_b;
+                let stats_b = b.stats();
+                let elo_b = stats_b.elo();
+                let diff_b = stats_b.elo_peak() - elo_b;
 
                 diff_a
                     .total_cmp(&diff_b)
