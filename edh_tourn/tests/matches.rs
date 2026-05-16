@@ -5,73 +5,89 @@ use edh_tourn::game::entry::GameEntry;
 use edh_tourn::{player::PlayerId, tournament::Tournament};
 use itertools::Itertools;
 
-#[test]
-fn update_match_same_snapshot() {
-    let mut t = Tournament::new();
-    let players = t.register_debug_players().unwrap();
-    let matchup = t.create_match(players).unwrap();
-    let updated = t.update_match(matchup.clone()).unwrap();
-    assert!(matchup.eq(&updated));
-}
+mod update_match {
+    use super::*;
 
-#[test]
-fn update_match_newer_snapshot() {
-    let mut t = Tournament::new();
-    let players = t.register_debug_players().unwrap();
-    let matchup = t.create_match(players).unwrap();
-    t.reload().unwrap();
-    let updated = t.update_match(matchup.clone()).unwrap();
-    assert!(!matchup.eq(&updated));
-}
+    #[test]
+    fn same_snaphot() {
+        let mut t = Tournament::new();
+        let players = t.register_debug_players().unwrap();
+        let matchup = t.create_match(players).unwrap();
+        let updated = t.update_match(matchup.clone()).unwrap();
+        assert!(matchup.eq(&updated));
+    }
 
-#[test]
-fn update_record_same_snapshot() {
-    let mut t = Tournament::new();
-    let players = t.register_debug_players().unwrap();
-    let matchup = t.create_match(players).unwrap();
-    let record = matchup.debug_record().unwrap();
-    let updated = t.update_record(record.clone()).unwrap();
-    assert!(record.eq(&updated));
-}
-
-#[test]
-fn update_record_newer_snapshot() {
-    let mut t = Tournament::new();
-    let players = t.register_debug_players().unwrap();
-    let matchup = t.create_match(players).unwrap();
-    let record = matchup.debug_record().unwrap();
-    t.reload().unwrap();
-    let updated = t.update_record(record.clone()).unwrap();
-    assert!(!record.eq(&updated));
-}
-
-#[test]
-fn mirror_matchup_equal_expected() {
-    let mut tourn = Tournament::new();
-    let id = tourn.register_player("A".to_owned()).unwrap();
-    let mu = tourn.create_match([id, id, id, id]).unwrap();
-    for p in mu.players() {
-        assert_relative_eq!(0.25, *p.expected());
+    #[test]
+    fn newer_snapshot() {
+        let mut t = Tournament::new();
+        let players = t.register_debug_players().unwrap();
+        let matchup = t.create_match(players).unwrap();
+        t.reload().unwrap();
+        let updated = t.update_match(matchup.clone()).unwrap();
+        assert!(!matchup.eq(&updated));
     }
 }
 
-#[test]
-fn create_match_unregistered_player() {
-    let mut tourn = Tournament::new();
-    let players: [_; 4] = tourn.register_debug_players().unwrap();
-    for id in &players {
-        let mut t = tourn.clone();
-        t.unregister_player(*id).unwrap();
-        t.create_match(players).unwrap_err();
+mod update_record {
+    use super::*;
+
+    #[test]
+    fn same_snapshot() {
+        let mut t = Tournament::new();
+        let players = t.register_debug_players().unwrap();
+        let matchup = t.create_match(players).unwrap();
+        let record = matchup.debug_record().unwrap();
+        let updated = t.update_record(record.clone()).unwrap();
+        assert!(record.eq(&updated));
+    }
+
+    #[test]
+    fn newer_snapshot() {
+        let mut t = Tournament::new();
+        let players = t.register_debug_players().unwrap();
+        let matchup = t.create_match(players).unwrap();
+        let record = matchup.debug_record().unwrap();
+        t.reload().unwrap();
+        let updated = t.update_record(record.clone()).unwrap();
+        assert!(!record.eq(&updated));
     }
 }
 
-#[test]
-fn get_player_games_unregistered() {
-    let mut tour = Tournament::generate_tournament(10, 100).unwrap();
-    let id = *tour.players().keys().next().unwrap();
-    tour.unregister_player(id).unwrap();
-    assert!(tour.get_player_games(id).is_err());
+mod create_match {
+    use super::*;
+
+    #[test]
+    fn mirror_matchup_equal() {
+        let mut tourn = Tournament::new();
+        let id = tourn.register_player("A".to_owned()).unwrap();
+        let mu = tourn.create_match([id, id, id, id]).unwrap();
+        for p in mu.players() {
+            assert_relative_eq!(0.25, *p.expected());
+        }
+    }
+
+    #[test]
+    fn unregistered_player() {
+        let mut tourn = Tournament::new();
+        let players: [_; 4] = tourn.register_debug_players().unwrap();
+        for id in &players {
+            let mut t = tourn.clone();
+            t.unregister_player(*id).unwrap();
+            t.create_match(players).unwrap_err();
+        }
+    }
+}
+
+mod get_player_games {
+    use super::*;
+
+    #[test]
+    fn unregistered() {
+        let mut tour = Tournament::generate_tournament(10, 100).unwrap();
+        let id = *tour.players().keys().next().unwrap();
+        tour.unregister_player(id).unwrap();
+        assert!(tour.get_player_games(id).is_err());
+    }
 }
 
 mod delete_games {
