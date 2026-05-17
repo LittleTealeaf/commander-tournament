@@ -7,11 +7,11 @@ use crate::{
 impl Tournament {
     #[must_use]
     pub const fn game_config(&self) -> &GameConfig {
-        &self.config.game
+        self.config.game_config()
     }
 
     pub fn set_game_config(&mut self, config: GameConfig) -> Result<(), TournamentError> {
-        self.config.game = config;
+        self.config.set_game_config(config);
         self.reload()?;
         Ok(())
     }
@@ -23,11 +23,11 @@ impl Tournament {
 
     #[must_use]
     pub const fn matchmaker_config(&self) -> &MatchmakerConfig {
-        &self.config.matchmaker
+        self.config.matchmaker_config()
     }
 
     pub const fn set_matchmaker_config(&mut self, config: MatchmakerConfig) {
-        self.config.matchmaker = config;
+        self.config.set_matchmaker_config(config);
     }
 }
 
@@ -57,5 +57,26 @@ mod tests {
         tournament.set_game_config(config).unwrap();
         let new_version = tournament.snapshot;
         assert_eq!(version + 1, new_version);
+    }
+
+    #[test]
+    fn with_game_config_updates_version() {
+        let tournament = Tournament::new();
+        let ver = tournament.snapshot;
+        let tournament = tournament.with_game_config(GameConfig::default()).unwrap();
+        let new_ver = tournament.snapshot;
+        assert_eq!(ver + 1, new_ver);
+    }
+
+    #[test]
+    fn set_matchmaker_config() {
+        let mut tournament = Tournament::new();
+        let mut matchmaker = tournament.matchmaker_config().clone();
+        matchmaker.expected_neighbor += 1;
+        tournament.set_matchmaker_config(matchmaker.clone());
+        assert_eq!(
+            tournament.matchmaker_config().expected_neighbor,
+            matchmaker.expected_neighbor
+        );
     }
 }
