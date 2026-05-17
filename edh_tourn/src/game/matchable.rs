@@ -25,7 +25,7 @@ where
         scaled_wr: f64,
     }
 
-    #[allow(clippy::cast_precision_loss)]
+    #[allow(clippy::cast_precision_loss, reason = "u32 to f64 type casting")]
     let base_chance: f64 = 1.0 / (T as f64);
 
     let players = players.map(|player| TempMatchPlayer {

@@ -93,65 +93,60 @@ impl Matchup {
     }
 }
 
-mod tests {
+#[test]
+fn snapshot_returns() {
+    let t = Tournament::generate_tournament(50, 100).unwrap();
+    assert_eq!(t.snapshot(), t.snapshot);
+}
 
-    #[allow(unused)]
-    use super::*;
-
-    #[test]
-    fn snapshot_returns() {
-        let t = Tournament::generate_tournament(50, 100).unwrap();
-        assert_eq!(t.snapshot(), t.snapshot);
+#[test]
+fn generator_errors_when_few_players() {
+    for i in 0..3 {
+        Tournament::generate_tournament(i, 0).unwrap();
+        Tournament::generate_tournament(i, 1).unwrap_err();
     }
+}
 
-    #[test]
-    fn generator_errors_when_few_players() {
-        for i in 0..3 {
-            Tournament::generate_tournament(i, 0).unwrap();
-            Tournament::generate_tournament(i, 1).unwrap_err();
-        }
+#[test]
+fn generator_populates_correct_player_count() {
+    for i in [0, 1, 15, 100] {
+        let tournament = Tournament::generate_tournament(i, 0).unwrap();
+        assert_eq!(i, tournament.players().len());
     }
+}
 
-    #[test]
-    fn generator_populates_correct_player_count() {
-        for i in [0, 1, 15, 100] {
-            let tournament = Tournament::generate_tournament(i, 0).unwrap();
-            assert_eq!(i, tournament.players().len());
-        }
+#[test]
+fn generator_populates_correct_game_count() {
+    for i in [0, 1, 5, 15, 100] {
+        let tournament = Tournament::generate_tournament(10, i).unwrap();
+        assert_eq!(i, tournament.games().len());
     }
+}
 
-    #[test]
-    fn generator_populates_correct_game_count() {
-        for i in [0, 1, 5, 15, 100] {
-            let tournament = Tournament::generate_tournament(10, i).unwrap();
-            assert_eq!(i, tournament.games().len());
-        }
-    }
+#[test]
+fn sample_game_loads() {
+    let _ = Tournament::sample_game();
+}
 
-    #[test]
-    fn sample_game_loads() {
-        let _ = Tournament::sample_game();
-    }
+#[test]
+fn debug_players_are_all_different() {
+    use std::collections::HashSet;
 
-    #[test]
-    fn debug_players_are_all_different() {
-        use std::collections::HashSet;
+    let mut t = Tournament::new();
+    let tests = [
+        Vec::from(t.register_debug_players::<1>().unwrap()),
+        Vec::from(t.register_debug_players::<2>().unwrap()),
+        Vec::from(t.register_debug_players::<3>().unwrap()),
+        Vec::from(t.register_debug_players::<4>().unwrap()),
+        Vec::from(t.register_debug_players::<5>().unwrap()),
+    ];
 
-        let mut t = Tournament::new();
-        let tests = [
-            Vec::from(t.register_debug_players::<1>().unwrap()),
-            Vec::from(t.register_debug_players::<2>().unwrap()),
-            Vec::from(t.register_debug_players::<3>().unwrap()),
-            Vec::from(t.register_debug_players::<4>().unwrap()),
-            Vec::from(t.register_debug_players::<5>().unwrap()),
-        ];
-
-        for test in tests {
-            let mut ids = HashSet::new();
-            for id in test {
-                assert!(!ids.contains(&id));
-                ids.insert(id);
-            }
+    for test in tests {
+        let mut ids = HashSet::new();
+        for id in test {
+            assert!(!ids.contains(&id));
+            ids.insert(id);
         }
     }
 }
+

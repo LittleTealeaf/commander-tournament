@@ -20,18 +20,16 @@ pub trait ViewScreen: ComponentView {
 
     fn title<'a>(&'a self, context: Self::ViewContext<'a>) -> String;
 
-    #[allow(unused)]
     fn primary_actions<'a>(
         &'a self,
-        context: Self::ViewContext<'a>,
+        _: Self::ViewContext<'a>,
     ) -> impl IntoIterator<Item = Button<'a, Self::Message>> {
         empty()
     }
 
-    #[allow(unused)]
     fn secondary_actions<'a>(
         &'a self,
-        context: Self::ViewContext<'a>,
+        _: Self::ViewContext<'a>,
     ) -> impl IntoIterator<Item = Button<'a, Self::Message>> {
         empty()
     }

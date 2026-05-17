@@ -76,7 +76,7 @@ pub struct V2Tournament {
     pub(super) games: Vec<V2GameEntry>,
 }
 
-#[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+#[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation, reason = "Backwards Compatability")]
 impl From<V2Tournament> for V3Tournament {
     fn from(value: V2Tournament) -> Self {
         let game_config = GameConfig {

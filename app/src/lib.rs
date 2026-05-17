@@ -4,6 +4,7 @@ pub mod effect;
 pub mod fonts;
 pub mod home;
 pub mod modals;
+pub mod popup;
 pub mod services;
 pub mod traits;
 pub mod views;

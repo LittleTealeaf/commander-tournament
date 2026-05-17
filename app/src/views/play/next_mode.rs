@@ -106,7 +106,7 @@ impl PlayNextMode {
                 )
             }),
             Self::OutlierWinrate => players.min_by(|left, right| {
-                #[allow(clippy::cast_precision_loss)]
+                #[allow(clippy::cast_precision_loss, reason = "u32 to f64 casting")]
                 let target = 1.0 / (POD_SIZE as f64);
                 let left_diff = (target - left.stats().wr_unwrap()).abs();
                 let right_diff = (target - right.stats().wr_unwrap()).abs();
