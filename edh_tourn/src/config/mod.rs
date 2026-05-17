@@ -18,11 +18,6 @@ impl TournamentConfig {
     }
 
     #[must_use]
-    pub const fn new() -> Self {
-        Self::with_configs(GameConfig::new(), MatchmakerConfig::new())
-    }
-
-    #[must_use]
     pub const fn game_config(&self) -> &GameConfig {
         &self.game
     }
