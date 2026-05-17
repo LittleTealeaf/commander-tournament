@@ -8,7 +8,6 @@ use crate::{
 };
 
 pub mod color;
-pub mod filter;
 pub mod info;
 pub mod stats;
 
