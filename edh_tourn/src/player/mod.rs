@@ -88,3 +88,42 @@ impl Display for RegisteredPlayer<'_> {
         write!(f, "{}", self.info.display_name())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use approx::assert_relative_eq;
+
+    use crate::tournament::Tournament;
+
+    use super::*;
+
+    #[test]
+    fn matchable_gets_stats() {
+        let t = Tournament::generate_tournament(10, 50).unwrap();
+        for rg_pl in t.get_registered_players() {
+            let stats = t.get_player_or_default_stats(rg_pl.id());
+            assert_relative_eq!(stats.elo(), rg_pl.elo());
+            assert_relative_eq!(stats.wr().unwrap_or(-1.0), rg_pl.wr().unwrap_or(-1.0));
+        }
+    }
+
+    #[test]
+    fn display() {
+        let info = PlayerInfo::new("test".to_owned());
+        let mut t = Tournament::new();
+        let id = t.register_player(info).unwrap();
+        let rg_pl = t.get_registered_player(id).unwrap();
+        assert_eq!("test", format!("{rg_pl}"));
+    }
+
+    #[test]
+    fn display_precon() {
+        let mut info = PlayerInfo::new("test".to_owned());
+        info.set_precon(true);
+        let expected = info.display_name();
+        let mut t = Tournament::new();
+        let id = t.register_player(info).unwrap();
+        let rg_pl = t.get_registered_player(id).unwrap();
+        assert_eq!(expected, format!("{rg_pl}"));
+    }
+}

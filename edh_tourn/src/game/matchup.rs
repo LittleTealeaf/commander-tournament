@@ -49,14 +49,6 @@ impl Matchup {
 mod tests {
     use crate::tournament::Tournament;
 
-    use super::*;
-
-    fn create_matchup() -> Matchup {
-        let t = Tournament::generate_tournament(10, 10).unwrap();
-        let player = t.players().keys().next().copied().unwrap();
-        t.matchmaker().create_match(player).unwrap()
-    }
-
     #[test]
     fn test_has_player() {
         let mut t = Tournament::new();
