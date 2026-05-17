@@ -73,27 +73,10 @@ impl ComponentUpdate for App {
                 })
             }),
             Message::OpenPlay(play_mode) => self.push_view(PlayView::new(play_mode, &self.tournament)).ok(),
-            Message::CloseModal => {
-                self.modals.pop();
-                Effect::done()
-            }
-            Message::Modal(modal_msg) => {
-                if let Some(modal) = self.modals.last_mut() {
-                    modal.update(modal_msg, ())?.map(|out| Effect::msg(out).ok())
-                } else {
-                    Effect::done()
-                }
-            }
             Message::QuitRequested => {
                 if self.modified && !self.close_requested {
                     self.close_requested = true;
-                    Effect::confirm(
-                        "Unsaved Changes".to_owned(),
-                        "You have unsaved changes. Are you sure you want to exit without saving?".to_owned(),
-                        Message::QuitConfirm(true),
-                        Some(Message::QuitConfirm(false)),
-                    )
-                    .ok()
+                    Effect::done()
                 } else {
                     Effect::Task(iced::exit()).ok()
                 }
@@ -114,6 +97,14 @@ impl ComponentUpdate for App {
             Message::OpenGameConfig => self
                 .push_view(GameConfigView::new(self.tournament.game_config().clone()))
                 .ok(),
+            Message::ClearError => {
+                self.error = None;
+                Effect::done()
+            }
+            Message::ClearOverwrite => {
+                self.overwrite_requested = None;
+                Effect::done()
+            }
         }
     }
 }

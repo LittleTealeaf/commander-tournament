@@ -1,7 +1,8 @@
 use edh_tourn::tournament::Tournament;
 use iced::Element;
+use iced::widget::{button, text};
 
-use crate::modals::Modal;
+use crate::popup::Popup;
 use crate::views::ViewScreen;
 use crate::views::game_config::{GameConfigMsg, GameConfigOut, GameConfigView};
 use crate::views::{
@@ -154,20 +155,45 @@ impl App {
             |view| view.view_into(self),
         );
 
-        if let Some(modal) = self.modals.last() {
-            modal.overlay(content)
-        } else {
-            content
+        if self.close_requested {
+            return Popup::new(
+                "Close Application?",
+                text("You have unsaved changes").into(),
+                vec![
+                    button("Cancel").on_press(Message::QuitConfirm(false)).into(),
+                    button("Close").on_press(Message::QuitConfirm(true)).into(),
+                ],
+            )
+            .overlay(content);
         }
+
+        if let Some(error) = &self.error {
+            return Popup::new(
+                "Application Error",
+                text(error).into(),
+                vec![button("Close").on_press(Message::ClearError).into()],
+            )
+            .overlay(content);
+        }
+
+        if let Some(msg) = &self.overwrite_requested {
+            return Popup::new(
+                "Overwrite Tournament?",
+                text("All saved changes will be lost").into(),
+                vec![
+                    button("Cancel").on_press(Message::ClearOverwrite).into(),
+                    button("Confirm").on_press(Message::TournFile(msg.clone())).into(),
+                ],
+            )
+            .overlay(content);
+        }
+
+        content
     }
 
     #[must_use]
     pub fn get_view(&self) -> Option<&View> {
         self.views.last()
-    }
-
-    pub fn error(&mut self, error: String) {
-        self.modals.push(Modal::Error { error });
     }
 
     pub fn push_view<V>(&mut self, view: V) -> Effect<Message, ()>
