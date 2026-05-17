@@ -153,10 +153,6 @@ impl PlayerInfo {
         }
     }
 
-    pub fn colors(&self) -> impl Iterator<Item = MtgColor> {
-        self.identity.colors()
-    }
-
     #[must_use]
     pub fn into_name(self) -> String {
         self.name
