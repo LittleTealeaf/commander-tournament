@@ -99,7 +99,7 @@ mod tests {
     #[test]
     fn matchable_gets_stats() {
         let t = Tournament::generate_tournament(10, 50).unwrap();
-        for rg_pl in t.get_registered_players() {
+        for rg_pl in t.registered_players() {
             let stats = t.get_player_or_default_stats(rg_pl.id());
             assert_relative_eq!(stats.elo(), rg_pl.elo());
             assert_relative_eq!(stats.wr().unwrap_or(-1.0), rg_pl.wr().unwrap_or(-1.0));

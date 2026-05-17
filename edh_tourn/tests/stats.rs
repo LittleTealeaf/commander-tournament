@@ -13,7 +13,7 @@ fn default_stats_use_starting_elo() {
 fn all_players_start_with_default_elo() {
     let tournament = Tournament::generate_tournament(100, 0).unwrap();
     let starting_elo = tournament.game_config().starting_elo;
-    for player in tournament.get_registered_players() {
+    for player in tournament.registered_players() {
         assert_relative_eq!(starting_elo, player.stats().elo());
     }
 }

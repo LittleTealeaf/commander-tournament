@@ -18,7 +18,7 @@ impl PlayMode {
             Self::Player(id) => tournament.matchmaker().create_match(*id).ok(),
             Self::Next { mode, ignore_precons } => {
                 let players = tournament
-                    .get_registered_players()
+                    .registered_players()
                     .filter(|player| !*ignore_precons || !player.info().is_precon());
                 let id = mode.get_player_from_list(tournament, players)?.id();
                 tournament.matchmaker().create_match(id).ok()

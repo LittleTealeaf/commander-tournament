@@ -1,4 +1,5 @@
 pub mod confirm;
+pub mod filter;
 
 use iced::{
     Color, Element, Length,

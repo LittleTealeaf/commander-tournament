@@ -42,7 +42,7 @@ impl PlayNextMode {
 
     #[must_use]
     pub fn get_player(self, tournament: &Tournament) -> Option<RegisteredPlayer<'_>> {
-        self.get_player_from_list(tournament, tournament.get_registered_players())
+        self.get_player_from_list(tournament, tournament.registered_players())
     }
 
     #[must_use]

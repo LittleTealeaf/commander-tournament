@@ -45,7 +45,14 @@ impl Tournament {
         Some(RegisteredPlayer::new(id, info, stats))
     }
 
-    pub fn get_registered_players(&self) -> impl Iterator<Item = RegisteredPlayer<'_>> {
+    pub fn get_registered_players<I>(&self, ids: I) -> impl Iterator<Item = RegisteredPlayer<'_>>
+    where
+        I: IntoIterator<Item = PlayerId>,
+    {
+        ids.into_iter().filter_map(|id| self.get_registered_player(id))
+    }
+
+    pub fn registered_players(&self) -> impl Iterator<Item = RegisteredPlayer<'_>> {
         self.players()
             .iter()
             .map(|(id, info)| RegisteredPlayer::new(*id, info, self.get_player_or_default_stats(*id)))
