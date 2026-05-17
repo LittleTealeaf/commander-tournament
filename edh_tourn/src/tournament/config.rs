@@ -7,11 +7,11 @@ use crate::{
 impl Tournament {
     #[must_use]
     pub const fn game_config(&self) -> &GameConfig {
-        &self.config.game
+        self.config.game_config()
     }
 
     pub fn set_game_config(&mut self, config: GameConfig) -> Result<(), TournamentError> {
-        self.config.game = config;
+        self.config.set_game_config(config);
         self.reload()?;
         Ok(())
     }
@@ -23,11 +23,11 @@ impl Tournament {
 
     #[must_use]
     pub const fn matchmaker_config(&self) -> &MatchmakerConfig {
-        &self.config.matchmaker
+        self.config.matchmaker_config()
     }
 
     pub const fn set_matchmaker_config(&mut self, config: MatchmakerConfig) {
-        self.config.matchmaker = config;
+        self.config.set_matchmaker_config(config);
     }
 }
 

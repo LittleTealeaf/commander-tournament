@@ -72,9 +72,9 @@ impl From<V3Tournament> for V4Tournament {
         Self {
             players: value.players,
             games: value.games,
-            config: TournamentConfig {
-                game: value.config.game,
-                matchmaker: MatchmakerConfig {
+            config: TournamentConfig::with_configs(
+                value.config.game,
+                MatchmakerConfig {
                     player_nemesis: value.config.ranking.nemesis,
                     player_lost_with: value.config.ranking.lost_with,
                     player_least_played: value.config.ranking.least_played,
@@ -82,7 +82,7 @@ impl From<V3Tournament> for V4Tournament {
                     wr_neighbor: value.config.ranking.wr_neighbor,
                     expected_neighbor: value.config.ranking.expected_neighbor,
                 },
-            },
+            ),
         }
     }
 }
