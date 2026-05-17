@@ -68,6 +68,7 @@ impl ColorIdentity {
             .flatten()
     }
 
+    #[must_use]
     pub const fn contains(&self, other: &Self) -> bool {
         (self.0 & other.0) == other.0
     }
