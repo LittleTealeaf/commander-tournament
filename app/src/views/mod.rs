@@ -12,13 +12,17 @@ use iced::{
 };
 use nerd_font_symbols::md::MD_CLOSE;
 
-use crate::{fonts::FONT_BOLD, traits::ComponentView};
+use crate::{fonts::FONT_BOLD, popup::Popup, traits::ComponentView};
 
 pub trait ViewScreen: ComponentView {
     const CLOSE_MESSAGE: Self::Message;
     const ON_RESUME: Option<Self::Message> = None;
 
     fn title<'a>(&'a self, context: Self::ViewContext<'a>) -> String;
+
+    fn popup<'a>(&'a self, _context: Self::ViewContext<'a>) -> Option<Popup<'a, Self::Message>> {
+        None
+    }
 
     fn primary_actions<'a>(
         &'a self,
@@ -38,7 +42,7 @@ pub trait ViewScreen: ComponentView {
     where
         Self::ViewContext<'a>: Clone,
     {
-        column![
+        let content = column![
             row![
                 row(once(button(MD_CLOSE).on_press(Self::CLOSE_MESSAGE))
                     .chain(self.primary_actions(context.clone()))
@@ -55,11 +59,16 @@ pub trait ViewScreen: ComponentView {
             ]
             .spacing(5)
             .align_y(Vertical::Top),
-            self.view(context)
+            self.view(context.clone())
         ]
         .spacing(20)
-        .padding(10)
-        .into()
+        .padding(10);
+
+        if let Some(popup) = self.popup(context) {
+            popup.overlay(content)
+        } else {
+            content.into()
+        }
     }
 
     fn screen_view_into<'a, M>(&'a self, context: Self::ViewContext<'a>) -> Element<'a, M>
