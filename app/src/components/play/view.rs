@@ -11,7 +11,7 @@ use itertools::Itertools;
 use nerd_font_symbols::md::{MD_CARDS, MD_LINK_VARIANT, MD_LINK_VARIANT_PLUS, MD_TROPHY};
 
 use crate::{
-    components::play::{PlayComponent, PlayComponentMsg, PlayMode, PlayModeType},
+    components::play::{PlayComponent, PlayComponentMsg, PlayMode, PlayModeType, PlayNextMode},
     traits::ComponentView,
 };
 
@@ -30,9 +30,9 @@ impl ComponentView for PlayComponent {
         Self: 'a;
 
     fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
-        let mut col = column![self.vs_options(), self.vs_play_table(context),].spacing(10);
+        let mut col = column![self.view_section_options(), self.view_section_players(context),].spacing(10);
 
-        if let Some(submit) = self.vs_submit(context) {
+        if let Some(submit) = self.view_section_submit(context) {
             col = col.push(submit);
         }
 
@@ -41,18 +41,28 @@ impl ComponentView for PlayComponent {
 }
 
 impl PlayComponent {
-    fn vs_options(&self) -> Element<'_, PlayComponentMsg> {
+    fn view_section_options(&self) -> Element<'_, PlayComponentMsg> {
         row![
             container(text("Mode: ")).padding(button::DEFAULT_PADDING),
             pick_list(PlayModeType::VALUES, Some(self.mode.get_type()), |mode| {
                 PlayComponentMsg::SetMode(mode.into())
-            })
+            }),
+            match &self.mode {
+                PlayMode::Next { mode } => Some(row![
+                    container(text("Player Mode: ")).padding(button::DEFAULT_PADDING),
+                    pick_list(PlayNextMode::VALUES, Some(mode), |mode| {
+                        PlayComponentMsg::SetNextMode(mode)
+                    })
+                ]),
+                _ => None,
+            }
         ]
+        .spacing(5)
         .padding(10)
         .into()
     }
 
-    fn vs_play_table<'a>(&self, tournament: &'a Tournament) -> Element<'a, PlayComponentMsg> {
+    fn view_section_players<'a>(&self, tournament: &'a Tournament) -> Element<'a, PlayComponentMsg> {
         let players = tournament
             .registered_players()
             .sorted_by(|a, b| {
@@ -197,7 +207,7 @@ impl PlayComponent {
         }
     }
 
-    fn vs_submit<'a>(&self, tournament: &'a Tournament) -> Option<Element<'a, PlayComponentMsg>> {
+    fn view_section_submit<'a>(&self, tournament: &'a Tournament) -> Option<Element<'a, PlayComponentMsg>> {
         let Some(preview) = &self.preview else { return None };
         let players = tournament
             .get_registered_players(preview.matchup.ids())
