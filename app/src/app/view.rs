@@ -156,6 +156,7 @@ impl App {
                     self.menu.view_into(&self.file),
                     self.home.view_into(&self.tournament)
                 ]
+                .spacing(5)
                 .into()
             },
             |view| view.view_into(self),

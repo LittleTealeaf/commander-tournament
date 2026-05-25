@@ -28,6 +28,7 @@ pub struct Home {
 pub enum HomeTab {
     #[default]
     Leaderboard,
+    #[display("Play Game")]
     PlayGame,
 }
 
