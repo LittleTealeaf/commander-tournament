@@ -47,6 +47,7 @@ pub enum HomeOut {
     OpenLink(String),
     OpenPlayerDetails(PlayerId),
     OpenNewPlayer,
+    OpenMatchmakerConfig,
 }
 
 impl Component for Home {
@@ -116,6 +117,7 @@ impl ComponentUpdate for Home {
                 PlayComponentOut::RecordGame(game_record) => {
                     Effect::out(HomeOut::RecordGame(game_record)).ok()
                 }
+                PlayComponentOut::OpenMatchmakerConfig => Effect::out(HomeOut::OpenMatchmakerConfig).ok(),
             }),
         }
     }

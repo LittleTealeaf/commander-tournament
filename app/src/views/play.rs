@@ -26,6 +26,7 @@ pub enum PlayViewMsg {
 #[derive(Debug, Clone)]
 pub enum PlayViewOut {
     Close,
+    OpenMatchmakerConfig,
     OpenPlayer(PlayerId),
     OpenLink(String),
     RecordGame(Box<GameRecord>),
@@ -49,6 +50,7 @@ impl ComponentUpdate for PlayView {
                     PlayComponentOut::OpenPlayer(player_id) => PlayViewOut::OpenPlayer(player_id),
                     PlayComponentOut::OpenLink(link) => PlayViewOut::OpenLink(link),
                     PlayComponentOut::RecordGame(game_record) => PlayViewOut::RecordGame(game_record),
+                    PlayComponentOut::OpenMatchmakerConfig => PlayViewOut::OpenMatchmakerConfig,
                 })
                 .ok()
             }),

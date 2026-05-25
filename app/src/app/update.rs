@@ -82,7 +82,9 @@ impl ComponentUpdate for App {
                     Effect::msg(msg).ok()
                 })
             }),
-            Message::OpenPlayView(play_mode) => self.push_view(PlayView::new(play_mode, &self.tournament)).ok(),
+            Message::OpenPlayView(play_mode) => {
+                self.push_view(PlayView::new(play_mode, &self.tournament)).ok()
+            }
             Message::QuitRequested => {
                 if self.modified && !self.close_requested {
                     self.close_requested = true;
@@ -99,7 +101,7 @@ impl ComponentUpdate for App {
                     Effect::done()
                 }
             }
-            Message::OpenPlayConfig => self
+            Message::OpenMatchmakerConfig => self
                 .push_view(MatchmakerConfigView::new(
                     self.tournament.matchmaker_config().clone(),
                 ))
@@ -137,6 +139,7 @@ impl HandleMessage<HomeMsg> for App {
             }
             HomeOut::OpenNewPlayer => Effect::msg(Message::OpenPlayerDetails(None)).ok(),
             HomeOut::OpenLink(link) => Effect::msg(Message::OpenLink(link)).ok(),
+            HomeOut::OpenMatchmakerConfig => Effect::msg(Message::OpenMatchmakerConfig).ok(),
         })
     }
 }

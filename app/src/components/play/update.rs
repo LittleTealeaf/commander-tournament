@@ -14,6 +14,7 @@ use crate::{
 pub enum PlayComponentMsg {
     Submit,
     Refresh,
+    OpenMatchmakerConfig,
     OpenLink(String),
     OpenMatchLinks,
     SetMode(PlayMode),
@@ -25,6 +26,7 @@ pub enum PlayComponentMsg {
 
 #[derive(Debug)]
 pub enum PlayComponentOut {
+    OpenMatchmakerConfig,
     OpenPlayer(PlayerId),
     OpenLink(String),
     RecordGame(Box<GameRecord>),
@@ -39,6 +41,9 @@ impl ComponentUpdate for PlayComponent {
         context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::effect::Effect<Self::Message, Self::OutMessage>> {
         match message {
+            PlayComponentMsg::OpenMatchmakerConfig => {
+                Effect::out(PlayComponentOut::OpenMatchmakerConfig).ok()
+            }
             PlayComponentMsg::SetPlayer(row, id) => match &mut self.mode {
                 PlayMode::Player(player_id) => {
                     if row != 0 {

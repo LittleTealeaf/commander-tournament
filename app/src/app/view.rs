@@ -100,6 +100,7 @@ impl ComponentUpdate for View {
                     PlayViewOut::RecordGame(game_record) => {
                         Effect::out(TournamentAction::Record(game_record)).ok()
                     }
+                    PlayViewOut::OpenMatchmakerConfig => Effect::out(Message::OpenMatchmakerConfig).ok(),
                 })
             }
             (Self::PlayConfig(state), ViewMsg::PlayConfig(msg)) => {

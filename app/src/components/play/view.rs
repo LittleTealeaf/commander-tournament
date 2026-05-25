@@ -8,7 +8,7 @@ use iced::{
     widget::{button, column, container, pick_list, row, space, table, text},
 };
 use itertools::Itertools;
-use nerd_font_symbols::md::{MD_CARDS, MD_LINK_VARIANT, MD_LINK_VARIANT_PLUS, MD_TROPHY};
+use nerd_font_symbols::md::{MD_CARDS, MD_COGS, MD_LINK_VARIANT, MD_LINK_VARIANT_PLUS, MD_TROPHY};
 
 use crate::{
     components::play::{PlayComponent, PlayComponentMsg, PlayMode, PlayModeType, PlayNextMode},
@@ -58,6 +58,10 @@ impl PlayComponent {
                 ]),
                 _ => None,
             },
+            matches!(&self.mode, PlayMode::Next { .. } | PlayMode::Player(_)).then(|| row![
+                space().width(Length::Fill),
+                button(text(MD_COGS)).on_press(PlayComponentMsg::OpenMatchmakerConfig)
+            ])
         ]
         .spacing(5)
         .padding(10)

@@ -25,7 +25,7 @@ pub enum Message {
     Tournament(TournamentAction),
     TournFile(FileAction),
     OpenPlayerDetails(Option<PlayerId>),
-    OpenPlayConfig,
+    OpenMatchmakerConfig,
     OpenGameConfig,
     CloseView,
     #[from(ignore)]
