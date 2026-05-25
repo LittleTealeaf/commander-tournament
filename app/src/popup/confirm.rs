@@ -14,6 +14,18 @@ impl<Msg> ConfirmPopup<Msg>
 where
     Msg: Clone,
 {
+    pub fn map<M>(self) -> ConfirmPopup<M>
+    where
+        Msg: Into<M>,
+    {
+        ConfirmPopup::new(
+            self.title,
+            self.description,
+            self.on_success.into(),
+            self.on_cancel.into(),
+        )
+    }
+
     pub fn to_popup(&self) -> Popup<'_, Msg> {
         Popup {
             title: &self.title,
