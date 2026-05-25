@@ -4,6 +4,7 @@ use iced::Task;
 use crate::{
     App,
     app::{MenuMsg, ViewMsg},
+    components::play::PlayMode,
     core::{
         file::FileAction,
         state::{AppState, AppStateMsg},
@@ -12,14 +13,13 @@ use crate::{
     effect::Effect,
     home::HomeMsg,
     traits::ComponentUpdate,
-    views::play::PlayMode,
 };
 
 #[derive(Debug, Clone, derive_more::From)]
 pub enum Message {
     Refresh,
     Nothing,
-    OpenPlay(PlayMode),
+    OpenPlayView(PlayMode),
     AppState(AppStateMsg),
     AppStateLoaded(Option<AppState>),
     Tournament(TournamentAction),

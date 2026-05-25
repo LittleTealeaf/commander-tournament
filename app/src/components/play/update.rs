@@ -116,7 +116,7 @@ impl ComponentUpdate for PlayComponent {
 }
 
 impl PlayComponent {
-    fn refresh(&mut self, tournament: &Tournament) {
+    pub(super) fn refresh(&mut self, tournament: &Tournament) {
         self.preview = self.mode.create_matchup(tournament).map(|matchup| MatchPreview {
             matchup,
             winner: None,

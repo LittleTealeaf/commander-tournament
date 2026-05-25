@@ -82,7 +82,7 @@ impl ComponentUpdate for App {
                     Effect::msg(msg).ok()
                 })
             }),
-            Message::OpenPlay(play_mode) => self.push_view(PlayView::new(play_mode, &self.tournament)).ok(),
+            Message::OpenPlayView(play_mode) => self.push_view(PlayView::new(play_mode, &self.tournament)).ok(),
             Message::QuitRequested => {
                 if self.modified && !self.close_requested {
                     self.close_requested = true;

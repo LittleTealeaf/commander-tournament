@@ -43,19 +43,21 @@ impl ComponentView for PlayComponent {
 impl PlayComponent {
     fn view_section_options(&self) -> Element<'_, PlayComponentMsg> {
         row![
-            container(text("Mode: ")).padding(button::DEFAULT_PADDING),
-            pick_list(PlayModeType::VALUES, Some(self.mode.get_type()), |mode| {
-                PlayComponentMsg::SetMode(mode.into())
-            }),
+            self.allow_mode_changes.then_some(row![
+                container(text("Mode: ")).padding(button::DEFAULT_PADDING),
+                pick_list(PlayModeType::VALUES, Some(self.mode.get_type()), |mode| {
+                    PlayComponentMsg::SetMode(mode.into())
+                }),
+            ]),
             match &self.mode {
                 PlayMode::Next { mode } => Some(row![
                     container(text("Player Mode: ")).padding(button::DEFAULT_PADDING),
                     pick_list(PlayNextMode::VALUES, Some(mode), |mode| {
                         PlayComponentMsg::SetNextMode(mode)
-                    })
+                    }),
                 ]),
                 _ => None,
-            }
+            },
         ]
         .spacing(5)
         .padding(10)

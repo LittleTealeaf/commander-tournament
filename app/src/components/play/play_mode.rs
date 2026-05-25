@@ -18,6 +18,25 @@ impl PlayMode {
             Self::Next { .. } => PlayModeType::Next,
         }
     }
+
+    #[must_use]
+    pub const fn player(id: PlayerId) -> Self {
+        Self::Player(Some(id))
+    }
+
+    #[must_use]
+    pub fn next() -> Self {
+        Self::Next {
+            mode: PlayNextMode::default(),
+        }
+    }
+
+    #[must_use]
+    pub const fn custom() -> Self {
+        Self::Custom {
+            players: [None; POD_SIZE],
+        }
+    }
 }
 
 #[derive(Debug, Clone, Default, derive_more::Display, PartialEq, Eq)]
