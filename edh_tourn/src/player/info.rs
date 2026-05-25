@@ -29,7 +29,7 @@ pub struct PlayerInfo {
     precon: bool,
 }
 
-#[allow(clippy::trivially_copy_pass_by_ref)]
+#[allow(clippy::trivially_copy_pass_by_ref, reason = "Serialization reference")]
 const fn is_false(b: &bool) -> bool {
     !(*b)
 }

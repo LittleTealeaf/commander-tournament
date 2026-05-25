@@ -1,4 +1,6 @@
-use crate::{effect::Effect, traits::ComponentUpdate, views::player::PlayerDetailsOut};
+use crate::{
+    effect::Effect, popup::confirm::ConfirmPopup, traits::ComponentUpdate, views::player::PlayerDetailsOut,
+};
 
 use super::{PlayerDetailsMsg, PlayerView};
 
@@ -58,16 +60,16 @@ impl ComponentUpdate for PlayerView {
                 .unwrap_or_default()
                 .ok(),
             PlayerDetailsMsg::RequestDelete => {
-                let confirm = Effect::confirm(
-                    format!("Delete {}?", self.initial_name),
+                self.confirm_popup = Some(ConfirmPopup::new(
+                    format!("Delete {}", self.initial_name),
                     format!(
                         "Are you sure you want to delete the player \"{}\"? All games this player has participated in will also be deleted.",
                         self.initial_name
                     ),
                     PlayerDetailsMsg::ConfirmDelete,
-                    None,
-                );
-                Ok(confirm)
+                    PlayerDetailsMsg::ClearRequest,
+                ));
+                Effect::done()
             }
             PlayerDetailsMsg::OpenNextPlayerMatch => self
                 .id
@@ -76,18 +78,22 @@ impl ComponentUpdate for PlayerView {
                 .ok(),
             PlayerDetailsMsg::RequestClose => {
                 if self.modified {
-                    Effect::confirm(
-                        "Lose Unsaved Changes?".to_owned(),
-                        "There are unsaved changes made to this player".to_owned(),
+                    self.confirm_popup = Some(ConfirmPopup::new(
+                        "Close without saving?".to_owned(),
+                        "Are you sure you want to close without saving your changes?".to_owned(),
                         PlayerDetailsMsg::Close,
-                        None,
-                    )
-                    .ok()
+                        PlayerDetailsMsg::ClearRequest,
+                    ));
+                    Effect::done()
                 } else {
                     Effect::out(PlayerDetailsOut::Close).ok()
                 }
             }
             PlayerDetailsMsg::Close => Effect::out(PlayerDetailsOut::Close).ok(),
+            PlayerDetailsMsg::ClearRequest => {
+                self.confirm_popup = None;
+                Effect::done()
+            }
         }
     }
 }

@@ -26,7 +26,7 @@ impl Tournament {
 
     #[must_use]
     pub(crate) fn create_match_players<const T: usize>(&self, players: [PlayerId; T]) -> [MatchPlayer; T] {
-        #[allow(clippy::cast_precision_loss)]
+        #[allow(clippy::cast_precision_loss, reason = "Constant f64 value derived from usize")]
         let base_chance = 1.0 / (T as f64);
 
         let config = self.game_config();
@@ -126,7 +126,7 @@ mod tests {
 
     #[test]
     fn expected_adds_up_to_1() {
-        #[allow(clippy::needless_pass_by_value)]
+        #[allow(clippy::needless_pass_by_value, reason = "testS")]
         fn assert_sums_up_to_one<const T: usize>(players: [MatchPlayer; T]) {
             assert_relative_eq!(1.0, players.iter().map(|p| { p.expected() }).sum::<f64>());
         }

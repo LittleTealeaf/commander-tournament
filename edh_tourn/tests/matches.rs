@@ -169,8 +169,7 @@ fn winner_gains_elo() {
 }
 
 #[test]
-#[allow(clippy::needless_range_loop)]
-#[allow(clippy::indexing_slicing)]
+#[allow(clippy::needless_range_loop, clippy::indexing_slicing, reason = "tests")]
 fn loser_loses_elo() -> anyhow::Result<()> {
     for winner_i in 0..4 {
         let tourn = Tournament::generate_tournament(4, 0)?;
@@ -195,8 +194,7 @@ fn loser_loses_elo() -> anyhow::Result<()> {
 }
 
 #[test]
-#[allow(clippy::needless_range_loop)]
-#[allow(clippy::indexing_slicing)]
+#[allow(clippy::indexing_slicing, clippy::needless_range_loop, reason = "tests")]
 fn winner_only_counted_once() -> anyhow::Result<()> {
     let mut tourn = Tournament::new();
     let id = tourn.register_player(String::from("sample"))?;

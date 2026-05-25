@@ -25,11 +25,23 @@ impl Tournament {
 
 impl Matchmaker<'_> {
     pub fn create_match(self, player: PlayerId) -> Result<Matchup, TournamentError> {
+        self.create_match_filtered(player, |_| true)
+    }
+
+    pub fn create_match_filtered<F>(
+        self,
+        player: PlayerId,
+        mut allowed: F,
+    ) -> Result<Matchup, TournamentError>
+    where
+        F: FnMut(PlayerId) -> bool,
+    {
         let mut players = Vec::with_capacity(POD_SIZE);
         let mut aggregate_stats = AggregateStats::from(self.0.get_player_or_default_stats(player));
         players.push(player);
 
         let mut performances = self.0.analytics().player_performance_all_others(player)?;
+        performances.retain(|&id, _| allowed(id));
 
         for _ in 1..POD_SIZE {
             let player = self
@@ -127,5 +139,24 @@ mod tests {
 
         // 0 * 5 = 0, 1 * 5 = 5, 2 * 5 = 10
         assert_eq!(result, vec![("PlayerA", 0), ("PlayerB", 5), ("PlayerC", 10)]);
+    }
+
+    #[test]
+    fn matchmaker_filtered_excludes_players() {
+        let t = Tournament::generate_tournament(10, 5).unwrap();
+        let mut keys = t.players().keys().copied().collect::<Vec<_>>();
+        let seed = keys.pop().unwrap();
+        let excluded_player = keys.pop().unwrap();
+
+        // Matchmaker should create a match with seed but exclude `excluded_player`
+        let matchup = t
+            .matchmaker()
+            .create_match_filtered(seed, |id| id != excluded_player)
+            .unwrap();
+
+        for player in matchup.players() {
+            assert_ne!(player.id(), excluded_player, "Matchup contained excluded player!");
+        }
+        assert_eq!(matchup.players().len(), POD_SIZE);
     }
 }

@@ -11,7 +11,6 @@ use crate::{
     },
     effect::Effect,
     home::HomeMsg,
-    modals::ModalMsg,
     traits::ComponentUpdate,
     views::play::PlayMode,
 };
@@ -34,8 +33,9 @@ pub enum Message {
     View(ViewMsg),
     #[from(ignore)]
     OpenLink(String),
-    CloseModal,
-    Modal(ModalMsg),
+    ClearError,
+    ConfirmOverwrite,
+    ClearOverwrite,
     QuitRequested,
     QuitConfirm(bool),
 }
@@ -79,10 +79,6 @@ impl App {
                 }
                 Ok(task)
             }
-            Effect::Modal(modal) => {
-                self.modals.push(modal);
-                Ok(Task::none())
-            }
         }
     }
 
@@ -94,7 +90,7 @@ impl App {
     pub fn handle_update(&mut self, message: Message) -> Task<Message> {
         self.process_message(message).unwrap_or_else(|error| {
             eprintln!("Error: {error}");
-            self.error(format!("{error}"));
+            self.error = Some(error.to_string());
             Task::none()
         })
     }

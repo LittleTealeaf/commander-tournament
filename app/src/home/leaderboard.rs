@@ -131,7 +131,7 @@ impl ComponentView for Leaderboard {
         Self: 'a;
 
     fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
-        let players = self.sort_players(context.get_registered_players());
+        let players = self.sort_players(context.registered_players());
 
         let ord_char = match self.direction {
             SortDirection::Ascending => MD_ARROW_UP,

@@ -86,26 +86,16 @@ impl HandleMessage<FileAction> for App {
         match message {
             FileAction::RequestOpen => {
                 if self.modified {
-                    Effect::confirm(
-                        "Overwrite Tournament?".to_owned(),
-                        "All unsaved changes will be lost".to_owned(),
-                        Message::TournFile(FileAction::Open),
-                        None,
-                    )
-                    .ok()
+                    self.overwrite_requested = Some(FileAction::Open);
+                    Effect::done()
                 } else {
                     Effect::msg(FileAction::Open).ok()
                 }
             }
             FileAction::RequestNew => {
                 if self.modified {
-                    Effect::confirm(
-                        "Overwrite Tournament?".to_owned(),
-                        "All unsaved changes will be lost".to_owned(),
-                        Message::TournFile(FileAction::New),
-                        None,
-                    )
-                    .ok()
+                    self.overwrite_requested = Some(FileAction::New);
+                    Effect::done()
                 } else {
                     Effect::msg(FileAction::New).ok()
                 }
@@ -119,13 +109,8 @@ impl HandleMessage<FileAction> for App {
             FileAction::RequestOpenFile(path_buf) => {
                 let action = FileAction::OpenFile(path_buf);
                 if self.modified {
-                    Effect::confirm(
-                        "Lose Changes".to_owned(),
-                        "All unsaved changes will be lost".to_owned(),
-                        Message::TournFile(action),
-                        None,
-                    )
-                    .ok()
+                    self.overwrite_requested = Some(action);
+                    Effect::done()
                 } else {
                     Effect::msg(action).ok()
                 }

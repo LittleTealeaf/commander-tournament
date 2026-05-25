@@ -5,7 +5,7 @@ use edh_tourn::player::{PlayerId, RegisteredPlayer, color::MtgColor, info::Playe
 use iced::widget::{button, text_editor};
 use nerd_font_symbols::md::{MD_CONTENT_SAVE, MD_DELETE, MD_SWORD};
 
-use crate::{traits::Component, views::ViewScreen};
+use crate::{popup::confirm::ConfirmPopup, traits::Component, views::ViewScreen};
 
 #[derive(Debug, Clone)]
 pub struct PlayerView {
@@ -16,6 +16,7 @@ pub struct PlayerView {
     modified: bool,
     description: text_editor::Content,
     stats: StatsTab,
+    confirm_popup: Option<ConfirmPopup<PlayerDetailsMsg>>,
 }
 
 #[derive(Copy, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord, derive_more::Display)]
@@ -48,6 +49,7 @@ pub enum PlayerDetailsMsg {
     RequestDelete,
     ConfirmDelete,
     OpenNextPlayerMatch,
+    ClearRequest,
 }
 
 #[derive(Debug)]
@@ -77,6 +79,7 @@ impl PlayerView {
             description,
             stats: StatsTab::Games,
             modified: false,
+            confirm_popup: None,
         }
     }
 }
@@ -123,5 +126,14 @@ impl ViewScreen for PlayerView {
         } else {
             "New Player".to_owned()
         }
+    }
+
+    fn popup<'a>(
+        &'a self,
+        _context: Self::ViewContext<'a>,
+    ) -> Option<crate::popup::Popup<'a, Self::Message>> {
+        self.confirm_popup
+            .as_ref()
+            .map(|confirmation| confirmation.to_popup())
     }
 }

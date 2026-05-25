@@ -3,7 +3,7 @@ pub mod core;
 pub mod effect;
 pub mod fonts;
 pub mod home;
-pub mod modals;
+pub mod popup;
 pub mod services;
 pub mod traits;
 pub mod views;
@@ -15,8 +15,7 @@ use iced::{Subscription, Task, event};
 
 use crate::{
     app::{Message, View},
-    core::state::AppState,
-    modals::Modal,
+    core::{file::FileAction, state::AppState},
     traits::Component,
 };
 
@@ -28,9 +27,12 @@ pub struct App {
     home: home::Home,
     file: Option<PathBuf>,
     views: Vec<View>,
-    modals: Vec<Modal<Message>>,
     state: Option<AppState>,
     close_requested: bool,
+    // If Some, then show a confirmation dialog
+    // that performs the given action on confirmation
+    overwrite_requested: Option<FileAction>,
+    error: Option<String>,
 }
 
 impl App {

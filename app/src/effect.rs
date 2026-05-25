@@ -3,8 +3,6 @@ use core::iter::once;
 use iced::Task;
 use iced_futures::MaybeSend;
 
-use crate::modals::Modal;
-
 #[derive(Debug, Default)]
 pub enum Effect<M, O> {
     Msg(M),
@@ -12,7 +10,6 @@ pub enum Effect<M, O> {
     Task(Task<M>),
     Batch(Vec<Self>),
     Sequence(Vec<Self>),
-    Modal(Modal<M>),
     OnError(Box<Self>, Option<M>),
     #[default]
     Done,
@@ -73,10 +70,6 @@ where
             Some(msg) => self.on_error(msg),
             None => self.ignore_error(),
         }
-    }
-
-    pub fn confirm(title: String, details: String, on_confirm: M, on_cancel: Option<M>) -> Self {
-        Self::Modal(Modal::confirm(title, details, on_confirm, on_cancel))
     }
 
     pub fn perform<Fun, Out, H>(future: Fun, handler: H) -> Self
@@ -182,7 +175,6 @@ where
             }
             Self::Done => Ok(Effect::Done),
             Self::Out(message) => map_out(message),
-            Self::Modal(modal) => Ok(Effect::Modal(modal.map())),
             Self::Task(task) => Ok(Effect::Task(task.map(Into::into))),
             Self::Msg(message) => Effect::Msg(message.into()).ok(),
             Self::Batch(batch) => Ok(Effect::Batch(

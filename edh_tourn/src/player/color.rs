@@ -178,14 +178,16 @@ impl From<MtgColor> for ColorIdentity {
 
 impl Add<MtgColor> for ColorIdentity {
     type Output = Self;
-    #[allow(clippy::suspicious_arithmetic_impl)]
+    #[allow(
+        clippy::suspicious_arithmetic_impl,
+        reason = "Using or to add colors to wheel is intentional"
+    )]
     fn add(self, rhs: MtgColor) -> Self::Output {
         Self(self.0 | rhs as u8)
     }
 }
 
 impl AddAssign<MtgColor> for ColorIdentity {
-    #[allow(clippy::suspicious_op_assign_impl)]
     fn add_assign(&mut self, rhs: MtgColor) {
         self.add_color(rhs);
     }

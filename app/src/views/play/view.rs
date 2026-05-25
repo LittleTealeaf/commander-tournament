@@ -36,7 +36,7 @@ impl ComponentView for PlayView {
                 .spacing(10),
             ),
             PlayMode::Custom { players } => {
-                let options = context.get_registered_players().collect::<Vec<_>>();
+                let options = context.registered_players().collect::<Vec<_>>();
                 let selectors = players.iter().enumerate().map(|(index, player)| {
                     let reg_pl = player.and_then(|id| context.get_registered_player(id));
                     pick_list(options.clone(), reg_pl, move |player| {
