@@ -1,9 +1,13 @@
 use std::path::PathBuf;
 
 use edh_tourn::{game::record::GameRecord, player::PlayerId, tournament::Tournament};
-use iced::widget::container;
+use iced::{
+    Length,
+    widget::{column, container, responsive, row, text},
+};
 
 use crate::{
+    components::tab_bar,
     effect::Effect,
     home::leaderboard::{Leaderboard, LeaderboardMsg, LeaderboardOut},
     traits::{Component, ComponentUpdate, ComponentView},
@@ -12,14 +16,25 @@ use crate::{
 
 pub mod leaderboard;
 
+const SCREEN_WIDTH_BREAKPOINT: f32 = 1250.0;
+
 #[derive(Debug, Default)]
 pub struct Home {
     leaderboard: Leaderboard,
+    tab: HomeTab,
+}
+
+#[derive(Debug, Clone, Copy, derive_more::Display, Default, PartialEq, Eq)]
+pub enum HomeTab {
+    #[default]
+    Leaderboard,
+    PlayGame,
 }
 
 #[derive(Debug, Clone, derive_more::From)]
 pub enum HomeMsg {
     Leaderboard(LeaderboardMsg),
+    SetTab(HomeTab),
 }
 
 #[derive(Debug, Clone, derive_more::From)]
@@ -42,7 +57,27 @@ impl ComponentView for Home {
     where
         Self: 'a;
     fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
-        container(self.leaderboard.view_into(context)).into()
+        responsive(|size: iced::Size| match size.width {
+            ..=SCREEN_WIDTH_BREAKPOINT => column![
+                tab_bar(
+                    &self.tab,
+                    [HomeTab::Leaderboard, HomeTab::PlayGame],
+                    HomeMsg::SetTab
+                ),
+                container(match self.tab {
+                    HomeTab::Leaderboard => self.leaderboard.view_into(context),
+                    HomeTab::PlayGame => iced::widget::text("GamePlay").into(),
+                })
+                .width(Length::Fill)
+            ]
+            .into(),
+            _ => row![
+                container(self.leaderboard.view_into(context)).width(Length::FillPortion(3)),
+                container(text("hello")).width(Length::FillPortion(2))
+            ]
+            .into(),
+        })
+        .into()
     }
 }
 
@@ -63,6 +98,10 @@ impl ComponentUpdate for Home {
                 }
                 LeaderboardOut::OpenNewPlayer => Effect::out(HomeOut::OpenNewPlayer).ok(),
             }),
+            HomeMsg::SetTab(home_tab) => {
+                self.tab = home_tab;
+                Effect::done()
+            }
         }
     }
 }
