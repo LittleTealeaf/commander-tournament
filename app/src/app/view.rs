@@ -1,6 +1,6 @@
 use edh_tourn::tournament::Tournament;
 use iced::Element;
-use iced::widget::{button, text};
+use iced::widget::{button, column, text};
 
 use crate::popup::Popup;
 use crate::views::ViewScreen;
@@ -151,7 +151,13 @@ impl App {
     #[must_use]
     pub fn handle_view(&self) -> Element<'_, Message> {
         let content = self.views.last().map_or_else(
-            || self.home.view_into((self.tournament(), &self.file)),
+            || {
+                column![
+                    self.menu.view_into(&self.file),
+                    self.home.view_into(&self.tournament)
+                ]
+                .into()
+            },
             |view| view.view_into(self),
         );
 

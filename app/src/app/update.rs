@@ -14,7 +14,7 @@ use crate::{
     },
 };
 
-use super::view::View;
+use super::{MenuMsg, view::View};
 
 impl ComponentUpdate for App {
     type UpdateContext<'a> = ();
@@ -34,6 +34,16 @@ impl ComponentUpdate for App {
         }
 
         match message {
+            Message::Menu(msg) => self.menu.map_update(msg, (), |out| {
+                match out {
+                    MenuMsg::New => Effect::msg(FileAction::RequestNew),
+                    MenuMsg::Open => Effect::msg(FileAction::RequestOpen),
+                    MenuMsg::Save => Effect::msg(FileAction::Save),
+                    MenuMsg::SaveAs => Effect::msg(FileAction::SaveAs),
+                    MenuMsg::OpenGameConfig => Effect::msg(Message::OpenGameConfig),
+                }
+                .ok()
+            }),
             Message::CloseView => {
                 self.views.pop();
 

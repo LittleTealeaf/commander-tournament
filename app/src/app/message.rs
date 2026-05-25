@@ -3,7 +3,7 @@ use iced::Task;
 
 use crate::{
     App,
-    app::ViewMsg,
+    app::{MenuMsg, ViewMsg},
     core::{
         file::FileAction,
         state::{AppState, AppStateMsg},
@@ -30,6 +30,7 @@ pub enum Message {
     #[from(ignore)]
     Error(String),
     Home(HomeMsg),
+    Menu(MenuMsg),
     View(ViewMsg),
     #[from(ignore)]
     OpenLink(String),

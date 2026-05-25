@@ -24,6 +24,7 @@ pub struct App {
     tournament: Tournament,
     modified: bool,
     is_saving: bool,
+    menu: app::Menu,
     home: home::Home,
     file: Option<PathBuf>,
     views: Vec<View>,

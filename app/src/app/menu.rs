@@ -21,8 +21,6 @@ pub enum MenuMsg {
     Save,
     SaveAs,
     OpenGameConfig,
-    OpenPlayNext,
-    OpenPlayCustom,
 }
 
 impl Component for Menu {
@@ -54,8 +52,6 @@ impl ComponentView for Menu {
             button("Save").on_press_maybe(context.is_some().then_some(MenuMsg::Save)),
             space().width(Length::Fill),
             button(MD_COG).on_press(MenuMsg::OpenGameConfig),
-            button("Custom Game").on_press(MenuMsg::OpenPlayCustom),
-            button("Next Game").on_press(MenuMsg::OpenPlayNext),
         ]
         .spacing(5)
         .into()
