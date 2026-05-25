@@ -29,12 +29,6 @@ pub enum HomeOut {
     RecordGame(Box<GameRecord>),
     OpenPlayerDetails(PlayerId),
     OpenNewPlayer,
-    OpenLink(String),
-    FileNew,
-    FileOpen,
-    FileSave,
-    FileSaveAs,
-    OpenGameConfig,
 }
 
 impl Component for Home {

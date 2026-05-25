@@ -6,9 +6,9 @@ use iced::{
     Alignment, Length,
     widget::{column, container, row, text},
 };
-use iced_aw::{TabBar, TabLabel};
 
 use crate::{
+    components::tab_bar,
     traits::ComponentView,
     views::player::{
         PlayerDetailsMsg, StatsTab,
@@ -33,13 +33,11 @@ impl ComponentView for super::PlayerView {
         let deck_progress = self.id.map(|id| {
             column![
                 stats_summary(context.get_player_or_default_stats(id)),
-                StatsTab::VALUES
-                    .into_iter()
-                    .fold(
-                        TabBar::new(crate::views::player::PlayerDetailsMsg::SetStatsTab),
-                        |tab_bar, tab| { tab_bar.push(tab, TabLabel::Text(format!("{tab}"))) }
-                    )
-                    .set_active_tab(&self.stats),
+                tab_bar(
+                    &self.stats,
+                    StatsTab::VALUES,
+                    crate::views::player::PlayerDetailsMsg::SetStatsTab
+                ),
                 match self.stats {
                     StatsTab::Games => stats_game_history(context, id),
                     StatsTab::Players => stats_player_matchups(context, id),

@@ -7,6 +7,7 @@ pub mod popup;
 pub mod services;
 pub mod traits;
 pub mod views;
+pub mod components;
 
 use std::path::PathBuf;
 

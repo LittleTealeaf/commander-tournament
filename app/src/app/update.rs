@@ -133,17 +133,11 @@ impl HandleMessage<HomeMsg> for App {
         self.home
             .map_update(message, (&self.tournament, &self.file), |out| match out {
                 HomeOut::RecordGame(game_record) => Effect::msg(TournamentAction::Record(game_record)).ok(),
-                HomeOut::OpenLink(link) => Effect::msg(Message::OpenLink(link)).ok(),
-                HomeOut::FileNew => Effect::msg(FileAction::RequestNew).ok(),
-                HomeOut::FileOpen => Effect::msg(FileAction::RequestOpen).ok(),
-                HomeOut::FileSave => Effect::msg(FileAction::Save).ok(),
-                HomeOut::FileSaveAs => Effect::msg(FileAction::SaveAs).ok(),
                 HomeOut::OpenPlayerDetails(player_id) => {
                     Effect::msg(Message::OpenPlayerDetails(Some(player_id))).ok()
                 }
                 HomeOut::OpenNewPlayer => Effect::msg(Message::OpenPlayerDetails(None)).ok(),
                 HomeOut::OpenPlayView(mode) => Effect::msg(Message::OpenPlay(mode)).ok(),
-                HomeOut::OpenGameConfig => Effect::msg(Message::OpenGameConfig).ok(),
             })
     }
 }
