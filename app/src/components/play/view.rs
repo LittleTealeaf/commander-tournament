@@ -30,15 +30,13 @@ impl ComponentView for PlayComponent {
         Self: 'a;
 
     fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
-        container(
-            column![
-                self.vs_options(),
-                self.vs_play_table(context),
-                self.vs_submit(context),
-            ]
-            .spacing(10),
-        )
-        .into()
+        let mut col = column![self.vs_options(), self.vs_play_table(context),].spacing(10);
+
+        if let Some(submit) = self.vs_submit(context) {
+            col = col.push(submit);
+        }
+
+        container(col).into()
     }
 }
 
@@ -57,7 +55,12 @@ impl PlayComponent {
     fn vs_play_table<'a>(&self, tournament: &'a Tournament) -> Element<'a, PlayComponentMsg> {
         let players = tournament
             .registered_players()
-            .sorted_by_cached_key(|player| (player.info().name().to_owned(), player.id()))
+            .sorted_by(|a, b| {
+                a.info()
+                    .name()
+                    .cmp(b.info().name())
+                    .then_with(|| a.id().cmp(&b.id()))
+            })
             .collect::<Vec<_>>();
 
         table(
@@ -122,7 +125,8 @@ impl PlayComponent {
                     ))
                 }),
                 table::column(
-                    button(MD_LINK_VARIANT_PLUS).on_press(PlayComponentMsg::OpenMatchLinks),
+                    button(MD_LINK_VARIANT_PLUS)
+                        .on_press_maybe(self.preview.is_some().then_some(PlayComponentMsg::OpenMatchLinks)),
                     |entry: PlayerEntry<'_>| {
                         button(MD_LINK_VARIANT).on_press_maybe(
                             entry
