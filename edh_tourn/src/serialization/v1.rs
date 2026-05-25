@@ -29,7 +29,7 @@ struct CompatScoreConfig {
 }
 
 #[derive(Clone, serde::Deserialize, Debug)]
-#[allow(clippy::struct_field_names, reason="Backwards Compatability")]
+#[allow(clippy::struct_field_names, reason = "Backwards Compatability")]
 struct CompatMatchConfig {
     weight_least_played: f64,
     weight_nemesis: f64,

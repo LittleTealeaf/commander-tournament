@@ -28,7 +28,11 @@ impl Matchmaker<'_> {
         self.create_match_filtered(player, |_| true)
     }
 
-    pub fn create_match_filtered<F>(self, player: PlayerId, mut allowed: F) -> Result<Matchup, TournamentError>
+    pub fn create_match_filtered<F>(
+        self,
+        player: PlayerId,
+        mut allowed: F,
+    ) -> Result<Matchup, TournamentError>
     where
         F: FnMut(PlayerId) -> bool,
     {
@@ -145,7 +149,10 @@ mod tests {
         let excluded_player = keys.pop().unwrap();
 
         // Matchmaker should create a match with seed but exclude `excluded_player`
-        let matchup = t.matchmaker().create_match_filtered(seed, |id| id != excluded_player).unwrap();
+        let matchup = t
+            .matchmaker()
+            .create_match_filtered(seed, |id| id != excluded_player)
+            .unwrap();
 
         for player in matchup.players() {
             assert_ne!(player.id(), excluded_player, "Matchup contained excluded player!");
