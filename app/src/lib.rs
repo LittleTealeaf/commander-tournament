@@ -1,4 +1,5 @@
 pub mod app;
+pub mod components;
 pub mod core;
 pub mod effect;
 pub mod fonts;
@@ -7,7 +8,6 @@ pub mod popup;
 pub mod services;
 pub mod traits;
 pub mod views;
-pub mod components;
 
 use std::path::PathBuf;
 

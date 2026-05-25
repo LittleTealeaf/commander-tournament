@@ -17,6 +17,7 @@ use crate::{
 
 #[derive(Debug, Clone, derive_more::From)]
 pub enum Message {
+    Refresh,
     Nothing,
     OpenPlay(PlayMode),
     AppState(AppStateMsg),

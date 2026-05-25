@@ -1,26 +1,27 @@
-use std::path::PathBuf;
-
 use edh_tourn::{game::record::GameRecord, player::PlayerId, tournament::Tournament};
 use iced::{
     Length,
-    widget::{column, container, responsive, row, text},
+    widget::{column, container, responsive, row},
 };
 
 use crate::{
-    components::tab_bar,
+    components::{
+        play::{PlayComponent, PlayComponentMsg, PlayComponentOut, PlayMode},
+        tab_bar,
+    },
     effect::Effect,
     home::leaderboard::{Leaderboard, LeaderboardMsg, LeaderboardOut},
     traits::{Component, ComponentUpdate, ComponentView},
-    views::play::PlayMode,
 };
 
 pub mod leaderboard;
 
-const SCREEN_WIDTH_BREAKPOINT: f32 = 1250.0;
+const SCREEN_WIDTH_BREAKPOINT: f32 = 1500.0;
 
 #[derive(Debug, Default)]
 pub struct Home {
     leaderboard: Leaderboard,
+    play: PlayComponent,
     tab: HomeTab,
 }
 
@@ -34,15 +35,16 @@ pub enum HomeTab {
 
 #[derive(Debug, Clone, derive_more::From)]
 pub enum HomeMsg {
+    Refresh,
     Leaderboard(LeaderboardMsg),
     SetTab(HomeTab),
+    Play(PlayComponentMsg),
 }
 
 #[derive(Debug, Clone, derive_more::From)]
 pub enum HomeOut {
-    #[from(skip)]
-    OpenPlayView(PlayMode),
     RecordGame(Box<GameRecord>),
+    OpenLink(String),
     OpenPlayerDetails(PlayerId),
     OpenNewPlayer,
 }
@@ -67,14 +69,14 @@ impl ComponentView for Home {
                 ),
                 container(match self.tab {
                     HomeTab::Leaderboard => self.leaderboard.view_into(context),
-                    HomeTab::PlayGame => iced::widget::text("GamePlay").into(),
+                    HomeTab::PlayGame => self.play.view_into(context),
                 })
                 .width(Length::Fill)
             ]
             .into(),
             _ => row![
-                container(self.leaderboard.view_into(context)).width(Length::FillPortion(3)),
-                container(text("hello")).width(Length::FillPortion(2))
+                container(self.leaderboard.view_into(context)).width(Length::FillPortion(1)),
+                container(self.play.view_into(context)).width(Length::FillPortion(1))
             ]
             .into(),
         })
@@ -83,16 +85,19 @@ impl ComponentView for Home {
 }
 
 impl ComponentUpdate for Home {
-    type UpdateContext<'a> = (&'a Tournament, &'a Option<PathBuf>);
+    type UpdateContext<'a> = &'a Tournament;
     fn update(
         &mut self,
         message: Self::Message,
-        _: Self::UpdateContext<'_>,
+        context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         match message {
+            HomeMsg::Refresh => Effect::msg(HomeMsg::Play(PlayComponentMsg::Refresh)).ok(),
             HomeMsg::Leaderboard(message) => self.leaderboard.map_update(message, (), |msg| match msg {
                 LeaderboardOut::RankPlayer(id) => {
-                    Effect::out(HomeOut::OpenPlayView(PlayMode::player(id))).ok()
+                    Effect::msg(PlayComponentMsg::SetMode(PlayMode::Player(Some(id))))
+                        .merge(Effect::msg(HomeMsg::SetTab(HomeTab::PlayGame)))
+                        .ok()
                 }
                 LeaderboardOut::OpenPlayerDetails(player_id) => {
                     Effect::out(HomeOut::OpenPlayerDetails(player_id)).ok()
@@ -103,6 +108,15 @@ impl ComponentUpdate for Home {
                 self.tab = home_tab;
                 Effect::done()
             }
+            HomeMsg::Play(msg) => self.play.map_update(msg, context, |out| match out {
+                PlayComponentOut::OpenLink(link) => Effect::out(HomeOut::OpenLink(link)).ok(),
+                PlayComponentOut::OpenPlayer(player_id) => {
+                    Effect::out(HomeOut::OpenPlayerDetails(player_id)).ok()
+                }
+                PlayComponentOut::RecordGame(game_record) => {
+                    Effect::out(HomeOut::RecordGame(game_record)).ok()
+                }
+            }),
         }
     }
 }

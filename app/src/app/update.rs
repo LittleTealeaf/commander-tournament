@@ -34,6 +34,12 @@ impl ComponentUpdate for App {
         }
 
         match message {
+            Message::Refresh => self
+                .views
+                .last()
+                .and_then(View::on_resume)
+                .map_or(Effect::Msg(Message::Home(HomeMsg::Refresh)), Effect::msg)
+                .ok(),
             Message::Menu(msg) => self.menu.map_update(msg, (), |out| {
                 match out {
                     MenuMsg::New => Effect::msg(FileAction::RequestNew),
@@ -46,13 +52,7 @@ impl ComponentUpdate for App {
             }),
             Message::CloseView => {
                 self.views.pop();
-
-                self.views
-                    .last()
-                    .and_then(View::on_resume)
-                    .map(Effect::msg)
-                    .unwrap_or_default()
-                    .ok()
+                Effect::msg(Message::Refresh).ok()
             }
             Message::Nothing => Effect::done(),
             Message::AppState(message) => self.handle_message(message, ()),
@@ -130,15 +130,14 @@ impl HandleMessage<HomeMsg> for App {
         message: HomeMsg,
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
-        self.home
-            .map_update(message, (&self.tournament, &self.file), |out| match out {
-                HomeOut::RecordGame(game_record) => Effect::msg(TournamentAction::Record(game_record)).ok(),
-                HomeOut::OpenPlayerDetails(player_id) => {
-                    Effect::msg(Message::OpenPlayerDetails(Some(player_id))).ok()
-                }
-                HomeOut::OpenNewPlayer => Effect::msg(Message::OpenPlayerDetails(None)).ok(),
-                HomeOut::OpenPlayView(mode) => Effect::msg(Message::OpenPlay(mode)).ok(),
-            })
+        self.home.map_update(message, &self.tournament, |out| match out {
+            HomeOut::RecordGame(game_record) => Effect::msg(TournamentAction::Record(game_record)).ok(),
+            HomeOut::OpenPlayerDetails(player_id) => {
+                Effect::msg(Message::OpenPlayerDetails(Some(player_id))).ok()
+            }
+            HomeOut::OpenNewPlayer => Effect::msg(Message::OpenPlayerDetails(None)).ok(),
+            HomeOut::OpenLink(link) => Effect::msg(Message::OpenLink(link)).ok(),
+        })
     }
 }
 
