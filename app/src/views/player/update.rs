@@ -70,12 +70,6 @@ impl ComponentUpdate for PlayerView {
                     PlayerDetailsMsg::ClearRequest,
                 ));
                 Effect::done()
-                // let confirm = Effect::confirm(
-                //     format!("Delete {}?", self.initial_name),
-                //     PlayerDetailsMsg::ConfirmDelete,
-                //     None,
-                // );
-                // Ok(confirm)
             }
             PlayerDetailsMsg::OpenNextPlayerMatch => self
                 .id
