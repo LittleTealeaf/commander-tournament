@@ -1,22 +1,21 @@
 use edh_tourn::tournament::Tournament;
 use iced::Element;
-use iced::widget::{button, text};
+use iced::widget::{button, column, text};
 
-use crate::popup::Popup;
-use crate::views::ViewScreen;
-use crate::views::game_config::{GameConfigMsg, GameConfigOut, GameConfigView};
-use crate::views::{
-    matchmaker_config::{MatchmakerConfigMsg, MatchmakerConfigOut, MatchmakerConfigView},
-    play::PlayMode,
-};
+use crate::components::play::PlayMode;
+use crate::views::play::{PlayViewMsg, PlayViewOut};
 use crate::{
     App,
     app::message::Message,
     core::tournament::TournamentAction,
     effect::Effect,
+    popup::Popup,
     traits::{Component, ComponentUpdate, ComponentView},
     views::{
-        play::{PlayMsg, PlayOut, PlayView},
+        ViewScreen,
+        game_config::{GameConfigMsg, GameConfigOut, GameConfigView},
+        matchmaker_config::{MatchmakerConfigMsg, MatchmakerConfigOut, MatchmakerConfigView},
+        play::PlayView,
         player::{PlayerDetailsMsg, PlayerDetailsOut, PlayerView},
     },
 };
@@ -45,7 +44,7 @@ pub enum ViewMsg {
     PlayerDetails(PlayerDetailsMsg),
     PlayConfig(MatchmakerConfigMsg),
     GameConfig(GameConfigMsg),
-    Play(PlayMsg),
+    Play(PlayViewMsg),
 }
 
 impl Component for View {
@@ -86,22 +85,22 @@ impl ComponentUpdate for View {
                     .chain(CLOSE_VIEW)
                     .ok(),
                     PlayerDetailsOut::OpenPlayerMatches(player_id) => {
-                        Effect::out(Message::OpenPlay(PlayMode::player(player_id))).ok()
+                        Effect::out(Message::OpenPlayView(PlayMode::player(player_id))).ok()
                     }
                     PlayerDetailsOut::Close => CLOSE_VIEW.ok(),
                 })
             }
             (Self::Play(state), ViewMsg::Play(msg)) => {
                 state.map_update(msg, context.tourn, |out| match out {
-                    PlayOut::OpenLink(link) => Effect::out(Message::OpenLink(link)).ok(),
-                    PlayOut::RecordGame(game_record) => {
-                        Effect::out(TournamentAction::Record(game_record)).ok()
-                    }
-                    PlayOut::OpenPlayerInfo(player_id) => {
+                    PlayViewOut::Close => CLOSE_VIEW.ok(),
+                    PlayViewOut::OpenPlayer(player_id) => {
                         Effect::out(Message::OpenPlayerDetails(Some(player_id))).ok()
                     }
-                    PlayOut::Close => CLOSE_VIEW.ok(),
-                    PlayOut::OpenRankingConfig => Effect::out(Message::OpenPlayConfig).ok(),
+                    PlayViewOut::OpenLink(link) => Effect::out(Message::OpenLink(link)).ok(),
+                    PlayViewOut::RecordGame(game_record) => {
+                        Effect::out(TournamentAction::Record(game_record)).ok()
+                    }
+                    PlayViewOut::OpenMatchmakerConfig => Effect::out(Message::OpenMatchmakerConfig).ok(),
                 })
             }
             (Self::PlayConfig(state), ViewMsg::PlayConfig(msg)) => {
@@ -151,7 +150,14 @@ impl App {
     #[must_use]
     pub fn handle_view(&self) -> Element<'_, Message> {
         let content = self.views.last().map_or_else(
-            || self.home.view_into((self.tournament(), &self.file)),
+            || {
+                column![
+                    self.menu.view_into(&self.file),
+                    self.home.view_into(&self.tournament)
+                ]
+                .spacing(5)
+                .into()
+            },
             |view| view.view_into(self),
         );
 

@@ -5,7 +5,7 @@ use edh_tourn::{
     tournament::Tournament,
 };
 use iced::{
-    Padding,
+    Length, Padding,
     widget::{button, container, row, scrollable, space, table, text},
 };
 use itertools::Itertools;
@@ -183,10 +183,13 @@ impl ComponentView for Leaderboard {
                 ),
             ],
             players,
-        );
+        )
+        .width(Length::Fill);
 
         container(scrollable(row![tbl, space().width(15)]))
             .padding(Padding::new(10f32))
+            .width(Length::Fill)
+            .height(Length::Fill)
             .into()
     }
 }

@@ -14,7 +14,7 @@ use crate::{
     },
 };
 
-use super::view::View;
+use super::{MenuMsg, view::View};
 
 impl ComponentUpdate for App {
     type UpdateContext<'a> = ();
@@ -34,15 +34,25 @@ impl ComponentUpdate for App {
         }
 
         match message {
+            Message::Refresh => self
+                .views
+                .last()
+                .and_then(View::on_resume)
+                .map_or(Effect::Msg(Message::Home(HomeMsg::Refresh)), Effect::msg)
+                .ok(),
+            Message::Menu(msg) => self.menu.map_update(msg, (), |out| {
+                match out {
+                    MenuMsg::New => Effect::msg(FileAction::RequestNew),
+                    MenuMsg::Open => Effect::msg(FileAction::RequestOpen),
+                    MenuMsg::Save => Effect::msg(FileAction::Save),
+                    MenuMsg::SaveAs => Effect::msg(FileAction::SaveAs),
+                    MenuMsg::OpenGameConfig => Effect::msg(Message::OpenGameConfig),
+                }
+                .ok()
+            }),
             Message::CloseView => {
                 self.views.pop();
-
-                self.views
-                    .last()
-                    .and_then(View::on_resume)
-                    .map(Effect::msg)
-                    .unwrap_or_default()
-                    .ok()
+                Effect::msg(Message::Refresh).ok()
             }
             Message::Nothing => Effect::done(),
             Message::AppState(message) => self.handle_message(message, ()),
@@ -72,7 +82,9 @@ impl ComponentUpdate for App {
                     Effect::msg(msg).ok()
                 })
             }),
-            Message::OpenPlay(play_mode) => self.push_view(PlayView::new(play_mode, &self.tournament)).ok(),
+            Message::OpenPlayView(play_mode) => {
+                self.push_view(PlayView::new(play_mode, &self.tournament)).ok()
+            }
             Message::QuitRequested => {
                 if self.modified && !self.close_requested {
                     self.close_requested = true;
@@ -89,7 +101,7 @@ impl ComponentUpdate for App {
                     Effect::done()
                 }
             }
-            Message::OpenPlayConfig => self
+            Message::OpenMatchmakerConfig => self
                 .push_view(MatchmakerConfigView::new(
                     self.tournament.matchmaker_config().clone(),
                 ))
@@ -120,21 +132,15 @@ impl HandleMessage<HomeMsg> for App {
         message: HomeMsg,
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
-        self.home
-            .map_update(message, (&self.tournament, &self.file), |out| match out {
-                HomeOut::RecordGame(game_record) => Effect::msg(TournamentAction::Record(game_record)).ok(),
-                HomeOut::OpenLink(link) => Effect::msg(Message::OpenLink(link)).ok(),
-                HomeOut::FileNew => Effect::msg(FileAction::RequestNew).ok(),
-                HomeOut::FileOpen => Effect::msg(FileAction::RequestOpen).ok(),
-                HomeOut::FileSave => Effect::msg(FileAction::Save).ok(),
-                HomeOut::FileSaveAs => Effect::msg(FileAction::SaveAs).ok(),
-                HomeOut::OpenPlayerDetails(player_id) => {
-                    Effect::msg(Message::OpenPlayerDetails(Some(player_id))).ok()
-                }
-                HomeOut::OpenNewPlayer => Effect::msg(Message::OpenPlayerDetails(None)).ok(),
-                HomeOut::OpenPlayView(mode) => Effect::msg(Message::OpenPlay(mode)).ok(),
-                HomeOut::OpenGameConfig => Effect::msg(Message::OpenGameConfig).ok(),
-            })
+        self.home.map_update(message, &self.tournament, |out| match out {
+            HomeOut::RecordGame(game_record) => Effect::msg(TournamentAction::Record(game_record)).ok(),
+            HomeOut::OpenPlayerDetails(player_id) => {
+                Effect::msg(Message::OpenPlayerDetails(Some(player_id))).ok()
+            }
+            HomeOut::OpenNewPlayer => Effect::msg(Message::OpenPlayerDetails(None)).ok(),
+            HomeOut::OpenLink(link) => Effect::msg(Message::OpenLink(link)).ok(),
+            HomeOut::OpenMatchmakerConfig => Effect::msg(Message::OpenMatchmakerConfig).ok(),
+        })
     }
 }
 

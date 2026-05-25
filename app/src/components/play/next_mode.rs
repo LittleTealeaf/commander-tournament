@@ -147,16 +147,27 @@ impl PlayNextMode {
                     }
                 }
 
+                let leads = tournament
+                    .games()
+                    .iter()
+                    .map(|game| {
+                        let [lead, ..] = game.players();
+                        lead.id()
+                    })
+                    .collect::<Vec<_>>();
+
+                for player in &players {
+                    if !leads.contains(&player.id()) {
+                        return Some(*player);
+                    }
+                }
+
                 let filtered_ids = players
                     .into_iter()
                     .map(|player| player.id())
                     .collect::<OrdSet<PlayerId>>();
-                let games = tournament.games().iter();
-                let leads = games.map(|game| {
-                    let [lead, ..] = game.players();
-                    lead.id()
-                });
-                let filtered_leads = leads.filter(|id| filtered_ids.contains(id));
+
+                let filtered_leads = leads.into_iter().filter(|id| filtered_ids.contains(id));
                 let enumerated = filtered_leads.enumerate().map(|(game, player)| (player, game));
                 let max_game_id = enumerated.into_grouping_map().max();
                 let (id, _) = max_game_id.into_iter().min_by_key(|(_, i)| *i)?;

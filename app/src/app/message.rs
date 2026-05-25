@@ -3,7 +3,8 @@ use iced::Task;
 
 use crate::{
     App,
-    app::ViewMsg,
+    app::{MenuMsg, ViewMsg},
+    components::play::PlayMode,
     core::{
         file::FileAction,
         state::{AppState, AppStateMsg},
@@ -12,24 +13,25 @@ use crate::{
     effect::Effect,
     home::HomeMsg,
     traits::ComponentUpdate,
-    views::play::PlayMode,
 };
 
 #[derive(Debug, Clone, derive_more::From)]
 pub enum Message {
+    Refresh,
     Nothing,
-    OpenPlay(PlayMode),
+    OpenPlayView(PlayMode),
     AppState(AppStateMsg),
     AppStateLoaded(Option<AppState>),
     Tournament(TournamentAction),
     TournFile(FileAction),
     OpenPlayerDetails(Option<PlayerId>),
-    OpenPlayConfig,
+    OpenMatchmakerConfig,
     OpenGameConfig,
     CloseView,
     #[from(ignore)]
     Error(String),
     Home(HomeMsg),
+    Menu(MenuMsg),
     View(ViewMsg),
     #[from(ignore)]
     OpenLink(String),

@@ -1,0 +1,235 @@
+use edh_tourn::{
+    game::{POD_SIZE, match_player::MatchPlayer},
+    player::RegisteredPlayer,
+    tournament::Tournament,
+};
+use iced::{
+    Alignment, Background, Border, Element, Length, Theme,
+    widget::{button, column, container, pick_list, row, space, table, text},
+};
+use itertools::Itertools;
+use nerd_font_symbols::md::{MD_CARDS, MD_COGS, MD_LINK_VARIANT, MD_LINK_VARIANT_PLUS, MD_TROPHY};
+
+use crate::{
+    components::play::{PlayComponent, PlayComponentMsg, PlayMode, PlayModeType, PlayNextMode},
+    traits::ComponentView,
+};
+
+#[derive(Clone)]
+struct PlayerEntry<'a> {
+    row: usize,
+    player: Option<RegisteredPlayer<'a>>,
+    matchup: Option<MatchPlayer>,
+    selectable: bool,
+}
+
+impl ComponentView for PlayComponent {
+    type ViewContext<'a>
+        = &'a Tournament
+    where
+        Self: 'a;
+
+    fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
+        let mut col = column![self.view_section_options(), self.view_section_players(context),].spacing(10);
+
+        if let Some(submit) = self.view_section_submit(context) {
+            col = col.push(submit);
+        }
+
+        container(col).into()
+    }
+}
+
+impl PlayComponent {
+    fn view_section_options(&self) -> Element<'_, PlayComponentMsg> {
+        row![
+            self.allow_mode_changes.then_some(row![
+                container(text("Mode: ")).padding(button::DEFAULT_PADDING),
+                pick_list(PlayModeType::VALUES, Some(self.mode.get_type()), |mode| {
+                    PlayComponentMsg::SetMode(mode.into())
+                }),
+            ]),
+            match &self.mode {
+                PlayMode::Next { mode } => Some(row![
+                    container(text("Player Mode: ")).padding(button::DEFAULT_PADDING),
+                    pick_list(PlayNextMode::VALUES, Some(mode), |mode| {
+                        PlayComponentMsg::SetNextMode(mode)
+                    }),
+                ]),
+                _ => None,
+            },
+            matches!(&self.mode, PlayMode::Next { .. } | PlayMode::Player(_)).then(|| row![
+                space().width(Length::Fill),
+                button(text(MD_COGS)).on_press(PlayComponentMsg::OpenMatchmakerConfig)
+            ])
+        ]
+        .spacing(5)
+        .padding(10)
+        .into()
+    }
+
+    fn view_section_players<'a>(&self, tournament: &'a Tournament) -> Element<'a, PlayComponentMsg> {
+        let players = tournament
+            .registered_players()
+            .sorted_by(|a, b| {
+                a.info()
+                    .name()
+                    .cmp(b.info().name())
+                    .then_with(|| a.id().cmp(&b.id()))
+            })
+            .collect::<Vec<_>>();
+
+        table(
+            [
+                table::column(text("Player"), |entry: PlayerEntry<'_>| {
+                    row![
+                        button(MD_CARDS)
+                            .on_press_maybe(entry.player.map(|p| PlayComponentMsg::ClickPlayer(p.id())))
+                            .style(button::text),
+                        if entry.selectable {
+                            container(
+                                pick_list(players.clone(), entry.player, move |player| {
+                                    PlayComponentMsg::SetPlayer(entry.row, player.id())
+                                })
+                                .width(Length::Fill),
+                            )
+                        } else if let Some(player) = entry.player {
+                            container(text(player.info().name().to_owned()))
+                                .padding(button::DEFAULT_PADDING)
+                                .style(|theme: &Theme| {
+                                    let palette = theme.extended_palette();
+                                    container::Style {
+                                        background: Some(Background::Color(palette.background.weaker.color)),
+                                        border: Border {
+                                            radius: 2.0.into(),
+                                            width: 1.0,
+                                            color: palette.background.strong.color,
+                                        },
+                                        ..Default::default()
+                                    }
+                                })
+                        } else {
+                            container(text("")).padding(button::DEFAULT_PADDING)
+                        }
+                        .width(Length::Fill)
+                    ]
+                })
+                .width(Length::Fill),
+                table::column(text("Stats"), |entry: PlayerEntry<'_>| {
+                    let Some(player) = entry.matchup else {
+                        return text("");
+                    };
+
+                    let stats = player.stats();
+
+                    let str_wr = stats.wr().map_or_else(
+                        || "--% WR".to_owned(),
+                        |wr| format!("{}% WR", (wr * 100.0).round()),
+                    );
+                    text(format!("{:.0} Elo, {str_wr}", stats.elo()))
+                }),
+                table::column(text("Expected"), |entry: PlayerEntry<'_>| {
+                    let Some(player) = entry.matchup else {
+                        return text("");
+                    };
+
+                    text(format!(
+                        "{}% (+{}/-{})",
+                        (player.expected() * 100f64).round(),
+                        player.elo_win().round(),
+                        player.elo_loss().round()
+                    ))
+                }),
+                table::column(
+                    button(MD_LINK_VARIANT_PLUS)
+                        .on_press_maybe(self.preview.is_some().then_some(PlayComponentMsg::OpenMatchLinks)),
+                    |entry: PlayerEntry<'_>| {
+                        button(MD_LINK_VARIANT).on_press_maybe(
+                            entry
+                                .player
+                                .and_then(|player| player.info().moxfield_goldfish_link())
+                                .map(PlayComponentMsg::OpenLink),
+                        )
+                    },
+                ),
+            ],
+            self.player_entries(tournament),
+        )
+        .width(Length::Fill)
+        .into()
+    }
+
+    fn player_entries<'a>(&self, tournament: &'a Tournament) -> [PlayerEntry<'a>; POD_SIZE] {
+        let matchup = self.preview.as_ref().map(|preview| &preview.matchup);
+        let mut row = 0;
+
+        match &self.mode {
+            PlayMode::Next { .. } => matchup
+                .map_or([const { None }; POD_SIZE], |m| m.players().clone().map(Some))
+                .map(|player| {
+                    let entry = PlayerEntry {
+                        row,
+                        player: player
+                            .as_ref()
+                            .and_then(|p| tournament.get_registered_player(p.id())),
+                        matchup: player,
+                        selectable: false,
+                    };
+                    row += 1;
+                    entry
+                }),
+            PlayMode::Player(_) => {
+                let mut first_selectable = self.allow_mode_changes;
+
+                matchup
+                    .map_or([const { None }; POD_SIZE], |m| m.players().clone().map(Some))
+                    .map(|player| {
+                        let entry = PlayerEntry {
+                            row,
+                            player: player
+                                .as_ref()
+                                .and_then(|p| tournament.get_registered_player(p.id())),
+                            matchup: player,
+                            selectable: first_selectable,
+                        };
+                        row += 1;
+                        first_selectable = false;
+                        entry
+                    })
+            }
+            PlayMode::Custom { players } => players.map(|id| {
+                let entry = PlayerEntry {
+                    row,
+                    matchup: matchup
+                        .and_then(|m| id.map(|i| (i, m)))
+                        .and_then(|(i, m)| m.get_player(i))
+                        .cloned(),
+                    player: id.and_then(|id| tournament.get_registered_player(id)),
+                    selectable: true,
+                };
+                row += 1;
+                entry
+            }),
+        }
+    }
+
+    fn view_section_submit<'a>(&self, tournament: &'a Tournament) -> Option<Element<'a, PlayComponentMsg>> {
+        let Some(preview) = &self.preview else { return None };
+        let players = tournament
+            .get_registered_players(preview.matchup.ids())
+            .collect::<Vec<_>>();
+
+        let winner = preview.winner.and_then(|id| tournament.get_registered_player(id));
+
+        Some(
+            row![
+                container(text(MD_TROPHY).align_y(Alignment::Center)).padding(button::DEFAULT_PADDING),
+                pick_list(players, winner, |player| PlayComponentMsg::SetWinner(player.id())),
+                space().width(Length::Fill),
+                button(text("Submit")).on_press_maybe(winner.is_some().then_some(PlayComponentMsg::Submit))
+            ]
+            .padding(10)
+            .into(),
+        )
+    }
+}

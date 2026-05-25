@@ -1,4 +1,5 @@
 pub mod app;
+pub mod components;
 pub mod core;
 pub mod effect;
 pub mod fonts;
@@ -24,6 +25,7 @@ pub struct App {
     tournament: Tournament,
     modified: bool,
     is_saving: bool,
+    menu: app::Menu,
     home: home::Home,
     file: Option<PathBuf>,
     views: Vec<View>,
