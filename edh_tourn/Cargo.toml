@@ -20,7 +20,7 @@ auto-const-array = "0.2.2"
 [dev-dependencies]
 edh_tourn = {path=".", features=["dev"]}
 toml = "1.1.2"
-serde_json = "1.0.149"
+serde_json = "1.0.150"
 approx = "0.5.1"
 
 [lints]
