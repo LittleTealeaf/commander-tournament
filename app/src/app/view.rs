@@ -176,13 +176,13 @@ impl App {
             .overlay(content);
         }
 
-        if let Some(msg) = &self.overwrite_requested {
+        if self.overwrite_requested.is_some() {
             return Popup::new(
                 "Overwrite Tournament?",
                 text("All saved changes will be lost").into(),
                 vec![
                     button("Cancel").on_press(Message::ClearOverwrite).into(),
-                    button("Confirm").on_press(Message::TournFile(msg.clone())).into(),
+                    button("Confirm").on_press(Message::ConfirmOverwrite).into(),
                 ],
             )
             .overlay(content);

@@ -34,6 +34,7 @@ pub enum Message {
     #[from(ignore)]
     OpenLink(String),
     ClearError,
+    ConfirmOverwrite,
     ClearOverwrite,
     QuitRequested,
     QuitConfirm(bool),

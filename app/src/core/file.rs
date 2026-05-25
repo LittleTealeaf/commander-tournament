@@ -96,13 +96,6 @@ impl HandleMessage<FileAction> for App {
                 if self.modified {
                     self.overwrite_requested = Some(FileAction::New);
                     Effect::done()
-                    // Effect::confirm(
-                    //     "Overwrite Tournament?".to_owned(),
-                    //     "All unsaved changes will be lost".to_owned(),
-                    //     Message::TournFile(FileAction::New),
-                    //     None,
-                    // )
-                    // .ok()
                 } else {
                     Effect::msg(FileAction::New).ok()
                 }

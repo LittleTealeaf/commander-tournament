@@ -105,6 +105,11 @@ impl ComponentUpdate for App {
                 self.overwrite_requested = None;
                 Effect::done()
             }
+            Message::ConfirmOverwrite => {
+                let mut overwrite = None;
+                core::mem::swap(&mut overwrite, &mut self.overwrite_requested);
+                overwrite.map_or(Ok(Effect::Done), |action| self.handle_message(action, ()))
+            }
         }
     }
 }
