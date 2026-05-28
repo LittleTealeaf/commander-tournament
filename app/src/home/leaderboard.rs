@@ -9,10 +9,7 @@ use iced::{
     widget::{button, container, row, scrollable, space, table, text, text_input},
 };
 use itertools::Itertools;
-use nerd_font_symbols::{
-    md::{MD_ARROW_DOWN, MD_ARROW_UP, MD_SWORD_CROSS},
-    oct::OCT_SEARCH,
-};
+use nerd_font_symbols::md::{MD_ARROW_DOWN, MD_ARROW_UP, MD_SWORD_CROSS};
 
 use crate::{
     effect::Effect,
