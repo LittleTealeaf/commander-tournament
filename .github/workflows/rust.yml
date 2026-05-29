@@ -33,7 +33,7 @@ jobs:
       uses: baptiste0928/cargo-install@v3
       with:
         crate: sarif-fmt
-    - name: Run rust-clippy
+    - name: Run Clippy
       run: cargo clippy --all --no-deps --all-features --message-format=json -- -W clippy::todo | sort | uniq | clippy-sarif | tee rust-clippy-results.sarif | sarif-fmt
       continue-on-error: true
     - name: Upload analysis results to GitHub
@@ -136,11 +136,3 @@ jobs:
       run: cargo test --all --verbose
     - name: Build
       run: cargo build --all --verbose --release
-    - name: Upload Release Artifact
-      if: github.event_name == 'push'
-      uses: actions/upload-artifact@v7
-      with:
-        name: "commander-tournament-${{ matrix.os }}"
-        path: |
-          target/release/commander-tournament
-          target/release/commander-tournament.exe
