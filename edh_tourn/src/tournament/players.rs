@@ -154,6 +154,17 @@ impl Tournament {
         self.players().get(id)
     }
 
+    pub fn update_player_info<F>(&mut self, id: &PlayerId, modifier: F) -> Result<(), TournamentError>
+    where
+        F: Fn(PlayerInfo) -> PlayerInfo,
+    {
+        let Some(info) = self.players.get(id) else {
+            return Err(TournamentError::InvalidPlayerId(*id));
+        };
+
+        self.set_player_info(*id, modifier(info.clone()))
+    }
+
     #[must_use]
     pub fn get_player_name(&self, id: &PlayerId) -> Option<&String> {
         self.get_player_info(id).map(PlayerInfo::name)

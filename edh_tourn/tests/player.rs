@@ -131,6 +131,37 @@ mod set_player_info {
     }
 }
 
+mod update_player_info {
+    use super::*;
+
+    #[test]
+    fn change_color() {
+        let mut t = Tournament::new();
+        let id = t.register_debug_player().unwrap();
+        t.update_player_info(&id, |info| info.with_color_identity(ColorIdentity::BLACK))
+            .unwrap();
+        let color = t.get_player_info(&id).unwrap().color_identity();
+        assert_eq!(color, ColorIdentity::BLACK);
+    }
+
+    #[test]
+    fn invalid_id() {
+        let mut t = Tournament::new();
+        let id = t.register_debug_player().unwrap();
+        t.unregister_player(id).unwrap();
+        t.update_player_info(&id, |info| info.with_color_identity(ColorIdentity::BLACK))
+            .unwrap_err();
+    }
+
+    #[test]
+    fn invalid_name() {
+        let mut t = Tournament::new();
+        let id = t.register_debug_player().unwrap();
+        t.update_player_info(&id, |info| info.with_name(String::new()))
+            .unwrap_err();
+    }
+}
+
 mod unregister_player {
     use super::*;
 

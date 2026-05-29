@@ -93,6 +93,11 @@ impl PlayerInfo {
         self.name = name;
     }
 
+    #[must_use]
+    pub fn with_name(self, name: String) -> Self {
+        Self { name, ..self }
+    }
+
     pub fn set_description(&mut self, description: String) {
         self.description = description;
     }
