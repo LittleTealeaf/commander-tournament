@@ -115,12 +115,6 @@ jobs:
         with:
           lcov-file: combined_lcov.info
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: PR Coverage Report
-        uses: kefasjw/lcov-pull-request-report@v1
-        with:
-          lcov-file: ${{ github.workspace }}/merged-coverage/lcov.info
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
 
   build:
     name: Build
