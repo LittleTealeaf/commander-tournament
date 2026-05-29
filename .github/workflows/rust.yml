@@ -120,7 +120,8 @@ jobs:
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
-            📊 **[View Full Coverage Outputs & Job Summary](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})**         github-token: ${{ secrets.GITHUB_TOKEN }}
+            📊 **[View Full Coverage Outputs & Job Summary](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})**
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
   build:
     name: Build
