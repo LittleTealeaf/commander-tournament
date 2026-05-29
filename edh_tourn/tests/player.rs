@@ -1,6 +1,6 @@
 //! Tests for Player, Player Registration, Player Info
 use edh_tourn::{
-    player::{color::ColorIdentity, info::PlayerInfo},
+    player::{PlayerId, color::ColorIdentity, info::PlayerInfo},
     tournament::Tournament,
 };
 
@@ -311,6 +311,43 @@ mod update_or_register {
             ColorIdentity::BLUE,
             "Info was not properly specified"
         );
+    }
+}
+
+mod get_registered_players {
+
+    use super::*;
+
+    #[test]
+    fn includes_each_id() {
+        let mut tourn = Tournament::new();
+        let ids: [PlayerId; 7] = tourn.register_debug_players().unwrap();
+        let collected = tourn.get_registered_players(ids).collect::<Vec<_>>();
+        for id in ids {
+            assert!(collected.iter().any(|i| i.id() == id));
+        }
+    }
+
+    #[test]
+    fn includes_only_specified_ids() {
+        let mut tourn = Tournament::new();
+        let ids: [PlayerId; 7] = tourn.register_debug_players().unwrap();
+        let [first, others @ ..] = ids;
+        let collected = tourn.get_registered_players(others).collect::<Vec<_>>();
+
+        for p in collected {
+            assert_ne!(p.id(), first);
+        }
+    }
+
+    #[test]
+    fn invalid_players_filter_out() {
+        let mut tourn = Tournament::new();
+        let ids: [PlayerId; 7] = tourn.register_debug_players().unwrap();
+        for id in ids {
+            tourn.unregister_player(id).unwrap();
+        }
+        assert!(tourn.get_registered_players(ids).next().is_none());
     }
 }
 
