@@ -115,6 +115,7 @@ jobs:
         uses: kefasjw/lcov-pull-request-report@v1
         with:
           lcov-file: combined_lcov.info
+          github-token: ${{ github.token }}
 
   build:
     name: Build
