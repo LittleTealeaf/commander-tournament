@@ -66,12 +66,52 @@ jobs:
         crate: cargo-llvm-cov
     - name: Generate Coverage Output
       run: cargo llvm-cov test -p ${{ matrix.package }} --no-fail-fast --all-features --lcov --output-path lcov_raw.info
+    - name: Prepare Coverage Outputs
+      run: cp lcov_raw.info lcov-${{ matrix.package }}.info
+    - name: Upload LCOV Artifact
+      uses: actions/upload-artifact@v7
+      with:
+        name: lcov-${{ matrix.package }}
+        path: lcov-${{ matrix.package }}.info
+        retention-days: 1
     - name: Filter and Format Coverages
       run: chmod +x .github/workflows/coverages.bash && .github/workflows/coverages.bash
-    - name: Upload to Summary
+    - name: Print to Job Summary
       uses: livewing/lcov-job-summary@v1.3.0
       with:
         lcov: lcov.info
+  
+  report-coverage:
+    name: PR Coverage Report
+    needs: [coverage]
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+      - name: Download LCOV Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: locv-*
+          path: coverage-reports
+          merge-multiple: true
+      - name: Merge Coverage Reports
+        uses: selfagency/merge-coverage@v2
+        with:
+          source: ${{ github.workspace }}
+          coverage-reports: ${{ github.workspace }}/coverage-reports
+          output-folder: ${{ github.workspace }}/merged-coverage
+          formats: lcov
+          artifacts: false
+      - name: PR Coverage Report
+        uses: kefasjw/lcov-pull-request-report@v1
+        with:
+          lcov-file: ${{ github.workspace }}/merged-coverage/lcov.info
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
 
   build:
     name: Build
