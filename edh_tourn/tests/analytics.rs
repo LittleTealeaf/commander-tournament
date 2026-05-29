@@ -1,8 +1,4 @@
-use edh_tourn::{
-    error::TournamentError,
-    player::{color::ColorIdentity, info::PlayerInfo},
-    tournament::Tournament,
-};
+use edh_tourn::{error::TournamentError, player::color::ColorIdentity, tournament::Tournament};
 
 mod aggregated_identity {
     use approx::assert_relative_eq;
