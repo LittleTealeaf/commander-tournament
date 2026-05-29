@@ -156,7 +156,7 @@ impl Tournament {
 
     pub fn update_player_info<F>(&mut self, id: &PlayerId, modifier: F) -> Result<(), TournamentError>
     where
-        F: Fn(PlayerInfo) -> PlayerInfo,
+        F: FnOnce(PlayerInfo) -> PlayerInfo,
     {
         let Some(info) = self.players.get(id) else {
             return Err(TournamentError::InvalidPlayerId(*id));

@@ -83,7 +83,7 @@ jobs:
         lcov: lcov.info
   
   report-coverage:
-    name: PR Coverage Report
+    name: Pull Request Coverage Report
     needs: [coverage]
     if: github.event_name == 'pull_request'
     permissions:
