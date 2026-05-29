@@ -5,7 +5,7 @@ use app::{
 use iced::{Application, Theme, application, window};
 
 fn main() -> iced::Result {
-    let settings = window::Settings {
+            let settings = window::Settings {
         exit_on_close_request: false,
         ..Default::default()
     };
@@ -19,7 +19,7 @@ fn main() -> iced::Result {
     // Fonts and Theme
     let app = FONT_BYTES
         .into_iter()
-        .fold(app, Application::font)
+        .fold(app, |app, font| app.font(font))
         .default_font(FONT_NORMAL)
         .theme(Theme::CatppuccinMocha);
 

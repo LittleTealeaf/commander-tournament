@@ -47,7 +47,8 @@ jobs:
   coverage:
     name: Test Coverage
     runs-on: ubuntu-latest
-    needs: [lint]
+    env:
+      RUSTFLAGS: "-A warnings"
     strategy:
       fail-fast: false
       matrix:
@@ -121,7 +122,6 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest, windows-11-arm]
-    needs: [lint]
     runs-on: ${{matrix.os}}
     env:
       RUSTFLAGS: "-A warnings"
