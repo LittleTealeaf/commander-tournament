@@ -6,15 +6,25 @@ use edh_tourn::{
 };
 use iced::{
     Length, Padding,
-    widget::{button, container, row, scrollable, space, table, text},
+    widget::{button, column, container, row, scrollable, space, table, text, text_input},
 };
 use itertools::Itertools;
-use nerd_font_symbols::md::{MD_ARROW_DOWN, MD_ARROW_UP, MD_SWORD_CROSS};
+use nerd_font_symbols::{
+    md::{MD_ARROW_DOWN, MD_ARROW_UP, MD_SWORD_CROSS},
+    oct::OCT_SEARCH,
+};
 
 use crate::{
     effect::Effect,
     traits::{Component, ComponentUpdate, ComponentView},
 };
+
+#[derive(Debug, Clone, Default)]
+pub struct Leaderboard {
+    column: Column,
+    direction: SortDirection,
+    search: Option<String>,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub enum Column {
@@ -43,18 +53,13 @@ impl SortDirection {
     }
 }
 
-#[derive(Debug, Clone, Default)]
-pub struct Leaderboard {
-    column: Column,
-    direction: SortDirection,
-}
-
 #[derive(Debug, Clone)]
 pub enum LeaderboardMsg {
     Sort(Column),
     NewPlayer,
     OpenPlayer(PlayerId),
     RankPlayer(PlayerId),
+    SetSearch(Option<String>),
 }
 
 #[derive(Debug, Clone)]
@@ -104,6 +109,10 @@ impl ComponentUpdate for Leaderboard {
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         match message {
+            LeaderboardMsg::SetSearch(search) => {
+                self.search = search;
+                Effect::done()
+            }
             LeaderboardMsg::OpenPlayer(id) => Effect::out(LeaderboardOut::OpenPlayerDetails(id)).ok(),
             LeaderboardMsg::NewPlayer => Effect::out(LeaderboardOut::OpenNewPlayer).ok(),
             LeaderboardMsg::RankPlayer(id) => Effect::Out(LeaderboardOut::RankPlayer(id)).ok(),
@@ -131,7 +140,15 @@ impl ComponentView for Leaderboard {
         Self: 'a;
 
     fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
-        let players = self.sort_players(context.registered_players());
+        let search = self
+            .search
+            .as_ref()
+            .map_or_else(String::new, |search| search.to_lowercase());
+        let players = self.sort_players(
+            context
+                .registered_players()
+                .filter(|value| search.is_empty() || value.info().name().to_lowercase().contains(&search)),
+        );
 
         let ord_char = match self.direction {
             SortDirection::Ascending => MD_ARROW_UP,
@@ -148,13 +165,30 @@ impl ComponentView for Leaderboard {
             .on_press(LeaderboardMsg::Sort(col))
         };
 
+        let search = self.search.as_ref().map(|search| {
+            text_input("Filter...", search).on_input(|value| LeaderboardMsg::SetSearch(Some(value)))
+        });
+
         let tbl = table(
             [
-                table::column(col_header("Name", Column::Name), |p: RegisteredPlayer<'_>| {
-                    button(text(p.info().display_name()).size(12))
-                        .style(button::text)
-                        .on_press(LeaderboardMsg::OpenPlayer(p.id()))
-                }),
+                table::column(
+                    row![
+                        col_header("Name", Column::Name),
+                        space().width(Length::Fill),
+                        button(OCT_SEARCH)
+                            .on_press(if self.search.is_some() {
+                                LeaderboardMsg::SetSearch(None)
+                            } else {
+                                LeaderboardMsg::SetSearch(Some(String::new()))
+                            })
+                            .style(button::text)
+                    ],
+                    |p: RegisteredPlayer<'_>| {
+                        button(text(p.info().display_name()).size(12))
+                            .style(button::text)
+                            .on_press(LeaderboardMsg::OpenPlayer(p.id()))
+                    },
+                ),
                 table::column(col_header("Elo", Column::Elo), |p: RegisteredPlayer<'_>| {
                     text(format!("{:.0}", p.stats().elo())).size(12)
                 }),
@@ -186,10 +220,13 @@ impl ComponentView for Leaderboard {
         )
         .width(Length::Fill);
 
-        container(scrollable(row![tbl, space().width(15)]))
-            .padding(Padding::new(10f32))
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .into()
+        container(scrollable(row![
+            column![search, tbl].spacing(5),
+            space().width(15)
+        ]))
+        .padding(Padding::new(10f32))
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .into()
     }
 }
