@@ -200,10 +200,7 @@ impl PlayComponent {
             PlayMode::Custom { players } => players.map(|id| {
                 let entry = PlayerEntry {
                     row,
-                    matchup: matchup
-                        .and_then(|m| id.map(|i| (i, m)))
-                        .and_then(|(i, m)| m.get_player(i))
-                        .cloned(),
+                    matchup: id.zip(matchup).and_then(|(i, m)| m.get_player(i)).cloned(),
                     player: id.and_then(|id| tournament.get_registered_player(id)),
                     selectable: true,
                 };
