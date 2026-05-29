@@ -115,13 +115,6 @@ jobs:
         uses: kefasjw/lcov-pull-request-report@v1
         with:
           lcov-file: combined_lcov.info
-      - name: Add PR Comment for Coverage Output Link
-        uses: peter-evans/create-or-update-comment@v4
-        with:
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            📊 **[View Full Coverage Outputs & Job Summary](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})**
-          github-token: ${{ secrets.GITHUB_TOKEN }}
 
   build:
     name: Build
