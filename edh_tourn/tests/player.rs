@@ -1,6 +1,6 @@
 //! Tests for Player, Player Registration, Player Info
 use edh_tourn::{
-    player::{color::ColorIdentity, info::PlayerInfo},
+    player::{PlayerId, color::ColorIdentity, info::PlayerInfo},
     tournament::Tournament,
 };
 
@@ -128,6 +128,37 @@ mod set_player_info {
         t.set_player_info(id, info).unwrap();
         assert!(t.get_player_id(&"abc".to_owned()).is_none());
         assert_eq!(id, t.get_player_id(&"def".to_owned()).unwrap());
+    }
+}
+
+mod update_player_info {
+    use super::*;
+
+    #[test]
+    fn change_color() {
+        let mut t = Tournament::new();
+        let id = t.register_debug_player().unwrap();
+        t.update_player_info(&id, |info| info.with_color_identity(ColorIdentity::BLACK))
+            .unwrap();
+        let color = t.get_player_info(&id).unwrap().color_identity();
+        assert_eq!(color, ColorIdentity::BLACK);
+    }
+
+    #[test]
+    fn invalid_id() {
+        let mut t = Tournament::new();
+        let id = t.register_debug_player().unwrap();
+        t.unregister_player(id).unwrap();
+        t.update_player_info(&id, |info| info.with_color_identity(ColorIdentity::BLACK))
+            .unwrap_err();
+    }
+
+    #[test]
+    fn invalid_name() {
+        let mut t = Tournament::new();
+        let id = t.register_debug_player().unwrap();
+        t.update_player_info(&id, |info| info.with_name(String::new()))
+            .unwrap_err();
     }
 }
 
@@ -280,6 +311,43 @@ mod update_or_register {
             ColorIdentity::BLUE,
             "Info was not properly specified"
         );
+    }
+}
+
+mod get_registered_players {
+
+    use super::*;
+
+    #[test]
+    fn includes_each_id() {
+        let mut tourn = Tournament::new();
+        let ids: [PlayerId; 7] = tourn.register_debug_players().unwrap();
+        let collected = tourn.get_registered_players(ids).collect::<Vec<_>>();
+        for id in ids {
+            assert!(collected.iter().any(|i| i.id() == id));
+        }
+    }
+
+    #[test]
+    fn includes_only_specified_ids() {
+        let mut tourn = Tournament::new();
+        let ids: [PlayerId; 7] = tourn.register_debug_players().unwrap();
+        let [first, others @ ..] = ids;
+        let collected = tourn.get_registered_players(others).collect::<Vec<_>>();
+
+        for p in collected {
+            assert_ne!(p.id(), first);
+        }
+    }
+
+    #[test]
+    fn invalid_players_filter_out() {
+        let mut tourn = Tournament::new();
+        let ids: [PlayerId; 7] = tourn.register_debug_players().unwrap();
+        for id in ids {
+            tourn.unregister_player(id).unwrap();
+        }
+        assert!(tourn.get_registered_players(ids).next().is_none());
     }
 }
 
