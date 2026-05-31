@@ -42,7 +42,7 @@ impl ComponentUpdate for PlayComponent {
                     if row != 0 {
                         return Err(anyhow::anyhow!("Only the first player is editable"));
                     }
-                    *player_id = Some(id);
+                    *player_id = id;
                     self.refresh(context);
                     Effect::done()
                 }

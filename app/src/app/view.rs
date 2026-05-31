@@ -85,7 +85,7 @@ impl ComponentUpdate for View {
                     .chain(CLOSE_VIEW)
                     .ok(),
                     PlayerDetailsOut::OpenPlayerMatches(player_id) => {
-                        Effect::out(Message::OpenPlayView(PlayMode::player(player_id))).ok()
+                        Effect::out(Message::OpenPlayView(PlayMode::Player(player_id))).ok()
                     }
                     PlayerDetailsOut::Close => CLOSE_VIEW.ok(),
                 })

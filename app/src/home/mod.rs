@@ -111,9 +111,10 @@ impl Home {
                         ]
                     }
                     PlayMode::Player(player) => {
-                        let name = player
-                            .and_then(|id| context.get_player_name(&id))
-                            .map_or_else(|| "Player Game".to_owned(), |name| format!("Play Game: {name}"));
+                        let name = context.get_player_name(player).map_or_else(
+                            || "Player Game: <Unknown>".to_owned(),
+                            |name| format!("Play Game: {name}"),
+                        );
 
                         row![
                             button(MD_CLOSE).on_press(HomeMsg::SetPlayMode(PlayMode::next())),
@@ -152,11 +153,9 @@ impl ComponentUpdate for Home {
             HomeMsg::OpenMatchmakerConfig => Effect::out(HomeOut::OpenMatchmakerConfig).ok(),
             HomeMsg::Refresh => Effect::msg(HomeMsg::Play(PlayComponentMsg::Refresh)).ok(),
             HomeMsg::Leaderboard(message) => self.leaderboard.map_update(message, (), |msg| match msg {
-                LeaderboardOut::RankPlayer(id) => {
-                    Effect::msg(HomeMsg::SetPlayMode(PlayMode::Player(Some(id))))
-                        .merge(Effect::msg(HomeMsg::SetTab(HomeTab::PlayGame)))
-                        .ok()
-                }
+                LeaderboardOut::RankPlayer(id) => Effect::msg(HomeMsg::SetPlayMode(PlayMode::Player(id)))
+                    .merge(Effect::msg(HomeMsg::SetTab(HomeTab::PlayGame)))
+                    .ok(),
                 LeaderboardOut::OpenPlayerDetails(player_id) => {
                     Effect::out(HomeOut::OpenPlayerDetails(player_id)).ok()
                 }

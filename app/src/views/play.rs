@@ -87,7 +87,8 @@ impl ViewScreen for PlayView {
         match &self.0.mode() {
             PlayMode::Player(id) => format!(
                 "Play: {}",
-                id.and_then(|id| context.get_player_name(&id))
+                context
+                    .get_player_name(id)
                     .map_or("Unknown Player", |id| id.as_ref())
             ),
             PlayMode::Next { .. } => "Play Tournament".to_owned(),
