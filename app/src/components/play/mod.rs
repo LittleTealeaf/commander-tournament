@@ -27,6 +27,26 @@ impl PlayComponent {
     pub const fn mode(&self) -> &PlayMode {
         &self.mode
     }
+
+    pub fn refresh(&mut self, tournament: &Tournament) {
+        self.preview = self.mode.create_matchup(tournament).map(|matchup| MatchPreview {
+            matchup,
+            winner: None,
+        });
+    }
+
+    pub fn set_mode(&mut self, mode: PlayMode, tournament: &Tournament) {
+        self.mode = mode;
+        self.refresh(tournament);
+    }
+
+    pub fn set_next_mode(&mut self, next_mode: PlayNextMode, tournament: &Tournament) {
+        let PlayMode::Next(mode) = &mut self.mode else {
+            return;
+        };
+        *mode = next_mode;
+        self.refresh(tournament);
+    }
 }
 
 #[derive(Debug, Clone)]

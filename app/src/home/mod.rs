@@ -7,7 +7,7 @@ use nerd_font_symbols::md::{MD_CLOSE, MD_COGS};
 
 use crate::{
     components::{
-        play::{PlayComponent, PlayComponentMsg, PlayComponentOut, PlayMode, PlayModeType, PlayNextMode},
+        play::{PlayComponent, PlayComponentMsg, PlayComponentOut, PlayMode, PlayNextMode},
         tab_bar,
     },
     effect::Effect,
@@ -41,7 +41,7 @@ pub enum HomeMsg {
     SetTab(HomeTab),
     Play(PlayComponentMsg),
     SelectPlayNextMode(PlayNextMode),
-    SetPlayMode(PlayModeType),
+    SetPlayMode(PlayMode),
     OpenMatchmakerConfig,
 }
 
@@ -100,12 +100,12 @@ impl Home {
                                 HomeMsg::SelectPlayNextMode(select)
                             }),
                             space().width(Length::Fill),
-                            button("Custom").on_press(HomeMsg::SetPlayMode(PlayModeType::Custom))
+                            button("Custom").on_press(HomeMsg::SetPlayMode(PlayMode::custom()))
                         ]
                     }
                     PlayMode::Custom(_) => {
                         row![
-                            button(MD_CLOSE).on_press(HomeMsg::SetPlayMode(PlayModeType::Next)),
+                            button(MD_CLOSE).on_press(HomeMsg::SetPlayMode(PlayMode::next())),
                             container(text("Custom Game")).padding(button::DEFAULT_PADDING),
                             space().width(Length::Fill),
                         ]
@@ -116,7 +116,7 @@ impl Home {
                             .map_or_else(|| "Player Game".to_owned(), |name| format!("Play Game: {name}"));
 
                         row![
-                            button(MD_CLOSE).on_press(HomeMsg::SetPlayMode(PlayModeType::Next)),
+                            button(MD_CLOSE).on_press(HomeMsg::SetPlayMode(PlayMode::next())),
                             container(text(name)).padding(button::DEFAULT_PADDING),
                             space().width(Length::Fill),
                         ]
@@ -141,13 +141,19 @@ impl ComponentUpdate for Home {
         context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         match message {
-            HomeMsg::SetPlayMode(mode_type) => Effect::msg(PlayComponentMsg::SetMode(mode_type.into())).ok(),
-            HomeMsg::SelectPlayNextMode(mode) => Effect::msg(PlayComponentMsg::SetNextMode(mode)).ok(),
+            HomeMsg::SetPlayMode(mode_type) => {
+                self.play.set_mode(mode_type, context);
+                Effect::done()
+            }
+            HomeMsg::SelectPlayNextMode(mode) => {
+                self.play.set_next_mode(mode, context);
+                Effect::done()
+            }
             HomeMsg::OpenMatchmakerConfig => Effect::out(HomeOut::OpenMatchmakerConfig).ok(),
             HomeMsg::Refresh => Effect::msg(HomeMsg::Play(PlayComponentMsg::Refresh)).ok(),
             HomeMsg::Leaderboard(message) => self.leaderboard.map_update(message, (), |msg| match msg {
                 LeaderboardOut::RankPlayer(id) => {
-                    Effect::msg(PlayComponentMsg::SetMode(PlayMode::Player(Some(id))))
+                    Effect::msg(HomeMsg::SetPlayMode(PlayMode::Player(Some(id))))
                         .merge(Effect::msg(HomeMsg::SetTab(HomeTab::PlayGame)))
                         .ok()
                 }
