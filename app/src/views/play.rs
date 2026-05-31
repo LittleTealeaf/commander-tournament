@@ -13,7 +13,7 @@ pub struct PlayView(PlayComponent);
 impl PlayView {
     #[must_use]
     pub fn new(mode: PlayMode, tournament: &Tournament) -> Self {
-        Self(PlayComponent::new(mode, false, tournament))
+        Self(PlayComponent::new(mode, tournament))
     }
 }
 
@@ -50,7 +50,6 @@ impl ComponentUpdate for PlayView {
                     PlayComponentOut::OpenPlayer(player_id) => PlayViewOut::OpenPlayer(player_id),
                     PlayComponentOut::OpenLink(link) => PlayViewOut::OpenLink(link),
                     PlayComponentOut::RecordGame(game_record) => PlayViewOut::RecordGame(game_record),
-                    PlayComponentOut::OpenMatchmakerConfig => PlayViewOut::OpenMatchmakerConfig,
                 })
                 .ok()
             }),

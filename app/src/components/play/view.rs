@@ -8,10 +8,10 @@ use iced::{
     widget::{button, column, container, pick_list, row, space, table, text},
 };
 use itertools::Itertools;
-use nerd_font_symbols::md::{MD_CARDS, MD_COGS, MD_LINK_VARIANT, MD_LINK_VARIANT_PLUS, MD_TROPHY};
+use nerd_font_symbols::md::{MD_CARDS, MD_LINK_VARIANT, MD_LINK_VARIANT_PLUS, MD_TROPHY};
 
 use crate::{
-    components::play::{PlayComponent, PlayComponentMsg, PlayMode, PlayModeType, PlayNextMode},
+    components::play::{PlayComponent, PlayComponentMsg, PlayMode},
     traits::ComponentView,
 };
 
@@ -20,7 +20,6 @@ struct PlayerEntry<'a> {
     row: usize,
     player: Option<RegisteredPlayer<'a>>,
     matchup: Option<MatchPlayer>,
-    selectable: bool,
 }
 
 impl ComponentView for PlayComponent {
@@ -30,54 +29,34 @@ impl ComponentView for PlayComponent {
         Self: 'a;
 
     fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
-        let mut col = column![self.view_section_options(), self.view_section_players(context),].spacing(10);
-
-        if let Some(submit) = self.view_section_submit(context) {
-            col = col.push(submit);
-        }
-
-        container(col).into()
+        container(
+            column![
+                self.view_section_players(context),
+                self.view_section_submit(context)
+            ]
+            .spacing(10),
+        )
+        .into()
     }
 }
 
 impl PlayComponent {
-    fn view_section_options(&self) -> Element<'_, PlayComponentMsg> {
-        row![
-            self.allow_mode_changes.then_some(row![
-                container(text("Mode: ")).padding(button::DEFAULT_PADDING),
-                pick_list(PlayModeType::VALUES, Some(self.mode.get_type()), |mode| {
-                    PlayComponentMsg::SetMode(mode.into())
-                }),
-            ]),
-            match &self.mode {
-                PlayMode::Next(mode) => Some(row![
-                    container(text("Player Mode: ")).padding(button::DEFAULT_PADDING),
-                    pick_list(PlayNextMode::VALUES, Some(mode), |mode| {
-                        PlayComponentMsg::SetNextMode(mode)
-                    }),
-                ]),
-                _ => None,
-            },
-            matches!(&self.mode, PlayMode::Next { .. } | PlayMode::Player(_)).then(|| row![
-                space().width(Length::Fill),
-                button(text(MD_COGS)).on_press(PlayComponentMsg::OpenMatchmakerConfig)
-            ])
-        ]
-        .spacing(5)
-        .padding(10)
-        .into()
-    }
-
     fn view_section_players<'a>(&self, tournament: &'a Tournament) -> Element<'a, PlayComponentMsg> {
-        let players = tournament
-            .registered_players()
-            .sorted_by(|a, b| {
-                a.info()
-                    .name()
-                    .cmp(b.info().name())
-                    .then_with(|| a.id().cmp(&b.id()))
-            })
-            .collect::<Vec<_>>();
+        let modifyable = matches!(self.mode, PlayMode::Custom(_));
+
+        let select_players = if modifyable {
+            tournament
+                .registered_players()
+                .sorted_by(|a, b| {
+                    a.info()
+                        .name()
+                        .cmp(b.info().name())
+                        .then_with(|| a.id().cmp(&b.id()))
+                })
+                .collect()
+        } else {
+            Vec::new()
+        };
 
         table(
             [
@@ -86,9 +65,9 @@ impl PlayComponent {
                         button(MD_CARDS)
                             .on_press_maybe(entry.player.map(|p| PlayComponentMsg::ClickPlayer(p.id())))
                             .style(button::text),
-                        if entry.selectable {
+                        if modifyable {
                             container(
-                                pick_list(players.clone(), entry.player, move |player| {
+                                pick_list(select_players.clone(), entry.player, move |player| {
                                     PlayComponentMsg::SetPlayer(entry.row, player.id())
                                 })
                                 .width(Length::Fill),
@@ -164,7 +143,16 @@ impl PlayComponent {
         let mut row = 0;
 
         match &self.mode {
-            PlayMode::Next { .. } => matchup
+            PlayMode::Custom(players) => players.map(|id| {
+                let entry = PlayerEntry {
+                    row,
+                    matchup: id.zip(matchup).and_then(|(i, m)| m.get_player(i)).cloned(),
+                    player: id.and_then(|id| tournament.get_registered_player(id)),
+                };
+                row += 1;
+                entry
+            }),
+            _ => matchup
                 .map_or([const { None }; POD_SIZE], |m| m.players().clone().map(Some))
                 .map(|player| {
                     let entry = PlayerEntry {
@@ -173,40 +161,10 @@ impl PlayComponent {
                             .as_ref()
                             .and_then(|p| tournament.get_registered_player(p.id())),
                         matchup: player,
-                        selectable: false,
                     };
                     row += 1;
                     entry
                 }),
-            PlayMode::Player(_) => {
-                let mut first_selectable = self.allow_mode_changes;
-
-                matchup
-                    .map_or([const { None }; POD_SIZE], |m| m.players().clone().map(Some))
-                    .map(|player| {
-                        let entry = PlayerEntry {
-                            row,
-                            player: player
-                                .as_ref()
-                                .and_then(|p| tournament.get_registered_player(p.id())),
-                            matchup: player,
-                            selectable: first_selectable,
-                        };
-                        row += 1;
-                        first_selectable = false;
-                        entry
-                    })
-            }
-            PlayMode::Custom(players) => players.map(|id| {
-                let entry = PlayerEntry {
-                    row,
-                    matchup: id.zip(matchup).and_then(|(i, m)| m.get_player(i)).cloned(),
-                    player: id.and_then(|id| tournament.get_registered_player(id)),
-                    selectable: true,
-                };
-                row += 1;
-                entry
-            }),
         }
     }
 
