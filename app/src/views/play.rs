@@ -1,4 +1,6 @@
 use edh_tourn::{game::record::GameRecord, player::PlayerId, tournament::Tournament};
+use iced::widget::button;
+use nerd_font_symbols::md::MD_COGS;
 
 use crate::{
     components::play::{PlayComponent, PlayComponentMsg, PlayComponentOut, PlayMode},
@@ -13,13 +15,14 @@ pub struct PlayView(PlayComponent);
 impl PlayView {
     #[must_use]
     pub fn new(mode: PlayMode, tournament: &Tournament) -> Self {
-        Self(PlayComponent::new(mode, false, tournament))
+        Self(PlayComponent::new(mode, tournament))
     }
 }
 
 #[derive(Debug, Clone, derive_more::From)]
 pub enum PlayViewMsg {
     Play(PlayComponentMsg),
+    OpenMatchmakerConfig,
     Close,
 }
 
@@ -50,11 +53,11 @@ impl ComponentUpdate for PlayView {
                     PlayComponentOut::OpenPlayer(player_id) => PlayViewOut::OpenPlayer(player_id),
                     PlayComponentOut::OpenLink(link) => PlayViewOut::OpenLink(link),
                     PlayComponentOut::RecordGame(game_record) => PlayViewOut::RecordGame(game_record),
-                    PlayComponentOut::OpenMatchmakerConfig => PlayViewOut::OpenMatchmakerConfig,
                 })
                 .ok()
             }),
             PlayViewMsg::Close => Effect::out(PlayViewOut::Close).ok(),
+            PlayViewMsg::OpenMatchmakerConfig => Effect::out(PlayViewOut::OpenMatchmakerConfig).ok(),
         }
     }
 }
@@ -73,11 +76,19 @@ impl ViewScreen for PlayView {
     const CLOSE_MESSAGE: Self::Message = PlayViewMsg::Close;
     const ON_RESUME: Option<Self::Message> = Some(PlayViewMsg::Play(PlayComponentMsg::Refresh));
 
+    fn secondary_actions<'a>(
+        &'a self,
+        _: Self::ViewContext<'a>,
+    ) -> impl IntoIterator<Item = iced::widget::Button<'a, Self::Message>> {
+        [button(MD_COGS).on_press(PlayViewMsg::OpenMatchmakerConfig)]
+    }
+
     fn title<'a>(&'a self, context: Self::ViewContext<'a>) -> String {
         match &self.0.mode() {
             PlayMode::Player(id) => format!(
                 "Play: {}",
-                id.and_then(|id| context.get_player_name(&id))
+                context
+                    .get_player_name(id)
                     .map_or("Unknown Player", |id| id.as_ref())
             ),
             PlayMode::Next { .. } => "Play Tournament".to_owned(),

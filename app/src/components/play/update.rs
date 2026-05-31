@@ -1,11 +1,11 @@
 use edh_tourn::{
-    game::{POD_SIZE, matchup::Matchup, record::GameRecord},
+    game::{POD_SIZE, record::GameRecord},
     player::PlayerId,
     tournament::Tournament,
 };
 
 use crate::{
-    components::play::{MatchPreview, PlayComponent, PlayMode, PlayNextMode},
+    components::play::{PlayComponent, PlayMode},
     effect::Effect,
     traits::ComponentUpdate,
 };
@@ -14,11 +14,8 @@ use crate::{
 pub enum PlayComponentMsg {
     Submit,
     Refresh,
-    OpenMatchmakerConfig,
     OpenLink(String),
     OpenMatchLinks,
-    SetMode(PlayMode),
-    SetNextMode(PlayNextMode),
     SetWinner(PlayerId),
     ClickPlayer(PlayerId),
     SetPlayer(usize, PlayerId),
@@ -26,7 +23,6 @@ pub enum PlayComponentMsg {
 
 #[derive(Debug)]
 pub enum PlayComponentOut {
-    OpenMatchmakerConfig,
     OpenPlayer(PlayerId),
     OpenLink(String),
     RecordGame(Box<GameRecord>),
@@ -41,19 +37,16 @@ impl ComponentUpdate for PlayComponent {
         context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::effect::Effect<Self::Message, Self::OutMessage>> {
         match message {
-            PlayComponentMsg::OpenMatchmakerConfig => {
-                Effect::out(PlayComponentOut::OpenMatchmakerConfig).ok()
-            }
             PlayComponentMsg::SetPlayer(row, id) => match &mut self.mode {
                 PlayMode::Player(player_id) => {
                     if row != 0 {
                         return Err(anyhow::anyhow!("Only the first player is editable"));
                     }
-                    *player_id = Some(id);
+                    *player_id = id;
                     self.refresh(context);
                     Effect::done()
                 }
-                PlayMode::Custom { players } => {
+                PlayMode::Custom(players) => {
                     let entry = players.get_mut(row).ok_or_else(|| {
                         anyhow::anyhow!("Invalid index. Got {row}, array length of {POD_SIZE}")
                     })?;
@@ -89,19 +82,6 @@ impl ComponentUpdate for PlayComponent {
             PlayComponentMsg::ClickPlayer(player_id) => {
                 Effect::out(PlayComponentOut::OpenPlayer(player_id)).ok()
             }
-            PlayComponentMsg::SetMode(new_mode) => {
-                self.mode = new_mode;
-                self.refresh(context);
-                Effect::done()
-            }
-            PlayComponentMsg::SetNextMode(new_mode) => {
-                let PlayMode::Next { mode } = &mut self.mode else {
-                    return Effect::done();
-                };
-                *mode = new_mode;
-                self.refresh(context);
-                Effect::done()
-            }
             PlayComponentMsg::OpenLink(url) => Effect::out(PlayComponentOut::OpenLink(url)).ok(),
             PlayComponentMsg::OpenMatchLinks => {
                 let Some(preview) = &self.preview else {
@@ -115,31 +95,6 @@ impl ComponentUpdate for PlayComponent {
                         .map(|link| Effect::out(PlayComponentOut::OpenLink(link))),
                 )
                 .ok()
-            }
-        }
-    }
-}
-
-impl PlayComponent {
-    pub(super) fn refresh(&mut self, tournament: &Tournament) {
-        self.preview = self.mode.create_matchup(tournament).map(|matchup| MatchPreview {
-            matchup,
-            winner: None,
-        });
-    }
-}
-
-impl PlayMode {
-    pub(super) fn create_matchup(&self, tournament: &Tournament) -> Option<Matchup> {
-        match self {
-            Self::Player(player_id) => player_id.and_then(|id| tournament.matchmaker().create_match(id).ok()),
-            Self::Custom { players } => {
-                let [a, b, c, d] = *players;
-                tournament.create_match([a?, b?, c?, d?]).ok()
-            }
-            Self::Next { mode } => {
-                let id = mode.get_player(tournament)?.id();
-                tournament.matchmaker().create_match(id).ok()
             }
         }
     }
