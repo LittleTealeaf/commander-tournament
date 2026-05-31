@@ -5,15 +5,15 @@ use crate::components::play::PlayNextMode;
 #[derive(Debug, Clone)]
 pub enum PlayMode {
     Player(Option<PlayerId>),
-    Custom { players: [Option<PlayerId>; POD_SIZE] },
-    Next { mode: PlayNextMode },
+    Next(PlayNextMode),
+    Custom([Option<PlayerId>; POD_SIZE]),
 }
 
 impl PlayMode {
     #[must_use]
     pub const fn get_type(&self) -> PlayModeType {
         match self {
-            Self::Player(_) => PlayModeType::Player,
+            Self::Player { .. } => PlayModeType::Player,
             Self::Custom { .. } => PlayModeType::Custom,
             Self::Next { .. } => PlayModeType::Next,
         }
@@ -26,16 +26,12 @@ impl PlayMode {
 
     #[must_use]
     pub fn next() -> Self {
-        Self::Next {
-            mode: PlayNextMode::default(),
-        }
+        Self::Next(PlayNextMode::default())
     }
 
     #[must_use]
     pub const fn custom() -> Self {
-        Self::Custom {
-            players: [None; POD_SIZE],
-        }
+        Self::Custom([None; POD_SIZE])
     }
 }
 
@@ -54,13 +50,9 @@ impl PlayModeType {
 impl From<PlayModeType> for PlayMode {
     fn from(value: PlayModeType) -> Self {
         match value {
-            PlayModeType::Next => Self::Next {
-                mode: PlayNextMode::default(),
-            },
+            PlayModeType::Next => Self::Next(PlayNextMode::default()),
             PlayModeType::Player => Self::Player(None),
-            PlayModeType::Custom => Self::Custom {
-                players: [const { None }; POD_SIZE],
-            },
+            PlayModeType::Custom => Self::Custom([const { None }; POD_SIZE]),
         }
     }
 }

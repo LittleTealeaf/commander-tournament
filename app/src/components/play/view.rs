@@ -50,7 +50,7 @@ impl PlayComponent {
                 }),
             ]),
             match &self.mode {
-                PlayMode::Next { mode } => Some(row![
+                PlayMode::Next(mode) => Some(row![
                     container(text("Player Mode: ")).padding(button::DEFAULT_PADDING),
                     pick_list(PlayNextMode::VALUES, Some(mode), |mode| {
                         PlayComponentMsg::SetNextMode(mode)
@@ -197,7 +197,7 @@ impl PlayComponent {
                         entry
                     })
             }
-            PlayMode::Custom { players } => players.map(|id| {
+            PlayMode::Custom(players) => players.map(|id| {
                 let entry = PlayerEntry {
                     row,
                     matchup: id.zip(matchup).and_then(|(i, m)| m.get_player(i)).cloned(),

@@ -19,9 +19,7 @@ pub struct PlayComponent {
 
 impl Default for PlayMode {
     fn default() -> Self {
-        Self::Next {
-            mode: PlayNextMode::default(),
-        }
+        Self::next()
     }
 }
 
@@ -59,9 +57,7 @@ impl PlayComponent {
 impl Default for PlayComponent {
     fn default() -> Self {
         Self {
-            mode: PlayMode::Next {
-                mode: PlayNextMode::LongestBreak,
-            },
+            mode: PlayMode::next(),
             allow_mode_changes: true,
             preview: None,
         }
