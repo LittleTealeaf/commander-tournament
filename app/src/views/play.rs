@@ -1,4 +1,6 @@
 use edh_tourn::{game::record::GameRecord, player::PlayerId, tournament::Tournament};
+use iced::widget::button;
+use nerd_font_symbols::md::MD_COGS;
 
 use crate::{
     components::play::{PlayComponent, PlayComponentMsg, PlayComponentOut, PlayMode},
@@ -20,6 +22,7 @@ impl PlayView {
 #[derive(Debug, Clone, derive_more::From)]
 pub enum PlayViewMsg {
     Play(PlayComponentMsg),
+    OpenMatchmakerConfig,
     Close,
 }
 
@@ -54,6 +57,7 @@ impl ComponentUpdate for PlayView {
                 .ok()
             }),
             PlayViewMsg::Close => Effect::out(PlayViewOut::Close).ok(),
+            PlayViewMsg::OpenMatchmakerConfig => Effect::out(PlayViewOut::OpenMatchmakerConfig).ok(),
         }
     }
 }
@@ -71,6 +75,13 @@ impl ComponentView for PlayView {
 impl ViewScreen for PlayView {
     const CLOSE_MESSAGE: Self::Message = PlayViewMsg::Close;
     const ON_RESUME: Option<Self::Message> = Some(PlayViewMsg::Play(PlayComponentMsg::Refresh));
+
+    fn secondary_actions<'a>(
+        &'a self,
+        _: Self::ViewContext<'a>,
+    ) -> impl IntoIterator<Item = iced::widget::Button<'a, Self::Message>> {
+        [button(MD_COGS).on_press(PlayViewMsg::OpenMatchmakerConfig)]
+    }
 
     fn title<'a>(&'a self, context: Self::ViewContext<'a>) -> String {
         match &self.0.mode() {
