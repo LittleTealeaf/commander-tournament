@@ -13,9 +13,9 @@ impl PlayMode {
     #[must_use]
     pub const fn get_type(&self) -> PlayModeType {
         match self {
-            Self::Player { .. } => PlayModeType::Player,
-            Self::Custom { .. } => PlayModeType::Custom,
-            Self::Next { .. } => PlayModeType::Next,
+            Self::Player(..) => PlayModeType::Player,
+            Self::Custom(..) => PlayModeType::Custom,
+            Self::Next(..) => PlayModeType::Next,
         }
     }
 
