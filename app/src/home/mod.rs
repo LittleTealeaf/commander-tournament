@@ -1,12 +1,13 @@
 use edh_tourn::{game::record::GameRecord, player::PlayerId, tournament::Tournament};
 use iced::{
     Length,
-    widget::{column, container, responsive, row},
+    widget::{button, column, container, pick_list, responsive, row, space, text},
 };
+use nerd_font_symbols::md::{MD_CLOSE, MD_COGS};
 
 use crate::{
     components::{
-        play::{PlayComponent, PlayComponentMsg, PlayComponentOut, PlayMode},
+        play::{PlayComponent, PlayComponentMsg, PlayComponentOut, PlayMode, PlayModeType, PlayNextMode},
         tab_bar,
     },
     effect::Effect,
@@ -39,6 +40,9 @@ pub enum HomeMsg {
     Leaderboard(LeaderboardMsg),
     SetTab(HomeTab),
     Play(PlayComponentMsg),
+    SelectPlayNextMode(PlayNextMode),
+    SetPlayMode(PlayModeType),
+    OpenMatchmakerConfig,
 }
 
 #[derive(Debug, Clone, derive_more::From)]
@@ -70,17 +74,61 @@ impl ComponentView for Home {
                 ),
                 container(match self.tab {
                     HomeTab::Leaderboard => self.leaderboard.view_into(context),
-                    HomeTab::PlayGame => self.play.view_into(context),
+                    HomeTab::PlayGame => self.view_component_play(context),
                 })
                 .width(Length::Fill)
             ]
             .into(),
             _ => row![
                 container(self.leaderboard.view_into(context)).width(Length::FillPortion(1)),
-                container(self.play.view_into(context)).width(Length::FillPortion(1))
+                container(self.view_component_play(context)).width(Length::FillPortion(1))
             ]
             .into(),
         })
+        .into()
+    }
+}
+
+impl Home {
+    fn view_component_play<'a>(&'a self, context: &'a Tournament) -> iced::Element<'a, HomeMsg> {
+        column![
+            row![
+                match self.play.mode() {
+                    PlayMode::Next(mode) => {
+                        row![
+                            pick_list(PlayNextMode::VALUES, Some(mode), |select| {
+                                HomeMsg::SelectPlayNextMode(select)
+                            }),
+                            space().width(Length::Fill),
+                            button("Custom").on_press(HomeMsg::SetPlayMode(PlayModeType::Custom))
+                        ]
+                    }
+                    PlayMode::Custom(_) => {
+                        row![
+                            button(MD_CLOSE).on_press(HomeMsg::SetPlayMode(PlayModeType::Next)),
+                            container(text("Custom Game")).padding(button::DEFAULT_PADDING),
+                            space().width(Length::Fill),
+                        ]
+                    }
+                    PlayMode::Player(player) => {
+                        let name = player
+                            .and_then(|id| context.get_player_name(&id))
+                            .map_or_else(|| "Player Game".to_owned(), |name| format!("Play Game: {name}"));
+
+                        row![
+                            button(MD_CLOSE).on_press(HomeMsg::SetPlayMode(PlayModeType::Next)),
+                            container(text(name)).padding(button::DEFAULT_PADDING),
+                            space().width(Length::Fill),
+                        ]
+                    }
+                }
+                .width(Length::Fill),
+                button(MD_COGS).on_press(HomeMsg::OpenMatchmakerConfig)
+            ]
+            .spacing(10)
+            .padding(10),
+            self.play.view_into(context)
+        ]
         .into()
     }
 }
@@ -93,6 +141,9 @@ impl ComponentUpdate for Home {
         context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         match message {
+            HomeMsg::SetPlayMode(mode_type) => Effect::msg(PlayComponentMsg::SetMode(mode_type.into())).ok(),
+            HomeMsg::SelectPlayNextMode(mode) => Effect::msg(PlayComponentMsg::SetNextMode(mode)).ok(),
+            HomeMsg::OpenMatchmakerConfig => Effect::out(HomeOut::OpenMatchmakerConfig).ok(),
             HomeMsg::Refresh => Effect::msg(HomeMsg::Play(PlayComponentMsg::Refresh)).ok(),
             HomeMsg::Leaderboard(message) => self.leaderboard.map_update(message, (), |msg| match msg {
                 LeaderboardOut::RankPlayer(id) => {
