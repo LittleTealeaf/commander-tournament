@@ -8,7 +8,7 @@ dev = ["dep:rand", "dep:rand_chacha"]
 
 [dependencies]
 anyhow = "1.0.100"
-itertools = "0.14.0"
+itertools = "0.15.0"
 serde = {version="1.0.228", features=["derive"]}
 thiserror = "2.0.18"
 ron = "0.12.1"
