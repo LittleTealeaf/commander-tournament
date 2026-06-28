@@ -1,3 +1,5 @@
+use std::cmp::Reverse;
+
 use im::OrdSet;
 
 use crate::{
@@ -28,7 +30,13 @@ impl Matchmaker<'_> {
                 .min_by_key(|player| (player.stats().games(), player.id()))
                 .map(|p| p.id()),
             NextPlayerMode::LeastWins => players
-                .min_by_key(|player| (player.stats().wins(), player.id()))
+                .min_by_key(|player| {
+                    (
+                        player.stats().wins(),
+                        Reverse(player.stats().games()),
+                        player.id(),
+                    )
+                })
                 .map(|p| p.id()),
             NextPlayerMode::LongestBreak => {
                 let mut pool = players.map(|player| player.id()).collect::<OrdSet<_>>();
