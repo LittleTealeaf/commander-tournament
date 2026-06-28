@@ -8,6 +8,7 @@ pub struct MatchmakerConfig {
     pub elo_neighbor: usize,
     pub wr_neighbor: usize,
     pub expected_neighbor: usize,
+    pub exclude_precons: bool,
 }
 
 impl MatchmakerConfig {
@@ -20,6 +21,7 @@ impl MatchmakerConfig {
             elo_neighbor: 4,
             wr_neighbor: 3,
             expected_neighbor: 3,
+            exclude_precons: false,
         }
     }
 }

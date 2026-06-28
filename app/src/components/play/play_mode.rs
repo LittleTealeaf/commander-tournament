@@ -1,22 +1,20 @@
 use edh_tourn::{
-    game::{POD_SIZE, matchup::Matchup},
+    game::{POD_SIZE, matchup::Matchup, next_mode::NextPlayerMode},
     player::PlayerId,
     tournament::Tournament,
 };
 
-use crate::components::play::PlayNextMode;
-
 #[derive(Debug, Clone)]
 pub enum PlayMode {
     Player(PlayerId),
-    Next(PlayNextMode),
+    Next(NextPlayerMode),
     Custom([Option<PlayerId>; POD_SIZE]),
 }
 
 impl PlayMode {
     #[must_use]
     pub fn next() -> Self {
-        Self::Next(PlayNextMode::default())
+        Self::Next(NextPlayerMode::default())
     }
 
     #[must_use]
@@ -33,10 +31,7 @@ impl PlayMode {
                 let [a, b, c, d] = *players;
                 tournament.create_match([a?, b?, c?, d?]).ok()
             }
-            Self::Next(mode) => {
-                let id = mode.get_player(tournament)?.id();
-                tournament.matchmaker().create_match(id).ok()
-            }
+            Self::Next(mode) => tournament.matchmaker().play_next(*mode).ok(),
         }
     }
 }

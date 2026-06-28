@@ -1,5 +1,5 @@
 use edh_tourn::{config::matchmaker::MatchmakerConfig, tournament::Tournament};
-use iced::widget::{button, column, row, text};
+use iced::widget::{button, checkbox, column, row, text};
 use iced_aw::number_input;
 use nerd_font_symbols::md::{MD_CONTENT_SAVE, MD_RESTORE, MD_UNDO};
 
@@ -33,6 +33,7 @@ pub enum MatchmakerConfigMsg {
     SetEloNeighbor(usize),
     SetWrNeighbor(usize),
     SetExpectedNeighbor(usize),
+    SetExcludePrecons(bool),
 }
 
 #[derive(Debug, Clone)]
@@ -63,6 +64,7 @@ impl ComponentUpdate for MatchmakerConfigView {
             MatchmakerConfigMsg::SetLeastPlayed(value) => {
                 self.config.player_least_played = value;
             }
+            MatchmakerConfigMsg::SetExcludePrecons(value) => self.config.exclude_precons = value,
             MatchmakerConfigMsg::SetNemesis(value) => self.config.player_nemesis = value,
             MatchmakerConfigMsg::SetLostWith(value) => self.config.player_lost_with = value,
             MatchmakerConfigMsg::SetEloNeighbor(value) => self.config.elo_neighbor = value,
@@ -107,7 +109,7 @@ impl ComponentView for MatchmakerConfigView {
     where
         Self: 'a;
     fn view<'a>(&'a self, (): Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
-        let options = [
+        let number_options = [
             (
                 "Least Played",
                 number_input(
@@ -164,7 +166,15 @@ impl ComponentView for MatchmakerConfigView {
             ),
         ];
 
-        column(options.map(|(label_text, input)| row![text(label_text), input].spacing(10).into()))
+        let toggle_options = [(
+            "Exclude Precons",
+            checkbox(self.config.exclude_precons).on_toggle(MatchmakerConfigMsg::SetExcludePrecons),
+        )];
+
+        column(number_options.map(|(label_text, input)| row![text(label_text), input].spacing(10).into()))
+            .extend(
+                toggle_options.map(|(label_text, input)| row![text(label_text), input].spacing(10).into()),
+            )
             .spacing(10)
             .into()
     }

@@ -52,6 +52,13 @@ impl Tournament {
         Ok(tournament)
     }
 
+    pub fn debug_game(&mut self, players: [PlayerId; 4], winner: PlayerId) -> Result<(), TournamentError> {
+        let matchup = self.create_match(players)?;
+        let record = matchup.record(winner)?;
+        self.record_game(record)?;
+        Ok(())
+    }
+
     pub fn random_game(&self) -> Option<GameEntry> {
         let hash = self.games().iter().map(GameEntry::from).collect_vec();
         let seed = hash_to_u64(hash);

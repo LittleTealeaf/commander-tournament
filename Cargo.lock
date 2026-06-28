@@ -944,6 +944,7 @@ dependencies = [
  "auto-const-array",
  "derive_more",
  "edh_tourn",
+ "im",
  "itertools",
  "rand",
  "rand_chacha",
