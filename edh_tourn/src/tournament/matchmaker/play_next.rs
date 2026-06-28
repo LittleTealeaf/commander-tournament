@@ -1,4 +1,4 @@
-use std::cmp::Reverse;
+use core::cmp::Reverse;
 
 use im::OrdSet;
 
@@ -11,7 +11,7 @@ use crate::{
 
 impl Matchmaker<'_> {
     pub fn play_next(self, mode: NextPlayerMode) -> Result<Matchup, TournamentError> {
-        let Some(player) = self.play_next_get_player(mode) else {
+        let Some(player) = self.get_next_lead_player(mode) else {
             return Err(TournamentError::NotEnoughPlayers);
         };
 
@@ -20,10 +20,11 @@ impl Matchmaker<'_> {
         Ok(matchup)
     }
 
-    fn play_next_get_player(self, mode: NextPlayerMode) -> Option<PlayerId> {
-        let players = self.0.registered_players().filter(|player| {
-            !(self.0.config.matchmaker_config().exclude_precons && player.info().is_precon())
-        });
+    pub fn get_next_lead_player(self, mode: NextPlayerMode) -> Option<PlayerId> {
+        let players = self
+            .0
+            .registered_players()
+            .filter(|player| !(self.0.matchmaker_config().exclude_precons && player.info().is_precon()));
 
         match mode {
             NextPlayerMode::LeastGames => players

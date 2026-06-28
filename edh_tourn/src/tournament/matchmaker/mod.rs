@@ -46,7 +46,7 @@ impl Matchmaker<'_> {
 
         for _ in 1..POD_SIZE {
             let player = self
-                .get_next_player(&aggregate_stats, &performances)
+                .get_match_next_player(&aggregate_stats, &performances)
                 .ok_or(TournamentError::NotEnoughPlayers)?;
             players.push(player);
             performances.remove(&player);
@@ -64,7 +64,7 @@ impl Matchmaker<'_> {
         self.0.create_match(players)
     }
 
-    fn get_next_player(
+    fn get_match_next_player(
         self,
         agg_stats: &AggregateStats,
         performances: &HashMap<PlayerId, MatchPerformance>,
