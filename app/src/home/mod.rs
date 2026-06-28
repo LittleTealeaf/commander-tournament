@@ -1,4 +1,8 @@
-use edh_tourn::{game::{next_mode::NextPlayerMode, record::GameRecord}, player::PlayerId, tournament::Tournament};
+use edh_tourn::{
+    game::{next_mode::NextPlayerMode, record::GameRecord},
+    player::PlayerId,
+    tournament::Tournament,
+};
 use iced::{
     Length,
     widget::{button, column, container, pick_list, responsive, row, space, text},

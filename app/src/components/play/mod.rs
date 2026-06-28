@@ -1,4 +1,8 @@
-use edh_tourn::{game::{matchup::Matchup, next_mode::NextPlayerMode}, player::PlayerId, tournament::Tournament};
+use edh_tourn::{
+    game::{matchup::Matchup, next_mode::NextPlayerMode},
+    player::PlayerId,
+    tournament::Tournament,
+};
 pub use play_mode::*;
 pub use update::*;
 

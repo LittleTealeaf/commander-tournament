@@ -1,6 +1,6 @@
 mod games_played;
-mod play_next;
 mod neighbors;
+mod play_next;
 
 use std::collections::HashMap;
 
