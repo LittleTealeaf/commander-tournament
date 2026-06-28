@@ -211,7 +211,7 @@ mod play_next {
 
             let value = tournament
                 .matchmaker()
-                .get_next_lead_player(NextPlayerMode::LongestLeadBreak)
+                .get_next_lead_player(NextPlayerMode::LongestSinceWin)
                 .unwrap();
             assert_eq!(value, pa);
         }
@@ -227,7 +227,7 @@ mod play_next {
 
             let value = tournament
                 .matchmaker()
-                .get_next_lead_player(NextPlayerMode::LongestLeadBreak)
+                .get_next_lead_player(NextPlayerMode::LongestSinceWin)
                 .unwrap();
             assert_eq!(value, pb);
         }
@@ -245,7 +245,7 @@ mod play_next {
 
             let value = tournament
                 .matchmaker()
-                .get_next_lead_player(NextPlayerMode::LongestLeadBreak)
+                .get_next_lead_player(NextPlayerMode::LongestSinceWin)
                 .unwrap();
             assert_eq!(value, pb);
         }
