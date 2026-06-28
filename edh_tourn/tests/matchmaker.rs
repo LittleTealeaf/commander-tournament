@@ -321,4 +321,26 @@ mod play_next {
             assert_eq!(least_wins, p_b);
         }
     }
+
+    #[test]
+    fn empty_returns_no_players() {
+        let tourn = Tournament::new();
+        for mode in NextPlayerMode::VALUES {
+            let result = tourn.matchmaker().get_next_lead_player(mode);
+            assert!(result.is_none(), "Expected None result for {mode}");
+        }
+    }
+
+    #[test]
+    fn one_player_returns_player() {
+        let mut tourn = Tournament::new();
+        let id = tourn.register_debug_player().unwrap();
+        for mode in NextPlayerMode::VALUES {
+            let result = tourn
+                .matchmaker()
+                .get_next_lead_player(mode)
+                .unwrap_or_else(|| panic!("Expected Some value for {mode}"));
+            assert_eq!(result, id);
+        }
+    }
 }
