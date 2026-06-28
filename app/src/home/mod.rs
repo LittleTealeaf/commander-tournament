@@ -1,4 +1,4 @@
-use edh_tourn::{game::record::GameRecord, player::PlayerId, tournament::Tournament};
+use edh_tourn::{game::{next_mode::NextPlayerMode, record::GameRecord}, player::PlayerId, tournament::Tournament};
 use iced::{
     Length,
     widget::{button, column, container, pick_list, responsive, row, space, text},
@@ -7,7 +7,7 @@ use nerd_font_symbols::md::{MD_CLOSE, MD_COGS};
 
 use crate::{
     components::{
-        play::{PlayComponent, PlayComponentMsg, PlayComponentOut, PlayMode, PlayNextMode},
+        play::{PlayComponent, PlayComponentMsg, PlayComponentOut, PlayMode},
         tab_bar,
     },
     effect::Effect,
@@ -40,7 +40,7 @@ pub enum HomeMsg {
     Leaderboard(LeaderboardMsg),
     SetTab(HomeTab),
     Play(PlayComponentMsg),
-    SelectPlayNextMode(PlayNextMode),
+    SelectPlayNextMode(NextPlayerMode),
     SetPlayMode(PlayMode),
     OpenMatchmakerConfig,
 }
@@ -96,7 +96,7 @@ impl Home {
                 match self.play.mode() {
                     PlayMode::Next(mode) => {
                         row![
-                            pick_list(PlayNextMode::VALUES, Some(mode), |select| {
+                            pick_list(NextPlayerMode::VALUES, Some(mode), |select| {
                                 HomeMsg::SelectPlayNextMode(select)
                             }),
                             space().width(Length::Fill),

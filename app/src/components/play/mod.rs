@@ -1,11 +1,9 @@
-use edh_tourn::{game::matchup::Matchup, player::PlayerId, tournament::Tournament};
-pub use next_mode::*;
+use edh_tourn::{game::{matchup::Matchup, next_mode::NextPlayerMode}, player::PlayerId, tournament::Tournament};
 pub use play_mode::*;
 pub use update::*;
 
 use crate::traits::Component;
 
-mod next_mode;
 mod play_mode;
 mod update;
 mod view;
@@ -40,7 +38,7 @@ impl PlayComponent {
         self.refresh(tournament);
     }
 
-    pub fn set_next_mode(&mut self, next_mode: PlayNextMode, tournament: &Tournament) {
+    pub fn set_next_mode(&mut self, next_mode: NextPlayerMode, tournament: &Tournament) {
         let PlayMode::Next(mode) = &mut self.mode else {
             return;
         };
