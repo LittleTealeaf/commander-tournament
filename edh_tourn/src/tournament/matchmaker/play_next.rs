@@ -138,7 +138,7 @@ impl Matchmaker<'_> {
 
                     for player in players {
                         if lowest.elo > player.elo {
-                            if outlier.map_or_else(|| true, |outlier| lowest.outlier > outlier.outlier) {
+                            if outlier.is_none_or(|outlier| outlier.outlier < lowest.outlier) {
                                 outlier = Some(lowest);
                             }
                             lowest = player;
@@ -148,7 +148,7 @@ impl Matchmaker<'_> {
                         }
 
                         if highest.elo < player.elo {
-                            if outlier.map_or_else(|| true, |outlier| highest.outlier > outlier.outlier) {
+                            if outlier.is_none_or(|outlier| outlier.outlier < highest.outlier) {
                                 outlier = Some(highest);
                             }
                             highest = player;
@@ -157,7 +157,7 @@ impl Matchmaker<'_> {
                             }
                         }
 
-                        if outlier.map_or_else(|| true, |outlier| outlier.outlier < player.outlier) {
+                        if outlier.is_none_or(|outlier| outlier.outlier < player.outlier) {
                             outlier = Some(player);
                         }
                     }
