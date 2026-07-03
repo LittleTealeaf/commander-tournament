@@ -29,17 +29,17 @@ pub fn colorless_icon() -> Svg<'static> {
 }
 
 pub trait ToColorIcons {
-    fn to_icons(&self) -> impl Iterator<Item = Svg<'static>>;
+    fn to_icons(self) -> impl Iterator<Item = Svg<'static>>;
 }
 
 impl ToColorIcons for MtgColor {
-    fn to_icons(&self) -> impl Iterator<Item = Svg<'static>> {
-        once(color_icon(*self))
+    fn to_icons(self) -> impl Iterator<Item = Svg<'static>> {
+        once(color_icon(self))
     }
 }
 
 impl ToColorIcons for ColorIdentity {
-    fn to_icons(&self) -> impl Iterator<Item = Svg<'static>> {
+    fn to_icons(self) -> impl Iterator<Item = Svg<'static>> {
         self.colors()
             .map(color_icon)
             .chain(self.is_colorless().then(colorless_icon))
