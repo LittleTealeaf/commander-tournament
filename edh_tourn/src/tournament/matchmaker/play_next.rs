@@ -134,12 +134,12 @@ impl Matchmaker<'_> {
 
                     let mut lowest = players.next()?;
                     let mut highest = lowest;
-                    let mut outlier = lowest;
+                    let mut outlier: Option<Entry> = None;
 
                     for player in players {
                         if lowest.elo > player.elo {
-                            if lowest.wr < target && lowest.outlier > outlier.outlier {
-                                outlier = lowest;
+                            if outlier.map_or_else(|| true, |outlier| lowest.outlier > outlier.outlier) {
+                                outlier = Some(lowest);
                             }
                             lowest = player;
                             if player.wr < target {
@@ -148,8 +148,8 @@ impl Matchmaker<'_> {
                         }
 
                         if highest.elo < player.elo {
-                            if highest.wr > target && highest.outlier > outlier.outlier {
-                                outlier = highest;
+                            if outlier.map_or_else(|| true, |outlier| highest.outlier > outlier.outlier) {
+                                outlier = Some(highest);
                             }
                             highest = player;
                             if player.wr > target {
@@ -157,12 +157,12 @@ impl Matchmaker<'_> {
                             }
                         }
 
-                        if outlier.outlier < player.outlier {
-                            outlier = player;
+                        if outlier.map_or_else(|| true, |outlier| outlier.outlier < player.outlier) {
+                            outlier = Some(player);
                         }
                     }
 
-                    Some(outlier.id)
+                    outlier.map(|outlier| outlier.id)
                 }
             }
             NextPlayerMode::PeakElo => players
