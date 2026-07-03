@@ -34,6 +34,7 @@ pub enum MatchmakerConfigMsg {
     SetWrNeighbor(usize),
     SetExpectedNeighbor(usize),
     SetExcludePrecons(bool),
+    SetOutlierExtremes(bool),
 }
 
 #[derive(Debug, Clone)]
@@ -69,6 +70,7 @@ impl ComponentUpdate for MatchmakerConfigView {
             MatchmakerConfigMsg::SetLostWith(value) => self.config.player_lost_with = value,
             MatchmakerConfigMsg::SetEloNeighbor(value) => self.config.elo_neighbor = value,
             MatchmakerConfigMsg::SetWrNeighbor(value) => self.config.wr_neighbor = value,
+            MatchmakerConfigMsg::SetOutlierExtremes(value) => self.config.outlier_include_extremes = value,
             MatchmakerConfigMsg::SetExpectedNeighbor(value) => {
                 self.config.expected_neighbor = value;
             }
@@ -166,10 +168,17 @@ impl ComponentView for MatchmakerConfigView {
             ),
         ];
 
-        let toggle_options = [(
-            "Exclude Precons",
-            checkbox(self.config.exclude_precons).on_toggle(MatchmakerConfigMsg::SetExcludePrecons),
-        )];
+        let toggle_options = [
+            (
+                "Exclude Precons",
+                checkbox(self.config.exclude_precons).on_toggle(MatchmakerConfigMsg::SetExcludePrecons),
+            ),
+            (
+                "Outlier Includes Extremes",
+                checkbox(self.config.outlier_include_extremes)
+                    .on_toggle(MatchmakerConfigMsg::SetOutlierExtremes),
+            ),
+        ];
 
         column(number_options.map(|(label_text, input)| row![text(label_text), input].spacing(10).into()))
             .extend(

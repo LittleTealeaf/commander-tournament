@@ -102,18 +102,69 @@ impl Matchmaker<'_> {
 
                 pool.into_iter().next()
             }
-            NextPlayerMode::OutlierWinrate => players
-                .min_by(|left, right| {
-                    #[allow(clippy::cast_precision_loss, reason = "u32 to f64 casting")]
-                    let target = 1.0 / (POD_SIZE as f64);
-                    let left_diff = (target - left.stats().wr_unwrap()).abs();
-                    let right_diff = (target - right.stats().wr_unwrap()).abs();
-                    left_diff
-                        .total_cmp(&right_diff)
-                        .reverse()
-                        .then_with(|| left.id().cmp(&right.id()))
-                })
-                .map(|p| p.id()),
+            NextPlayerMode::OutlierWinrate => {
+                #[allow(clippy::cast_precision_loss, reason = "u32 to f64 casting")]
+                let target = 1.0 / (POD_SIZE as f64);
+                if self.0.config.matchmaker_config().outlier_include_extremes {
+                    players
+                        .min_by(|left, right| {
+                            let left_diff = (target - left.stats().wr_unwrap()).abs();
+                            let right_diff = (target - right.stats().wr_unwrap()).abs();
+                            left_diff
+                                .total_cmp(&right_diff)
+                                .reverse()
+                                .then_with(|| left.id().cmp(&right.id()))
+                        })
+                        .map(|p| p.id())
+                } else {
+                    #[derive(Copy, Clone)]
+                    struct Entry {
+                        id: PlayerId,
+                        wr: f64,
+                        outlier: f64,
+                        elo: f64,
+                    }
+
+                    let mut players = players.map(|pl| Entry {
+                        id: pl.id(),
+                        wr: pl.stats().wr_unwrap(),
+                        outlier: (pl.stats().wr_unwrap() - target).abs(),
+                        elo: pl.stats().elo(),
+                    });
+
+                    let mut lowest = players.next()?;
+                    let mut highest = lowest;
+                    let mut outlier: Option<Entry> = None;
+
+                    for player in players {
+                        if lowest.elo > player.elo {
+                            if outlier.is_none_or(|outlier| outlier.outlier < lowest.outlier) {
+                                outlier = Some(lowest);
+                            }
+                            lowest = player;
+                            if player.wr < target {
+                                continue;
+                            }
+                        }
+
+                        if highest.elo < player.elo {
+                            if outlier.is_none_or(|outlier| outlier.outlier < highest.outlier) {
+                                outlier = Some(highest);
+                            }
+                            highest = player;
+                            if player.wr > target {
+                                continue;
+                            }
+                        }
+
+                        if outlier.is_none_or(|outlier| outlier.outlier < player.outlier) {
+                            outlier = Some(player);
+                        }
+                    }
+
+                    outlier.map(|outlier| outlier.id)
+                }
+            }
             NextPlayerMode::PeakElo => players
                 .min_by(|a, b| {
                     let stats_a = a.stats();
