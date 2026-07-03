@@ -1,10 +1,10 @@
 pub mod app;
-pub mod icons;
 pub mod components;
 pub mod core;
 pub mod effect;
 pub mod fonts;
 pub mod home;
+pub mod icons;
 pub mod popup;
 pub mod services;
 pub mod traits;
