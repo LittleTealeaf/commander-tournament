@@ -15,7 +15,11 @@ use iced::{
 };
 use itertools::Itertools;
 
-use crate::{fonts::FONT_BOLD, views::player::PlayerDetailsMsg};
+use crate::{
+    fonts::FONT_BOLD,
+    icons::{ToColorIcons, color_icon},
+    views::player::PlayerDetailsMsg,
+};
 
 pub fn stats_summary(stats: &PlayerStats) -> Container<'_, PlayerDetailsMsg> {
     container(
@@ -182,7 +186,7 @@ pub fn stats_identity_matchups(
         });
 
     let col_identity = |(identity, _): RowType| text(format!("{identity}"));
-    let col_colors = |(identity, _): RowType| text(identity.colors().map(MtgColor::letter).join(""));
+    let col_colors = |(identity, _): RowType| row(identity.to_icons().map(Into::into)).spacing(3);
 
     Some(table_wrapper(table(
         [
@@ -210,7 +214,11 @@ pub fn stats_color_matchups(
             perf_a.cmp(perf_b).reverse().then_with(|| color_a.cmp(color_b))
         });
 
-    let col_color = |(color, _): RowType| text(format!("{color}"));
+    let col_color = |(color, _): RowType| {
+        row![text(format!("{color}")), color_icon(color)]
+            .align_y(Vertical::Center)
+            .spacing(10)
+    };
 
     Some(table_wrapper(table(
         [
