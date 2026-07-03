@@ -175,7 +175,8 @@ impl ComponentView for MatchmakerConfigView {
             ),
             (
                 "Outlier Includes Extremes",
-                checkbox(self.config.outlier_include_extremes).on_toggle(MatchmakerConfigMsg::SetOutlierExtremes),
+                checkbox(self.config.outlier_include_extremes)
+                    .on_toggle(MatchmakerConfigMsg::SetOutlierExtremes),
             ),
         ];
 
