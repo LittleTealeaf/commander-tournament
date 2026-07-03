@@ -5,7 +5,10 @@ use iced::{
 };
 use nerd_font_symbols::md::{MD_LINK_VARIANT, MD_SWORD};
 
-use crate::views::player::{PlayerDetailsMsg, PlayerView};
+use crate::{
+    icons::color_icon,
+    views::player::{PlayerDetailsMsg, PlayerView},
+};
 
 pub fn view_info_panel(state: &PlayerView) -> iced::widget::Container<'_, super::PlayerDetailsMsg> {
     let edit_name = text_input("Player Name...", state.info.name()).on_input(PlayerDetailsMsg::SetName);
@@ -24,7 +27,7 @@ pub fn view_info_panel(state: &PlayerView) -> iced::widget::Container<'_, super:
             button::secondary
         };
 
-        button(color.letter())
+        button(color_icon(color).width(20).height(20))
             .on_press(PlayerDetailsMsg::ToggleColor(color))
             .style(style)
             .into()

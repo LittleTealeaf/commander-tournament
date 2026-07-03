@@ -6,6 +6,7 @@ use edh_tourn::{
 };
 use iced::{
     Length, Padding,
+    alignment::Vertical,
     widget::{button, column, container, row, scrollable, space, table, text, text_input},
 };
 use itertools::Itertools;
@@ -16,6 +17,7 @@ use nerd_font_symbols::{
 
 use crate::{
     effect::Effect,
+    icons::ToColorIcons,
     traits::{Component, ComponentUpdate, ComponentView},
 };
 
@@ -184,9 +186,16 @@ impl ComponentView for Leaderboard {
                             .style(button::text)
                     ],
                     |p: RegisteredPlayer<'_>| {
-                        button(text(p.info().display_name()).size(12))
-                            .style(button::text)
-                            .on_press(LeaderboardMsg::OpenPlayer(p.id()))
+                        row![
+                            button(text(p.info().display_name()).size(12))
+                                .style(button::text)
+                                .on_press(LeaderboardMsg::OpenPlayer(p.id())),
+                            row(p.info().color_identity().to_icons().map(Into::into))
+                                .spacing(3)
+                                .align_y(Vertical::Center)
+                        ]
+                        .spacing(3)
+                        .align_y(Vertical::Center)
                     },
                 ),
                 table::column(col_header("Elo", Column::Elo), |p: RegisteredPlayer<'_>| {
