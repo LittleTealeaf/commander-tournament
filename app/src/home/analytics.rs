@@ -1,7 +1,7 @@
 use edh_tourn::{analytics::aggregate::AggregateStats, player::color::ColorIdentity, tournament::Tournament};
 use iced::{
     Length,
-    widget::{column, container, row, space, table, text},
+    widget::{checkbox, column, container, row, space, table, text},
 };
 use itertools::Itertools;
 
@@ -14,10 +14,14 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Default)]
-pub struct AnalyticsView;
+pub struct AnalyticsView {
+    include_precons: bool,
+}
 
 #[derive(Clone, Debug)]
-pub enum AnalyticsMsg {}
+pub enum AnalyticsMsg {
+    SetIncludePrecons(bool),
+}
 
 #[derive(Clone, Debug)]
 pub enum AnalyticsOut {}
@@ -31,10 +35,15 @@ impl ComponentUpdate for AnalyticsView {
     type UpdateContext<'a> = ();
     fn update(
         &mut self,
-        _: Self::Message,
+        message: Self::Message,
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<crate::effect::Effect<Self::Message, Self::OutMessage>> {
-        Effect::done()
+        match message {
+            AnalyticsMsg::SetIncludePrecons(value) => {
+                self.include_precons = value;
+                Effect::done()
+            }
+        }
     }
 }
 
@@ -45,7 +54,10 @@ impl ComponentView for AnalyticsView {
         Self: 'a;
 
     fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
-        let aggregated = context.analytics().aggregated_identity_stats();
+        let aggregated = context
+            .analytics()
+            .with_precons(self.include_precons)
+            .aggregated_identity_stats();
         let missing = ColorIdentity::IDENTITIES
             .into_iter()
             .filter(|identity| !aggregated.contains_key(identity))
@@ -61,7 +73,13 @@ impl ComponentView for AnalyticsView {
 
         container(
             column![
-                text("Aggregated by Color Identity").size(18),
+                row![
+                    text("Aggregated by Color Identity").size(18),
+                    space().width(Length::Fill),
+                    checkbox(self.include_precons)
+                        .label("Include Precons")
+                        .on_toggle(AnalyticsMsg::SetIncludePrecons)
+                ],
                 scrollable_table(table::table(
                     [
                         table::column("Identity", |(identity, _): (ColorIdentity, AggregateStats)| {

@@ -35,8 +35,9 @@ impl<'a> Analytics<'a> {
     }
 
     fn aggregated_player_stats(self) -> impl Iterator<Item = (RegisteredPlayer<'a>, AggregateStats)> {
-        self.0
+        self.tourn
             .registered_players()
+            .filter(move |player| self.include_precons || !player.info().is_precon())
             .map(|player| (player, player.stats().into()))
     }
 }
