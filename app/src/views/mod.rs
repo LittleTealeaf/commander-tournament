@@ -2,7 +2,6 @@ pub mod game_config;
 pub mod matchmaker_config;
 pub mod play;
 pub mod player;
-pub mod stats;
 
 use core::iter::{empty, once};
 
