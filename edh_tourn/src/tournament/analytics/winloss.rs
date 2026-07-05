@@ -157,7 +157,7 @@ impl Analytics<'_> {
                     let Some(info) = self.tourn.get_player_info(&id) else {
                         return false;
                     };
-                    info.color_identity().has_color(color)
+                    (self.include_precons || !info.is_precon()) && info.color_identity().has_color(color)
                 })
             })
             .filter_map(|(id, perf)| {
