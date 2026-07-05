@@ -24,7 +24,7 @@ impl Matchmaker<'_> {
         let players = self
             .tourn
             .registered_players()
-            .filter(|player| !(self.config().exclude_precons && player.info().is_precon()));
+            .filter(|player| self.config().include_precons || !player.info().is_precon());
 
         match mode {
             NextPlayerMode::Winstreak => Some(

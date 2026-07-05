@@ -8,7 +8,8 @@ pub struct MatchmakerConfig {
     pub elo_neighbor: usize,
     pub wr_neighbor: usize,
     pub expected_neighbor: usize,
-    pub exclude_precons: bool,
+    #[serde(alias = "exclude_precons")]
+    pub include_precons: bool,
     pub outlier_include_extremes: bool,
 }
 
@@ -22,7 +23,7 @@ impl MatchmakerConfig {
             elo_neighbor: 4,
             wr_neighbor: 3,
             expected_neighbor: 3,
-            exclude_precons: false,
+            include_precons: true,
             outlier_include_extremes: true,
         }
     }
