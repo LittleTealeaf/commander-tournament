@@ -190,6 +190,7 @@ impl ComponentView for Leaderboard {
                             button(text(p.info().display_name()).size(12))
                                 .style(button::text)
                                 .on_press(LeaderboardMsg::OpenPlayer(p.id())),
+                            space().width(Length::Fill),
                             row(p.info().color_identity().to_icons().map(Into::into))
                                 .spacing(3)
                                 .align_y(Vertical::Center)
