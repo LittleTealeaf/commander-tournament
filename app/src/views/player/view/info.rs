@@ -1,9 +1,9 @@
 use edh_tourn::player::color::MtgColor;
 use iced::{
-    alignment::{Horizontal, Vertical},
+    alignment::Vertical,
     widget::{button, checkbox, column, container, row, text, text_editor, text_input},
 };
-use nerd_font_symbols::md::{MD_LINK_VARIANT, MD_SWORD};
+use nerd_font_symbols::md::MD_LINK_VARIANT;
 
 use crate::{
     icons::color_icon,
@@ -55,11 +55,6 @@ pub fn view_info_panel(state: &PlayerView) -> iced::widget::Container<'_, super:
                 .spacing(20)
                 .align_y(Vertical::Center),
             edit_description,
-            state.id.is_some().then(|| container(
-                button(text(format!("{MD_SWORD} Open Next Match")))
-                    .on_press(PlayerDetailsMsg::OpenNextPlayerMatch)
-            )
-            .align_x(Horizontal::Center))
         ]
         .spacing(20),
     )

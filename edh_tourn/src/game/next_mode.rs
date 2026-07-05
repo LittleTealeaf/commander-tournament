@@ -17,6 +17,10 @@ pub enum NextPlayerMode {
     LongestSinceWin,
     #[display("Closest to Peak")]
     PeakElo,
+    #[display("Winstreak")]
+    Winstreak,
+    #[display("Losing Streak")]
+    LossStreak,
 }
 
 impl NextPlayerMode {
@@ -28,7 +32,9 @@ impl NextPlayerMode {
             Self::LeastWins,
             Self::OutlierWinrate,
             Self::LongestSinceWin,
-            Self::PeakElo
+            Self::PeakElo,
+            Self::Winstreak,
+            Self::LossStreak
         ]
     }
 }

@@ -46,10 +46,12 @@ impl ComponentView for Menu {
         Self: 'a;
     fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
         row![
-            button("New").on_press(MenuMsg::New),
-            button("Open").on_press(MenuMsg::Open),
-            button("SaveAs").on_press(MenuMsg::SaveAs),
-            button("Save").on_press_maybe(context.is_some().then_some(MenuMsg::Save)),
+            button("New").on_press(MenuMsg::New).style(button::subtle),
+            button("Open").on_press(MenuMsg::Open).style(button::subtle),
+            button("SaveAs").on_press(MenuMsg::SaveAs).style(button::subtle),
+            button("Save")
+                .on_press_maybe(context.is_some().then_some(MenuMsg::Save))
+                .style(button::subtle),
             space().width(Length::Fill),
             button(MD_COG).on_press(MenuMsg::OpenGameConfig),
         ]

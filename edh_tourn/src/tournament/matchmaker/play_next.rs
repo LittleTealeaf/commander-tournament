@@ -27,6 +27,50 @@ impl Matchmaker<'_> {
             .filter(|player| !(self.0.matchmaker_config().exclude_precons && player.info().is_precon()));
 
         match mode {
+            NextPlayerMode::Winstreak => Some(
+                players
+                    .map(|player| {
+                        (
+                            player.id(),
+                            player.stats().elo(),
+                            self.0
+                                .games()
+                                .iter()
+                                .rev()
+                                .filter(|game| game.has_player(player.id()))
+                                .take_while(|game| game.winner() == player.id())
+                                .count(),
+                        )
+                    })
+                    .max_by(|a, b| {
+                        a.2.cmp(&b.2)
+                            .then_with(|| a.1.total_cmp(&b.1).reverse())
+                            .then_with(|| a.0.cmp(&b.0).reverse())
+                    })?
+                    .0,
+            ),
+            NextPlayerMode::LossStreak => Some(
+                players
+                    .map(|player| {
+                        (
+                            player.id(),
+                            player.stats().elo(),
+                            self.0
+                                .games()
+                                .iter()
+                                .rev()
+                                .filter(|game| game.has_player(player.id()))
+                                .take_while(|game| game.winner() != player.id())
+                                .count(),
+                        )
+                    })
+                    .max_by(|a, b| {
+                        a.2.cmp(&b.2)
+                            .then_with(|| a.1.total_cmp(&b.1))
+                            .then_with(|| a.0.cmp(&b.0).reverse())
+                    })?
+                    .0,
+            ),
             NextPlayerMode::LeastGames => players
                 .min_by_key(|player| (player.stats().games(), player.id()))
                 .map(|p| p.id()),
