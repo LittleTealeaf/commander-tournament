@@ -1,5 +1,3 @@
-use core::fmt::Write;
-
 use edh_tourn::{analytics::aggregate::AggregateStats, player::color::ColorIdentity, tournament::Tournament};
 use iced::{
     Length,
