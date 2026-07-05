@@ -16,20 +16,20 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Default)]
-pub struct StatsReview;
+pub struct AnalyticsView;
 
 #[derive(Clone, Debug)]
-pub enum StatsReviewMsg {}
+pub enum AnalyticsMsg {}
 
 #[derive(Clone, Debug)]
-pub enum StatsReviewOut {}
+pub enum AnalyticsOut {}
 
-impl Component for StatsReview {
-    type Message = StatsReviewMsg;
-    type OutMessage = StatsReviewOut;
+impl Component for AnalyticsView {
+    type Message = AnalyticsMsg;
+    type OutMessage = AnalyticsOut;
 }
 
-impl ComponentUpdate for StatsReview {
+impl ComponentUpdate for AnalyticsView {
     type UpdateContext<'a> = ();
     fn update(
         &mut self,
@@ -40,7 +40,7 @@ impl ComponentUpdate for StatsReview {
     }
 }
 
-impl ComponentView for StatsReview {
+impl ComponentView for AnalyticsView {
     type ViewContext<'a>
         = &'a Tournament
     where
@@ -50,8 +50,8 @@ impl ComponentView for StatsReview {
         let aggregated = context.analytics().aggregated_identity_stats();
         let missing = ColorIdentity::IDENTITIES
             .into_iter()
-            .filter(|identity| !aggregated.keys().contains(identity))
-            .collect::<Vec<_>>();
+            .filter(|identity| !aggregated.contains_key(identity))
+            .join(", ");
 
         let identities = aggregated.into_iter().sorted_by(|(ida, a), (idb, b)| {
             a.avg_elo()
@@ -96,21 +96,10 @@ impl ComponentView for StatsReview {
                     ],
                     identities,
                 )),
-                container(
-                    text(missing.into_iter().enumerate().fold(
-                        String::from("No Decks: "),
-                        |mut acc, (i, item)| {
-                            if i > 0 {
-                                let _ = write!(acc, ", ");
-                            }
-                            let _ = write!(acc, "{item}");
-                            acc
-                        }
-                    ))
-                    .size(13)
-                    .font(FONT_ITALIC)
+                (!missing.is_empty()).then(|| container(
+                    text(format!("Missing: {missing}")).font(FONT_ITALIC).size(14)
                 )
-                .padding(10)
+                .padding(10))
             ]
             .spacing(10),
         )

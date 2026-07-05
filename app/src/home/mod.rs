@@ -16,14 +16,14 @@ use crate::{
     },
     effect::Effect,
     home::{
+        analytics::{AnalyticsMsg, AnalyticsView},
         leaderboard::{Leaderboard, LeaderboardMsg, LeaderboardOut},
-        stats::{StatsReview, StatsReviewMsg},
     },
     traits::{Component, ComponentUpdate, ComponentView},
 };
 
+pub mod analytics;
 pub mod leaderboard;
-pub mod stats;
 
 const SCREEN_WIDTH_BREAKPOINT: f32 = 1500.0;
 
@@ -31,7 +31,7 @@ const SCREEN_WIDTH_BREAKPOINT: f32 = 1500.0;
 pub struct Home {
     leaderboard: Leaderboard,
     play: PlayComponent,
-    stats: StatsReview,
+    stats: AnalyticsView,
     tab: HomeTab,
 }
 
@@ -41,8 +41,8 @@ pub enum HomeTab {
     Leaderboard,
     #[display("Play Game")]
     PlayGame,
-    #[display("Game Stats")]
-    StatsReview,
+    #[display("Analytics")]
+    Analytics,
 }
 
 #[derive(Debug, Clone, derive_more::From)]
@@ -52,7 +52,7 @@ pub enum HomeMsg {
     SetTab(HomeTab),
     Play(PlayComponentMsg),
     SelectPlayNextMode(NextPlayerMode),
-    StatsReview(StatsReviewMsg),
+    Analytics(AnalyticsMsg),
     SetPlayMode(PlayMode),
     OpenMatchmakerConfig,
 }
@@ -81,13 +81,13 @@ impl ComponentView for Home {
             ..=SCREEN_WIDTH_BREAKPOINT => column![
                 tab_bar(
                     &self.tab,
-                    [HomeTab::Leaderboard, HomeTab::PlayGame, HomeTab::StatsReview],
+                    [HomeTab::Leaderboard, HomeTab::PlayGame, HomeTab::Analytics],
                     HomeMsg::SetTab
                 ),
                 container(match self.tab {
                     HomeTab::Leaderboard => self.leaderboard.view_into(context),
                     HomeTab::PlayGame => self.view_component_play(context),
-                    HomeTab::StatsReview => self.stats.view_into(context),
+                    HomeTab::Analytics => self.stats.view_into(context),
                 })
                 .width(Length::Fill)
             ]
@@ -192,7 +192,7 @@ impl ComponentUpdate for Home {
                     Effect::out(HomeOut::RecordGame(game_record)).ok()
                 }
             }),
-            HomeMsg::StatsReview(msg) => self.stats.map_update(msg, (), |_| Effect::done()),
+            HomeMsg::Analytics(msg) => self.stats.map_update(msg, (), |_| Effect::done()),
         }
     }
 }
