@@ -19,18 +19,18 @@ fn ordered_by_proximity(target: f64, left: f64, right: f64) -> Ordering {
 
 impl Matchmaker<'_> {
     pub(super) fn ranked_neighbors(
-        self,
+        &self,
         agg_stats: &AggregateStats,
         performances: &HashMap<PlayerId, MatchPerformance>,
     ) -> impl Iterator<Item = (PlayerId, usize)> {
-        let config = self.0.matchmaker_config();
-        let game_config = self.0.game_config();
+        let config = self.config();
+        let game_config = self.tourn.game_config();
         chain!(
             to_weight_rank(
                 sort_by_proximity(
                     performances.keys().copied(),
                     agg_stats.wr().unwrap_or(0.0),
-                    |id| { self.0.get_player_or_default_stats(*id).wr().unwrap_or(0.0) }
+                    |id| { self.tourn.get_player_or_default_stats(*id).wr().unwrap_or(0.0) }
                 ),
                 config.wr_neighbor
             ),
@@ -39,14 +39,14 @@ impl Matchmaker<'_> {
                     performances.keys().copied(),
                     agg_stats
                         .avg_elo()
-                        .unwrap_or_else(|| self.0.default_stats().elo()),
-                    |id| { self.0.get_player_or_default_stats(*id).elo() }
+                        .unwrap_or_else(|| self.tourn.default_stats().elo()),
+                    |id| { self.tourn.get_player_or_default_stats(*id).elo() }
                 ),
                 config.elo_neighbor
             ),
             to_weight_rank(
                 sort_by_proximity(performances.keys().copied(), 0.5, |id| {
-                    let stats = self.0.get_player_or_default_stats(*id);
+                    let stats = self.tourn.get_player_or_default_stats(*id);
                     calc_expected(game_config, agg_stats, stats.wr(), stats.elo())
                 }),
                 config.expected_neighbor

@@ -8,29 +8,62 @@ use itertools::{Itertools, chain};
 
 use crate::{
     analytics::{aggregate::AggregateStats, winloss::MatchPerformance},
+    config::matchmaker::MatchmakerConfig,
     error::TournamentError,
     game::{POD_SIZE, matchup::Matchup},
     player::PlayerId,
     tournament::Tournament,
 };
 
-#[derive(Debug, Clone, Copy)]
-pub struct Matchmaker<'a>(&'a Tournament);
+#[derive(Debug, Clone)]
+pub struct Matchmaker<'a> {
+    tourn: &'a Tournament,
+    config: Option<MatchmakerConfig>,
+}
 
 impl Tournament {
     #[must_use]
     pub const fn matchmaker(&self) -> Matchmaker<'_> {
-        Matchmaker(self)
+        Matchmaker {
+            tourn: self,
+            config: None,
+        }
     }
 }
 
 impl Matchmaker<'_> {
-    pub fn create_match(self, player: PlayerId) -> Result<Matchup, TournamentError> {
+    #[must_use]
+    pub const fn with_config(self, config: MatchmakerConfig) -> Self {
+        Self {
+            config: Some(config),
+            ..self
+        }
+    }
+
+    pub fn with_modified_config<F>(self, modifier: F) -> Self
+    where
+        F: Fn(&MatchmakerConfig) -> MatchmakerConfig,
+    {
+        Self {
+            config: Some(modifier(self.config())),
+            ..self
+        }
+    }
+
+    const fn config(&self) -> &MatchmakerConfig {
+        if let Some(config) = &self.config {
+            config
+        } else {
+            self.tourn.config.matchmaker_config()
+        }
+    }
+
+    pub fn create_match(&self, player: PlayerId) -> Result<Matchup, TournamentError> {
         self.create_match_filtered(player, |_| true)
     }
 
     pub fn create_match_filtered<F>(
-        self,
+        &self,
         player: PlayerId,
         mut allowed: F,
     ) -> Result<Matchup, TournamentError>
@@ -38,10 +71,11 @@ impl Matchmaker<'_> {
         F: FnMut(PlayerId) -> bool,
     {
         let mut players = Vec::with_capacity(POD_SIZE);
-        let mut aggregate_stats = AggregateStats::from(self.0.get_player_or_default_stats(player));
+        let analytics = self.tourn.analytics().with_precons(self.config().include_precons);
+        let mut aggregate_stats = AggregateStats::from(self.tourn.get_player_or_default_stats(player));
         players.push(player);
 
-        let mut performances = self.0.analytics().player_performance_all_others(player)?;
+        let mut performances = analytics.player_performance_all_others(player)?;
         performances.retain(|&id, _| allowed(id));
 
         for _ in 1..POD_SIZE {
@@ -50,10 +84,10 @@ impl Matchmaker<'_> {
                 .ok_or(TournamentError::NotEnoughPlayers)?;
             players.push(player);
             performances.remove(&player);
-            for (pl, per) in self.0.analytics().player_performance(player)? {
+            for (pl, per) in analytics.player_performance(player)? {
                 performances.entry(pl).and_modify(|entry| *entry += per);
             }
-            aggregate_stats += self.0.get_player_or_default_stats(player);
+            aggregate_stats += self.tourn.get_player_or_default_stats(player);
         }
 
         let players = players
@@ -61,11 +95,11 @@ impl Matchmaker<'_> {
             .collect_array()
             .ok_or(TournamentError::NotEnoughPlayers)?;
 
-        self.0.create_match(players)
+        self.tourn.create_match(players)
     }
 
     fn get_match_next_player(
-        self,
+        &self,
         agg_stats: &AggregateStats,
         performances: &HashMap<PlayerId, MatchPerformance>,
     ) -> Option<PlayerId> {

@@ -4,7 +4,7 @@ mod play_next {
 
     fn make_precon(tournament: &mut Tournament, id: PlayerId) {
         let mut config = tournament.matchmaker_config().clone();
-        config.exclude_precons = true;
+        config.include_precons = false;
         tournament.set_matchmaker_config(config);
 
         tournament
@@ -66,7 +66,7 @@ mod play_next {
         }
 
         #[test]
-        fn filters_precons() {
+        fn filters_precon() {
             let mut tournament = Tournament::new();
             let others = tournament.register_debug_players().unwrap();
             let [target, precon] = tournament.register_debug_players().unwrap();
@@ -233,7 +233,7 @@ mod play_next {
         }
 
         #[test]
-        fn filters_precons() {
+        fn filters_precon() {
             let mut tournament = Tournament::new();
             let [pa, pb, pc, pd] = tournament.register_debug_players().unwrap();
             make_precon(&mut tournament, pa);

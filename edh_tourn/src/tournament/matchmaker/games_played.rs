@@ -12,14 +12,14 @@ use crate::{
 
 impl Matchmaker<'_> {
     pub(super) fn ranked_games_played(
-        self,
+        &self,
         agg_stats: &AggregateStats,
         performances: &HashMap<PlayerId, MatchPerformance>,
     ) -> impl Iterator<Item = (PlayerId, usize)> {
         let avg_elo = agg_stats
             .avg_elo()
-            .unwrap_or_else(|| self.0.default_stats().elo());
-        let config = self.0.matchmaker_config();
+            .unwrap_or_else(|| self.tourn.default_stats().elo());
+        let config = self.config();
 
         chain!(
             to_weight_rank(
@@ -41,7 +41,7 @@ impl Matchmaker<'_> {
     }
 
     fn sort_by<F, I>(
-        self,
+        &self,
         target_elo: f64,
         performances: I,
         sort_by: F,
@@ -52,7 +52,7 @@ impl Matchmaker<'_> {
     {
         performances
             .into_iter()
-            .map(|(id, perf)| (id, self.0.get_player_or_default_stats(id), perf))
+            .map(|(id, perf)| (id, self.tourn.get_player_or_default_stats(id), perf))
             .sorted_by(|(pa, sa, ma), (pb, sb, mb)| {
                 sort_by(ma, mb)
                     .then_with(|| {

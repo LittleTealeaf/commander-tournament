@@ -18,14 +18,24 @@ impl<'a> Analytics<'a> {
         self,
         id: PlayerId,
     ) -> Result<HashMap<PlayerId, MatchPerformance>, TournamentError> {
-        self.0.require_id_registered(id)?;
+        self.tourn.require_id_registered(id)?;
 
-        Ok(self
-            .0
+        let mut map = self
+            .tourn
             .get_player_games(id)?
             .flat_map(|game| game_match_perfs(game, |i| i == id))
             .into_grouping_map()
-            .sum())
+            .sum();
+
+        if !self.include_precons {
+            map.retain(|id, _| {
+                self.tourn
+                    .get_player_info(id)
+                    .is_none_or(|info| !info.is_precon())
+            });
+        }
+
+        Ok(map)
     }
 
     pub(crate) fn player_performance_all(
@@ -33,9 +43,9 @@ impl<'a> Analytics<'a> {
         id: PlayerId,
     ) -> Result<HashMap<PlayerId, MatchPerformance>, TournamentError> {
         let mut map = self.player_performance(id)?;
-        for id in self.0.players().keys() {
-            if !map.contains_key(id) {
-                map.insert(*id, MatchPerformance::default());
+        for (id, info) in self.tourn.players() {
+            if self.include_precons || !info.is_precon() {
+                map.entry(*id).or_default();
             }
         }
         Ok(map)
@@ -57,7 +67,7 @@ impl<'a> Analytics<'a> {
         Ok(self
             .player_performance(id)?
             .into_iter()
-            .filter_map(|(id, perf)| Some((self.0.get_registered_player(id)?, perf))))
+            .filter_map(|(id, perf)| Some((self.tourn.get_registered_player(id)?, perf))))
     }
 
     pub fn player_vs_player_performance(
@@ -104,18 +114,21 @@ impl Analytics<'_> {
         self,
         identity: ColorIdentity,
     ) -> HashMap<ColorIdentity, MatchPerformance> {
-        self.0
+        self.tourn
             .games()
             .iter()
             .flat_map(|game| {
                 game_match_perfs(game, |id| {
-                    let Some(info) = self.0.get_player_info(&id) else {
+                    let Some(info) = self.tourn.get_player_info(&id) else {
                         return false;
                     };
-                    info.color_identity() == identity
+                    (self.include_precons || !info.is_precon()) && info.color_identity() == identity
                 })
             })
-            .filter_map(|(id, perf)| Some((self.0.get_player_info(&id)?.color_identity(), perf)))
+            .filter_map(|(id, perf)| {
+                let info = self.tourn.get_player_info(&id)?;
+                (self.include_precons || !info.is_precon()).then_some((info.color_identity(), perf))
+            })
             .into_grouping_map()
             .sum()
     }
@@ -136,18 +149,21 @@ impl Analytics<'_> {
 impl Analytics<'_> {
     #[must_use]
     pub fn color_vs_color_performance(self, color: MtgColor) -> HashMap<MtgColor, MatchPerformance> {
-        self.0
+        self.tourn
             .games()
             .iter()
             .flat_map(|game| {
                 game_match_perfs(game, |id| {
-                    let Some(info) = self.0.get_player_info(&id) else {
+                    let Some(info) = self.tourn.get_player_info(&id) else {
                         return false;
                     };
-                    info.color_identity().has_color(color)
+                    (self.include_precons || !info.is_precon()) && info.color_identity().has_color(color)
                 })
             })
-            .filter_map(|(id, perf)| Some((self.0.get_player_info(&id)?.color_identity(), perf)))
+            .filter_map(|(id, perf)| {
+                let info = self.tourn.get_player_info(&id)?;
+                (self.include_precons || !info.is_precon()).then_some((info.color_identity(), perf))
+            })
             .flat_map(|(identity, perf)| identity.colors().map(move |color| (color, perf)))
             .into_grouping_map()
             .sum()

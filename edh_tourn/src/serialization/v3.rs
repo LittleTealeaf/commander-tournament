@@ -81,7 +81,7 @@ impl From<V3Tournament> for V4Tournament {
                     elo_neighbor: value.config.ranking.elo_neighbor,
                     wr_neighbor: value.config.ranking.wr_neighbor,
                     expected_neighbor: value.config.ranking.expected_neighbor,
-                    exclude_precons: false,
+                    include_precons: true,
                     outlier_include_extremes: true,
                 },
             ),

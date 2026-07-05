@@ -10,7 +10,7 @@ use crate::{
 };
 
 impl Matchmaker<'_> {
-    pub fn play_next(self, mode: NextPlayerMode) -> Result<Matchup, TournamentError> {
+    pub fn play_next(&self, mode: NextPlayerMode) -> Result<Matchup, TournamentError> {
         let Some(player) = self.get_next_lead_player(mode) else {
             return Err(TournamentError::NotEnoughPlayers);
         };
@@ -20,11 +20,11 @@ impl Matchmaker<'_> {
         Ok(matchup)
     }
 
-    pub fn get_next_lead_player(self, mode: NextPlayerMode) -> Option<PlayerId> {
+    pub fn get_next_lead_player(&self, mode: NextPlayerMode) -> Option<PlayerId> {
         let players = self
-            .0
+            .tourn
             .registered_players()
-            .filter(|player| !(self.0.matchmaker_config().exclude_precons && player.info().is_precon()));
+            .filter(|player| self.config().include_precons || !player.info().is_precon());
 
         match mode {
             NextPlayerMode::Winstreak => Some(
@@ -33,7 +33,7 @@ impl Matchmaker<'_> {
                         (
                             player.id(),
                             player.stats().elo(),
-                            self.0
+                            self.tourn
                                 .games()
                                 .iter()
                                 .rev()
@@ -55,7 +55,7 @@ impl Matchmaker<'_> {
                         (
                             player.id(),
                             player.stats().elo(),
-                            self.0
+                            self.tourn
                                 .games()
                                 .iter()
                                 .rev()
@@ -90,7 +90,7 @@ impl Matchmaker<'_> {
                     return pool.into_iter().next();
                 }
 
-                let games = self.0.games().iter().rev();
+                let games = self.tourn.games().iter().rev();
 
                 for game in games {
                     for player in game.players() {
@@ -110,7 +110,7 @@ impl Matchmaker<'_> {
                     return pool.into_iter().next();
                 }
 
-                let games = self.0.games().iter().rev();
+                let games = self.tourn.games().iter().rev();
 
                 for game in games {
                     let [lead, ..] = game.players();
@@ -137,7 +137,7 @@ impl Matchmaker<'_> {
                     return pool.into_iter().next();
                 }
 
-                for game in self.0.games().iter().rev() {
+                for game in self.tourn.games().iter().rev() {
                     pool.remove(&game.winner());
                     if pool.len() <= 1 {
                         return pool.into_iter().next();
@@ -149,7 +149,7 @@ impl Matchmaker<'_> {
             NextPlayerMode::OutlierWinrate => {
                 #[allow(clippy::cast_precision_loss, reason = "u32 to f64 casting")]
                 let target = 1.0 / (POD_SIZE as f64);
-                if self.0.config.matchmaker_config().outlier_include_extremes {
+                if self.config().outlier_include_extremes {
                     players
                         .min_by(|left, right| {
                             let left_diff = (target - left.stats().wr_unwrap()).abs();
