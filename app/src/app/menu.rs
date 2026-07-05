@@ -2,9 +2,8 @@ use std::path::PathBuf;
 
 use iced::{
     Length,
-    widget::{button, row, rule, space},
+    widget::{button, row, space},
 };
-use iced_aw::widget::InnerBounds::Padding;
 use nerd_font_symbols::md::MD_COG;
 
 use crate::{
