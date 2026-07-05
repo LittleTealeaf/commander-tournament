@@ -71,7 +71,7 @@ impl Matchmaker<'_> {
         F: FnMut(PlayerId) -> bool,
     {
         let mut players = Vec::with_capacity(POD_SIZE);
-        let analytics = self.tourn.analytics().with_precons(self.config().include_precons);
+        let analytics = self.tourn.analytics();
         let mut aggregate_stats = AggregateStats::from(self.tourn.get_player_or_default_stats(player));
         players.push(player);
 
