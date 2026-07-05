@@ -111,7 +111,8 @@ impl ComponentView for AnalyticsView {
                         }),
                     ],
                     identities,
-                )),
+                ))
+                .height(Length::Fill),
                 (!missing.is_empty()).then(|| container(
                     text(format!("Missing: {missing}")).font(FONT_ITALIC).size(14)
                 )
@@ -120,7 +121,6 @@ impl ComponentView for AnalyticsView {
             .spacing(10),
         )
         .padding(25)
-        .height(Length::Shrink)
         .into()
     }
 }
