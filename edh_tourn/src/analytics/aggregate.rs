@@ -12,6 +12,11 @@ pub struct AggregateStats {
 
 impl AggregateStats {
     #[must_use]
+    pub const fn count(&self) -> u32 {
+        self.count
+    }
+
+    #[must_use]
     pub const fn games(&self) -> u32 {
         self.games
     }

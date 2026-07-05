@@ -11,11 +11,12 @@ use edh_tourn::{
 use iced::{
     Element, Length, Padding,
     alignment::{Horizontal, Vertical},
-    widget::{Container, button, column, container, row, scrollable, space, table, text},
+    widget::{Container, button, column, container, row, space, table, text},
 };
 use itertools::Itertools;
 
 use crate::{
+    components::scrollable_table,
     fonts::FONT_BOLD,
     icons::{ToColorIcons, color_icon},
     views::player::PlayerDetailsMsg,
@@ -65,14 +66,6 @@ fn col_wins<'a, T: 'a>(
     text(format!("{}", performance.wins()))
 }
 
-fn table_wrapper(table: table::Table<'_, super::PlayerDetailsMsg>) -> Container<'_, super::PlayerDetailsMsg> {
-    container(
-        scrollable(table.width(Length::Fill))
-            .width(Length::Fill)
-            .height(Length::Fill),
-    )
-}
-
 pub fn stats_game_history(
     tournament: &Tournament,
     id: PlayerId,
@@ -120,7 +113,7 @@ pub fn stats_game_history(
         .into_iter()
         .rev();
 
-    Some(table_wrapper(table(
+    Some(scrollable_table(table(
         [
             table::column("Games", column_game),
             table::column("Elo Change", column_elo),
@@ -159,7 +152,7 @@ pub fn stats_player_matchups(
 
     let col_identity = |(player, _): RowType| text(player.info().color_identity().to_string());
 
-    Some(table_wrapper(table(
+    Some(scrollable_table(table(
         [
             table::column("Player", col_player),
             table::column("Identity", col_identity),
@@ -188,7 +181,7 @@ pub fn stats_identity_matchups(
     let col_identity = |(identity, _): RowType| text(format!("{identity}"));
     let col_colors = |(identity, _): RowType| row(identity.to_icons().map(Into::into)).spacing(3);
 
-    Some(table_wrapper(table(
+    Some(scrollable_table(table(
         [
             table::column("Color Identity", col_identity),
             table::column("Colors", col_colors),
@@ -220,7 +213,7 @@ pub fn stats_color_matchups(
             .spacing(10)
     };
 
-    Some(table_wrapper(table(
+    Some(scrollable_table(table(
         [
             table::column("Color", col_color),
             table::column("Wins", col_wins),

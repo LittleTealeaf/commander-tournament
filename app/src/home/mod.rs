@@ -5,7 +5,7 @@ use edh_tourn::{
 };
 use iced::{
     Length,
-    widget::{button, column, container, pick_list, responsive, row, space, text},
+    widget::{button, column, container, pick_list, responsive, row, rule, space, text},
 };
 use nerd_font_symbols::md::{MD_CLOSE, MD_COGS};
 
@@ -15,11 +15,15 @@ use crate::{
         tab_bar,
     },
     effect::Effect,
-    home::leaderboard::{Leaderboard, LeaderboardMsg, LeaderboardOut},
+    home::{
+        leaderboard::{Leaderboard, LeaderboardMsg, LeaderboardOut},
+        stats::{StatsReview, StatsReviewMsg},
+    },
     traits::{Component, ComponentUpdate, ComponentView},
 };
 
 pub mod leaderboard;
+pub mod stats;
 
 const SCREEN_WIDTH_BREAKPOINT: f32 = 1500.0;
 
@@ -27,6 +31,7 @@ const SCREEN_WIDTH_BREAKPOINT: f32 = 1500.0;
 pub struct Home {
     leaderboard: Leaderboard,
     play: PlayComponent,
+    stats: StatsReview,
     tab: HomeTab,
 }
 
@@ -36,6 +41,8 @@ pub enum HomeTab {
     Leaderboard,
     #[display("Play Game")]
     PlayGame,
+    #[display("Game Stats")]
+    StatsReview,
 }
 
 #[derive(Debug, Clone, derive_more::From)]
@@ -45,6 +52,7 @@ pub enum HomeMsg {
     SetTab(HomeTab),
     Play(PlayComponentMsg),
     SelectPlayNextMode(NextPlayerMode),
+    StatsReview(StatsReviewMsg),
     SetPlayMode(PlayMode),
     OpenMatchmakerConfig,
 }
@@ -73,19 +81,25 @@ impl ComponentView for Home {
             ..=SCREEN_WIDTH_BREAKPOINT => column![
                 tab_bar(
                     &self.tab,
-                    [HomeTab::Leaderboard, HomeTab::PlayGame],
+                    [HomeTab::Leaderboard, HomeTab::PlayGame, HomeTab::StatsReview],
                     HomeMsg::SetTab
                 ),
                 container(match self.tab {
                     HomeTab::Leaderboard => self.leaderboard.view_into(context),
                     HomeTab::PlayGame => self.view_component_play(context),
+                    HomeTab::StatsReview => self.stats.view_into(context),
                 })
                 .width(Length::Fill)
             ]
             .into(),
             _ => row![
                 container(self.leaderboard.view_into(context)).width(Length::FillPortion(1)),
-                container(self.view_component_play(context)).width(Length::FillPortion(1))
+                container(column![
+                    self.view_component_play(context),
+                    rule::horizontal(1),
+                    self.stats.view_into(context)
+                ])
+                .width(Length::FillPortion(1))
             ]
             .into(),
         })
@@ -178,6 +192,7 @@ impl ComponentUpdate for Home {
                     Effect::out(HomeOut::RecordGame(game_record)).ok()
                 }
             }),
+            HomeMsg::StatsReview(msg) => self.stats.map_update(msg, (), |_| Effect::done()),
         }
     }
 }
