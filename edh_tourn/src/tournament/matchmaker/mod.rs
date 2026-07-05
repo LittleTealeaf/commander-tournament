@@ -71,10 +71,14 @@ impl Matchmaker<'_> {
         F: FnMut(PlayerId) -> bool,
     {
         let mut players = Vec::with_capacity(POD_SIZE);
+        let analytics = self
+            .tourn
+            .analytics()
+            .with_precons(!self.config().exclude_precons);
         let mut aggregate_stats = AggregateStats::from(self.tourn.get_player_or_default_stats(player));
         players.push(player);
 
-        let mut performances = self.tourn.analytics().player_performance_all_others(player)?;
+        let mut performances = analytics.player_performance_all_others(player)?;
         performances.retain(|&id, _| allowed(id));
 
         for _ in 1..POD_SIZE {
@@ -83,7 +87,7 @@ impl Matchmaker<'_> {
                 .ok_or(TournamentError::NotEnoughPlayers)?;
             players.push(player);
             performances.remove(&player);
-            for (pl, per) in self.tourn.analytics().player_performance(player)? {
+            for (pl, per) in analytics.player_performance(player)? {
                 performances.entry(pl).and_modify(|entry| *entry += per);
             }
             aggregate_stats += self.tourn.get_player_or_default_stats(player);

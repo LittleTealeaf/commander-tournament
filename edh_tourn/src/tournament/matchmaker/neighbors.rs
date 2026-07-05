@@ -23,7 +23,7 @@ impl Matchmaker<'_> {
         agg_stats: &AggregateStats,
         performances: &HashMap<PlayerId, MatchPerformance>,
     ) -> impl Iterator<Item = (PlayerId, usize)> {
-        let config = self.tourn.matchmaker_config();
+        let config = self.config();
         let game_config = self.tourn.game_config();
         chain!(
             to_weight_rank(

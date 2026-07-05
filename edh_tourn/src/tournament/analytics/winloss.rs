@@ -28,11 +28,11 @@ impl<'a> Analytics<'a> {
             .sum();
 
         if !self.include_precons {
-            for (id, info) in self.tourn.players() {
-                if info.is_precon() {
-                    map.remove(id);
-                }
-            }
+            map.retain(|id, _| {
+                self.tourn
+                    .get_player_info(id)
+                    .is_none_or(|info| !info.is_precon())
+            });
         }
 
         Ok(map)
