@@ -7,7 +7,7 @@ use iced::{
     Length,
     widget::{button, column, container, pick_list, responsive, row, rule, space, text},
 };
-use nerd_font_symbols::md::{MD_CLOSE, MD_COGS};
+use nerd_font_symbols::md::{MD_CLOSE, MD_COGS, MD_FILTER};
 
 use crate::{
     components::{
@@ -19,6 +19,7 @@ use crate::{
         analytics::{AnalyticsMsg, AnalyticsView},
         leaderboard::{Leaderboard, LeaderboardMsg, LeaderboardOut},
     },
+    popup::filter_players::{FilterPlayersComponent, FilterPlayersMsg, FilterPlayersOut},
     traits::{Component, ComponentUpdate, ComponentView},
 };
 
@@ -33,6 +34,7 @@ pub struct Home {
     play: PlayComponent,
     stats: AnalyticsView,
     tab: HomeTab,
+    filter: Option<FilterPlayersComponent>,
 }
 
 #[derive(Debug, Clone, Copy, derive_more::Display, Default, PartialEq, Eq)]
@@ -54,6 +56,10 @@ pub enum HomeMsg {
     SelectPlayNextMode(NextPlayerMode),
     Analytics(AnalyticsMsg),
     SetPlayMode(PlayMode),
+    FilterMsg(FilterPlayersMsg),
+    OpenFilterPlayers,
+    CloseFilterPlayers,
+    SetFiltered(im::HashSet<PlayerId>),
     OpenMatchmakerConfig,
 }
 
@@ -77,7 +83,7 @@ impl ComponentView for Home {
     where
         Self: 'a;
     fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
-        responsive(|size: iced::Size| match size.width {
+        let main_content = responsive(|size: iced::Size| match size.width {
             ..=SCREEN_WIDTH_BREAKPOINT => column![
                 tab_bar(
                     &self.tab,
@@ -102,8 +108,17 @@ impl ComponentView for Home {
                 .width(Length::FillPortion(1))
             ]
             .into(),
-        })
-        .into()
+        });
+
+        if let Some(filter) = &self.filter {
+            filter
+                .to_popup(context)
+                .map_into()
+                .overlay(main_content)
+                .map(Into::into)
+        } else {
+            main_content.into()
+        }
     }
 }
 
@@ -117,6 +132,7 @@ impl Home {
                             pick_list(NextPlayerMode::VALUES, Some(mode), |select| {
                                 HomeMsg::SelectPlayNextMode(select)
                             }),
+                            button(MD_FILTER).on_press(HomeMsg::OpenFilterPlayers),
                             space().width(Length::Fill),
                             button("Custom").on_press(HomeMsg::SetPlayMode(PlayMode::custom()))
                         ]
@@ -160,6 +176,28 @@ impl ComponentUpdate for Home {
         context: Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         match message {
+            HomeMsg::CloseFilterPlayers => {
+                self.filter = None;
+                Effect::done()
+            }
+            HomeMsg::SetFiltered(filtered) => {
+                self.play.set_filtered_out(filtered);
+                Effect::done()
+            }
+            HomeMsg::FilterMsg(msg) => self.filter.as_mut().map_or_else(Effect::done, |filter| {
+                filter.map_update(msg, context, |msg| match msg {
+                    FilterPlayersOut::Submit(set) => Effect::msg(HomeMsg::SetFiltered(set))
+                        .chain(Effect::msg(HomeMsg::CloseFilterPlayers))
+                        .ok(),
+                    FilterPlayersOut::Cancel => Effect::msg(HomeMsg::CloseFilterPlayers).ok(),
+                })
+            }),
+            HomeMsg::OpenFilterPlayers => {
+                self.filter = Some(FilterPlayersComponent::new(
+                    self.play.get_filtered_out().iter().copied(),
+                ));
+                Effect::done()
+            }
             HomeMsg::SetPlayMode(mode_type) => {
                 self.play.set_mode(mode_type, context);
                 Effect::done()

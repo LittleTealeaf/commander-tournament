@@ -1,5 +1,5 @@
 use iced::{
-    Length,
+    Length, Padding,
     widget::{Container, container, scrollable, table::Table},
 };
 
@@ -9,7 +9,7 @@ where
     M: 'a,
 {
     container(
-        scrollable(table.width(Length::Fill))
+        scrollable(container(table.width(Length::Fill)).padding(Padding::new(0.0).right(15)))
             .width(Length::Fill)
             .height(Length::Fill),
     )

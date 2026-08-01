@@ -1,8 +1,9 @@
 pub mod confirm;
+pub mod filter_players;
 
 use iced::{
-    Color, Element, Length,
-    widget::{center, column, container, opaque, row, space, stack, text},
+    Color, Element,
+    widget::{center, column, container, opaque, row, stack, text},
 };
 
 use crate::fonts::FONT_BOLD;
@@ -19,6 +20,22 @@ impl<'a, Msg> Popup<'a, Msg>
 where
     Msg: Clone + 'a,
 {
+    pub fn map_into<NewMsg>(self) -> Popup<'a, NewMsg>
+    where
+        Msg: Into<NewMsg>,
+        NewMsg: 'a,
+    {
+        Popup {
+            title: self.title,
+            content: self.content.map(Into::into),
+            actions: self
+                .actions
+                .into_iter()
+                .map(|item| item.map(Into::into))
+                .collect(),
+        }
+    }
+
     pub fn overlay<Screen>(self, screen: Screen) -> Element<'a, Msg>
     where
         Screen: Into<Element<'a, Msg>>,
@@ -27,15 +44,14 @@ where
             column![
                 text(self.title).font(FONT_BOLD).size(20),
                 self.content,
-                row![space().width(Length::Fill), row(self.actions).spacing(7)]
+                row(self.actions).spacing(7)
             ]
             .spacing(10),
         )
         .padding(10)
-        .width(Length::Shrink)
         .style(container::rounded_box);
 
-        let popup = center(popup).style(|style| container::Style {
+        let popup = center(popup).padding(75).style(|style| container::Style {
             background: Some(
                 Color {
                     a: 0.5,

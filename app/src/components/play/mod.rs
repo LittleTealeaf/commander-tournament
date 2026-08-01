@@ -3,6 +3,7 @@ use edh_tourn::{
     player::PlayerId,
     tournament::Tournament,
 };
+use im::HashSet;
 pub use play_mode::*;
 pub use update::*;
 
@@ -16,6 +17,7 @@ mod view;
 pub struct PlayComponent {
     mode: PlayMode,
     preview: Option<MatchPreview>,
+    filtered_out: HashSet<PlayerId>,
 }
 
 impl Default for PlayMode {
@@ -49,6 +51,18 @@ impl PlayComponent {
         *mode = next_mode;
         self.refresh(tournament);
     }
+
+    pub fn set_filtered_out<I>(&mut self, filtered: I)
+    where
+        I: IntoIterator<Item = PlayerId>,
+    {
+        self.filtered_out = filtered.into_iter().collect();
+    }
+
+    #[must_use]
+    pub const fn get_filtered_out(&self) -> &HashSet<PlayerId> {
+        &self.filtered_out
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -65,7 +79,11 @@ impl Component for PlayComponent {
 impl PlayComponent {
     #[must_use]
     pub fn new(mode: PlayMode, tournament: &Tournament) -> Self {
-        let mut component = Self { mode, preview: None };
+        let mut component = Self {
+            mode,
+            preview: None,
+            filtered_out: HashSet::new(),
+        };
         component.refresh(tournament);
         component
     }
