@@ -1,7 +1,8 @@
 use edh_tourn::player::color::MtgColor;
 use iced::{
+    Length,
     alignment::Vertical,
-    widget::{button, checkbox, column, container, row, text, text_editor, text_input},
+    widget::{button, checkbox, column, container, row, space, text, text_editor, text_input},
 };
 use nerd_font_symbols::md::MD_LINK_VARIANT;
 
@@ -34,6 +35,10 @@ pub fn view_info_panel(state: &PlayerView) -> iced::widget::Container<'_, super:
     }))
     .spacing(5);
 
+    let checkbox_archived = checkbox(state.info.is_archived())
+        .label("Archived")
+        .on_toggle(PlayerDetailsMsg::SetArchived);
+
     let checkbox_precon = checkbox(state.info.is_precon())
         .label("Precon")
         .on_toggle(PlayerDetailsMsg::SetIsPrecon);
@@ -45,15 +50,20 @@ pub fn view_info_panel(state: &PlayerView) -> iced::widget::Container<'_, super:
 
     container(
         column![
-            row![edit_name, checkbox_precon]
+            row![edit_name, checkbox_archived]
                 .spacing(20)
                 .align_y(Vertical::Center),
             row![edit_moxfieldid, button_link]
                 .spacing(20)
                 .align_y(Vertical::Center),
-            row![deck_colors, text_identity]
-                .spacing(20)
-                .align_y(Vertical::Center),
+            row![
+                deck_colors,
+                text_identity,
+                space().width(Length::Fill),
+                checkbox_precon
+            ]
+            .spacing(20)
+            .align_y(Vertical::Center),
             edit_description,
         ]
         .spacing(20),

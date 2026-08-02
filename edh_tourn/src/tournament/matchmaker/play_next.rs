@@ -21,10 +21,9 @@ impl Matchmaker<'_> {
     }
 
     pub fn get_next_lead_player(&self, mode: NextPlayerMode) -> Option<PlayerId> {
-        let players = self
-            .tourn
-            .registered_players()
-            .filter(|player| self.config().include_precons || !player.info().is_precon());
+        let players = self.tourn.registered_players().filter(|player| {
+            (self.config().include_precons || !player.info().is_precon()) && !player.info().is_archived()
+        });
 
         match mode {
             NextPlayerMode::Winstreak => Some(
