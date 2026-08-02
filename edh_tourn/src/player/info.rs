@@ -27,6 +27,8 @@ pub struct PlayerInfo {
     moxfield_id: Option<String>,
     #[serde(skip_serializing_if = "is_false", default, rename = "pc", alias = "precon")]
     precon: bool,
+    #[serde(skip_serializing_if = "is_false", default, rename = "ar", alias = "archived")]
+    archived: bool,
 }
 
 #[allow(clippy::trivially_copy_pass_by_ref, reason = "Serialization reference")]
@@ -53,6 +55,7 @@ impl PlayerInfo {
             identity: ColorIdentity::COLORLESS,
             moxfield_id: None,
             precon: false,
+            archived: false,
         }
     }
 
@@ -170,6 +173,15 @@ impl PlayerInfo {
 
     pub const fn set_precon(&mut self, precon: bool) {
         self.precon = precon;
+    }
+
+    #[must_use]
+    pub const fn is_archived(&self) -> bool {
+        self.archived
+    }
+
+    pub const fn set_archived(&mut self, archived: bool) {
+        self.archived = archived;
     }
 }
 

@@ -76,6 +76,13 @@ impl Matchmaker<'_> {
         players.push(player);
 
         let mut performances = analytics.player_performance_all_others(player)?;
+
+        performances.retain(|id, _| {
+            self.tourn
+                .get_player_info(id)
+                .is_some_and(|info| !info.is_archived())
+        });
+
         performances.retain(|&id, _| allowed(id));
 
         for _ in 1..POD_SIZE {
