@@ -72,11 +72,11 @@ mod tests {
     fn set_matchmaker_config() {
         let mut tournament = Tournament::new();
         let mut matchmaker = tournament.matchmaker_config().clone();
-        matchmaker.expected_neighbor += 1;
+        matchmaker.min_pool_size += 1;
         tournament.set_matchmaker_config(matchmaker.clone());
         assert_eq!(
-            tournament.matchmaker_config().expected_neighbor,
-            matchmaker.expected_neighbor
+            tournament.matchmaker_config().min_pool_size,
+            matchmaker.min_pool_size
         );
     }
 }

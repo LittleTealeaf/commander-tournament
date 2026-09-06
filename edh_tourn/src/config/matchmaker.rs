@@ -1,30 +1,23 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+use crate::game::POD_SIZE;
+
+#[derive(
+    Debug, Clone, Serialize, Deserialize, PartialEq, getset::CopyGetters, getset::Setters, getset::WithSetters,
+)]
 pub struct MatchmakerConfig {
-    pub player_least_played: usize,
-    pub player_lost_with: usize,
-    pub player_nemesis: usize,
-    pub elo_neighbor: usize,
-    pub wr_neighbor: usize,
-    pub expected_neighbor: usize,
-    #[serde(alias = "exclude_precons")]
-    pub include_precons: bool,
-    pub outlier_include_extremes: bool,
+    #[getset(set = "pub", set_with = "pub", get_copy = "pub")]
+    pub elo_range: f64,
+    #[getset(set = "pub", set_with = "pub", get_copy = "pub")]
+    pub min_pool_size: usize,
 }
 
 impl MatchmakerConfig {
     #[must_use]
     pub const fn new() -> Self {
         Self {
-            player_least_played: 4,
-            player_nemesis: 3,
-            player_lost_with: 2,
-            elo_neighbor: 4,
-            wr_neighbor: 3,
-            expected_neighbor: 3,
-            include_precons: true,
-            outlier_include_extremes: true,
+            elo_range: 100.0,
+            min_pool_size: (POD_SIZE - 1) * 3,
         }
     }
 }

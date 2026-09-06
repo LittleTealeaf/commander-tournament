@@ -31,7 +31,7 @@ impl PlayMode {
                 let [a, b, c, d] = *players;
                 tournament.create_match([a?, b?, c?, d?]).ok()
             }
-            Self::Next(mode) => tournament.matchmaker().play_next(*mode).ok(),
+            Self::Next(mode) => tournament.next_game(*mode).ok(),
         }
     }
 }

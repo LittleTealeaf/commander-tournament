@@ -23,15 +23,7 @@ impl ComponentUpdate for App {
         message: Self::Message,
         (): Self::UpdateContext<'_>,
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
-        #[cfg(debug_assertions)]
-        {
-            let dbg = format!("{message:?}");
-            if dbg.len() > 1000 {
-                println!("Update: {dbg:.1000}...");
-            } else {
-                println!("Update: {dbg}");
-            }
-        }
+        log::debug!("Processing Update: {message:?}");
 
         match message {
             Message::Refresh => self
