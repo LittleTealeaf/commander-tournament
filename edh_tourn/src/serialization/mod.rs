@@ -9,7 +9,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     error::TournamentError,
-    serialization::{v1::V1Tournament, v2::V2Tournament, v3::V3Tournament, v4::V4Tournament, v5::V5Tournament},
+    serialization::{
+        v1::V1Tournament, v2::V2Tournament, v3::V3Tournament, v4::V4Tournament, v5::V5Tournament,
+    },
     tournament::Tournament,
 };
 
@@ -25,7 +27,7 @@ pub enum SerializedTournament {
 #[derive(Deserialize, Debug, Serialize)]
 #[serde(tag = "version")]
 pub enum SerdeTournament {
-    #[serde(rename="5")]
+    #[serde(rename = "5")]
     V5(V5Tournament),
     #[serde(rename = "4")]
     V4(V4Tournament),
@@ -61,7 +63,7 @@ impl TryFrom<SerdeTournament> for Tournament {
         match value {
             SerdeTournament::V3(v3) => SerdeTournament::V4(v3.into()).try_into(),
             SerdeTournament::V4(v4) => SerdeTournament::V5(v4.into()).try_into(),
-            SerdeTournament::V5(v5) => v5.try_into()
+            SerdeTournament::V5(v5) => v5.try_into(),
         }
     }
 }

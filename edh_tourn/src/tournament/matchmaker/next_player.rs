@@ -1,5 +1,5 @@
-use std::{collections::HashMap};
 use core::cmp::Ordering;
+use std::collections::HashMap;
 
 use itertools::{Itertools, chain};
 

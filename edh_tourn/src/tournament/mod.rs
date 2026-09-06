@@ -2,9 +2,9 @@ mod analytics;
 mod config;
 mod matches;
 mod matchmaker;
+mod next_game;
 mod players;
 mod stats;
-mod next_game;
 
 use std::collections::HashMap;
 
