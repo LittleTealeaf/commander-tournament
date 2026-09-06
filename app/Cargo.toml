@@ -39,6 +39,7 @@ tokio = { version = "1.52.3", features = ["rt", "macros"] }
 auto-const-array = "0.2.2"
 paste = "1.0.15"
 im = "15.1.0"
+strum = { version = "0.28.0", features = ["derive"] }
 
 [dev-dependencies]
 app = { path = ".", features = ["dev"] }

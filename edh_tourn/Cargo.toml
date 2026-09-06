@@ -17,6 +17,9 @@ rand_chacha = {version="0.10.0", optional=true}
 derive_more = {version = "2", features = ["from", "constructor", "display"]}
 auto-const-array = "0.2.2"
 im = "15.1.0"
+getset = "0.1.7"
+ordered-float = "5.5.0"
+strum = { version = "0.28.0", features = ["derive"] }
 
 [dev-dependencies]
 edh_tourn = {path=".", features=["dev"]}

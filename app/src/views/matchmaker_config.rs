@@ -1,5 +1,5 @@
 use edh_tourn::{config::matchmaker::MatchmakerConfig, tournament::Tournament};
-use iced::widget::{button, checkbox, column, row, text};
+use iced::widget::{button, column, row, text, text_input};
 use iced_aw::number_input;
 use nerd_font_symbols::md::{MD_CONTENT_SAVE, MD_RESTORE, MD_UNDO};
 
@@ -12,12 +12,18 @@ use crate::{
 #[derive(Debug, Clone)]
 pub struct MatchmakerConfigView {
     config: MatchmakerConfig,
+    elo_text: String,
+    elo_valid: bool,
 }
 
 impl MatchmakerConfigView {
     #[must_use]
-    pub const fn new(config: MatchmakerConfig) -> Self {
-        Self { config }
+    pub fn new(config: MatchmakerConfig) -> Self {
+        Self {
+            elo_text: config.elo_range().to_string(),
+            elo_valid: true,
+            config,
+        }
     }
 }
 
@@ -27,14 +33,8 @@ pub enum MatchmakerConfigMsg {
     Save,
     SetDefault,
     Reset,
-    SetLeastPlayed(usize),
-    SetNemesis(usize),
-    SetLostWith(usize),
-    SetEloNeighbor(usize),
-    SetWrNeighbor(usize),
-    SetExpectedNeighbor(usize),
-    SetIncludePrecons(bool),
-    SetOutlierExtremes(bool),
+    SetEloRange(String),
+    SetMinPoolSize(usize),
 }
 
 #[derive(Debug, Clone)]
@@ -62,17 +62,20 @@ impl ComponentUpdate for MatchmakerConfigView {
             MatchmakerConfigMsg::Save => {
                 return Effect::out(MatchmakerConfigOut::SaveAndClose(self.config.clone())).ok();
             }
-            MatchmakerConfigMsg::SetLeastPlayed(value) => {
-                self.config.player_least_played = value;
+            MatchmakerConfigMsg::SetMinPoolSize(size) => {
+                self.config.set_min_pool_size(size);
             }
-            MatchmakerConfigMsg::SetIncludePrecons(value) => self.config.include_precons = value,
-            MatchmakerConfigMsg::SetNemesis(value) => self.config.player_nemesis = value,
-            MatchmakerConfigMsg::SetLostWith(value) => self.config.player_lost_with = value,
-            MatchmakerConfigMsg::SetEloNeighbor(value) => self.config.elo_neighbor = value,
-            MatchmakerConfigMsg::SetWrNeighbor(value) => self.config.wr_neighbor = value,
-            MatchmakerConfigMsg::SetOutlierExtremes(value) => self.config.outlier_include_extremes = value,
-            MatchmakerConfigMsg::SetExpectedNeighbor(value) => {
-                self.config.expected_neighbor = value;
+            MatchmakerConfigMsg::SetEloRange(range) => {
+                self.elo_text = range;
+                match self.elo_text.parse() {
+                    Ok(res) => {
+                        self.config.set_elo_range(res);
+                        self.elo_valid = true;
+                    }
+                    Err(_) => {
+                        self.elo_valid = false;
+                    }
+                }
             }
             MatchmakerConfigMsg::SetDefault => self.config = MatchmakerConfig::default(),
             MatchmakerConfigMsg::Reset => self.config = context.matchmaker_config().clone(),
@@ -111,80 +114,24 @@ impl ComponentView for MatchmakerConfigView {
     where
         Self: 'a;
     fn view<'a>(&'a self, (): Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
-        let number_options = [
-            (
-                "Least Played",
+        column![
+            row![
+                text("Minimum Pool Size"),
                 number_input(
-                    &self.config.player_least_played,
+                    &self.config.min_pool_size(),
                     0..1000,
-                    MatchmakerConfigMsg::SetLeastPlayed,
+                    MatchmakerConfigMsg::SetMinPoolSize,
                 )
                 .ignore_buttons(true),
-            ),
-            (
-                "Nemesis",
-                number_input(
-                    &self.config.player_nemesis,
-                    0..1000,
-                    MatchmakerConfigMsg::SetNemesis,
-                )
-                .ignore_buttons(true),
-            ),
-            (
-                "Lost With",
-                number_input(
-                    &self.config.player_lost_with,
-                    0..1000,
-                    MatchmakerConfigMsg::SetLostWith,
-                )
-                .ignore_buttons(true),
-            ),
-            (
-                "Elo Neighbor",
-                number_input(
-                    &self.config.elo_neighbor,
-                    0..1000,
-                    MatchmakerConfigMsg::SetEloNeighbor,
-                )
-                .ignore_buttons(true),
-            ),
-            (
-                "WR Neighbor",
-                number_input(
-                    &self.config.wr_neighbor,
-                    0..1000,
-                    MatchmakerConfigMsg::SetWrNeighbor,
-                )
-                .ignore_buttons(true),
-            ),
-            (
-                "Expected Neighbor",
-                number_input(
-                    &self.config.expected_neighbor,
-                    0..1000,
-                    MatchmakerConfigMsg::SetExpectedNeighbor,
-                )
-                .ignore_buttons(true),
-            ),
-        ];
-
-        let toggle_options = [
-            (
-                "Include Precons",
-                checkbox(self.config.include_precons).on_toggle(MatchmakerConfigMsg::SetIncludePrecons),
-            ),
-            (
-                "Outlier Includes Extremes",
-                checkbox(self.config.outlier_include_extremes)
-                    .on_toggle(MatchmakerConfigMsg::SetOutlierExtremes),
-            ),
-        ];
-
-        column(number_options.map(|(label_text, input)| row![text(label_text), input].spacing(10).into()))
-            .extend(
-                toggle_options.map(|(label_text, input)| row![text(label_text), input].spacing(10).into()),
-            )
-            .spacing(10)
-            .into()
+            ]
+            .spacing(10),
+            row![
+                text("Pool Elo Range"),
+                text_input("", &self.elo_text).on_input(MatchmakerConfigMsg::SetEloRange),
+            ]
+            .spacing(10),
+        ]
+        .spacing(10)
+        .into()
     }
 }

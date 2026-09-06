@@ -8,6 +8,7 @@ use iced::{
     widget::{button, column, container, pick_list, responsive, row, rule, space, text},
 };
 use nerd_font_symbols::md::{MD_CLOSE, MD_COGS};
+use strum::VariantArray;
 
 use crate::{
     components::{
@@ -114,7 +115,7 @@ impl Home {
                 match self.play.mode() {
                     PlayMode::Next(mode) => {
                         row![
-                            pick_list(NextPlayerMode::VALUES, Some(mode), |select| {
+                            pick_list(NextPlayerMode::VARIANTS, Some(mode), |select| {
                                 HomeMsg::SelectPlayNextMode(select)
                             }),
                             space().width(Length::Fill),

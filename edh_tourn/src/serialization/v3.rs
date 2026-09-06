@@ -2,14 +2,12 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Deserializer};
 
-use crate::config::TournamentConfig;
 use crate::config::game::GameConfig;
-use crate::config::matchmaker::MatchmakerConfig;
 use crate::game::entry::GameEntry;
 use crate::player::PlayerId;
 use crate::player::info::PlayerInfo;
 use crate::serialization::utils::DeserializableMap;
-use crate::serialization::v4::V4Tournament;
+use crate::serialization::v4::{V4MatchmakerConfig, V4Tournament, V4TournamentConfig};
 
 fn player_info_deserialize<'de, D>(deserializer: D) -> Result<HashMap<PlayerId, PlayerInfo>, D::Error>
 where
@@ -72,9 +70,9 @@ impl From<V3Tournament> for V4Tournament {
         Self {
             players: value.players,
             games: value.games,
-            config: TournamentConfig::with_configs(
-                value.config.game,
-                MatchmakerConfig {
+            config: V4TournamentConfig {
+                game: value.config.game,
+                matchmaker: V4MatchmakerConfig {
                     player_nemesis: value.config.ranking.nemesis,
                     player_lost_with: value.config.ranking.lost_with,
                     player_least_played: value.config.ranking.least_played,
@@ -84,7 +82,7 @@ impl From<V3Tournament> for V4Tournament {
                     include_precons: true,
                     outlier_include_extremes: true,
                 },
-            ),
+            },
         }
     }
 }

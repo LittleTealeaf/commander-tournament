@@ -4,6 +4,7 @@ mod matches;
 mod matchmaker;
 mod players;
 mod stats;
+mod next_game;
 
 use std::collections::HashMap;
 
