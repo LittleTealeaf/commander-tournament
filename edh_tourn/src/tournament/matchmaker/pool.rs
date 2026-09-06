@@ -26,7 +26,10 @@ impl PartialOrd for HeapPlayer {
 
 impl Ord for HeapPlayer {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.diff.cmp(&other.diff).then_with(|| self.id.cmp(&other.id))
+        self.diff
+            .cmp(&other.diff)
+            .reverse()
+            .then_with(|| self.id.cmp(&other.id))
     }
 }
 

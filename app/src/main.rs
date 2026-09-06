@@ -5,6 +5,7 @@ use app::{
 use iced::{Application, Theme, application, window};
 
 fn main() -> iced::Result {
+    env_logger::init();
     let settings = window::Settings {
         exit_on_close_request: false,
         ..Default::default()

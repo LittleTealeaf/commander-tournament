@@ -40,20 +40,23 @@ impl Tournament {
 
 impl Matchmaker<'_> {
     pub fn create_match(&self, player: PlayerId) -> Result<Matchup, TournamentError> {
+        log::debug!("Creating Match for Player {player}");
         let pool = self.create_player_pool(player);
         let analytics = self.tourn.analytics();
 
         let mut aggregate_stats = AggregateStats::from(self.tourn.get_player_or_default_stats(player));
+        log::debug!("Built Aggregate Stats: {aggregate_stats:?}");
         let mut performances = analytics.player_performance_all_others(player)?;
         performances.retain(|id, _| pool.contains(id));
 
         let mut players = Vec::with_capacity(POD_SIZE);
         players.push(player);
 
-        for _ in 1..POD_SIZE {
+        for i in 1..POD_SIZE {
             let Some(id) = self.next_player(&aggregate_stats, &performances) else {
                 return Err(TournamentError::NotEnoughPlayers);
             };
+            log::debug!("Selected Player {id} for Slot {i}");
 
             players.push(id);
             performances.remove(&id);
@@ -62,6 +65,7 @@ impl Matchmaker<'_> {
                 performances.entry(pl).and_modify(|entry| entry.add_assign(per));
             }
             aggregate_stats += self.tourn.get_player_or_default_stats(id);
+            log::debug!("Updated Stats: {aggregate_stats:?}");
         }
 
         let game_players = players
