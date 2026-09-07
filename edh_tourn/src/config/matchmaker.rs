@@ -23,7 +23,7 @@ impl MatchmakerConfig {
     #[must_use]
     pub const fn new() -> Self {
         Self {
-            elo_range: 100.0,
+            elo_range: 50.0,
             min_pool_size: (POD_SIZE - 1) * 3,
         }
     }
