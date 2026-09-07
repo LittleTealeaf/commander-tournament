@@ -34,7 +34,8 @@ pub struct PlayerId(pub(crate) u32);
 /**
  * Represents a reference to a registered player.
  */
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Debug, getset::CopyGetters, getset::Getters)]
+#[getset(get_copy = "pub")]
 pub struct RegisteredPlayer<'a> {
     id: PlayerId,
     info: &'a PlayerInfo,
@@ -45,30 +46,6 @@ impl<'a> RegisteredPlayer<'a> {
     #[must_use]
     pub(crate) const fn new(id: PlayerId, info: &'a PlayerInfo, stats: &'a PlayerStats) -> Self {
         Self { id, info, stats }
-    }
-}
-
-impl RegisteredPlayer<'_> {
-    /// Returns the direct [`PlayerId`] identifier of the registered player.
-    #[must_use]
-    pub const fn id(&self) -> PlayerId {
-        self.id
-    }
-
-    /// Returns a reference to the [`PlayerInfo`].
-    #[must_use]
-    pub const fn info(&self) -> &PlayerInfo {
-        self.info
-    }
-
-    /**
-     * Returns a reference to the current [`PlayerStats`].
-     * If the player has no modified stats, this will be
-     * a reference to the default stats.
-     */
-    #[must_use]
-    pub const fn stats(&self) -> &PlayerStats {
-        self.stats
     }
 }
 
