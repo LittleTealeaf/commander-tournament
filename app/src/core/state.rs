@@ -1,12 +1,9 @@
 use iced::Task;
+use iced_tea::{Model, Signal};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-use crate::{
-    effect::Effect,
-    services::system::{load_from_file_async, project_dir, save_file_async},
-    traits::{Component, ComponentUpdate},
-};
+use crate::services::system::{load_from_file_async, project_dir, save_file_async};
 
 fn get_state_path() -> Option<PathBuf> {
     let project = project_dir()?;
@@ -108,23 +105,21 @@ pub enum AppStateMsg {
     Nothing,
 }
 
-impl Component for AppState {
+impl Model for AppState {
     type Message = AppStateMsg;
     type OutMessage = ();
-}
+    type Context<'a> = ();
 
-impl ComponentUpdate for AppState {
-    type UpdateContext<'a> = ();
-    fn update(
-        &mut self,
+    fn update<'a>(
+        &'a mut self,
         message: Self::Message,
-        (): Self::UpdateContext<'_>,
-    ) -> anyhow::Result<crate::effect::Effect<Self::Message, Self::OutMessage>> {
+        (): Self::Context<'a>,
+    ) -> anyhow::Result<Signal<Self::Message, Self::OutMessage>> {
         match message {
             AppStateMsg::Save => {
                 if self.is_saving {
                     self.is_modified = true;
-                    return Effect::done();
+                    return Signal::done();
                 }
 
                 self.is_saving = true;
@@ -137,25 +132,25 @@ impl ComponentUpdate for AppState {
                     }
                 };
                 let task = Task::future(future);
-                Effect::Task(task).ok()
+                Signal::task(task).ok()
             }
             AppStateMsg::IsSaved => {
                 self.is_saving = false;
                 if self.is_modified {
-                    Effect::Msg(AppStateMsg::Save).ok()
+                    Signal::msg(AppStateMsg::Save).ok()
                 } else {
-                    Effect::done()
+                    Signal::done()
                 }
             }
             AppStateMsg::SetOpenedFile(path_buf) => {
                 self.set_last_opened(path_buf);
-                Effect::Msg(AppStateMsg::Save).ok()
+                Signal::msg(AppStateMsg::Save).ok()
             }
             AppStateMsg::ClearOpenedFile => {
                 self.clear_last_opened();
-                Effect::Msg(AppStateMsg::Save).ok()
+                Signal::msg(AppStateMsg::Save).ok()
             }
-            AppStateMsg::Nothing => Effect::done(),
+            AppStateMsg::Nothing => Signal::done(),
             AppStateMsg::Error(error) => {
                 self.is_saving = false;
                 self.is_modified = true;

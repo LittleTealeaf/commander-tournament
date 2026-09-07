@@ -162,6 +162,7 @@ dependencies = [
  "edh_tourn",
  "env_logger",
  "iced",
+ "iced-tea",
  "iced_aw",
  "iced_futures",
  "iced_test",
@@ -1719,6 +1720,16 @@ dependencies = [
  "iced_widget",
  "iced_winit",
  "thiserror 2.0.20",
+]
+
+[[package]]
+name = "iced-tea"
+version = "0.2.0"
+source = "git+https://github.com/LittleTealeaf/iced-tea?tag=v0.2.0#fdca3c8a3bfa50666074a3b23c8ee3f63feeaaa9"
+dependencies = [
+ "anyhow",
+ "iced",
+ "iced_futures",
 ]
 
 [[package]]

@@ -2,13 +2,10 @@ use edh_tourn::{config::game::GameConfig, tournament::Tournament};
 
 use iced::widget::{button, column, row, rule, text};
 use iced_aw::number_input;
+use iced_tea::{Component, Model, Signal};
 use nerd_font_symbols::md::{MD_CONTENT_SAVE, MD_RESTORE, MD_UNDO};
 
-use crate::{
-    effect::Effect,
-    traits::{Component, ComponentUpdate, ComponentView},
-    views::ViewScreen,
-};
+use crate::views::ViewScreen;
 
 #[derive(Debug, Clone)]
 pub struct GameConfigView {
@@ -47,53 +44,50 @@ pub enum GameConfigOut {
     SaveAndClose(GameConfig),
 }
 
-impl Component for GameConfigView {
+impl Model for GameConfigView {
     type Message = GameConfigMsg;
     type OutMessage = GameConfigOut;
-}
+    type Context<'a> = &'a Tournament;
 
-impl ComponentUpdate for GameConfigView {
-    type UpdateContext<'a> = &'a Tournament;
-
-    fn update(
-        &mut self,
+    fn update<'a>(
+        &'a mut self,
         message: Self::Message,
-        context: Self::UpdateContext<'_>,
-    ) -> anyhow::Result<crate::effect::Effect<Self::Message, Self::OutMessage>> {
+        context: Self::Context<'a>,
+    ) -> anyhow::Result<Signal<Self::Message, Self::OutMessage>> {
         match message {
-            GameConfigMsg::Close => Effect::out(GameConfigOut::Close).ok(),
-            GameConfigMsg::Save => Effect::out(GameConfigOut::SaveAndClose(self.config.clone())).ok(),
+            GameConfigMsg::Close => Signal::out(GameConfigOut::Close).ok(),
+            GameConfigMsg::Save => Signal::out(GameConfigOut::SaveAndClose(self.config.clone())).ok(),
             GameConfigMsg::SetDefault => {
                 self.config = GameConfig::default();
-                Effect::done()
+                Signal::done()
             }
             GameConfigMsg::Reset => {
                 self.config = context.game_config().clone();
-                Effect::done()
+                Signal::done()
             }
             GameConfigMsg::SetStartingElo(val) => {
                 self.config.set_starting_elo(val);
-                Effect::done()
+                Signal::done()
             }
             GameConfigMsg::SetGamePoints(val) => {
                 self.config.set_game_points(val);
-                Effect::done()
+                Signal::done()
             }
             GameConfigMsg::SetEloPowScale(val) => {
                 self.config.set_game_elo_pow_scale(val);
-                Effect::done()
+                Signal::done()
             }
             GameConfigMsg::SetWrPowScale(val) => {
                 self.config.set_game_wr_pow_scale(val);
-                Effect::done()
+                Signal::done()
             }
             GameConfigMsg::SetEloWeight(val) => {
                 self.config.set_game_elo_weight(val);
-                Effect::done()
+                Signal::done()
             }
             GameConfigMsg::SetWrWeight(val) => {
                 self.config.set_game_wr_weight(val);
-                Effect::done()
+                Signal::done()
             }
         }
     }
@@ -102,21 +96,21 @@ impl ComponentUpdate for GameConfigView {
 impl ViewScreen for GameConfigView {
     const CLOSE_MESSAGE: Self::Message = GameConfigMsg::Close;
 
-    fn title<'a>(&'a self, (): Self::ViewContext<'a>) -> String {
+    fn title<'a>(&'a self, _context: Self::Context<'a>) -> String {
         "Game Settings".to_owned()
     }
 
     // Adding the save and reset buttons to match MatchmakerConfig
     fn primary_actions<'a>(
         &'a self,
-        (): Self::ViewContext<'a>,
+        _context: Self::Context<'a>,
     ) -> impl IntoIterator<Item = iced::widget::Button<'a, Self::Message>> {
         [button(MD_CONTENT_SAVE).on_press(GameConfigMsg::Save)]
     }
 
     fn secondary_actions<'a>(
         &'a self,
-        (): Self::ViewContext<'a>,
+        _context: Self::Context<'a>,
     ) -> impl IntoIterator<Item = button::Button<'a, Self::Message>> {
         [
             button(MD_UNDO).on_press(GameConfigMsg::Reset),
@@ -125,10 +119,8 @@ impl ViewScreen for GameConfigView {
     }
 }
 
-impl ComponentView for GameConfigView {
-    type ViewContext<'a> = ();
-
-    fn view<'a>(&'a self, (): Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
+impl Component for GameConfigView {
+    fn render<'a>(&'a self, _context: Self::Context<'a>) -> iced::Element<'a, Self::Message> {
         let general_section = column![
             text("General").size(20),
             row![

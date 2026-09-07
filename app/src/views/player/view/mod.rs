@@ -1,16 +1,15 @@
 mod info;
 mod stats;
-
-use edh_tourn::tournament::Tournament;
 use iced::{
     Alignment, Length,
     widget::{column, container, row, text},
 };
 use strum::VariantArray;
 
+use iced_tea::Component;
+
 use crate::{
     components::tab_bar,
-    traits::ComponentView,
     views::player::{
         PlayerDetailsMsg, StatsTab,
         view::{
@@ -23,12 +22,8 @@ use crate::{
     },
 };
 
-impl ComponentView for super::PlayerView {
-    type ViewContext<'a>
-        = &'a Tournament
-    where
-        Self: 'a;
-    fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
+impl Component for super::PlayerView {
+    fn render<'a>(&'a self, context: Self::Context<'a>) -> iced::Element<'a, Self::Message> {
         let info_panel = view_info_panel(self).max_width(700);
 
         let deck_progress = self.id.map(|id| {

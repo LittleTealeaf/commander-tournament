@@ -6,8 +6,6 @@ use edh_tourn::{
 pub use play_mode::*;
 pub use update::*;
 
-use crate::traits::Component;
-
 mod play_mode;
 mod update;
 mod view;
@@ -55,11 +53,6 @@ impl PlayComponent {
 pub struct MatchPreview {
     matchup: Matchup,
     winner: Option<PlayerId>,
-}
-
-impl Component for PlayComponent {
-    type Message = PlayComponentMsg;
-    type OutMessage = PlayComponentOut;
 }
 
 impl PlayComponent {

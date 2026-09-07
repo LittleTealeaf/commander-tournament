@@ -1,11 +1,10 @@
 use edh_tourn::{game::record::GameRecord, player::PlayerId, tournament::Tournament};
 use iced::widget::button;
+use iced_tea::{Component, Model, Signal};
 use nerd_font_symbols::md::MD_COGS;
 
 use crate::{
     components::play::{PlayComponent, PlayComponentMsg, PlayComponentOut, PlayMode},
-    effect::Effect,
-    traits::{Component, ComponentUpdate, ComponentView},
     views::ViewScreen,
 };
 
@@ -35,40 +34,34 @@ pub enum PlayViewOut {
     RecordGame(Box<GameRecord>),
 }
 
-impl Component for PlayView {
+impl Model for PlayView {
     type Message = PlayViewMsg;
     type OutMessage = PlayViewOut;
-}
+    type Context<'a> = &'a Tournament;
 
-impl ComponentUpdate for PlayView {
-    type UpdateContext<'a> = &'a Tournament;
-    fn update(
-        &mut self,
+    fn update<'a>(
+        &'a mut self,
         message: Self::Message,
-        context: Self::UpdateContext<'_>,
-    ) -> anyhow::Result<crate::effect::Effect<Self::Message, Self::OutMessage>> {
+        context: Self::Context<'a>,
+    ) -> anyhow::Result<Signal<Self::Message, Self::OutMessage>> {
         match message {
             PlayViewMsg::Play(msg) => self.0.map_update(msg, context, |out| {
-                Effect::out(match out {
+                Signal::out(match out {
                     PlayComponentOut::OpenPlayer(player_id) => PlayViewOut::OpenPlayer(player_id),
                     PlayComponentOut::OpenLink(link) => PlayViewOut::OpenLink(link),
                     PlayComponentOut::RecordGame(game_record) => PlayViewOut::RecordGame(game_record),
                 })
                 .ok()
             }),
-            PlayViewMsg::Close => Effect::out(PlayViewOut::Close).ok(),
-            PlayViewMsg::OpenMatchmakerConfig => Effect::out(PlayViewOut::OpenMatchmakerConfig).ok(),
+            PlayViewMsg::Close => Signal::out(PlayViewOut::Close).ok(),
+            PlayViewMsg::OpenMatchmakerConfig => Signal::out(PlayViewOut::OpenMatchmakerConfig).ok(),
         }
     }
 }
 
-impl ComponentView for PlayView {
-    type ViewContext<'a>
-        = &'a Tournament
-    where
-        Self: 'a;
-    fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
-        self.0.view_into(context)
+impl Component for PlayView {
+    fn render<'a>(&'a self, context: Self::Context<'a>) -> iced::Element<'a, Self::Message> {
+        self.0.render_into(context)
     }
 }
 
@@ -78,12 +71,12 @@ impl ViewScreen for PlayView {
 
     fn secondary_actions<'a>(
         &'a self,
-        _: Self::ViewContext<'a>,
+        _: Self::Context<'a>,
     ) -> impl IntoIterator<Item = iced::widget::Button<'a, Self::Message>> {
         [button(MD_COGS).on_press(PlayViewMsg::OpenMatchmakerConfig)]
     }
 
-    fn title<'a>(&'a self, context: Self::ViewContext<'a>) -> String {
+    fn title<'a>(&'a self, context: Self::Context<'a>) -> String {
         match &self.0.mode() {
             PlayMode::Player(id) => format!(
                 "Play: {}",

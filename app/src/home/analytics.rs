@@ -3,14 +3,13 @@ use iced::{
     Length,
     widget::{checkbox, column, container, row, space, table, text},
 };
+use iced_tea::{Component, Model, Signal};
 use itertools::Itertools;
 
 use crate::{
     components::scrollable_table,
-    effect::Effect,
     fonts::FONT_ITALIC,
     icons::{color_icon, colorless_icon},
-    traits::{Component, ComponentUpdate, ComponentView},
 };
 
 #[derive(Debug, Clone, Default)]
@@ -26,34 +25,27 @@ pub enum AnalyticsMsg {
 #[derive(Clone, Debug)]
 pub enum AnalyticsOut {}
 
-impl Component for AnalyticsView {
+impl Model for AnalyticsView {
     type Message = AnalyticsMsg;
     type OutMessage = AnalyticsOut;
-}
+    type Context<'a> = &'a Tournament;
 
-impl ComponentUpdate for AnalyticsView {
-    type UpdateContext<'a> = ();
-    fn update(
-        &mut self,
+    fn update<'a>(
+        &'a mut self,
         message: Self::Message,
-        (): Self::UpdateContext<'_>,
-    ) -> anyhow::Result<crate::effect::Effect<Self::Message, Self::OutMessage>> {
+        _context: Self::Context<'a>,
+    ) -> anyhow::Result<Signal<Self::Message, Self::OutMessage>> {
         match message {
             AnalyticsMsg::SetIncludePrecons(value) => {
                 self.include_precons = value;
-                Effect::done()
+                Signal::done()
             }
         }
     }
 }
 
-impl ComponentView for AnalyticsView {
-    type ViewContext<'a>
-        = &'a Tournament
-    where
-        Self: 'a;
-
-    fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
+impl Component for AnalyticsView {
+    fn render<'a>(&'a self, context: Self::Context<'a>) -> iced::Element<'a, Self::Message> {
         let aggregated = context
             .analytics()
             .with_precons(self.include_precons)

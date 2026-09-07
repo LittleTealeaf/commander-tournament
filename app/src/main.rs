@@ -2,7 +2,8 @@ use app::{
     App,
     fonts::{FONT_BYTES, FONT_NORMAL},
 };
-use iced::{Application, Theme, application, window};
+use iced::{Application, window};
+use iced_tea::App as _;
 
 fn main() -> iced::Result {
     env_logger::init();
@@ -11,18 +12,11 @@ fn main() -> iced::Result {
         ..Default::default()
     };
 
-    // Initialize and configure methods
-    let app = application(App::boot, App::handle_update, App::handle_view)
-        .title(App::title)
-        .subscription(App::subscription)
-        .window(settings);
-
-    // Fonts and Theme
+    let app = App::application().window(settings);
     let app = FONT_BYTES
         .into_iter()
         .fold(app, Application::font)
-        .default_font(FONT_NORMAL)
-        .theme(Theme::CatppuccinMocha);
+        .default_font(FONT_NORMAL);
 
     app.run()
 }
