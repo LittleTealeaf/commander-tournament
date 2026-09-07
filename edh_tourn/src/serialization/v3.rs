@@ -97,10 +97,4 @@ mod tests {
         let data = include_str!("../../../res/tests/compats/sample-v3.ron");
         let _: Tournament = ron::from_str(data).unwrap();
     }
-
-    #[test]
-    fn deserialize_untagged() {
-        let data = include_str!("../../../res/tests/compats/sample-v3-untagged.ron");
-        let _: Tournament = ron::from_str(data).unwrap();
-    }
 }

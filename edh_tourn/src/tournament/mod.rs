@@ -8,8 +8,6 @@ mod stats;
 
 use std::collections::HashMap;
 
-use serde::{Deserialize, Serialize};
-
 use crate::{
     config::TournamentConfig,
     error::TournamentError,
@@ -17,9 +15,7 @@ use crate::{
     player::{PlayerId, info::PlayerInfo, stats::PlayerStats},
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(try_from = "crate::serialization::SerializedTournament")]
-#[serde(into = "crate::serialization::SerdeTournament")]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Tournament {
     pub(crate) config: TournamentConfig,
     pub(crate) stats: HashMap<PlayerId, PlayerStats>,

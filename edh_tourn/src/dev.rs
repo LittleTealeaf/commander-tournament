@@ -71,7 +71,7 @@ impl Tournament {
 
     #[must_use]
     pub fn sample_game() -> Self {
-        ron::from_str(include_str!("../../res/tests/compats/sample-v2.ron")).unwrap()
+        ron::from_str(include_str!("../../res/tests/compats/sample-v5.ron")).unwrap()
     }
 
     pub fn register_debug_player(&mut self) -> Result<PlayerId, TournamentError> {

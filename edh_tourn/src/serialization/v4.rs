@@ -44,6 +44,7 @@ pub(super) struct V4TournamentConfig {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(default)]
 pub(super) struct V4MatchmakerConfig {
     pub player_least_played: usize,
     pub player_lost_with: usize,
