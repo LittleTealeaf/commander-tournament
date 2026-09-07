@@ -6,9 +6,13 @@ use crate::{
     player::PlayerId,
 };
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
+#[derive(
+    Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, getset::Getters, getset::CopyGetters,
+)]
 pub struct GameRecord {
+    #[get = "pub"]
     matchup: Matchup,
+    #[get_copy = "pub"]
     winner: PlayerId,
 }
 
@@ -27,28 +31,18 @@ impl GameRecord {
     }
 
     #[must_use]
-    pub const fn matchup(&self) -> &Matchup {
-        &self.matchup
-    }
-
-    #[must_use]
     pub fn get_player(&self, id: PlayerId) -> Option<&MatchPlayer> {
         self.matchup().get_player(id)
     }
 
     #[must_use]
-    pub const fn players(&self) -> &[MatchPlayer; POD_SIZE] {
+    pub fn players(&self) -> &[MatchPlayer; POD_SIZE] {
         self.matchup().players()
     }
 
     #[must_use]
     pub fn ids(&self) -> [PlayerId; POD_SIZE] {
         self.matchup.ids()
-    }
-
-    #[must_use]
-    pub const fn winner(&self) -> PlayerId {
-        self.winner
     }
 
     #[must_use]

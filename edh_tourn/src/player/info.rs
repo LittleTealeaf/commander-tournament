@@ -1,8 +1,22 @@
 use crate::player::color::{ColorIdentity, MtgColor};
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default, PartialEq, Eq, Hash)]
+#[derive(
+    Debug,
+    Clone,
+    serde::Serialize,
+    serde::Deserialize,
+    Default,
+    PartialEq,
+    Eq,
+    Hash,
+    getset::Getters,
+    getset::CopyGetters,
+    getset::Setters,
+    getset::WithSetters,
+)]
 pub struct PlayerInfo {
     #[serde(rename = "n", alias = "name")]
+    #[getset(get = "pub", set = "pub", set_with = "pub")]
     name: String,
     #[serde(
         skip_serializing_if = "String::is_empty",
@@ -10,6 +24,7 @@ pub struct PlayerInfo {
         rename = "d",
         alias = "description"
     )]
+    #[getset(get = "pub", set = "pub", set_with = "pub")]
     description: String,
     #[serde(
         skip_serializing_if = "ColorIdentity::is_colorless",
@@ -17,7 +32,8 @@ pub struct PlayerInfo {
         rename = "i",
         alias = "identity"
     )]
-    identity: ColorIdentity,
+    #[getset(get_copy = "pub", set = "pub", set_with = "pub")]
+    color_identity: ColorIdentity,
     #[serde(
         skip_serializing_if = "Option::is_none",
         default,
@@ -26,9 +42,11 @@ pub struct PlayerInfo {
     )]
     moxfield_id: Option<String>,
     #[serde(skip_serializing_if = "is_false", default, rename = "pc", alias = "precon")]
-    precon: bool,
+    #[getset(get_copy = "pub", set = "pub", set_with = "pub")]
+    is_precon: bool,
     #[serde(skip_serializing_if = "is_false", default, rename = "ar", alias = "archived")]
-    archived: bool,
+    #[getset(get_copy = "pub", set = "pub", set_with = "pub")]
+    is_archived: bool,
 }
 
 #[allow(clippy::trivially_copy_pass_by_ref, reason = "Serialization reference")]
@@ -52,21 +70,16 @@ impl PlayerInfo {
         Self {
             name,
             description: String::new(),
-            identity: ColorIdentity::COLORLESS,
+            color_identity: ColorIdentity::COLORLESS,
             moxfield_id: None,
-            precon: false,
-            archived: false,
+            is_precon: false,
+            is_archived: false,
         }
     }
 
     #[must_use]
-    pub const fn name(&self) -> &String {
-        &self.name
-    }
-
-    #[must_use]
     pub fn display_name(&self) -> String {
-        if self.precon {
+        if self.is_precon {
             format!("{} (Precon)", self.name)
         } else {
             self.name.clone()
@@ -92,29 +105,6 @@ impl PlayerInfo {
             .map(|id| format!("https://moxfield.com/decks/{id}/goldfish"))
     }
 
-    pub fn set_name(&mut self, name: String) {
-        self.name = name;
-    }
-
-    #[must_use]
-    pub fn with_name(self, name: String) -> Self {
-        Self { name, ..self }
-    }
-
-    pub fn set_description(&mut self, description: String) {
-        self.description = description;
-    }
-
-    #[must_use]
-    pub fn description(&self) -> &str {
-        &self.description
-    }
-
-    #[must_use]
-    pub fn with_description(self, description: String) -> Self {
-        Self { description, ..self }
-    }
-
     pub fn clear_moxfield_id(&mut self) {
         self.moxfield_id = None;
     }
@@ -131,57 +121,25 @@ impl PlayerInfo {
         }
     }
 
-    #[must_use]
-    pub const fn color_identity(&self) -> ColorIdentity {
-        self.identity
-    }
-
-    #[must_use]
-    pub fn with_color_identity(self, identity: ColorIdentity) -> Self {
-        Self { identity, ..self }
-    }
-
-    pub const fn set_color_identity(&mut self, identity: ColorIdentity) {
-        self.identity = identity;
-    }
-
     pub const fn add_color(&mut self, color: MtgColor) {
-        self.identity.add_color(color);
+        self.color_identity.add_color(color);
     }
 
     pub const fn remove_color(&mut self, color: MtgColor) {
-        self.identity.remove_color(color);
+        self.color_identity.remove_color(color);
     }
 
     pub const fn toggle_color(&mut self, color: MtgColor) {
-        if self.identity.has_color(color) {
-            self.identity.remove_color(color);
+        if self.color_identity.has_color(color) {
+            self.color_identity.remove_color(color);
         } else {
-            self.identity.add_color(color);
+            self.color_identity.add_color(color);
         }
     }
 
     #[must_use]
     pub fn into_name(self) -> String {
         self.name
-    }
-
-    #[must_use]
-    pub const fn is_precon(&self) -> bool {
-        self.precon
-    }
-
-    pub const fn set_precon(&mut self, precon: bool) {
-        self.precon = precon;
-    }
-
-    #[must_use]
-    pub const fn is_archived(&self) -> bool {
-        self.archived
-    }
-
-    pub const fn set_archived(&mut self, archived: bool) {
-        self.archived = archived;
     }
 }
 

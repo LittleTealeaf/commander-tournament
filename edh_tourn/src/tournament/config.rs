@@ -6,12 +6,12 @@ use crate::{
 
 impl Tournament {
     #[must_use]
-    pub const fn game_config(&self) -> &GameConfig {
-        self.config.game_config()
+    pub fn game_config(&self) -> &GameConfig {
+        self.config.game()
     }
 
     pub fn set_game_config(&mut self, config: GameConfig) -> Result<(), TournamentError> {
-        self.config.set_game_config(config);
+        self.config.set_game(config);
         self.reload()?;
         Ok(())
     }
@@ -22,12 +22,12 @@ impl Tournament {
     }
 
     #[must_use]
-    pub const fn matchmaker_config(&self) -> &MatchmakerConfig {
-        self.config.matchmaker_config()
+    pub fn matchmaker_config(&self) -> &MatchmakerConfig {
+        self.config.matchmaker()
     }
 
-    pub const fn set_matchmaker_config(&mut self, config: MatchmakerConfig) {
-        self.config.set_matchmaker_config(config);
+    pub fn set_matchmaker_config(&mut self, config: MatchmakerConfig) {
+        self.config.set_matchmaker(config);
     }
 }
 
@@ -41,7 +41,7 @@ mod tests {
         let id = *tournament.players.keys().next().unwrap();
         let elo_start = tournament.get_player_stats(id).unwrap().elo();
         let mut config = tournament.game_config().clone();
-        config.starting_elo += 1500.0;
+        *config.starting_elo_mut() += 1500.0;
         tournament.set_game_config(config).unwrap();
         let elo_end = tournament.get_player_stats(id).unwrap().elo();
         assert!(elo_start.total_cmp(&elo_end).is_ne());
@@ -51,7 +51,7 @@ mod tests {
     fn updating_config_updates_version() {
         let mut tournament = Tournament::generate_tournament(4, 1).unwrap();
         let mut config = tournament.game_config().clone();
-        config.starting_elo += 1500.0;
+        *config.starting_elo_mut() += 1500.0;
 
         let version = tournament.snapshot;
         tournament.set_game_config(config).unwrap();
@@ -72,11 +72,11 @@ mod tests {
     fn set_matchmaker_config() {
         let mut tournament = Tournament::new();
         let mut matchmaker = tournament.matchmaker_config().clone();
-        matchmaker.min_pool_size += 1;
+        *matchmaker.min_pool_size_mut() += 1;
         tournament.set_matchmaker_config(matchmaker.clone());
         assert_eq!(
-            tournament.matchmaker_config().min_pool_size,
-            matchmaker.min_pool_size
+            tournament.matchmaker_config().min_pool_size(),
+            matchmaker.min_pool_size()
         );
     }
 }

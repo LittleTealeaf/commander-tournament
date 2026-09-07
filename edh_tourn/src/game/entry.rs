@@ -7,11 +7,25 @@ use crate::{
 };
 
 /// Stores only the player IDs and the winner ID. Primarily used for serialization or conversions
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default, PartialEq, Copy, Eq, Hash)]
+#[derive(
+    Debug,
+    Clone,
+    serde::Serialize,
+    serde::Deserialize,
+    Default,
+    PartialEq,
+    Copy,
+    Eq,
+    Hash,
+    getset::Getters,
+    getset::CopyGetters,
+)]
 pub struct GameEntry {
     #[serde(rename = "p", alias = "players")]
+    #[getset(get = "pub")]
     players: [PlayerId; POD_SIZE],
     #[serde(rename = "w", alias = "winner")]
+    #[getset(get_copy = "pub")]
     winner: PlayerId,
 }
 
@@ -28,16 +42,6 @@ impl GameEntry {
     #[must_use]
     const fn new_unchecked(players: [PlayerId; 4], winner: PlayerId) -> Self {
         Self { players, winner }
-    }
-
-    #[must_use]
-    pub const fn players(&self) -> &[PlayerId; 4] {
-        &self.players
-    }
-
-    #[must_use]
-    pub const fn winner(&self) -> PlayerId {
-        self.winner
     }
 
     pub fn map_ids(&self, ids: &HashMap<PlayerId, PlayerId>) -> Result<Self, TournamentError> {

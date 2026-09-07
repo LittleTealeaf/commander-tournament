@@ -4,7 +4,7 @@ use edh_tourn::tournament::Tournament;
 #[test]
 fn default_stats_use_starting_elo() {
     let tournament = Tournament::default();
-    let starting_elo = tournament.game_config().starting_elo;
+    let starting_elo = tournament.game_config().starting_elo();
     let stats = tournament.default_stats();
     assert!(starting_elo.total_cmp(&stats.elo()).is_eq());
 }
@@ -12,7 +12,7 @@ fn default_stats_use_starting_elo() {
 #[test]
 fn all_players_start_with_default_elo() {
     let tournament = Tournament::generate_tournament(100, 0).unwrap();
-    let starting_elo = tournament.game_config().starting_elo;
+    let starting_elo = tournament.game_config().starting_elo();
     for player in tournament.registered_players() {
         assert_relative_eq!(starting_elo, player.stats().elo());
     }

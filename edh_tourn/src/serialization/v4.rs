@@ -44,6 +44,7 @@ pub(super) struct V4TournamentConfig {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(default)]
 pub(super) struct V4MatchmakerConfig {
     pub player_least_played: usize,
     pub player_lost_with: usize,
@@ -74,7 +75,7 @@ impl Default for V4MatchmakerConfig {
 impl From<V4Tournament> for V5Tournament {
     fn from(value: V4Tournament) -> Self {
         Self {
-            config: TournamentConfig::with_configs(value.config.game, MatchmakerConfig::default()),
+            config: TournamentConfig::new(value.config.game, MatchmakerConfig::default()),
             players: value.players,
             games: value.games,
         }

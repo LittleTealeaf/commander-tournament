@@ -1,5 +1,5 @@
 use edh_tourn::{config::matchmaker::MatchmakerConfig, tournament::Tournament};
-use iced::widget::{button, column, row, text, text_input};
+use iced::widget::{button, column, row, text};
 use iced_aw::number_input;
 use nerd_font_symbols::md::{MD_CONTENT_SAVE, MD_RESTORE, MD_UNDO};
 
@@ -12,18 +12,12 @@ use crate::{
 #[derive(Debug, Clone)]
 pub struct MatchmakerConfigView {
     config: MatchmakerConfig,
-    elo_text: String,
-    elo_valid: bool,
 }
 
 impl MatchmakerConfigView {
     #[must_use]
-    pub fn new(config: MatchmakerConfig) -> Self {
-        Self {
-            elo_text: config.elo_range().to_string(),
-            elo_valid: true,
-            config,
-        }
+    pub const fn new(config: MatchmakerConfig) -> Self {
+        Self { config }
     }
 }
 
@@ -33,7 +27,7 @@ pub enum MatchmakerConfigMsg {
     Save,
     SetDefault,
     Reset,
-    SetEloRange(String),
+    SetEloRange(f64),
     SetMinPoolSize(usize),
 }
 
@@ -66,16 +60,7 @@ impl ComponentUpdate for MatchmakerConfigView {
                 self.config.set_min_pool_size(size);
             }
             MatchmakerConfigMsg::SetEloRange(range) => {
-                self.elo_text = range;
-                match self.elo_text.parse() {
-                    Ok(res) => {
-                        self.config.set_elo_range(res);
-                        self.elo_valid = true;
-                    }
-                    Err(_) => {
-                        self.elo_valid = false;
-                    }
-                }
+                self.config.set_elo_range(range);
             }
             MatchmakerConfigMsg::SetDefault => self.config = MatchmakerConfig::default(),
             MatchmakerConfigMsg::Reset => self.config = context.matchmaker_config().clone(),
@@ -127,7 +112,13 @@ impl ComponentView for MatchmakerConfigView {
             .spacing(10),
             row![
                 text("Pool Elo Range"),
-                text_input("", &self.elo_text).on_input(MatchmakerConfigMsg::SetEloRange),
+                number_input(
+                    &self.config.elo_range(),
+                    0.0..1000.0,
+                    MatchmakerConfigMsg::SetEloRange,
+                )
+                .ignore_buttons(true)
+                .step(5.0),
             ]
             .spacing(10),
         ]

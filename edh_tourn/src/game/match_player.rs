@@ -1,11 +1,18 @@
 use crate::player::{PlayerId, stats::PlayerStats};
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
+#[derive(
+    Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, getset::Getters, getset::CopyGetters,
+)]
 pub struct MatchPlayer {
+    #[get_copy = "pub"]
     id: PlayerId,
+    #[get = "pub"]
     stats: PlayerStats,
+    #[get = "pub"]
     expected: f64,
+    #[get = "pub"]
     elo_win: f64,
+    #[get = "pub"]
     elo_loss: f64,
 }
 
@@ -24,30 +31,5 @@ impl MatchPlayer {
             elo_win,
             elo_loss,
         }
-    }
-
-    #[must_use]
-    pub const fn id(&self) -> PlayerId {
-        self.id
-    }
-
-    #[must_use]
-    pub const fn stats(&self) -> &PlayerStats {
-        &self.stats
-    }
-
-    #[must_use]
-    pub const fn expected(&self) -> &f64 {
-        &self.expected
-    }
-
-    #[must_use]
-    pub const fn elo_win(&self) -> &f64 {
-        &self.elo_win
-    }
-
-    #[must_use]
-    pub const fn elo_loss(&self) -> &f64 {
-        &self.elo_loss
     }
 }

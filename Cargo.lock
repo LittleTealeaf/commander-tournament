@@ -396,6 +396,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
 
 [[package]]
+name = "backwards-compat"
+version = "0.3.0"
+source = "git+https://github.com/LittleTealeaf/backwards-compat?tag=v0.3.0#bfa6e25872ea7dd583da1f2e4355059081957455"
+dependencies = [
+ "backwards-compat-derive",
+ "serde",
+]
+
+[[package]]
+name = "backwards-compat-derive"
+version = "0.3.0"
+source = "git+https://github.com/LittleTealeaf/backwards-compat?tag=v0.3.0#bfa6e25872ea7dd583da1f2e4355059081957455"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 3.0.3",
+]
+
+[[package]]
 name = "base64"
 version = "0.22.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1065,6 +1084,7 @@ dependencies = [
  "anyhow",
  "approx",
  "auto-const-array",
+ "backwards-compat",
  "derive_more",
  "edh_tourn",
  "env_logger",

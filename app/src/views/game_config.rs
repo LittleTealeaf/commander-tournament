@@ -64,7 +64,7 @@ impl ComponentUpdate for GameConfigView {
             GameConfigMsg::Close => Effect::out(GameConfigOut::Close).ok(),
             GameConfigMsg::Save => Effect::out(GameConfigOut::SaveAndClose(self.config.clone())).ok(),
             GameConfigMsg::SetDefault => {
-                self.config = GameConfig::new();
+                self.config = GameConfig::default();
                 Effect::done()
             }
             GameConfigMsg::Reset => {
@@ -72,27 +72,27 @@ impl ComponentUpdate for GameConfigView {
                 Effect::done()
             }
             GameConfigMsg::SetStartingElo(val) => {
-                self.config.starting_elo = val;
+                self.config.set_starting_elo(val);
                 Effect::done()
             }
             GameConfigMsg::SetGamePoints(val) => {
-                self.config.game_points = val;
+                self.config.set_game_points(val);
                 Effect::done()
             }
             GameConfigMsg::SetEloPowScale(val) => {
-                self.config.game_elo_pow_scale = val;
+                self.config.set_game_elo_pow_scale(val);
                 Effect::done()
             }
             GameConfigMsg::SetWrPowScale(val) => {
-                self.config.game_wr_pow_scale = val;
+                self.config.set_game_wr_pow_scale(val);
                 Effect::done()
             }
             GameConfigMsg::SetEloWeight(val) => {
-                self.config.game_elo_weight = val;
+                self.config.set_game_elo_weight(val);
                 Effect::done()
             }
             GameConfigMsg::SetWrWeight(val) => {
-                self.config.game_wr_weight = val;
+                self.config.set_game_wr_weight(val);
                 Effect::done()
             }
         }
@@ -134,7 +134,7 @@ impl ComponentView for GameConfigView {
             row![
                 text("Starting Elo"),
                 number_input(
-                    &self.config.starting_elo,
+                    &self.config.starting_elo(),
                     0.0..10000.0,
                     GameConfigMsg::SetStartingElo,
                 )
@@ -145,7 +145,7 @@ impl ComponentView for GameConfigView {
             row![
                 text("Game Points"),
                 number_input(
-                    &self.config.game_points,
+                    &self.config.game_points(),
                     0.0..1000.0,
                     GameConfigMsg::SetGamePoints,
                 )
@@ -161,7 +161,7 @@ impl ComponentView for GameConfigView {
             row![
                 text("Power Scale"),
                 number_input(
-                    &self.config.game_elo_pow_scale,
+                    &self.config.game_elo_pow_scale(),
                     0.0..100.0,
                     GameConfigMsg::SetEloPowScale,
                 )
@@ -172,7 +172,7 @@ impl ComponentView for GameConfigView {
             row![
                 text("Weight"),
                 number_input(
-                    &self.config.game_elo_weight,
+                    &self.config.game_elo_weight(),
                     0.0..100.0,
                     GameConfigMsg::SetEloWeight,
                 )
@@ -188,7 +188,7 @@ impl ComponentView for GameConfigView {
             row![
                 text("Power Scale"),
                 number_input(
-                    &self.config.game_wr_pow_scale,
+                    &self.config.game_wr_pow_scale(),
                     0.0..100.0,
                     GameConfigMsg::SetWrPowScale,
                 )
@@ -199,7 +199,7 @@ impl ComponentView for GameConfigView {
             row![
                 text("Weight"),
                 number_input(
-                    &self.config.game_wr_weight,
+                    &self.config.game_wr_weight(),
                     0.0..100.0,
                     GameConfigMsg::SetWrWeight,
                 )

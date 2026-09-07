@@ -4,25 +4,19 @@ use crate::{
     player::PlayerId,
 };
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
+#[derive(
+    Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, getset::CopyGetters, getset::Getters,
+)]
 pub struct Matchup {
+    #[get = "pub"]
     players: [MatchPlayer; POD_SIZE],
+    #[get_copy = "pub"]
     snapshot: usize,
 }
 
 impl Matchup {
     pub(crate) const fn new(players: [MatchPlayer; POD_SIZE], snapshot: usize) -> Self {
         Self { players, snapshot }
-    }
-
-    #[must_use]
-    pub(crate) const fn snapshot(&self) -> usize {
-        self.snapshot
-    }
-
-    #[must_use]
-    pub const fn players(&self) -> &[MatchPlayer; POD_SIZE] {
-        &self.players
     }
 
     #[must_use]

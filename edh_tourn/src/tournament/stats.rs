@@ -7,7 +7,7 @@ use crate::{
 impl Tournament {
     pub fn recalculate_stats(&mut self) -> Result<(), TournamentError> {
         let version = self.snapshot;
-        self.default_stats = PlayerStats::new(self.game_config().starting_elo);
+        self.default_stats = PlayerStats::new(self.game_config().starting_elo());
         self.stats.clear();
         let mut games = Vec::new();
         core::mem::swap(&mut self.games, &mut games);
