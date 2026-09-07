@@ -6,6 +6,7 @@ use iced::{
     Alignment, Length,
     widget::{column, container, row, text},
 };
+use strum::VariantArray;
 
 use crate::{
     components::tab_bar,
@@ -35,7 +36,7 @@ impl ComponentView for super::PlayerView {
                 stats_summary(context.get_player_or_default_stats(id)),
                 tab_bar(
                     &self.stats,
-                    StatsTab::VALUES,
+                    StatsTab::VARIANTS.iter().copied(),
                     crate::views::player::PlayerDetailsMsg::SetStatsTab
                 ),
                 match self.stats {

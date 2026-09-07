@@ -1,22 +1,27 @@
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
+#[derive(
+    Debug,
+    Clone,
+    serde::Serialize,
+    serde::Deserialize,
+    PartialEq,
+    getset::CopyGetters,
+    getset::Setters,
+    getset::WithSetters,
+    getset::MutGetters,
+    derive_more::Constructor,
+)]
+#[getset(set = "pub", set_with = "pub", get_copy = "pub", get_mut = "pub")]
 pub struct GameConfig {
-    pub starting_elo: f64,
-    pub game_points: f64,
-    pub game_elo_pow_scale: f64,
-    pub game_wr_pow_scale: f64,
-    pub game_elo_weight: f64,
-    pub game_wr_weight: f64,
+    starting_elo: f64,
+    game_points: f64,
+    game_elo_pow_scale: f64,
+    game_wr_pow_scale: f64,
+    game_elo_weight: f64,
+    game_wr_weight: f64,
 }
 
 impl Default for GameConfig {
     fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl GameConfig {
-    #[must_use]
-    pub const fn new() -> Self {
         Self {
             starting_elo: 1500.0,
             game_points: 25.0,

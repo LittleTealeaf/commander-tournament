@@ -83,14 +83,14 @@ pub struct V2Tournament {
 )]
 impl From<V2Tournament> for V3Tournament {
     fn from(value: V2Tournament) -> Self {
-        let game_config = GameConfig {
-            starting_elo: value.config.starting_elo,
-            game_points: value.config.game_points,
-            game_elo_pow_scale: value.config.game_elo_pow_scale,
-            game_wr_pow_scale: value.config.game_wr_pow_scale,
-            game_elo_weight: value.config.game_elo_weight,
-            game_wr_weight: value.config.game_wr_weight,
-        };
+        let game_config = GameConfig::new(
+            value.config.starting_elo,
+            value.config.game_points,
+            value.config.game_elo_pow_scale,
+            value.config.game_wr_pow_scale,
+            value.config.game_elo_weight,
+            value.config.game_wr_weight,
+        );
 
         let ranking_config = V3RankingConfig {
             least_played: (value.config.match_weight_least_played.round() as usize).max(1),

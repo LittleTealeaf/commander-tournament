@@ -9,7 +9,7 @@ mod update {
     #[test]
     fn test_close() {
         let t = Tournament::new();
-        let mut state = GameConfigView::new(GameConfig::new());
+        let mut state = GameConfigView::new(GameConfig::default());
         let effect = state.update(GameConfigMsg::Close, &t).unwrap();
         let Effect::Out(msg) = effect else {
             panic!("Expected message to return an out");

@@ -41,8 +41,8 @@ impl Tournament {
                 id,
                 stats.clone(),
                 expected,
-                config.game_points * (1.0 - expected) / base_loss,
-                config.game_points * expected / base_loss,
+                config.game_points() * (1.0 - expected) / base_loss,
+                config.game_points() * expected / base_loss,
             )
         })
     }

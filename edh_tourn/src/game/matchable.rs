@@ -29,18 +29,25 @@ where
     let base_chance: f64 = 1.0 / (T as f64);
 
     let players = players.map(|player| TempMatchPlayer {
-        scaled_elo: player.elo().powf(config.game_elo_pow_scale),
-        scaled_wr: player.wr().unwrap_or(base_chance).powf(config.game_wr_pow_scale),
+        scaled_elo: player.elo().powf(config.game_elo_pow_scale()),
+        scaled_wr: player
+            .wr()
+            .unwrap_or(base_chance)
+            .powf(config.game_wr_pow_scale()),
         player,
     });
 
     let sum_wr = players.iter().map(|p| p.scaled_wr).sum::<f64>();
     let sum_elo = players.iter().map(|p| p.scaled_elo).sum::<f64>();
 
-    let weight_wr = if sum_wr > 0.0 { config.game_wr_weight } else { 0.0 };
+    let weight_wr = if sum_wr > 0.0 {
+        config.game_wr_weight()
+    } else {
+        0.0
+    };
 
     let weight_elo = if sum_elo > 0.0 {
-        config.game_elo_weight
+        config.game_elo_weight()
     } else {
         0.0
     };
@@ -89,13 +96,11 @@ mod tests {
     }
 
     fn test_config(elo_pow: f64, wr_pow: f64, elo_weight: f64, wr_weight: f64) -> GameConfig {
-        GameConfig {
-            game_elo_pow_scale: elo_pow,
-            game_wr_pow_scale: wr_pow,
-            game_elo_weight: elo_weight,
-            game_wr_weight: wr_weight,
-            ..Default::default()
-        }
+        GameConfig::default()
+            .with_game_elo_pow_scale(elo_pow)
+            .with_game_wr_pow_scale(wr_pow)
+            .with_game_elo_weight(elo_weight)
+            .with_game_wr_weight(wr_weight)
     }
 
     #[test]

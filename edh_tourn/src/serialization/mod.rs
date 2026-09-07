@@ -138,7 +138,7 @@ mod tests {
     fn deserialize_configures_default_stats() {
         let mut tourn = Tournament::sample_game();
         let mut config = tourn.game_config().clone();
-        config.starting_elo += 1500.0;
+        *config.starting_elo_mut() += 1500.0;
         tourn.set_game_config(config).unwrap();
         let starting_elo = tourn.default_stats().elo();
 

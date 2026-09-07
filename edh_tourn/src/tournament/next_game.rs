@@ -19,6 +19,7 @@ impl Tournament {
         let players = self
             .registered_players()
             .filter(|player| (!player.info().is_archived()) && (!player.info().is_precon()));
+
         match mode {
             NextPlayerMode::LongestBreak => {
                 let mut pool = players.map(|player| player.id()).collect::<HashSet<_>>();

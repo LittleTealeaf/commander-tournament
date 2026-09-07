@@ -19,17 +19,15 @@ pub struct PlayerView {
     confirm_popup: Option<ConfirmPopup<PlayerDetailsMsg>>,
 }
 
-#[derive(Copy, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord, derive_more::Display)]
+#[derive(
+    Copy, Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord, derive_more::Display, strum::VariantArray,
+)]
 pub enum StatsTab {
     #[default]
     Games,
     Players,
     Identities,
     Colors,
-}
-
-impl StatsTab {
-    const VALUES: [Self; 4] = [Self::Games, Self::Players, Self::Identities, Self::Colors];
 }
 
 #[derive(Debug, Clone)]
