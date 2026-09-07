@@ -7,6 +7,7 @@ use iced::{
     Length,
     widget::{button, column, container, pick_list, responsive, row, rule, space, text},
 };
+use iced_tea::{Component, Model, Signal};
 use nerd_font_symbols::md::{MD_CLOSE, MD_COGS};
 use strum::VariantArray;
 
@@ -15,12 +16,10 @@ use crate::{
         play::{PlayComponent, PlayComponentMsg, PlayComponentOut, PlayMode},
         tab_bar,
     },
-    effect::Effect,
     home::{
         analytics::{AnalyticsMsg, AnalyticsView},
         leaderboard::{Leaderboard, LeaderboardMsg, LeaderboardOut},
     },
-    traits::{Component, ComponentUpdate, ComponentView},
 };
 
 pub mod analytics;
@@ -67,17 +66,56 @@ pub enum HomeOut {
     OpenMatchmakerConfig,
 }
 
-impl Component for Home {
+impl Model for Home {
     type Message = HomeMsg;
     type OutMessage = HomeOut;
+    type Context<'a> = &'a Tournament;
+
+    fn update<'a>(
+        &'a mut self,
+        message: Self::Message,
+        context: Self::Context<'a>,
+    ) -> anyhow::Result<Signal<Self::Message, Self::OutMessage>> {
+        match message {
+            HomeMsg::SetPlayMode(mode_type) => {
+                self.play.set_mode(mode_type, context);
+                Signal::done()
+            }
+            HomeMsg::SelectPlayNextMode(mode) => {
+                self.play.set_next_mode(mode, context);
+                Signal::done()
+            }
+            HomeMsg::OpenMatchmakerConfig => Signal::out(HomeOut::OpenMatchmakerConfig).ok(),
+            HomeMsg::Refresh => Signal::msg(HomeMsg::Play(PlayComponentMsg::Refresh)).ok(),
+            HomeMsg::Leaderboard(message) => self.leaderboard.map_update(message, context, |msg| match msg {
+                LeaderboardOut::RankPlayer(id) => Signal::msg(HomeMsg::SetPlayMode(PlayMode::Player(id)))
+                    .merge(Signal::msg(HomeMsg::SetTab(HomeTab::PlayGame)))
+                    .ok(),
+                LeaderboardOut::OpenPlayerDetails(player_id) => {
+                    Signal::out(HomeOut::OpenPlayerDetails(player_id)).ok()
+                }
+                LeaderboardOut::OpenNewPlayer => Signal::out(HomeOut::OpenNewPlayer).ok(),
+            }),
+            HomeMsg::SetTab(home_tab) => {
+                self.tab = home_tab;
+                Signal::done()
+            }
+            HomeMsg::Play(msg) => self.play.map_update(msg, context, |out| match out {
+                PlayComponentOut::OpenLink(link) => Signal::out(HomeOut::OpenLink(link)).ok(),
+                PlayComponentOut::OpenPlayer(player_id) => {
+                    Signal::out(HomeOut::OpenPlayerDetails(player_id)).ok()
+                }
+                PlayComponentOut::RecordGame(game_record) => {
+                    Signal::out(HomeOut::RecordGame(game_record)).ok()
+                }
+            }),
+            HomeMsg::Analytics(msg) => self.stats.map_update(msg, context, |_| Signal::done()),
+        }
+    }
 }
 
-impl ComponentView for Home {
-    type ViewContext<'a>
-        = &'a Tournament
-    where
-        Self: 'a;
-    fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
+impl Component for Home {
+    fn render<'a>(&'a self, context: Self::Context<'a>) -> iced::Element<'a, Self::Message> {
         responsive(|size: iced::Size| match size.width {
             ..=SCREEN_WIDTH_BREAKPOINT => column![
                 tab_bar(
@@ -86,19 +124,19 @@ impl ComponentView for Home {
                     HomeMsg::SetTab
                 ),
                 container(match self.tab {
-                    HomeTab::Leaderboard => self.leaderboard.view_into(context),
+                    HomeTab::Leaderboard => self.leaderboard.render_into(context),
                     HomeTab::PlayGame => self.view_component_play(context),
-                    HomeTab::Analytics => self.stats.view_into(context),
+                    HomeTab::Analytics => self.stats.render_into(context),
                 })
                 .width(Length::Fill)
             ]
             .into(),
             _ => row![
-                container(self.leaderboard.view_into(context)).width(Length::FillPortion(1)),
+                container(self.leaderboard.render_into(context)).width(Length::FillPortion(1)),
                 container(column![
                     self.view_component_play(context),
                     rule::horizontal(1),
-                    self.stats.view_into(context)
+                    self.stats.render_into(context)
                 ])
                 .width(Length::FillPortion(1))
             ]
@@ -147,53 +185,8 @@ impl Home {
             ]
             .spacing(10)
             .padding(10),
-            self.play.view_into(context)
+            self.play.render_into(context)
         ]
         .into()
-    }
-}
-
-impl ComponentUpdate for Home {
-    type UpdateContext<'a> = &'a Tournament;
-    fn update(
-        &mut self,
-        message: Self::Message,
-        context: Self::UpdateContext<'_>,
-    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
-        match message {
-            HomeMsg::SetPlayMode(mode_type) => {
-                self.play.set_mode(mode_type, context);
-                Effect::done()
-            }
-            HomeMsg::SelectPlayNextMode(mode) => {
-                self.play.set_next_mode(mode, context);
-                Effect::done()
-            }
-            HomeMsg::OpenMatchmakerConfig => Effect::out(HomeOut::OpenMatchmakerConfig).ok(),
-            HomeMsg::Refresh => Effect::msg(HomeMsg::Play(PlayComponentMsg::Refresh)).ok(),
-            HomeMsg::Leaderboard(message) => self.leaderboard.map_update(message, (), |msg| match msg {
-                LeaderboardOut::RankPlayer(id) => Effect::msg(HomeMsg::SetPlayMode(PlayMode::Player(id)))
-                    .merge(Effect::msg(HomeMsg::SetTab(HomeTab::PlayGame)))
-                    .ok(),
-                LeaderboardOut::OpenPlayerDetails(player_id) => {
-                    Effect::out(HomeOut::OpenPlayerDetails(player_id)).ok()
-                }
-                LeaderboardOut::OpenNewPlayer => Effect::out(HomeOut::OpenNewPlayer).ok(),
-            }),
-            HomeMsg::SetTab(home_tab) => {
-                self.tab = home_tab;
-                Effect::done()
-            }
-            HomeMsg::Play(msg) => self.play.map_update(msg, context, |out| match out {
-                PlayComponentOut::OpenLink(link) => Effect::out(HomeOut::OpenLink(link)).ok(),
-                PlayComponentOut::OpenPlayer(player_id) => {
-                    Effect::out(HomeOut::OpenPlayerDetails(player_id)).ok()
-                }
-                PlayComponentOut::RecordGame(game_record) => {
-                    Effect::out(HomeOut::RecordGame(game_record)).ok()
-                }
-            }),
-            HomeMsg::Analytics(msg) => self.stats.map_update(msg, (), |_| Effect::done()),
-        }
     }
 }

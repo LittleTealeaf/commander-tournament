@@ -15,11 +15,9 @@ use nerd_font_symbols::{
     oct::OCT_SEARCH,
 };
 
-use crate::{
-    effect::Effect,
-    icons::ToColorIcons,
-    traits::{Component, ComponentUpdate, ComponentView},
-};
+use iced_tea::{Component, Model, Signal};
+
+use crate::icons::ToColorIcons;
 
 #[derive(Debug, Clone, Default)]
 pub struct Leaderboard {
@@ -98,26 +96,24 @@ impl Leaderboard {
     }
 }
 
-impl Component for Leaderboard {
+impl Model for Leaderboard {
     type Message = LeaderboardMsg;
     type OutMessage = LeaderboardOut;
-}
+    type Context<'a> = &'a Tournament;
 
-impl ComponentUpdate for Leaderboard {
-    type UpdateContext<'a> = ();
-    fn update(
-        &mut self,
+    fn update<'a>(
+        &'a mut self,
         message: Self::Message,
-        (): Self::UpdateContext<'_>,
-    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
+        _context: Self::Context<'a>,
+    ) -> anyhow::Result<Signal<Self::Message, Self::OutMessage>> {
         match message {
             LeaderboardMsg::SetSearch(search) => {
                 self.search = search;
-                Effect::done()
+                Signal::done()
             }
-            LeaderboardMsg::OpenPlayer(id) => Effect::out(LeaderboardOut::OpenPlayerDetails(id)).ok(),
-            LeaderboardMsg::NewPlayer => Effect::out(LeaderboardOut::OpenNewPlayer).ok(),
-            LeaderboardMsg::RankPlayer(id) => Effect::Out(LeaderboardOut::RankPlayer(id)).ok(),
+            LeaderboardMsg::OpenPlayer(id) => Signal::out(LeaderboardOut::OpenPlayerDetails(id)).ok(),
+            LeaderboardMsg::NewPlayer => Signal::out(LeaderboardOut::OpenNewPlayer).ok(),
+            LeaderboardMsg::RankPlayer(id) => Signal::out(LeaderboardOut::RankPlayer(id)).ok(),
             LeaderboardMsg::Sort(column) => {
                 if self.column == column {
                     self.direction = self.direction.reverse();
@@ -129,19 +125,14 @@ impl ComponentUpdate for Leaderboard {
                         SortDirection::Descending
                     };
                 }
-                Effect::done()
+                Signal::done()
             }
         }
     }
 }
 
-impl ComponentView for Leaderboard {
-    type ViewContext<'a>
-        = &'a Tournament
-    where
-        Self: 'a;
-
-    fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
+impl Component for Leaderboard {
+    fn render<'a>(&'a self, context: Self::Context<'a>) -> iced::Element<'a, Self::Message> {
         let search = self
             .search
             .as_ref()

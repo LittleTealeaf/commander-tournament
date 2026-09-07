@@ -10,10 +10,9 @@ use iced::{
 use itertools::Itertools;
 use nerd_font_symbols::md::{MD_CARDS, MD_LINK_VARIANT, MD_LINK_VARIANT_PLUS, MD_TROPHY};
 
-use crate::{
-    components::play::{PlayComponent, PlayComponentMsg, PlayMode},
-    traits::ComponentView,
-};
+use iced_tea::Component;
+
+use crate::components::play::{PlayComponent, PlayComponentMsg, PlayMode};
 
 #[derive(Clone)]
 struct PlayerEntry<'a> {
@@ -22,13 +21,8 @@ struct PlayerEntry<'a> {
     matchup: Option<MatchPlayer>,
 }
 
-impl ComponentView for PlayComponent {
-    type ViewContext<'a>
-        = &'a Tournament
-    where
-        Self: 'a;
-
-    fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
+impl Component for PlayComponent {
+    fn render<'a>(&'a self, context: Self::Context<'a>) -> iced::Element<'a, Self::Message> {
         container(
             column![
                 self.view_section_players(context),

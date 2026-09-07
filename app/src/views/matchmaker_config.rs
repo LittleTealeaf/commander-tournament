@@ -1,13 +1,10 @@
 use edh_tourn::{config::matchmaker::MatchmakerConfig, tournament::Tournament};
 use iced::widget::{button, column, row, text};
 use iced_aw::number_input;
+use iced_tea::{Component, Model, Signal};
 use nerd_font_symbols::md::{MD_CONTENT_SAVE, MD_RESTORE, MD_UNDO};
 
-use crate::{
-    effect::Effect,
-    traits::{Component, ComponentUpdate, ComponentView},
-    views::ViewScreen,
-};
+use crate::views::ViewScreen;
 
 #[derive(Debug, Clone)]
 pub struct MatchmakerConfigView {
@@ -37,24 +34,22 @@ pub enum MatchmakerConfigOut {
     SaveAndClose(MatchmakerConfig),
 }
 
-impl Component for MatchmakerConfigView {
+impl Model for MatchmakerConfigView {
     type Message = MatchmakerConfigMsg;
     type OutMessage = MatchmakerConfigOut;
-}
+    type Context<'a> = &'a Tournament;
 
-impl ComponentUpdate for MatchmakerConfigView {
-    type UpdateContext<'a> = &'a Tournament;
-    fn update(
-        &mut self,
+    fn update<'a>(
+        &'a mut self,
         message: Self::Message,
-        context: Self::UpdateContext<'_>,
-    ) -> anyhow::Result<crate::effect::Effect<Self::Message, Self::OutMessage>> {
+        context: Self::Context<'a>,
+    ) -> anyhow::Result<Signal<Self::Message, Self::OutMessage>> {
         match message {
             MatchmakerConfigMsg::Close => {
-                return Effect::out(MatchmakerConfigOut::Close).ok();
+                return Signal::out(MatchmakerConfigOut::Close).ok();
             }
             MatchmakerConfigMsg::Save => {
-                return Effect::out(MatchmakerConfigOut::SaveAndClose(self.config.clone())).ok();
+                return Signal::out(MatchmakerConfigOut::SaveAndClose(self.config.clone())).ok();
             }
             MatchmakerConfigMsg::SetMinPoolSize(size) => {
                 self.config.set_min_pool_size(size);
@@ -65,26 +60,26 @@ impl ComponentUpdate for MatchmakerConfigView {
             MatchmakerConfigMsg::SetDefault => self.config = MatchmakerConfig::default(),
             MatchmakerConfigMsg::Reset => self.config = context.matchmaker_config().clone(),
         }
-        Effect::done()
+        Signal::done()
     }
 }
 
 impl ViewScreen for MatchmakerConfigView {
     const CLOSE_MESSAGE: Self::Message = MatchmakerConfigMsg::Close;
-    fn title<'a>(&'a self, (): Self::ViewContext<'a>) -> String {
+    fn title<'a>(&'a self, _context: Self::Context<'a>) -> String {
         "Play Settings".to_owned()
     }
 
     fn primary_actions<'a>(
         &'a self,
-        (): Self::ViewContext<'a>,
+        _context: Self::Context<'a>,
     ) -> impl IntoIterator<Item = iced::widget::Button<'a, Self::Message>> {
         [button(MD_CONTENT_SAVE).on_press(MatchmakerConfigMsg::Save)]
     }
 
     fn secondary_actions<'a>(
         &'a self,
-        (): Self::ViewContext<'a>,
+        _context: Self::Context<'a>,
     ) -> impl IntoIterator<Item = button::Button<'a, Self::Message>> {
         [
             button(MD_UNDO).on_press(MatchmakerConfigMsg::Reset),
@@ -93,12 +88,8 @@ impl ViewScreen for MatchmakerConfigView {
     }
 }
 
-impl ComponentView for MatchmakerConfigView {
-    type ViewContext<'a>
-        = ()
-    where
-        Self: 'a;
-    fn view<'a>(&'a self, (): Self::ViewContext<'a>) -> iced::Element<'a, Self::Message> {
+impl Component for MatchmakerConfigView {
+    fn render<'a>(&'a self, _context: Self::Context<'a>) -> iced::Element<'a, Self::Message> {
         column![
             row![
                 text("Minimum Pool Size"),

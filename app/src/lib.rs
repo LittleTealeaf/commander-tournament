@@ -1,24 +1,22 @@
 pub mod app;
 pub mod components;
 pub mod core;
-pub mod effect;
 pub mod fonts;
 pub mod home;
 pub mod icons;
 pub mod popup;
 pub mod services;
-pub mod traits;
 pub mod views;
 
 use std::path::PathBuf;
 
 use edh_tourn::tournament::Tournament;
 use iced::{Subscription, Task, event};
+pub use iced_tea::{App as IcedTeaApp, Component, HandleMessage, Model, Signal};
 
 use crate::{
     app::{Message, View},
     core::{file::FileAction, state::AppState},
-    traits::Component,
 };
 
 #[derive(Debug, Default)]
@@ -39,10 +37,13 @@ pub struct App {
 }
 
 impl App {
-    pub fn boot() -> (Self, Task<Message>) {
+    #[must_use]
+    pub fn boot() -> (Self, Option<Task<Message>>) {
         (
             Self::default(),
-            Task::future(async { Message::AppStateLoaded(AppState::load().await.ok()) }),
+            Some(Task::future(async {
+                Message::AppStateLoaded(AppState::load().await.ok())
+            })),
         )
     }
 
@@ -66,7 +67,35 @@ impl App {
     }
 }
 
-impl Component for App {
+impl iced_tea::App for App {
     type Message = Message;
-    type OutMessage = ();
+
+    fn boot() -> (Self, Option<Task<Self::Message>>) {
+        Self::boot()
+    }
+
+    fn title(&self) -> String {
+        self.title()
+    }
+
+    fn view(&self) -> iced::Element<'_, Self::Message> {
+        self.handle_view()
+    }
+
+    fn update(&mut self, message: Self::Message) -> anyhow::Result<Signal<Self::Message, ()>> {
+        <Self as Model>::update(self, message, ())
+    }
+
+    fn on_error(&mut self, error: &anyhow::Error) {
+        log::error!("Application Error: {error:#}");
+        self.error = Some(error.to_string());
+    }
+
+    fn subscription(&self) -> Subscription<Self::Message> {
+        self.subscription()
+    }
+
+    fn theme(&self) -> iced::Theme {
+        iced::Theme::CatppuccinMocha
+    }
 }

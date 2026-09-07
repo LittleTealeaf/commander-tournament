@@ -80,3 +80,42 @@ async fn last_updated_persists_through_saves() {
     let new_settings = AppState::load_from_path_or_default(path.clone()).await;
     assert_eq!(tourn_test, new_settings.last_opened().clone().unwrap());
 }
+
+#[tokio::test]
+async fn model_update_set_and_clear_opened_file() {
+    use app::core::state::AppStateMsg;
+    use iced_tea::{Model, Signal};
+
+    let mut state = AppState::load().await.unwrap();
+    let sample_path = temp_file().path().to_path_buf();
+
+    // Set opened file returns Save signal
+    let signal = state
+        .update(AppStateMsg::SetOpenedFile(sample_path.clone()), ())
+        .unwrap();
+    assert_eq!(state.last_opened().as_ref(), Some(&sample_path));
+    assert!(matches!(signal, Signal::Message(AppStateMsg::Save)));
+
+    // Clear opened file returns Save signal
+    let signal = state.update(AppStateMsg::ClearOpenedFile, ()).unwrap();
+    assert_eq!(state.last_opened(), &None);
+    assert!(matches!(signal, Signal::Message(AppStateMsg::Save)));
+}
+
+#[tokio::test]
+async fn model_update_nothing_and_error() {
+    use app::core::state::AppStateMsg;
+    use iced_tea::Model;
+
+    let mut state = AppState::load().await.unwrap();
+
+    // Nothing produces done signal
+    let signal = state.update(AppStateMsg::Nothing, ()).unwrap();
+    assert!(signal.is_done());
+
+    // Error produces Err result
+    let err = state
+        .update(AppStateMsg::Error("test error".into()), ())
+        .unwrap_err();
+    assert_eq!(err.to_string(), "test error");
+}

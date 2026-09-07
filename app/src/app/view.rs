@@ -1,21 +1,19 @@
 use edh_tourn::tournament::Tournament;
 use iced::Element;
 use iced::widget::{button, column, text};
+use iced_tea::{Component, Model, Signal};
 
-use crate::components::play::PlayMode;
-use crate::views::play::{PlayViewMsg, PlayViewOut};
 use crate::{
     App,
     app::message::Message,
+    components::play::PlayMode,
     core::tournament::TournamentAction,
-    effect::Effect,
     popup::Popup,
-    traits::{Component, ComponentUpdate, ComponentView},
     views::{
         ViewScreen,
         game_config::{GameConfigMsg, GameConfigOut, GameConfigView},
         matchmaker_config::{MatchmakerConfigMsg, MatchmakerConfigOut, MatchmakerConfigView},
-        play::PlayView,
+        play::{PlayView, PlayViewMsg, PlayViewOut},
         player::{PlayerDetailsMsg, PlayerDetailsOut, PlayerView},
     },
 };
@@ -47,77 +45,68 @@ pub enum ViewMsg {
     Play(PlayViewMsg),
 }
 
-impl Component for View {
+impl Model for View {
     type OutMessage = Message;
     type Message = ViewMsg;
-}
+    type Context<'a> = &'a Tournament;
 
-#[derive(derive_more::Constructor, Debug)]
-pub struct ViewUpdateContext<'a> {
-    tourn: &'a Tournament,
-}
-
-impl ComponentUpdate for View {
-    type UpdateContext<'a> = ViewUpdateContext<'a>;
-    fn update(
-        &mut self,
+    fn update<'a>(
+        &'a mut self,
         message: Self::Message,
-        context: Self::UpdateContext<'_>,
-    ) -> anyhow::Result<crate::effect::Effect<Self::Message, Self::OutMessage>> {
-        const CLOSE_VIEW: Effect<ViewMsg, Message> = Effect::Out(Message::CloseView);
+        context: Self::Context<'a>,
+    ) -> anyhow::Result<Signal<Self::Message, Self::OutMessage>> {
+        const CLOSE_VIEW: Signal<ViewMsg, Message> = Signal::Out(Message::CloseView);
 
         match (self, message) {
             (Self::PlayerDetails(state), ViewMsg::PlayerDetails(msg)) => {
-                state.map_update(msg, (), |out| match out {
+                state.map_update(msg, context, |out| match out {
                     PlayerDetailsOut::OpenPlayerDetails(player_id) => {
-                        Effect::Out(Message::OpenPlayerDetails(Some(player_id))).ok()
+                        Signal::Out(Message::OpenPlayerDetails(Some(player_id))).ok()
                     }
                     PlayerDetailsOut::DeletePlayer(player_id) => {
-                        Effect::out(TournamentAction::DeletePlayer(player_id))
+                        Signal::out(TournamentAction::DeletePlayer(player_id))
                             .chain(CLOSE_VIEW)
                             .ok()
                     }
-                    PlayerDetailsOut::OpenLink(link) => Effect::Out(Message::OpenLink(link)).ok(),
-                    PlayerDetailsOut::SaveAndClose(player_id, player_info) => Effect::out(match player_id {
+                    PlayerDetailsOut::OpenLink(link) => Signal::Out(Message::OpenLink(link)).ok(),
+                    PlayerDetailsOut::SaveAndClose(player_id, player_info) => Signal::out(match player_id {
                         Some(id) => TournamentAction::SetPlayerInfo(id, player_info),
                         None => TournamentAction::Register(player_info),
                     })
                     .chain(CLOSE_VIEW)
                     .ok(),
                     PlayerDetailsOut::OpenPlayerMatches(player_id) => {
-                        Effect::out(Message::OpenPlayView(PlayMode::Player(player_id))).ok()
+                        Signal::out(Message::OpenPlayView(PlayMode::Player(player_id))).ok()
                     }
                     PlayerDetailsOut::Close => CLOSE_VIEW.ok(),
                 })
             }
-            (Self::Play(state), ViewMsg::Play(msg)) => {
-                state.map_update(msg, context.tourn, |out| match out {
-                    PlayViewOut::Close => CLOSE_VIEW.ok(),
-                    PlayViewOut::OpenPlayer(player_id) => {
-                        Effect::out(Message::OpenPlayerDetails(Some(player_id))).ok()
-                    }
-                    PlayViewOut::OpenLink(link) => Effect::out(Message::OpenLink(link)).ok(),
-                    PlayViewOut::RecordGame(game_record) => {
-                        Effect::out(TournamentAction::Record(game_record)).ok()
-                    }
-                    PlayViewOut::OpenMatchmakerConfig => Effect::out(Message::OpenMatchmakerConfig).ok(),
-                })
-            }
+            (Self::Play(state), ViewMsg::Play(msg)) => state.map_update(msg, context, |out| match out {
+                PlayViewOut::Close => CLOSE_VIEW.ok(),
+                PlayViewOut::OpenPlayer(player_id) => {
+                    Signal::out(Message::OpenPlayerDetails(Some(player_id))).ok()
+                }
+                PlayViewOut::OpenLink(link) => Signal::out(Message::OpenLink(link)).ok(),
+                PlayViewOut::RecordGame(game_record) => {
+                    Signal::out(TournamentAction::Record(game_record)).ok()
+                }
+                PlayViewOut::OpenMatchmakerConfig => Signal::out(Message::OpenMatchmakerConfig).ok(),
+            }),
             (Self::PlayConfig(state), ViewMsg::PlayConfig(msg)) => {
-                state.map_update(msg, context.tourn, |out| match out {
+                state.map_update(msg, context, |out| match out {
                     MatchmakerConfigOut::Close => CLOSE_VIEW.ok(),
                     MatchmakerConfigOut::SaveAndClose(ranking_config) => {
-                        Effect::out(TournamentAction::SetMatchmakerConfig(ranking_config))
+                        Signal::out(TournamentAction::SetMatchmakerConfig(ranking_config))
                             .chain(CLOSE_VIEW)
                             .ok()
                     }
                 })
             }
             (Self::GameConfig(state), ViewMsg::GameConfig(msg)) => {
-                state.map_update(msg, context.tourn, |out| match out {
+                state.map_update(msg, context, |out| match out {
                     GameConfigOut::Close => CLOSE_VIEW.ok(),
                     GameConfigOut::SaveAndClose(game_config) => {
-                        Effect::out(TournamentAction::SetGameConfig(game_config))
+                        Signal::out(TournamentAction::SetGameConfig(game_config))
                             .chain(CLOSE_VIEW)
                             .ok()
                     }
@@ -125,23 +114,19 @@ impl ComponentUpdate for View {
             }
             (_, message) => {
                 eprintln!("Received Message {message:?} when view did not expect it.");
-                Effect::done()
+                Signal::done()
             }
         }
     }
 }
 
-impl ComponentView for View {
-    type ViewContext<'a>
-        = &'a App
-    where
-        Self: 'a;
-    fn view<'a>(&'a self, context: Self::ViewContext<'a>) -> Element<'a, Self::Message> {
+impl Component for View {
+    fn render<'a>(&'a self, context: Self::Context<'a>) -> Element<'a, Self::Message> {
         match self {
-            Self::PlayConfig(settings) => settings.screen_view_into(()),
-            Self::PlayerDetails(player_details) => player_details.screen_view_into(context.tournament()),
-            Self::Play(play) => play.screen_view_into(context.tournament()),
-            Self::GameConfig(game_config) => game_config.screen_view_into(()),
+            Self::PlayConfig(settings) => settings.screen_view_into(context),
+            Self::PlayerDetails(player_details) => player_details.screen_view_into(context),
+            Self::Play(play) => play.screen_view_into(context),
+            Self::GameConfig(game_config) => game_config.screen_view_into(context),
         }
     }
 }
@@ -152,13 +137,13 @@ impl App {
         let content = self.views.last().map_or_else(
             || {
                 column![
-                    self.menu.view_into(&self.file),
-                    self.home.view_into(&self.tournament)
+                    self.menu.render_into(&self.file),
+                    self.home.render_into(&self.tournament)
                 ]
                 .spacing(5)
                 .into()
             },
-            |view| view.view_into(self),
+            |view| view.render_into(&self.tournament),
         );
 
         if self.close_requested {
@@ -202,13 +187,13 @@ impl App {
         self.views.last()
     }
 
-    pub fn push_view<V>(&mut self, view: V) -> Effect<Message, ()>
+    pub fn push_view<V>(&mut self, view: V) -> Signal<Message, ()>
     where
         V: Into<View>,
     {
         let view: View = view.into();
         let on_resume = view.on_resume();
         self.views.push(view);
-        on_resume.map(Effect::msg).unwrap_or_default()
+        on_resume.map(Signal::msg).unwrap_or_default()
     }
 }

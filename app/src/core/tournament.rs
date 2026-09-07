@@ -6,7 +6,9 @@ use edh_tourn::{
     tournament::Tournament,
 };
 
-use crate::{App, effect::Effect, traits::HandleMessage};
+use iced_tea::{HandleMessage, Signal};
+
+use crate::App;
 
 #[derive(Clone, Debug)]
 pub enum TournamentAction {
@@ -42,14 +44,14 @@ impl TournamentAction {
 }
 
 impl HandleMessage<TournamentAction> for App {
-    fn handle_message(
-        &mut self,
+    fn handle_message<'a>(
+        &'a mut self,
         message: TournamentAction,
-        (): Self::UpdateContext<'_>,
-    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
+        (): Self::Context<'a>,
+    ) -> anyhow::Result<Signal<Self::Message, Self::OutMessage>> {
         message.apply(&mut self.tournament)?;
         self.modified = true;
-        Effect::done()
+        Signal::done()
     }
 }
 

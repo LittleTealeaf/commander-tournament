@@ -10,37 +10,41 @@ use iced::{
     alignment::Vertical,
     widget::{Button, button, column, row, space, text},
 };
+use iced_tea::Component;
 use nerd_font_symbols::md::MD_CLOSE;
 
-use crate::{fonts::FONT_BOLD, popup::Popup, traits::ComponentView};
+use crate::{fonts::FONT_BOLD, popup::Popup};
 
-pub trait ViewScreen: ComponentView {
+pub trait ViewScreen: Component
+where
+    Self::Message: Clone,
+{
     const CLOSE_MESSAGE: Self::Message;
     const ON_RESUME: Option<Self::Message> = None;
 
-    fn title<'a>(&'a self, context: Self::ViewContext<'a>) -> String;
+    fn title<'a>(&'a self, context: Self::Context<'a>) -> String;
 
-    fn popup<'a>(&'a self, _context: Self::ViewContext<'a>) -> Option<Popup<'a, Self::Message>> {
+    fn popup<'a>(&'a self, _context: Self::Context<'a>) -> Option<Popup<'a, Self::Message>> {
         None
     }
 
     fn primary_actions<'a>(
         &'a self,
-        _: Self::ViewContext<'a>,
+        _: Self::Context<'a>,
     ) -> impl IntoIterator<Item = Button<'a, Self::Message>> {
         empty()
     }
 
     fn secondary_actions<'a>(
         &'a self,
-        _: Self::ViewContext<'a>,
+        _: Self::Context<'a>,
     ) -> impl IntoIterator<Item = Button<'a, Self::Message>> {
         empty()
     }
 
-    fn screen_view<'a>(&'a self, context: Self::ViewContext<'a>) -> Element<'a, Self::Message>
+    fn screen_view<'a>(&'a self, context: Self::Context<'a>) -> Element<'a, Self::Message>
     where
-        Self::ViewContext<'a>: Clone,
+        Self::Context<'a>: Clone,
     {
         let content = column![
             row![
@@ -59,7 +63,7 @@ pub trait ViewScreen: ComponentView {
             ]
             .spacing(5)
             .align_y(Vertical::Top),
-            self.view(context.clone())
+            self.render(context.clone())
         ]
         .spacing(20)
         .padding(10);
@@ -71,11 +75,11 @@ pub trait ViewScreen: ComponentView {
         }
     }
 
-    fn screen_view_into<'a, M>(&'a self, context: Self::ViewContext<'a>) -> Element<'a, M>
+    fn screen_view_into<'a, M>(&'a self, context: Self::Context<'a>) -> Element<'a, M>
     where
         Self::Message: Into<M>,
         M: 'a + Clone,
-        Self::ViewContext<'a>: Clone,
+        Self::Context<'a>: Clone,
     {
         self.screen_view(context).map(Into::into)
     }

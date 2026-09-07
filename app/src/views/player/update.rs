@@ -1,67 +1,74 @@
+use edh_tourn::tournament::Tournament;
+use iced_tea::{Model, Signal};
+
 use crate::{
-    effect::Effect, popup::confirm::ConfirmPopup, traits::ComponentUpdate, views::player::PlayerDetailsOut,
+    popup::confirm::ConfirmPopup,
+    views::player::{PlayerDetailsOut, PlayerView},
 };
 
-use super::{PlayerDetailsMsg, PlayerView};
+use super::PlayerDetailsMsg;
 
-impl ComponentUpdate for PlayerView {
-    type UpdateContext<'a> = ();
-    fn update(
-        &mut self,
+impl Model for PlayerView {
+    type Message = PlayerDetailsMsg;
+    type OutMessage = PlayerDetailsOut;
+    type Context<'a> = &'a Tournament;
+
+    fn update<'a>(
+        &'a mut self,
         message: Self::Message,
-        (): Self::UpdateContext<'_>,
-    ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
+        _context: Self::Context<'a>,
+    ) -> anyhow::Result<Signal<Self::Message, Self::OutMessage>> {
         match message {
             PlayerDetailsMsg::SetArchived(is_archived) => {
                 self.info.set_is_archived(is_archived);
                 self.modified = true;
-                Effect::done()
+                Signal::done()
             }
             PlayerDetailsMsg::SetIsPrecon(is_precon) => {
                 self.info.set_is_precon(is_precon);
                 self.modified = true;
-                Effect::done()
+                Signal::done()
             }
             PlayerDetailsMsg::SelectPlayerReference(id) => {
                 if Some(id) == self.id {
-                    Effect::done()
+                    Signal::done()
                 } else {
-                    Effect::out(PlayerDetailsOut::OpenPlayerDetails(id)).ok()
+                    Signal::out(PlayerDetailsOut::OpenPlayerDetails(id)).ok()
                 }
             }
             PlayerDetailsMsg::SaveAndClose => {
                 self.info.set_description(self.description.text());
-                Effect::out(PlayerDetailsOut::SaveAndClose(self.id, self.info.clone())).ok()
+                Signal::out(PlayerDetailsOut::SaveAndClose(self.id, self.info.clone())).ok()
             }
             PlayerDetailsMsg::SetName(name) => {
                 self.info.set_name(name);
                 self.modified = true;
-                Effect::done()
+                Signal::done()
             }
             PlayerDetailsMsg::EditDescription(action) => {
                 self.description.perform(action);
                 self.modified = true;
-                Effect::done()
+                Signal::done()
             }
             PlayerDetailsMsg::SetMoxfieldId(id) => {
                 self.info.set_moxfield_id(id.clone());
                 self.moxfield_id = id;
                 self.modified = true;
-                Effect::done()
+                Signal::done()
             }
             PlayerDetailsMsg::ToggleColor(mtg_color) => {
                 self.info.toggle_color(mtg_color);
                 self.modified = true;
-                Effect::done()
+                Signal::done()
             }
             PlayerDetailsMsg::SetStatsTab(stats_tab) => {
                 self.stats = stats_tab;
-                Effect::done()
+                Signal::done()
             }
-            PlayerDetailsMsg::OpenLink(link) => Effect::out(PlayerDetailsOut::OpenLink(link)).ok(),
+            PlayerDetailsMsg::OpenLink(link) => Signal::out(PlayerDetailsOut::OpenLink(link)).ok(),
             PlayerDetailsMsg::ConfirmDelete => self
                 .id
-                .map(|id| Effect::out(PlayerDetailsOut::DeletePlayer(id)))
+                .map(|id| Signal::out(PlayerDetailsOut::DeletePlayer(id)))
                 .unwrap_or_default()
                 .ok(),
             PlayerDetailsMsg::RequestDelete => {
@@ -74,11 +81,11 @@ impl ComponentUpdate for PlayerView {
                     PlayerDetailsMsg::ConfirmDelete,
                     PlayerDetailsMsg::ClearRequest,
                 ));
-                Effect::done()
+                Signal::done()
             }
             PlayerDetailsMsg::OpenNextPlayerMatch => self
                 .id
-                .map(|id| Effect::out(PlayerDetailsOut::OpenPlayerMatches(id)))
+                .map(|id| Signal::out(PlayerDetailsOut::OpenPlayerMatches(id)))
                 .unwrap_or_default()
                 .ok(),
             PlayerDetailsMsg::RequestClose => {
@@ -89,15 +96,15 @@ impl ComponentUpdate for PlayerView {
                         PlayerDetailsMsg::Close,
                         PlayerDetailsMsg::ClearRequest,
                     ));
-                    Effect::done()
+                    Signal::done()
                 } else {
-                    Effect::out(PlayerDetailsOut::Close).ok()
+                    Signal::out(PlayerDetailsOut::Close).ok()
                 }
             }
-            PlayerDetailsMsg::Close => Effect::out(PlayerDetailsOut::Close).ok(),
+            PlayerDetailsMsg::Close => Signal::out(PlayerDetailsOut::Close).ok(),
             PlayerDetailsMsg::ClearRequest => {
                 self.confirm_popup = None;
-                Effect::done()
+                Signal::done()
             }
         }
     }

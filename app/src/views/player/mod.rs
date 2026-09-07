@@ -5,7 +5,7 @@ use edh_tourn::player::{PlayerId, RegisteredPlayer, color::MtgColor, info::Playe
 use iced::widget::{button, text_editor};
 use nerd_font_symbols::md::{MD_CONTENT_SAVE, MD_DELETE, MD_SWORD};
 
-use crate::{popup::confirm::ConfirmPopup, traits::Component, views::ViewScreen};
+use crate::{popup::confirm::ConfirmPopup, views::ViewScreen};
 
 #[derive(Debug, Clone)]
 pub struct PlayerView {
@@ -83,17 +83,12 @@ impl PlayerView {
     }
 }
 
-impl Component for PlayerView {
-    type Message = PlayerDetailsMsg;
-    type OutMessage = PlayerDetailsOut;
-}
-
 impl ViewScreen for PlayerView {
     const CLOSE_MESSAGE: Self::Message = PlayerDetailsMsg::RequestClose;
 
     fn primary_actions<'a>(
         &'a self,
-        _: Self::ViewContext<'a>,
+        _: Self::Context<'a>,
     ) -> impl IntoIterator<Item = iced::widget::Button<'a, Self::Message>> {
         [
             Some(
@@ -110,7 +105,7 @@ impl ViewScreen for PlayerView {
 
     fn secondary_actions<'a>(
         &'a self,
-        _: Self::ViewContext<'a>,
+        _: Self::Context<'a>,
     ) -> impl IntoIterator<Item = button::Button<'a, Self::Message>> {
         self.id.is_some().then(|| {
             button(MD_DELETE)
@@ -119,7 +114,7 @@ impl ViewScreen for PlayerView {
         })
     }
 
-    fn title<'a>(&'a self, _: Self::ViewContext<'a>) -> String {
+    fn title<'a>(&'a self, _: Self::Context<'a>) -> String {
         if self.id.is_some() {
             self.initial_name.clone()
         } else {
@@ -127,10 +122,7 @@ impl ViewScreen for PlayerView {
         }
     }
 
-    fn popup<'a>(
-        &'a self,
-        _context: Self::ViewContext<'a>,
-    ) -> Option<crate::popup::Popup<'a, Self::Message>> {
+    fn popup<'a>(&'a self, _context: Self::Context<'a>) -> Option<crate::popup::Popup<'a, Self::Message>> {
         self.confirm_popup
             .as_ref()
             .map(|confirmation| confirmation.to_popup())
