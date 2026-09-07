@@ -385,7 +385,7 @@ fn get_player_display_name() {
     let mut info = t.get_player_info(&id).unwrap().clone();
     assert_eq!(t.get_player_display_name(&id).unwrap(), info.display_name());
 
-    info.set_precon(true);
+    info.set_is_precon(true);
     t.set_player_info(id, info.clone()).unwrap();
     assert_eq!(t.get_player_display_name(&id).unwrap(), info.display_name());
 

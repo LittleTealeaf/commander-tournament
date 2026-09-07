@@ -42,7 +42,7 @@ impl Tournament {
         let config = TournamentConfig::default();
         Self {
             stats: HashMap::default(),
-            default_stats: PlayerStats::new(config.game_config().starting_elo()),
+            default_stats: PlayerStats::new(config.game().starting_elo()),
             players: HashMap::default(),
             player_names: HashMap::default(),
             games: Vec::new(),

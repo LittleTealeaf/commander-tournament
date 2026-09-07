@@ -15,6 +15,7 @@ use itertools::Itertools;
     Hash,
     Copy,
     derive_more::Display,
+    strum::VariantArray,
 )]
 pub enum MtgColor {
     #[serde(rename = "w", alias = "White")]

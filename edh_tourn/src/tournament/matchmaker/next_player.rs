@@ -33,14 +33,7 @@ impl Matchmaker<'_> {
                 .flat_map(|elo| { self.rank_elo_neighbors(elo, performances.keys().copied()) })
         );
         let ranking = scores.into_grouping_map().sum();
-        let next = ranking
-            .into_iter()
-            .min_by(|(left_id, left_rank), (right_id, right_rank)| {
-                left_rank
-                    .cmp(right_rank)
-                    .then_with(|| self.tie_breaker(*left_id, *right_id))
-            })?
-            .0;
+        let next = ranking.into_iter().min_by_key(|(id, rank)| (*rank, *id))?.0;
         Some(next)
     }
 

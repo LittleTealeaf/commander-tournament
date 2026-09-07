@@ -28,7 +28,7 @@ mod display_name {
     fn defaults_to_name() {
         let name = "hello".to_owned();
         let mut info = PlayerInfo::new(name);
-        info.set_precon(false);
+        info.set_is_precon(false);
         assert_eq!("hello", info.display_name());
     }
 
@@ -36,7 +36,7 @@ mod display_name {
     fn precon_has_suffix() {
         let name = "hello".to_owned();
         let mut info = PlayerInfo::new(name);
-        info.set_precon(true);
+        info.set_is_precon(true);
         assert_eq!("hello (Precon)", info.display_name());
     }
 }
@@ -212,7 +212,7 @@ mod precon {
     fn sets_precon() {
         let mut info = PLAYER_INFO;
         assert!(!info.is_precon());
-        info.set_precon(true);
+        info.set_is_precon(true);
         assert!(info.is_precon());
     }
 }

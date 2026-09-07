@@ -33,7 +33,7 @@ impl Tournament {
                 .iter()
                 .filter_map(|(id, info)| (!info.is_archived()).then_some(*id))
                 .collect(),
-            config: self.config.matchmaker_config().clone(),
+            config: self.config.matchmaker().clone(),
         }
     }
 }

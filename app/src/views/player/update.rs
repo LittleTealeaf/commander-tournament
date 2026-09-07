@@ -13,12 +13,12 @@ impl ComponentUpdate for PlayerView {
     ) -> anyhow::Result<Effect<Self::Message, Self::OutMessage>> {
         match message {
             PlayerDetailsMsg::SetArchived(is_archived) => {
-                self.info.set_archived(is_archived);
+                self.info.set_is_archived(is_archived);
                 self.modified = true;
                 Effect::done()
             }
             PlayerDetailsMsg::SetIsPrecon(is_precon) => {
-                self.info.set_precon(is_precon);
+                self.info.set_is_precon(is_precon);
                 self.modified = true;
                 Effect::done()
             }

@@ -74,7 +74,7 @@ impl Default for V4MatchmakerConfig {
 impl From<V4Tournament> for V5Tournament {
     fn from(value: V4Tournament) -> Self {
         Self {
-            config: TournamentConfig::with_configs(value.config.game, MatchmakerConfig::default()),
+            config: TournamentConfig::new(value.config.game, MatchmakerConfig::default()),
             players: value.players,
             games: value.games,
         }

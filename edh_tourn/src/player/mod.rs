@@ -118,7 +118,7 @@ mod tests {
     #[test]
     fn display_precon() {
         let mut info = PlayerInfo::new("test".to_owned());
-        info.set_precon(true);
+        info.set_is_precon(true);
         let expected = info.display_name();
         let mut t = Tournament::new();
         let id = t.register_player(info).unwrap();
