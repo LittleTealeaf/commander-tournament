@@ -1724,8 +1724,8 @@ dependencies = [
 
 [[package]]
 name = "iced-tea"
-version = "0.2.0"
-source = "git+https://github.com/LittleTealeaf/iced-tea?tag=v0.2.0#fdca3c8a3bfa50666074a3b23c8ee3f63feeaaa9"
+version = "1.0.0"
+source = "git+https://github.com/LittleTealeaf/iced-tea?tag=v1.0.0#dd1e0a0d291488cf21b015ae3748235d167e6785"
 dependencies = [
  "anyhow",
  "iced",
