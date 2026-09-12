@@ -5,4 +5,6 @@ pub enum NextPlayerMode {
     LongestBreak,
     #[display("Least Played")]
     LeastPlayed,
+    #[display("Win Streak")]
+    WinStreak,
 }
