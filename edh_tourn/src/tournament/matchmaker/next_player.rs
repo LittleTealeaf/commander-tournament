@@ -24,6 +24,9 @@ impl Matchmaker<'_> {
         stats: &AggregateStats,
         performances: &HashMap<PlayerId, MatchPerformance>,
     ) -> Option<PlayerId> {
+        if performances.is_empty() {
+            return None;
+        }
         let scores = chain!(
             self.rank_least_played(performances),
             self.rank_even_match(performances),
