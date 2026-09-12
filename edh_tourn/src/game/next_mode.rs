@@ -7,4 +7,8 @@ pub enum NextPlayerMode {
     LeastPlayed,
     #[display("Win Streak")]
     WinStreak,
+    #[display("Loss Streak")]
+    LossStreak,
+    #[display("Game Streak")]
+    GameStreak,
 }
