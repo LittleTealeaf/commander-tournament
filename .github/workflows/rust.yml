@@ -14,80 +14,34 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  lint:
-    name: Lint
+  fmt:
+    name: Format
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v7
-    - name: Setup Rust
-      uses: actions-rust-lang/setup-rust-toolchain@v2
-      with:
-        toolchain: stable
-        components: clippy, rustfmt
-    - name: Install Clippy-Sarif
-      uses: baptiste0928/cargo-install@v3
-      with:
-        crate: clippy-sarif
-    - name: Install Sarif-fmt
-      uses: baptiste0928/cargo-install@v3
-      with:
-        crate: sarif-fmt
-    - name: Run Clippy
-      run: cargo clippy --all --no-deps --all-features --message-format=json -- -W clippy::todo | sort | uniq | clippy-sarif | tee rust-clippy-results.sarif | sarif-fmt
-      continue-on-error: true
-    - name: Upload analysis results to GitHub
-      uses: github/codeql-action/upload-sarif@v4.38.0
-      with:
-        sarif_file: rust-clippy-results.sarif
-        wait-for-processing: true
-    - name: Check Formatting
-      uses: actions-rust-lang/rustfmt@v1
-
-  coverage:
-    name: Test Coverage
+      - name: Checkout Repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
+        with:
+          components: rustfmt
+      - name: Format
+        uses: actions-rust-lang/rustfmt@4066006ec54a31931b9b1fddfd38f2fdf2d27143 # v1.0.0
+  clippy:
+    name: Clippy
     runs-on: ubuntu-latest
-    env:
-      RUSTFLAGS: "-A warnings"
-    strategy:
-      fail-fast: false
-      matrix:
-        package: [edh_tourn, app]
+    permissions:
+      contents: read
+      security-events: write
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v7
-    - name: Setup Rust
-      uses: actions-rust-lang/setup-rust-toolchain@v2
-      with:
-        toolchain: stable
-        components: llvm-tools
-        cache-key: ${{ matrix.package }}
-    - name: Install Cargo LLVM Cov
-      uses: baptiste0928/cargo-install@v3
-      with:
-        crate: cargo-llvm-cov
-    - name: Generate Coverage Output
-      run: cargo llvm-cov test -p ${{ matrix.package }} --no-fail-fast --all-features --lcov --output-path lcov_raw.info
-    - name: Prepare Coverage Outputs
-      run: cp lcov_raw.info lcov-${{ matrix.package }}.info
-    - name: Upload LCOV Artifact
-      uses: actions/upload-artifact@v7
-      with:
-        name: lcov-${{ matrix.package }}
-        path: lcov-${{ matrix.package }}.info
-        retention-days: 1
-    - name: Filter and Format Coverages
-      run: chmod +x .github/workflows/coverages.bash && .github/workflows/coverages.bash
-    - name: Print to Job Summary
-      uses: livewing/lcov-job-summary@v1.3.0
-      with:
-        lcov: lcov.info
-
-  build:
-    name: Build
+      - name: Checkout Repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Run Clippy
+        uses: LittleTealeaf/github-actions/cargo-clippy@fc00c17f2ac5588508e724282b83cf402cb1624f
+  test:
+    name: Test
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest, windows-11-arm]
+        os: [ubuntu-latest, windows-latest, macos-latest, winows-11-arm]
     runs-on: ${{matrix.os}}
     env:
       RUSTFLAGS: "-A warnings"
@@ -102,3 +56,24 @@ jobs:
       run: cargo test --all --verbose
     - name: Build
       run: cargo build --all --verbose --release
+  test-coverage:
+    name: Test Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Run Cargo Test Coverage
+        uses: LittleTealeaf/github-actions/cargo-test-coverage@fc00c17f2ac5588508e724282b83cf402cb1624f
+  audit:
+    name: Audit Cargo Dependencies
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions-rust-lang/audit@72c09e02f132669d52284a3323acdb503cfc1a24 # v1.1.0
+        name: Audit Rust Dependencies
+        with:
+          createIssues: ${{ github.ref == 'refs/heads/main' }}
