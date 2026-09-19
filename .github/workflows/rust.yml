@@ -56,12 +56,17 @@ jobs:
       run: cargo test --all --verbose
   test-coverage:
     name: Test Coverage
+    strategy:
+      matrix:
+        workspace: [app, edh_tourn]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Run Cargo Test Coverage
-        uses: LittleTealeaf/github-actions/cargo-test-coverage@fc00c17f2ac5588508e724282b83cf402cb1624f
+        uses: LittleTealeaf/github-actions/cargo-test-coverage@539eabcff16e31095f939e9f33df5d19f1a71237
+        with:
+          workspace: ${{matrix.workspace}}
   audit:
     name: Audit Cargo Dependencies
     runs-on: ubuntu-latest
