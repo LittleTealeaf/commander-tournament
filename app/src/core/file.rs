@@ -6,7 +6,7 @@ use iced_tea::{HandleMessage, Signal};
 use rfd::AsyncFileDialog;
 
 use crate::{
-    App,
+    ComTourApp,
     app::Message,
     core::state::AppStateMsg,
     services::system::{
@@ -76,7 +76,7 @@ async fn save_dialog(current_file: Option<PathBuf>) -> Message {
         .into()
 }
 
-impl HandleMessage<FileAction> for App {
+impl HandleMessage<FileAction> for ComTourApp {
     fn handle_message<'a>(
         &'a mut self,
         message: FileAction,

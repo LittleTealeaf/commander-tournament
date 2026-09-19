@@ -2,7 +2,7 @@ use iced::Task;
 use iced_tea::{HandleMessage, Model, Signal};
 
 use crate::{
-    App,
+    ComTourApp,
     app::Message,
     core::{file::FileAction, state::AppStateMsg, tournament::TournamentAction},
     home::{HomeMsg, HomeOut},
@@ -15,7 +15,7 @@ use crate::{
 
 use super::{MenuMsg, view::View};
 
-impl Model for App {
+impl Model for ComTourApp {
     type Message = Message;
     type OutMessage = ();
     type Context<'a> = ();
@@ -118,7 +118,7 @@ impl Model for App {
     }
 }
 
-impl HandleMessage<HomeMsg> for App {
+impl HandleMessage<HomeMsg> for ComTourApp {
     fn handle_message<'a>(
         &'a mut self,
         message: HomeMsg,
@@ -136,7 +136,7 @@ impl HandleMessage<HomeMsg> for App {
     }
 }
 
-impl HandleMessage<AppStateMsg> for App {
+impl HandleMessage<AppStateMsg> for ComTourApp {
     fn handle_message<'a>(
         &'a mut self,
         message: AppStateMsg,
