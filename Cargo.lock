@@ -149,7 +149,7 @@ checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 
 [[package]]
 name = "app"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "anyhow",
  "app",
@@ -1080,7 +1080,7 @@ checksum = "d8b14ccef22fc6f5a8f4d7d768562a182c04ce9a3b3157b91390b52ddfdf1a76"
 
 [[package]]
 name = "edh_tourn"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "approx",
@@ -1724,12 +1724,13 @@ dependencies = [
 
 [[package]]
 name = "iced-tea"
-version = "1.0.0"
-source = "git+https://github.com/LittleTealeaf/iced-tea?tag=v1.0.0#dd1e0a0d291488cf21b015ae3748235d167e6785"
+version = "2.0.1"
+source = "git+https://github.com/LittleTealeaf/iced-tea?tag=v2.0.1#4f0b645d7a185c7b1b7c521bd2abea532957051b"
 dependencies = [
  "anyhow",
  "iced",
  "iced_futures",
+ "log",
 ]
 
 [[package]]

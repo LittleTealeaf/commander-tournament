@@ -4,7 +4,7 @@ use iced::widget::{button, column, text};
 use iced_tea::{Component, Model, Signal};
 
 use crate::{
-    App,
+    ComTourApp,
     app::message::Message,
     components::play::PlayMode,
     core::tournament::TournamentAction,
@@ -131,7 +131,7 @@ impl Component for View {
     }
 }
 
-impl App {
+impl ComTourApp {
     #[must_use]
     pub fn handle_view(&self) -> Element<'_, Message> {
         let content = self.views.last().map_or_else(

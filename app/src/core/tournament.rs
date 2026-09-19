@@ -8,7 +8,7 @@ use edh_tourn::{
 
 use iced_tea::{HandleMessage, Signal};
 
-use crate::App;
+use crate::ComTourApp;
 
 #[derive(Clone, Debug)]
 pub enum TournamentAction {
@@ -43,7 +43,7 @@ impl TournamentAction {
     }
 }
 
-impl HandleMessage<TournamentAction> for App {
+impl HandleMessage<TournamentAction> for ComTourApp {
     fn handle_message<'a>(
         &'a mut self,
         message: TournamentAction,

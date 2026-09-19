@@ -11,16 +11,17 @@ pub mod views;
 use std::path::PathBuf;
 
 use edh_tourn::tournament::Tournament;
-use iced::{Subscription, Task, event};
+use iced::{Program, Subscription, Task, event, window};
 pub use iced_tea::{App as IcedTeaApp, Component, HandleMessage, Model, Signal};
 
 use crate::{
     app::{Message, View},
     core::{file::FileAction, state::AppState},
+    fonts::{FONT_BYTES, FONT_NORMAL},
 };
 
 #[derive(Debug, Default)]
-pub struct App {
+pub struct ComTourApp {
     tournament: Tournament,
     modified: bool,
     is_saving: bool,
@@ -36,7 +37,7 @@ pub struct App {
     error: Option<String>,
 }
 
-impl App {
+impl ComTourApp {
     #[must_use]
     pub fn boot() -> (Self, Option<Task<Message>>) {
         (
@@ -67,15 +68,33 @@ impl App {
     }
 }
 
-impl iced_tea::App for App {
+impl iced_tea::App for ComTourApp {
     type Message = Message;
 
     fn boot() -> (Self, Option<Task<Self::Message>>) {
         Self::boot()
     }
+    fn config<P>(
+        app: iced::Application<P>,
+    ) -> iced::Application<impl Program<State = Self, Message = Self::Message, Theme = iced::Theme>>
+    where
+        P: Program<State = Self, Message = Self::Message, Theme = iced::Theme>,
+    {
+        let settings = window::Settings {
+            exit_on_close_request: false,
+            ..Default::default()
+        };
 
-    fn title(&self) -> String {
-        self.title()
+        let app = app
+            .title("Commander Tournament")
+            .window(settings)
+            .subscription(Self::subscription)
+            .theme(iced::theme::Theme::CatppuccinMocha);
+
+        FONT_BYTES
+            .into_iter()
+            .fold(app, iced::Application::font)
+            .default_font(FONT_NORMAL)
     }
 
     fn view(&self) -> iced::Element<'_, Self::Message> {
@@ -89,13 +108,5 @@ impl iced_tea::App for App {
     fn on_error(&mut self, error: &anyhow::Error) {
         log::error!("Application Error: {error:#}");
         self.error = Some(error.to_string());
-    }
-
-    fn subscription(&self) -> Subscription<Self::Message> {
-        self.subscription()
-    }
-
-    fn theme(&self) -> iced::Theme {
-        iced::Theme::CatppuccinMocha
     }
 }
