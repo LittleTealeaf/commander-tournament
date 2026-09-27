@@ -1,10 +1,8 @@
 use crate::{
+    config::game::GameConfig,
     error::TournamentError,
-    game::{
-        entry::GameEntry, match_player::MatchPlayer, matchable::calculate_expected_values, matchup::Matchup,
-        record::GameRecord,
-    },
-    player::PlayerId,
+    game::{entry::GameEntry, match_player::MatchPlayer, matchup::Matchup, record::GameRecord},
+    player::{PlayerId, stats::PlayerStats},
     tournament::Tournament,
 };
 
@@ -25,25 +23,47 @@ impl Tournament {
     }
 
     #[must_use]
+    #[allow(clippy::cast_precision_loss, reason = "Generic Type to f64")]
     pub(crate) fn create_match_players<const T: usize>(&self, players: [PlayerId; T]) -> [MatchPlayer; T] {
-        #[allow(clippy::cast_precision_loss, reason = "Constant f64 value derived from usize")]
-        let base_chance = 1.0 / (T as f64);
+        let game_config = self.config.game();
 
-        let config = self.game_config();
+        // 1. Stats + K
+        let players = players.map(|player| {
+            let stats = self.get_player_or_default_stats(player);
+            let k = calculate_k(game_config, stats);
+            (player, stats, k)
+        });
 
-        let players = players.map(|player| (player, self.get_player_or_default_stats(player)));
-        let expected = calculate_expected_values(config, players);
+        // 2. Max Elo
+        let max_elo = players
+            .iter()
+            .map(|(_, stats, _)| stats.elo())
+            .fold(f64::NEG_INFINITY, f64::max);
 
-        let base_loss = 1.0 - base_chance;
+        // 3. Gamma
+        let players = players.map(|(player, stats, k)| {
+            let gamma = 10.0_f64.powf((stats.elo() - max_elo) / game_config.logistic_scale());
+            (player, stats, k, gamma)
+        });
 
-        expected.map(|((id, stats), expected)| {
-            MatchPlayer::new(
-                id,
-                stats.clone(),
-                expected,
-                config.game_points() * (1.0 - expected) / base_loss,
-                config.game_points() * expected / base_loss,
-            )
+        let total_gamma: f64 = players.iter().map(|(_, _, _, g)| *g).sum();
+
+        // 4. Expected + Loss
+        let players = players.map(|(player, stats, k, gamma)| {
+            let expected = if total_gamma > 0.0 {
+                gamma / total_gamma
+            } else {
+                1.0 / T as f64
+            };
+            let elo_lost = k * expected;
+            (player, stats, expected, elo_lost)
+        });
+
+        let total_lost: f64 = players.iter().map(|(_, _, _, lost)| *lost).sum();
+
+        // 5. Final MatchPlayer structs (moves `stats` directly without `.clone()`)
+        players.map(|(player, stats, expected, lost)| {
+            MatchPlayer::new(player, stats.clone(), expected, total_lost - lost, lost)
         })
     }
 
@@ -116,6 +136,15 @@ impl Tournament {
         self.reload()?;
         Ok(())
     }
+}
+
+fn calculate_k(config: &GameConfig, stats: &PlayerStats) -> f64 {
+    if config.calibration_games() == 0 || stats.games() >= config.calibration_games() {
+        return config.base_k();
+    }
+
+    let progress = f64::from(stats.games()) / f64::from(config.calibration_games());
+    progress.mul_add(-(config.initial_k() - config.base_k()), config.initial_k())
 }
 
 #[cfg(test)]

@@ -12,23 +12,22 @@
 )]
 #[getset(set = "pub", set_with = "pub", get_copy = "pub", get_mut = "pub")]
 pub struct GameConfig {
-    starting_elo: f64,
-    game_points: f64,
-    game_elo_pow_scale: f64,
-    game_wr_pow_scale: f64,
-    game_elo_weight: f64,
-    game_wr_weight: f64,
+    #[serde(alias = "starting_elo")]
+    initial_elo: f64,
+    logistic_scale: f64,
+    initial_k: f64,
+    base_k: f64,
+    calibration_games: u32,
 }
 
 impl Default for GameConfig {
     fn default() -> Self {
         Self {
-            starting_elo: 1500.0,
-            game_points: 25.0,
-            game_elo_pow_scale: 6.0,
-            game_wr_pow_scale: 1.0,
-            game_elo_weight: 65.0,
-            game_wr_weight: 35.0,
+            initial_elo: 1500.0,
+            logistic_scale: 400.0,
+            initial_k: 48.0,
+            base_k: 24.0,
+            calibration_games: 12,
         }
     }
 }
@@ -42,13 +41,15 @@ impl GameConfig {
 
         let mut rng = ChaCha8Rng::seed_from_u64(seed as u64);
 
+        let base_k = rng.random_range(16.0..32.0);
+        let initial_k = rng.random_range(base_k..64.0);
+
         Self {
-            starting_elo: rng.random_range(1000.0..5000.0),
-            game_points: rng.random_range(10.0..200.0),
-            game_elo_pow_scale: rng.random_range(1.0..5.0),
-            game_wr_pow_scale: rng.random_range(1.0..5.0),
-            game_elo_weight: rng.random_range(1.0..10.0),
-            game_wr_weight: rng.random_range(1.0..10.0),
+            initial_elo: rng.random_range(1000.0..2000.0),
+            logistic_scale: rng.random_range(200.0..600.0),
+            initial_k,
+            base_k,
+            calibration_games: rng.random_range(5..30),
         }
     }
 }

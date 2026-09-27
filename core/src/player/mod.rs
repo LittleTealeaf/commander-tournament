@@ -2,10 +2,7 @@ use core::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    game::matchable::Matchable,
-    player::{info::PlayerInfo, stats::PlayerStats},
-};
+use crate::player::{info::PlayerInfo, stats::PlayerStats};
 
 pub mod color;
 pub mod info;
@@ -49,16 +46,6 @@ impl<'a> RegisteredPlayer<'a> {
     }
 }
 
-impl Matchable for RegisteredPlayer<'_> {
-    fn wr(&self) -> Option<f64> {
-        self.stats().wr()
-    }
-
-    fn elo(&self) -> f64 {
-        self.stats().elo()
-    }
-}
-
 impl Display for RegisteredPlayer<'_> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{}", self.info.display_name())
@@ -67,21 +54,9 @@ impl Display for RegisteredPlayer<'_> {
 
 #[cfg(test)]
 mod tests {
-    use approx::assert_relative_eq;
-
     use crate::tournament::Tournament;
 
     use super::*;
-
-    #[test]
-    fn matchable_gets_stats() {
-        let t = Tournament::generate_tournament(10, 50).unwrap();
-        for rg_pl in t.registered_players() {
-            let stats = t.get_player_or_default_stats(rg_pl.id());
-            assert_relative_eq!(stats.elo(), rg_pl.elo());
-            assert_relative_eq!(stats.wr().unwrap_or(-1.0), rg_pl.wr().unwrap_or(-1.0));
-        }
-    }
 
     #[test]
     fn display() {
