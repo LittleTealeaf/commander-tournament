@@ -132,7 +132,7 @@ impl Component for GameConfigView {
                 text("Logistic Scale"),
                 number_input(
                     &self.config.logistic_scale(),
-                    0.0..10000.0,
+                    1.0..10000.0,
                     GameConfigMsg::SetLogisticScale,
                 )
                 .step(10.0)

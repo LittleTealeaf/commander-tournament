@@ -63,3 +63,14 @@ impl TryFrom<V6Tournament> for Tournament {
         Ok(tournament)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::tournament::Tournament;
+
+    #[test]
+    fn deserialize() {
+        let data = include_str!("../../../../res/tests/compats/sample-v6.ron");
+        let _: Tournament = ron::from_str(data).unwrap();
+    }
+}
