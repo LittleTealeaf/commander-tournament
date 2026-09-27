@@ -1,5 +1,5 @@
 use approx::assert_relative_eq;
-use edh_tourn::tournament::Tournament;
+use commander_tournament_core::tournament::Tournament;
 
 #[test]
 fn new_has_no_players() {
@@ -61,7 +61,7 @@ fn into_fresh_same_stats() {
 #[test]
 fn into_fresh_resets_ids() {
     // or your specific Result type
-    // use edh_tourn::player::PlayerId; // Not strictly needed if we convert to u32
+    // use commander_tournament_core::player::PlayerId; // Not strictly needed if we convert to u32
     use itertools::Itertools;
 
     let mut tourn = Tournament::generate_tournament(100, 0).unwrap();

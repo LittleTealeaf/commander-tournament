@@ -1,4 +1,4 @@
-use edh_tourn::tournament::Tournament;
+use commander_tournament_core::tournament::Tournament;
 use iced::Element;
 use iced::widget::{button, column, text};
 use iced_tea::{Component, Model, Signal};

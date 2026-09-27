@@ -1,5 +1,5 @@
 //! Tests for Player, Player Registration, Player Info
-use edh_tourn::{
+use commander_tournament_core::{
     player::{PlayerId, color::ColorIdentity, info::PlayerInfo},
     tournament::Tournament,
 };

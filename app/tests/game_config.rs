@@ -1,6 +1,6 @@
 mod update {
-    use app::views::game_config::{GameConfigMsg, GameConfigOut, GameConfigView};
-    use edh_tourn::{config::game::GameConfig, tournament::Tournament};
+    use commander_tournament::views::game_config::{GameConfigMsg, GameConfigOut, GameConfigView};
+    use commander_tournament_core::{config::game::GameConfig, tournament::Tournament};
     use iced_tea::{Model, Signal};
 
     #[test]

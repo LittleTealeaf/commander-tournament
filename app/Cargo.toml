@@ -1,5 +1,5 @@
 [package]
-name = "app"
+name = "commander_tournament"
 version = "1.0.0"
 edition = "2024"
 
@@ -29,7 +29,7 @@ ron = "0.12.1"
 serde_json = { version = "1.0.150", optional = true }
 toml = { version = "1.1.2", optional = true }
 thiserror = "2.0.18"
-edh_tourn = { path = "../edh_tourn/" }
+commander_tournament_core = { path = "../core/" }
 directories = "6.0.0"
 iced_aw = { version = "0.14.1" }
 nerd-font-symbols = "0.3.0"
@@ -45,8 +45,8 @@ env_logger = "0.11.11"
 log = "0.4.34"
 
 [dev-dependencies]
-app = { path = ".", features = ["dev"] }
-edh_tourn = { path = "../edh_tourn/", features = ["dev"] }
+commander_tournament = { path = ".", features = ["dev"] }
+commander_tournament_core = { path = "../core/", features = ["dev"] }
 approx = "0.5.1"
 iced_test = "0.14.0"
 

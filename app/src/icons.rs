@@ -1,6 +1,6 @@
 use core::iter::once;
 
-use edh_tourn::player::color::{ColorIdentity, MtgColor};
+use commander_tournament_core::player::color::{ColorIdentity, MtgColor};
 use iced::widget::{Svg, svg::Handle};
 
 const BYTES_W: &[u8] = include_bytes!("../assets/svg/W.svg");

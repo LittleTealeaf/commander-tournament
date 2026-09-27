@@ -1,4 +1,4 @@
-use app::services::system::*;
+use commander_tournament::services::system::*;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use tempfile::tempdir;

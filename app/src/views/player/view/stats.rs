@@ -1,4 +1,4 @@
-use edh_tourn::{
+use commander_tournament_core::{
     analytics::winloss::MatchPerformance,
     game::record::GameRecord,
     player::{

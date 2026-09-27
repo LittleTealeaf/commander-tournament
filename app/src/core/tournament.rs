@@ -1,4 +1,4 @@
-use edh_tourn::{
+use commander_tournament_core::{
     config::{game::GameConfig, matchmaker::MatchmakerConfig},
     error::TournamentError,
     game::record::GameRecord,
@@ -58,7 +58,7 @@ impl HandleMessage<TournamentAction> for ComTourApp {
 #[cfg(test)]
 mod tests {
     use approx::assert_relative_eq;
-    use edh_tourn::game::entry::GameEntry;
+    use commander_tournament_core::game::entry::GameEntry;
 
     use super::*;
 

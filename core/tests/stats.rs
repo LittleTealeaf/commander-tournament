@@ -1,5 +1,5 @@
 use approx::assert_relative_eq;
-use edh_tourn::tournament::Tournament;
+use commander_tournament_core::tournament::Tournament;
 
 #[test]
 fn default_stats_use_starting_elo() {

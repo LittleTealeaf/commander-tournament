@@ -1,4 +1,4 @@
-use edh_tourn::{
+use commander_tournament_core::{
     game::{POD_SIZE, record::GameRecord},
     player::PlayerId,
     tournament::Tournament,

@@ -1,4 +1,4 @@
-use edh_tourn::player::PlayerId;
+use commander_tournament_core::player::PlayerId;
 
 use crate::{
     app::{MenuMsg, ViewMsg},

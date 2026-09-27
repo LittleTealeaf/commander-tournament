@@ -1,8 +1,8 @@
 use core::f64;
 
 use approx::{assert_abs_diff_eq, assert_relative_eq};
-use edh_tourn::game::entry::GameEntry;
-use edh_tourn::{player::PlayerId, tournament::Tournament};
+use commander_tournament_core::game::entry::GameEntry;
+use commander_tournament_core::{player::PlayerId, tournament::Tournament};
 use itertools::Itertools;
 
 mod update_match {

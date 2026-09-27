@@ -148,42 +148,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 
 [[package]]
-name = "app"
-version = "1.0.0"
-dependencies = [
- "anyhow",
- "app",
- "appconfig",
- "approx",
- "async-fs",
- "auto-const-array",
- "derive_more",
- "directories",
- "edh_tourn",
- "env_logger",
- "iced",
- "iced-tea",
- "iced_aw",
- "iced_futures",
- "iced_test",
- "im",
- "itertools",
- "log",
- "nerd-font-symbols",
- "opener",
- "paste",
- "rfd",
- "ron",
- "serde",
- "serde_json",
- "strum",
- "tempfile",
- "thiserror 2.0.20",
- "tokio",
- "toml 1.1.6+spec-1.1.0",
-]
-
-[[package]]
 name = "appconfig"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -733,6 +697,69 @@ dependencies = [
 ]
 
 [[package]]
+name = "commander_tournament"
+version = "1.0.0"
+dependencies = [
+ "anyhow",
+ "appconfig",
+ "approx",
+ "async-fs",
+ "auto-const-array",
+ "commander_tournament",
+ "commander_tournament_core",
+ "derive_more",
+ "directories",
+ "env_logger",
+ "iced",
+ "iced-tea",
+ "iced_aw",
+ "iced_futures",
+ "iced_test",
+ "im",
+ "itertools",
+ "log",
+ "nerd-font-symbols",
+ "opener",
+ "paste",
+ "rfd",
+ "ron",
+ "serde",
+ "serde_json",
+ "strum",
+ "tempfile",
+ "thiserror 2.0.20",
+ "tokio",
+ "toml 1.1.6+spec-1.1.0",
+]
+
+[[package]]
+name = "commander_tournament_core"
+version = "0.2.0"
+dependencies = [
+ "anyhow",
+ "approx",
+ "auto-const-array",
+ "backwards-compat",
+ "commander_tournament_core",
+ "derive_more",
+ "env_logger",
+ "getset",
+ "im",
+ "itertools",
+ "log",
+ "ordered-float",
+ "rand",
+ "rand_chacha",
+ "ron",
+ "serde",
+ "serde_json",
+ "strum",
+ "test-log",
+ "thiserror 2.0.20",
+ "toml 1.1.6+spec-1.1.0",
+]
+
+[[package]]
 name = "concurrent-queue"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1077,33 +1104,6 @@ name = "dpi"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d8b14ccef22fc6f5a8f4d7d768562a182c04ce9a3b3157b91390b52ddfdf1a76"
-
-[[package]]
-name = "edh_tourn"
-version = "0.2.0"
-dependencies = [
- "anyhow",
- "approx",
- "auto-const-array",
- "backwards-compat",
- "derive_more",
- "edh_tourn",
- "env_logger",
- "getset",
- "im",
- "itertools",
- "log",
- "ordered-float",
- "rand",
- "rand_chacha",
- "ron",
- "serde",
- "serde_json",
- "strum",
- "test-log",
- "thiserror 2.0.20",
- "toml 1.1.6+spec-1.1.0",
-]
 
 [[package]]
 name = "either"

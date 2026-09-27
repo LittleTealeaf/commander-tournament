@@ -1,4 +1,4 @@
-use edh_tourn::player::info::PlayerInfo;
+use commander_tournament_core::player::info::PlayerInfo;
 
 const PLAYER_INFO: PlayerInfo = PlayerInfo::new(String::new());
 const TEST_MOXFIELD_ID: &str = "BtCcQ8eWg0uT8n4fFPK3Xg";
@@ -128,7 +128,7 @@ mod moxfield_id {
 
 mod color {
     use super::*;
-    use edh_tourn::player::color::{ColorIdentity, MtgColor};
+    use commander_tournament_core::player::color::{ColorIdentity, MtgColor};
 
     #[test]
     fn default_colorless() {
