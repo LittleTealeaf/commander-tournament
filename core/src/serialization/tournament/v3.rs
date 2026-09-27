@@ -2,12 +2,12 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Deserializer};
 
-use crate::config::game::GameConfig;
 use crate::game::entry::GameEntry;
 use crate::player::PlayerId;
 use crate::player::info::PlayerInfo;
+use crate::serialization::tournament::v4::{V4MatchmakerConfig, V4Tournament, V4TournamentConfig};
+use crate::serialization::tournament::v5::V5GameConfig;
 use crate::serialization::utils::DeserializableMap;
-use crate::serialization::v4::{V4MatchmakerConfig, V4Tournament, V4TournamentConfig};
 
 fn player_info_deserialize<'de, D>(deserializer: D) -> Result<HashMap<PlayerId, PlayerInfo>, D::Error>
 where
@@ -42,12 +42,12 @@ impl Default for V3RankingConfig {
     }
 }
 
-#[derive(Debug, Clone, serde::Deserialize, serde::Serialize, PartialEq)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct V3TournamentConfig {
     #[serde(default)]
-    pub game: GameConfig,
+    game: V5GameConfig,
     #[serde(default)]
-    pub ranking: V3RankingConfig,
+    ranking: V3RankingConfig,
 }
 
 #[derive(Deserialize, Debug, serde::Serialize)]
@@ -56,7 +56,7 @@ pub struct V3Tournament {
     pub(super) config: V3TournamentConfig,
     #[serde(
         deserialize_with = "player_info_deserialize",
-        serialize_with = "super::utils::ordered_map",
+        serialize_with = "crate::serialization::utils::ordered_map",
         rename = "pls",
         alias = "players"
     )]
@@ -94,7 +94,7 @@ mod tests {
 
     #[test]
     fn deserialize() {
-        let data = include_str!("../../../res/tests/compats/sample-v3.ron");
+        let data = include_str!("../../../../res/tests/compats/sample-v3.ron");
         let _: Tournament = ron::from_str(data).unwrap();
     }
 }
