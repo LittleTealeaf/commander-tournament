@@ -12,6 +12,7 @@ use crate::game::POD_SIZE;
     getset::Setters,
     getset::WithSetters,
     getset::MutGetters,
+    derive_more::Constructor,
 )]
 #[getset(set = "pub", set_with = "pub", get_copy = "pub", get_mut = "pub")]
 pub struct MatchmakerConfig {
@@ -19,18 +20,11 @@ pub struct MatchmakerConfig {
     min_pool_size: usize,
 }
 
-impl MatchmakerConfig {
-    #[must_use]
-    pub const fn new() -> Self {
+impl Default for MatchmakerConfig {
+    fn default() -> Self {
         Self {
             elo_range: 50.0,
             min_pool_size: (POD_SIZE - 1) * 3,
         }
-    }
-}
-
-impl Default for MatchmakerConfig {
-    fn default() -> Self {
-        Self::new()
     }
 }

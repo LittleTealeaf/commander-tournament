@@ -6,8 +6,6 @@ pub mod matchmaker;
 #[derive(
     Debug,
     Clone,
-    serde::Serialize,
-    serde::Deserialize,
     PartialEq,
     Default,
     getset::Getters,
@@ -17,8 +15,6 @@ pub mod matchmaker;
 )]
 #[getset(set = "pub", get = "pub", set_with = "pub")]
 pub struct TournamentConfig {
-    #[serde(default)]
     game: GameConfig,
-    #[serde(default)]
     matchmaker: MatchmakerConfig,
 }

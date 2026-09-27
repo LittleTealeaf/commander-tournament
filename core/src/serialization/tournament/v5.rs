@@ -3,12 +3,10 @@ use std::collections::HashMap;
 use serde::Deserializer;
 
 use crate::{
-    config::{TournamentConfig, game::GameConfig, matchmaker::MatchmakerConfig},
-    error::TournamentError,
+    config::{game::GameConfig, matchmaker::MatchmakerConfig},
     game::entry::GameEntry,
     player::{PlayerId, info::PlayerInfo},
-    serialization::{tournament::v6::V6Tournament, utils::DeserializableMap},
-    tournament::Tournament,
+    serialization::{config::v1::V1TournamentConfig, tournament::v6::V6Tournament, utils::DeserializableMap},
 };
 
 fn player_info_deserialize<'de, D>(deserializer: D) -> Result<HashMap<PlayerId, PlayerInfo>, D::Error>
@@ -39,39 +37,17 @@ pub struct V5Tournament {
 impl From<V5Tournament> for V6Tournament {
     fn from(value: V5Tournament) -> Self {
         Self {
-            config: TournamentConfig::new(
+            config: V1TournamentConfig::new(
                 GameConfig::default(),
-                MatchmakerConfig::new()
-                    .with_elo_range(value.config.matchmaker.elo_range)
-                    .with_min_pool_size(value.config.matchmaker.min_pool_size),
-            ),
+                MatchmakerConfig::new(
+                    value.config.matchmaker.elo_range,
+                    value.config.matchmaker.min_pool_size,
+                ),
+            )
+            .into(),
             players: value.players,
             games: value.games,
         }
-    }
-}
-
-impl TryFrom<V5Tournament> for Tournament {
-    type Error = TournamentError;
-    fn try_from(value: V5Tournament) -> Result<Self, Self::Error> {
-        let mut tournament = Self {
-            config: TournamentConfig::new(
-                GameConfig::default(),
-                MatchmakerConfig::new()
-                    .with_elo_range(value.config.matchmaker.elo_range)
-                    .with_min_pool_size(value.config.matchmaker.min_pool_size),
-            ),
-            players: value.players,
-            ..Self::default()
-        };
-        tournament.reload()?;
-        for game in value.games {
-            tournament.record_entry(game)?;
-        }
-
-        tournament.snapshot = 0;
-
-        Ok(tournament)
     }
 }
 
