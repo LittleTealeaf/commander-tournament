@@ -1,6 +1,6 @@
 use tempfile::NamedTempFile;
 
-use app::core::state::{AppState, debug_config_path};
+use commander_tournament::core::state::{AppState, debug_config_path};
 
 fn temp_file() -> NamedTempFile {
     NamedTempFile::with_suffix(".ron").unwrap()
@@ -83,7 +83,7 @@ async fn last_updated_persists_through_saves() {
 
 #[tokio::test]
 async fn model_update_set_and_clear_opened_file() {
-    use app::core::state::AppStateMsg;
+    use commander_tournament::core::state::AppStateMsg;
     use iced_tea::{Model, Signal};
 
     let mut state = AppState::load().await.unwrap();
@@ -104,7 +104,7 @@ async fn model_update_set_and_clear_opened_file() {
 
 #[tokio::test]
 async fn model_update_nothing_and_error() {
-    use app::core::state::AppStateMsg;
+    use commander_tournament::core::state::AppStateMsg;
     use iced_tea::Model;
 
     let mut state = AppState::load().await.unwrap();

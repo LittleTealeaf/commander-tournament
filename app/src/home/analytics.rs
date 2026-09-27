@@ -1,4 +1,6 @@
-use edh_tourn::{analytics::aggregate::AggregateStats, player::color::ColorIdentity, tournament::Tournament};
+use commander_tournament_core::{
+    analytics::aggregate::AggregateStats, player::color::ColorIdentity, tournament::Tournament,
+};
 use iced::{
     Length,
     widget::{checkbox, column, container, row, space, table, text},

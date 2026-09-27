@@ -1,4 +1,4 @@
-use app::ComTourApp;
+use commander_tournament::ComTourApp;
 use iced_tea::App as _;
 
 fn main() -> iced::Result {

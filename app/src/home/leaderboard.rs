@@ -1,6 +1,6 @@
 use core::cmp::Ordering;
 
-use edh_tourn::{
+use commander_tournament_core::{
     player::{PlayerId, RegisteredPlayer},
     tournament::Tournament,
 };

@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
+use commander_tournament_core::tournament::Tournament;
 use directories::UserDirs;
-use edh_tourn::tournament::Tournament;
 use iced_tea::{HandleMessage, Signal};
 use rfd::AsyncFileDialog;
 

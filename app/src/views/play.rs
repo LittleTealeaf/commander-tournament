@@ -1,4 +1,4 @@
-use edh_tourn::{game::record::GameRecord, player::PlayerId, tournament::Tournament};
+use commander_tournament_core::{game::record::GameRecord, player::PlayerId, tournament::Tournament};
 use iced::widget::button;
 use iced_tea::{Component, Model, Signal};
 use nerd_font_symbols::md::MD_COGS;

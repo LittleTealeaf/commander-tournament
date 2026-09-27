@@ -1,4 +1,4 @@
-use edh_tourn::tournament::Tournament;
+use commander_tournament_core::tournament::Tournament;
 use iced_tea::{Model, Signal};
 
 use crate::{

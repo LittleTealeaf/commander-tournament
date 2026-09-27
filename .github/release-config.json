@@ -3,11 +3,11 @@
   "packages": {
     "app": {
       "release-type": "rust",
-      "package-name": "commander-tournament"
+      "package-name": "commander_tournament"
     },
-    "edh_tourn": {
+    "core": {
       "release-type": "rust",
-      "package-name": "edh_tourn"
+      "package-name": "commander_tournament_core"
     }
   }
 }

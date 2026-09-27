@@ -1,4 +1,6 @@
-use edh_tourn::{error::TournamentError, player::color::ColorIdentity, tournament::Tournament};
+use commander_tournament_core::{
+    error::TournamentError, player::color::ColorIdentity, tournament::Tournament,
+};
 
 mod aggregated_identity {
     use approx::assert_relative_eq;
@@ -67,7 +69,7 @@ mod aggregated_identity {
 
 mod aggregated_color {
     use approx::assert_relative_eq;
-    use edh_tourn::player::color::MtgColor;
+    use commander_tournament_core::player::color::MtgColor;
 
     use super::*;
 

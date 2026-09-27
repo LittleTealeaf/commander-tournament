@@ -1,4 +1,4 @@
-use edh_tourn::player::color::MtgColor;
+use commander_tournament_core::player::color::MtgColor;
 use iced::{
     Length,
     alignment::Vertical,

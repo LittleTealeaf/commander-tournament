@@ -10,7 +10,7 @@ pub mod views;
 
 use std::path::PathBuf;
 
-use edh_tourn::tournament::Tournament;
+use commander_tournament_core::tournament::Tournament;
 use iced::{Program, Subscription, Task, event, window};
 pub use iced_tea::{App as IcedTeaApp, Component, HandleMessage, Model, Signal};
 

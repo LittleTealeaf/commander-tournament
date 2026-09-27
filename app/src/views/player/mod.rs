@@ -1,7 +1,7 @@
 mod update;
 mod view;
 
-use edh_tourn::player::{PlayerId, RegisteredPlayer, color::MtgColor, info::PlayerInfo};
+use commander_tournament_core::player::{PlayerId, RegisteredPlayer, color::MtgColor, info::PlayerInfo};
 use iced::widget::{button, text_editor};
 use nerd_font_symbols::md::{MD_CONTENT_SAVE, MD_DELETE, MD_SWORD};
 
