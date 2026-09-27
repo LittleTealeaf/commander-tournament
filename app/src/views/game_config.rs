@@ -1,6 +1,6 @@
 use commander_tournament_core::{config::game::GameConfig, tournament::Tournament};
 
-use iced::widget::{button, column, row, rule, text};
+use iced::widget::{button, column, row, text};
 use iced_aw::number_input;
 use iced_tea::{Component, Model, Signal};
 use nerd_font_symbols::md::{MD_CONTENT_SAVE, MD_RESTORE, MD_UNDO};
@@ -30,12 +30,11 @@ pub enum GameConfigMsg {
     Save,
     SetDefault,
     Reset,
-    SetStartingElo(f64),
-    SetGamePoints(f64),
-    SetEloPowScale(f64),
-    SetWrPowScale(f64),
-    SetEloWeight(f64),
-    SetWrWeight(f64),
+    SetInitialElo(f64),
+    SetLogisticScale(f64),
+    SetInitialK(f64),
+    SetBaseK(f64),
+    SetCalibrationGames(u32),
 }
 
 #[derive(Debug, Clone)]
@@ -65,28 +64,24 @@ impl Model for GameConfigView {
                 self.config = context.game_config().clone();
                 Signal::done()
             }
-            GameConfigMsg::SetStartingElo(val) => {
-                self.config.set_starting_elo(val);
+            GameConfigMsg::SetInitialElo(val) => {
+                self.config.set_initial_elo(val);
                 Signal::done()
             }
-            GameConfigMsg::SetGamePoints(val) => {
-                self.config.set_game_points(val);
+            GameConfigMsg::SetLogisticScale(val) => {
+                self.config.set_logistic_scale(val);
                 Signal::done()
             }
-            GameConfigMsg::SetEloPowScale(val) => {
-                self.config.set_game_elo_pow_scale(val);
+            GameConfigMsg::SetInitialK(val) => {
+                self.config.set_initial_k(val);
                 Signal::done()
             }
-            GameConfigMsg::SetWrPowScale(val) => {
-                self.config.set_game_wr_pow_scale(val);
+            GameConfigMsg::SetBaseK(val) => {
+                self.config.set_base_k(val);
                 Signal::done()
             }
-            GameConfigMsg::SetEloWeight(val) => {
-                self.config.set_game_elo_weight(val);
-                Signal::done()
-            }
-            GameConfigMsg::SetWrWeight(val) => {
-                self.config.set_game_wr_weight(val);
+            GameConfigMsg::SetCalibrationGames(val) => {
+                self.config.set_calibration_games(val);
                 Signal::done()
             }
         }
@@ -121,94 +116,55 @@ impl ViewScreen for GameConfigView {
 
 impl Component for GameConfigView {
     fn render<'a>(&'a self, _context: Self::Context<'a>) -> iced::Element<'a, Self::Message> {
-        let general_section = column![
-            text("General").size(20),
+        column![
             row![
                 text("Starting Elo"),
                 number_input(
-                    &self.config.starting_elo(),
+                    &self.config.initial_elo(),
                     0.0..10000.0,
-                    GameConfigMsg::SetStartingElo,
+                    GameConfigMsg::SetInitialElo,
                 )
                 .step(10.0)
-                .ignore_buttons(true)
+                .ignore_buttons(true),
             ]
             .spacing(10),
             row![
-                text("Game Points"),
+                text("Logistic Scale"),
                 number_input(
-                    &self.config.game_points(),
-                    0.0..1000.0,
-                    GameConfigMsg::SetGamePoints,
+                    &self.config.logistic_scale(),
+                    1.0..10000.0,
+                    GameConfigMsg::SetLogisticScale,
                 )
-                .step(1.0)
-                .ignore_buttons(true)
+                .step(10.0)
+                .ignore_buttons(true),
+            ]
+            .spacing(10),
+            row![
+                text("Initial K"),
+                number_input(&self.config.initial_k(), 0.0..1000.0, GameConfigMsg::SetInitialK,)
+                    .step(1.0)
+                    .ignore_buttons(true),
+            ]
+            .spacing(10),
+            row![
+                text("Base K"),
+                number_input(&self.config.base_k(), 0.0..1000.0, GameConfigMsg::SetBaseK,)
+                    .step(1.0)
+                    .ignore_buttons(true),
+            ]
+            .spacing(10),
+            row![
+                text("Calibration Games"),
+                number_input(
+                    &self.config.calibration_games(),
+                    0..1000,
+                    GameConfigMsg::SetCalibrationGames,
+                )
+                .ignore_buttons(true),
             ]
             .spacing(10),
         ]
-        .spacing(15);
-
-        let elo_section = column![
-            text("Elo Ratings").size(20),
-            row![
-                text("Power Scale"),
-                number_input(
-                    &self.config.game_elo_pow_scale(),
-                    0.0..100.0,
-                    GameConfigMsg::SetEloPowScale,
-                )
-                .step(0.1)
-                .ignore_buttons(true)
-            ]
-            .spacing(10),
-            row![
-                text("Weight"),
-                number_input(
-                    &self.config.game_elo_weight(),
-                    0.0..100.0,
-                    GameConfigMsg::SetEloWeight,
-                )
-                .step(1.0)
-                .ignore_buttons(true)
-            ]
-            .spacing(10),
-        ]
-        .spacing(15);
-
-        let wr_section = column![
-            text("Win Rate (WR)").size(20),
-            row![
-                text("Power Scale"),
-                number_input(
-                    &self.config.game_wr_pow_scale(),
-                    0.0..100.0,
-                    GameConfigMsg::SetWrPowScale,
-                )
-                .step(0.1)
-                .ignore_buttons(true)
-            ]
-            .spacing(10),
-            row![
-                text("Weight"),
-                number_input(
-                    &self.config.game_wr_weight(),
-                    0.0..100.0,
-                    GameConfigMsg::SetWrWeight,
-                )
-                .step(1.0)
-                .ignore_buttons(true)
-            ]
-            .spacing(10),
-        ]
-        .spacing(15);
-
-        // Combine everything: General on top, then a divider, then Elo and WR side-by-side
-        column![
-            general_section,
-            rule::horizontal(10),
-            row![elo_section, wr_section].spacing(40)
-        ]
-        .spacing(20)
+        .spacing(10)
         .into()
     }
 }

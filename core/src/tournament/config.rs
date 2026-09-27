@@ -41,7 +41,7 @@ mod tests {
         let id = *tournament.players.keys().next().unwrap();
         let elo_start = tournament.get_player_stats(id).unwrap().elo();
         let mut config = tournament.game_config().clone();
-        *config.starting_elo_mut() += 1500.0;
+        *config.initial_elo_mut() += 1500.0;
         tournament.set_game_config(config).unwrap();
         let elo_end = tournament.get_player_stats(id).unwrap().elo();
         assert!(elo_start.total_cmp(&elo_end).is_ne());
@@ -51,7 +51,7 @@ mod tests {
     fn updating_config_updates_version() {
         let mut tournament = Tournament::generate_tournament(4, 1).unwrap();
         let mut config = tournament.game_config().clone();
-        *config.starting_elo_mut() += 1500.0;
+        *config.initial_elo_mut() += 1500.0;
 
         let version = tournament.snapshot;
         tournament.set_game_config(config).unwrap();

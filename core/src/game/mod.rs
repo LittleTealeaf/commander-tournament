@@ -1,6 +1,5 @@
 pub mod entry;
 pub mod match_player;
-pub mod matchable;
 pub mod matchup;
 pub mod next_mode;
 pub mod record;

@@ -362,8 +362,8 @@ checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
 
 [[package]]
 name = "backwards-compat"
-version = "0.3.0"
-source = "git+https://github.com/LittleTealeaf/backwards-compat?tag=v0.3.0#bfa6e25872ea7dd583da1f2e4355059081957455"
+version = "0.4.0"
+source = "git+https://github.com/LittleTealeaf/backwards-compat?tag=v0.4.0#acafb2ea6e967dd51e30e3fab7d0fad5b66dfa35"
 dependencies = [
  "backwards-compat-derive",
  "serde",
@@ -371,8 +371,8 @@ dependencies = [
 
 [[package]]
 name = "backwards-compat-derive"
-version = "0.3.0"
-source = "git+https://github.com/LittleTealeaf/backwards-compat?tag=v0.3.0#bfa6e25872ea7dd583da1f2e4355059081957455"
+version = "0.4.0"
+source = "git+https://github.com/LittleTealeaf/backwards-compat?tag=v0.4.0#acafb2ea6e967dd51e30e3fab7d0fad5b66dfa35"
 dependencies = [
  "proc-macro2",
  "quote",

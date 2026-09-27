@@ -2,13 +2,13 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Deserializer, Serialize};
 
-use crate::config::game::GameConfig;
-use crate::config::matchmaker::MatchmakerConfig;
 use crate::game::entry::GameEntry;
 use crate::player::PlayerId;
+use crate::player::info::PlayerInfo;
+use crate::serialization::tournament::v5::{
+    V5GameConfig, V5MatchmakerConfig, V5Tournament, V5TournamentConfig,
+};
 use crate::serialization::utils::DeserializableMap;
-use crate::serialization::v5::V5Tournament;
-use crate::{config::TournamentConfig, player::info::PlayerInfo};
 
 fn player_info_deserialize<'de, D>(deserializer: D) -> Result<HashMap<PlayerId, PlayerInfo>, D::Error>
 where
@@ -26,7 +26,7 @@ pub struct V4Tournament {
     pub(super) config: V4TournamentConfig,
     #[serde(
         deserialize_with = "player_info_deserialize",
-        serialize_with = "super::utils::ordered_map",
+        serialize_with = "crate::serialization::utils::ordered_map",
         rename = "pls",
         alias = "players"
     )]
@@ -38,7 +38,7 @@ pub struct V4Tournament {
 #[derive(Debug, Deserialize, Serialize)]
 pub(super) struct V4TournamentConfig {
     #[serde(default)]
-    pub game: GameConfig,
+    pub game: V5GameConfig,
     #[serde(default)]
     pub matchmaker: V4MatchmakerConfig,
 }
@@ -75,7 +75,7 @@ impl Default for V4MatchmakerConfig {
 impl From<V4Tournament> for V5Tournament {
     fn from(value: V4Tournament) -> Self {
         Self {
-            config: TournamentConfig::new(value.config.game, MatchmakerConfig::default()),
+            config: V5TournamentConfig::new(value.config.game, V5MatchmakerConfig::default()),
             players: value.players,
             games: value.games,
         }
@@ -89,7 +89,7 @@ mod tests {
 
     #[test]
     fn deserialize() {
-        let data = include_str!("../../../res/tests/compats/sample-v4.ron");
+        let data = include_str!("../../../../res/tests/compats/sample-v4.ron");
         let _: Tournament = ron::from_str(data).unwrap();
     }
 }

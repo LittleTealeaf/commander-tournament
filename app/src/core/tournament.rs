@@ -134,7 +134,7 @@ mod tests {
         let id = tournament.register_debug_player().unwrap();
         let starting_elo = tournament.get_player_or_default_stats(id).elo();
         let mut config = tournament.game_config().clone();
-        *config.starting_elo_mut() += 1500.0;
+        *config.initial_elo_mut() += 1500.0;
         TournamentAction::SetGameConfig(config)
             .apply(&mut tournament)
             .unwrap();
