@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0](https://github.com/LittleTealeaf/commander-tournament/compare/commander_tournament_core-v0.2.0...commander_tournament_core-v1.0.0) (2026-09-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* Multinomial Logic (Plackett-Luce) Elo Model ([#137](https://github.com/LittleTealeaf/commander-tournament/issues/137))
+
+### Features
+
+* Multinomial Logic (Plackett-Luce) Elo Model ([#137](https://github.com/LittleTealeaf/commander-tournament/issues/137)) ([df91346](https://github.com/LittleTealeaf/commander-tournament/commit/df913468484ffc35ea34f28405f5971721c49977))
+
 ## [0.2.0](https://github.com/LittleTealeaf/commander-tournament/compare/edh_tourn-v0.1.0...edh_tourn-v0.2.0) (2026-09-13)
 
 
