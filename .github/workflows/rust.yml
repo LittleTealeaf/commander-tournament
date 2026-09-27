@@ -58,7 +58,7 @@ jobs:
     name: Test Coverage
     strategy:
       matrix:
-        workspace: [app, edh_tourn]
+        workspace: [commander_tournament, commander_tournament_core]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository

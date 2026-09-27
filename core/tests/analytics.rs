@@ -1,4 +1,6 @@
-use commander_tournament_core::{error::TournamentError, player::color::ColorIdentity, tournament::Tournament};
+use commander_tournament_core::{
+    error::TournamentError, player::color::ColorIdentity, tournament::Tournament,
+};
 
 mod aggregated_identity {
     use approx::assert_relative_eq;
