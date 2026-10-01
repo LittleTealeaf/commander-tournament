@@ -1,4 +1,3 @@
-
 use crate::config::{TournamentConfig, game::GameConfig, matchmaker::MatchmakerConfig};
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, derive_more::Constructor)]
