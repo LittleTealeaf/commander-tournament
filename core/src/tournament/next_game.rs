@@ -22,6 +22,43 @@ impl Tournament {
             .filter(|player| (!player.info().is_archived()) && (!player.info().is_precon()));
 
         match mode {
+            NextPlayerMode::Default => {
+                let pool = players.collect::<Vec<_>>();
+                // First: Check if anyone is still low ranked.
+                {
+                    let min_games = pool
+                        .iter()
+                        .map(|player| (player.stats().games(), player.id()))
+                        .min();
+
+                    if let Some((games, player)) = min_games
+                        && games < self.config.game().calibration_games()
+                    {
+                        return Some(player);
+                    }
+                }
+                // Then fall back to longest break
+                {
+                    let mut pool = pool.into_iter().map(|p| p.id()).collect::<HashSet<_>>();
+
+                    if pool.len() <= 1 {
+                        return pool.into_iter().next();
+                    }
+
+                    let games = self.games().iter().rev();
+
+                    for game in games {
+                        for player in game.players() {
+                            pool.remove(&player.id());
+                            if pool.len() <= 1 {
+                                return pool.into_iter().next();
+                            }
+                        }
+                    }
+
+                    pool.into_iter().min()
+                }
+            }
             NextPlayerMode::LongestBreak => {
                 let mut pool = players.map(|player| player.id()).collect::<HashSet<_>>();
 
