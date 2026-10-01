@@ -1,7 +1,9 @@
 #[derive(Debug, Copy, Clone, PartialEq, Eq, derive_more::Display, Default, strum::VariantArray)]
 pub enum NextPlayerMode {
-    #[display("Longest Break")]
+    #[display("Default")]
     #[default]
+    Default,
+    #[display("Longest Break")]
     LongestBreak,
     #[display("Least Played")]
     LeastPlayed,

@@ -1,8 +1,6 @@
 #[derive(
     Debug,
     Clone,
-    serde::Serialize,
-    serde::Deserialize,
     PartialEq,
     getset::CopyGetters,
     getset::Setters,
@@ -12,7 +10,6 @@
 )]
 #[getset(set = "pub", set_with = "pub", get_copy = "pub", get_mut = "pub")]
 pub struct GameConfig {
-    #[serde(alias = "starting_elo")]
     initial_elo: f64,
     logistic_scale: f64,
     initial_k: f64,
