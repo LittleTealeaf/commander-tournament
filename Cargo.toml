@@ -17,6 +17,8 @@ pedantic = { level = "warn", priority = -1 }
 complexity = { level = "warn", priority = -1 }
 nursery = { level = "warn", priority = -1 }
 
+redundant_field_names = "allow"
+
 assertions_on_result_states = "warn"
 clone_on_ref_ptr = "warn"
 dbg_macro = "warn"
