@@ -3,10 +3,14 @@ use std::collections::HashMap;
 use serde::Deserializer;
 
 use crate::{
-    config::{game::GameConfig, matchmaker::MatchmakerConfig},
+    config::matchmaker::MatchmakerConfig,
     game::entry::GameEntry,
     player::{PlayerId, info::PlayerInfo},
-    serialization::{config::v1::V1TournamentConfig, tournament::v6::V6Tournament, utils::DeserializableMap},
+    serialization::{
+        config::v1::{V1TournamentConfig, V1TournamentGameConfig},
+        tournament::v6::V6Tournament,
+        utils::DeserializableMap,
+    },
 };
 
 fn player_info_deserialize<'de, D>(deserializer: D) -> Result<HashMap<PlayerId, PlayerInfo>, D::Error>
@@ -38,7 +42,7 @@ impl From<V5Tournament> for V6Tournament {
     fn from(value: V5Tournament) -> Self {
         Self {
             config: V1TournamentConfig::new(
-                GameConfig::default(),
+                V1TournamentGameConfig::default(),
                 MatchmakerConfig::new(
                     value.config.matchmaker.elo_range,
                     value.config.matchmaker.min_pool_size,

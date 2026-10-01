@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use itertools::Itertools;
+use itertools::{Itertools, chain};
 
 use crate::{
     analytics::winloss::MatchPerformance,
@@ -177,7 +177,7 @@ where
     let winner = game.winner();
     let [loser_a, loser_b, loser_c] = game.losers();
 
-    [
+    chain!(
         check(winner).then_some([
             (loser_a, MatchPerformance::WIN),
             (loser_b, MatchPerformance::WIN),
@@ -198,8 +198,6 @@ where
             (loser_a, MatchPerformance::DRAW),
             (loser_b, MatchPerformance::DRAW),
         ]),
-    ]
-    .into_iter()
-    .flatten()
+    )
     .flatten()
 }
