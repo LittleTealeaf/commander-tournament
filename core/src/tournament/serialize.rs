@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use serde::Deserializer;
+use std::collections::HashMap;
 
 use crate::{
     config::TournamentConfig,
@@ -20,22 +20,22 @@ where
         .collect())
 }
 
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct V6Tournament {
+#[derive(Debug, serde::Deserialize, serde::Serialize, derive_more::Constructor)]
+pub struct SerializedTournament {
     #[serde(rename = "cfg", alias = "config")]
-    pub(super) config: TournamentConfig,
+    config: TournamentConfig,
     #[serde(
         deserialize_with = "player_info_deserialize",
         serialize_with = "crate::utils::ordered_map",
         rename = "pls",
         alias = "players"
     )]
-    pub(super) players: HashMap<PlayerId, PlayerInfo>,
+    players: HashMap<PlayerId, PlayerInfo>,
     #[serde(rename = "gms", alias = "games")]
-    pub(super) games: Vec<GameEntry>,
+    games: Vec<GameEntry>,
 }
 
-impl From<Tournament> for V6Tournament {
+impl From<Tournament> for SerializedTournament {
     fn from(value: Tournament) -> Self {
         Self {
             config: value.config,
@@ -45,9 +45,9 @@ impl From<Tournament> for V6Tournament {
     }
 }
 
-impl TryFrom<V6Tournament> for Tournament {
+impl TryFrom<SerializedTournament> for Tournament {
     type Error = TournamentError;
-    fn try_from(value: V6Tournament) -> Result<Self, Self::Error> {
+    fn try_from(value: SerializedTournament) -> Result<Self, Self::Error> {
         let mut tournament = Self {
             config: value.config,
             players: value.players,
@@ -70,7 +70,7 @@ mod tests {
 
     #[test]
     fn deserialize() {
-        let data = include_str!("../../../../res/tests/compats/sample-v6.ron");
+        let data = include_str!("../../../res/tests/compats/sample-v6.ron");
         let _: Tournament = ron::from_str(data).unwrap();
     }
 }

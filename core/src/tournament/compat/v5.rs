@@ -9,7 +9,7 @@ use crate::{
     },
     game::entry::GameEntry,
     player::{PlayerId, info::PlayerInfo},
-    tournament::compat::v6::V6Tournament,
+    tournament::serialize::SerializedTournament,
     utils::DeserializableMap,
 };
 
@@ -38,10 +38,10 @@ pub struct V5Tournament {
     pub(super) games: Vec<GameEntry>,
 }
 
-impl From<V5Tournament> for V6Tournament {
+impl From<V5Tournament> for SerializedTournament {
     fn from(value: V5Tournament) -> Self {
-        Self {
-            config: V1TournamentConfig::new(
+        Self::new(
+            V1TournamentConfig::new(
                 V1TournamentGameConfig::default(),
                 V2TournamentMatchmakerConfig::new(
                     value.config.matchmaker.elo_range,
@@ -49,9 +49,9 @@ impl From<V5Tournament> for V6Tournament {
                 ),
             )
             .into(),
-            players: value.players,
-            games: value.games,
-        }
+            value.players,
+            value.games,
+        )
     }
 }
 

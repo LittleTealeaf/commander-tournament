@@ -5,14 +5,16 @@ mod matches;
 mod matchmaker;
 mod next_game;
 mod players;
+pub(crate) mod serialize;
 mod stats;
 
 use std::collections::HashMap;
 
 use backwards_compat::backwards_compat;
 
-use self::compat::{
-    V3Tournament, V4Tournament, V5Tournament, V6Tournament,
+use self::{
+    compat::{V3Tournament, V4Tournament, V5Tournament},
+    serialize::SerializedTournament,
 };
 use crate::{
     config::TournamentConfig,
@@ -27,10 +29,10 @@ use crate::{
     version = 6,
     error = TournamentError,
     versions(
-        3: V3Tournament,
+        3: V3Tournament => 5,
         4: V4Tournament,
         5: V5Tournament,
-        #[fallible] 6: V6Tournament,
+        #[fallible] 6: SerializedTournament,
     )
 )]
 pub struct Tournament {

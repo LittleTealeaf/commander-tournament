@@ -5,8 +5,8 @@ use serde::{Deserialize, Deserializer};
 use crate::game::entry::GameEntry;
 use crate::player::PlayerId;
 use crate::player::info::PlayerInfo;
-use crate::tournament::compat::v4::{V4MatchmakerConfig, V4Tournament, V4TournamentConfig};
-use crate::tournament::compat::v5::V5GameConfig;
+use crate::tournament::compat::V5Tournament;
+use crate::tournament::compat::v5::{V5GameConfig, V5MatchmakerConfig, V5TournamentConfig};
 use crate::utils::DeserializableMap;
 
 fn player_info_deserialize<'de, D>(deserializer: D) -> Result<HashMap<PlayerId, PlayerInfo>, D::Error>
@@ -65,24 +65,12 @@ pub struct V3Tournament {
     pub(super) games: Vec<GameEntry>,
 }
 
-impl From<V3Tournament> for V4Tournament {
+impl From<V3Tournament> for V5Tournament {
     fn from(value: V3Tournament) -> Self {
         Self {
+            config: V5TournamentConfig::new(value.config.game, V5MatchmakerConfig::default()),
             players: value.players,
             games: value.games,
-            config: V4TournamentConfig {
-                game: value.config.game,
-                matchmaker: V4MatchmakerConfig {
-                    player_nemesis: value.config.ranking.nemesis,
-                    player_lost_with: value.config.ranking.lost_with,
-                    player_least_played: value.config.ranking.least_played,
-                    elo_neighbor: value.config.ranking.elo_neighbor,
-                    wr_neighbor: value.config.ranking.wr_neighbor,
-                    expected_neighbor: value.config.ranking.expected_neighbor,
-                    include_precons: true,
-                    outlier_include_extremes: true,
-                },
-            },
         }
     }
 }
