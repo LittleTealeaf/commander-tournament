@@ -1,12 +1,8 @@
-use serde::{Deserialize, Serialize};
-
 use crate::game::POD_SIZE;
 
 #[derive(
     Debug,
     Clone,
-    Serialize,
-    Deserialize,
     PartialEq,
     getset::CopyGetters,
     getset::Setters,

@@ -46,7 +46,7 @@ mod description {
 
     #[test]
     fn default_is_empty() {
-        assert!(PLAYER_INFO.description().is_empty());
+        assert_eq!(PLAYER_INFO.description(), "");
     }
 
     #[test]

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer};
 
 use crate::game::entry::GameEntry;
 use crate::player::PlayerId;
@@ -20,7 +20,7 @@ where
         .collect())
 }
 
-#[derive(Deserialize, Debug, Serialize)]
+#[derive(Deserialize, Debug)]
 pub struct V4Tournament {
     #[serde(rename = "cfg", alias = "config")]
     pub(super) config: V4TournamentConfig,
@@ -35,7 +35,7 @@ pub struct V4Tournament {
     pub(super) games: Vec<GameEntry>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 pub(super) struct V4TournamentConfig {
     #[serde(default)]
     pub game: V5GameConfig,
@@ -43,7 +43,7 @@ pub(super) struct V4TournamentConfig {
     pub matchmaker: V4MatchmakerConfig,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(default)]
 pub(super) struct V4MatchmakerConfig {
     pub player_least_played: usize,

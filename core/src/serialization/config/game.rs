@@ -1,4 +1,14 @@
+
+use backwards_compat::backwards_compat;
+
 use crate::config::game::GameConfig;
+
+backwards_compat! {
+    #[tag="v", version=1]
+    compat GameConfig {
+        1: V1GameConfig
+    }
+}
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, derive_more::Constructor)]
 pub struct V1GameConfig {

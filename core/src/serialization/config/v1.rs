@@ -1,14 +1,14 @@
-use crate::{
-    config::matchmaker::MatchmakerConfig,
-    serialization::config::{game::v1::V1GameConfig, v2::V2TournamentConfig},
+use crate::serialization::config::{
+    game::V1GameConfig,
+    v2::{V2TournamentConfig, V2TournamentMatchmakerConfig},
 };
 
-#[derive(Debug, serde::Serialize, serde::Deserialize, derive_more::Constructor)]
+#[derive(Debug, serde::Deserialize, derive_more::Constructor)]
 pub struct V1TournamentConfig {
     #[serde(default)]
     pub(crate) game: V1TournamentGameConfig,
     #[serde(default)]
-    pub(crate) matchmaker: MatchmakerConfig,
+    pub(crate) matchmaker: V2TournamentMatchmakerConfig,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]

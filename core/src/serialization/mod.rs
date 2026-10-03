@@ -1,3 +1,3 @@
-pub mod config;
-pub mod tournament;
-pub mod utils;
+mod config;
+mod tournament;
+mod utils;

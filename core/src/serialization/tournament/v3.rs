@@ -19,7 +19,7 @@ where
         .collect())
 }
 
-#[derive(Debug, Clone, serde::Deserialize, serde::Serialize, PartialEq, Eq)]
+#[derive(Debug, Clone, serde::Deserialize, PartialEq, Eq)]
 pub struct V3RankingConfig {
     pub least_played: usize,
     pub nemesis: usize,
@@ -42,7 +42,7 @@ impl Default for V3RankingConfig {
     }
 }
 
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, serde::Deserialize)]
 pub struct V3TournamentConfig {
     #[serde(default)]
     game: V5GameConfig,
@@ -50,7 +50,7 @@ pub struct V3TournamentConfig {
     ranking: V3RankingConfig,
 }
 
-#[derive(Deserialize, Debug, serde::Serialize)]
+#[derive(Deserialize, Debug)]
 pub struct V3Tournament {
     #[serde(rename = "cfg", alias = "config")]
     pub(super) config: V3TournamentConfig,
