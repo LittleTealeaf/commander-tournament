@@ -1,3 +1,5 @@
+use backwards_compat::backwards_compat;
+
 use crate::game::POD_SIZE;
 
 #[derive(
@@ -11,6 +13,7 @@ use crate::game::POD_SIZE;
     derive_more::Constructor,
 )]
 #[getset(set = "pub", set_with = "pub", get_copy = "pub", get_mut = "pub")]
+#[backwards_compat(tag = "v", version = 1)]
 pub struct MatchmakerConfig {
     elo_range: f64,
     min_pool_size: usize,

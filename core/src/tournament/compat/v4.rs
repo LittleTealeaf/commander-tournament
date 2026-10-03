@@ -5,10 +5,10 @@ use serde::{Deserialize, Deserializer};
 use crate::game::entry::GameEntry;
 use crate::player::PlayerId;
 use crate::player::info::PlayerInfo;
-use crate::serialization::tournament::v5::{
+use crate::tournament::compat::v5::{
     V5GameConfig, V5MatchmakerConfig, V5Tournament, V5TournamentConfig,
 };
-use crate::serialization::utils::DeserializableMap;
+use crate::utils::DeserializableMap;
 
 fn player_info_deserialize<'de, D>(deserializer: D) -> Result<HashMap<PlayerId, PlayerInfo>, D::Error>
 where
@@ -26,7 +26,7 @@ pub struct V4Tournament {
     pub(super) config: V4TournamentConfig,
     #[serde(
         deserialize_with = "player_info_deserialize",
-        serialize_with = "crate::serialization::utils::ordered_map",
+        serialize_with = "crate::utils::ordered_map",
         rename = "pls",
         alias = "players"
     )]

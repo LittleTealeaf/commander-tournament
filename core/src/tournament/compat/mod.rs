@@ -3,22 +3,10 @@ pub mod v4;
 pub mod v5;
 pub mod v6;
 
-use backwards_compat::backwards_compat;
-
-use crate::{
-    serialization::tournament::{v3::V3Tournament, v4::V4Tournament, v5::V5Tournament, v6::V6Tournament},
-    tournament::Tournament,
-};
-
-backwards_compat! {
-    #[tag = "version", version = 6]
-    compat Tournament {
-        3: V3Tournament,
-        4: V4Tournament,
-        5: V5Tournament,
-        #[fallible] 6: V6Tournament,
-    }
-}
+pub use v3::V3Tournament;
+pub use v4::V4Tournament;
+pub use v5::V5Tournament;
+pub use v6::V6Tournament;
 
 #[cfg(test)]
 mod tests {

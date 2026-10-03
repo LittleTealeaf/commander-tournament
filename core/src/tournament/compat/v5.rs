@@ -3,16 +3,14 @@ use std::collections::HashMap;
 use serde::Deserializer;
 
 use crate::{
+    config::compat::{
+        v1::{V1TournamentConfig, V1TournamentGameConfig},
+        v2::V2TournamentMatchmakerConfig,
+    },
     game::entry::GameEntry,
     player::{PlayerId, info::PlayerInfo},
-    serialization::{
-        config::{
-            v1::{V1TournamentConfig, V1TournamentGameConfig},
-            v2::V2TournamentMatchmakerConfig,
-        },
-        tournament::v6::V6Tournament,
-        utils::DeserializableMap,
-    },
+    tournament::compat::v6::V6Tournament,
+    utils::DeserializableMap,
 };
 
 fn player_info_deserialize<'de, D>(deserializer: D) -> Result<HashMap<PlayerId, PlayerInfo>, D::Error>
@@ -31,7 +29,7 @@ pub struct V5Tournament {
     pub(super) config: V5TournamentConfig,
     #[serde(
         deserialize_with = "player_info_deserialize",
-        serialize_with = "super::super::utils::ordered_map",
+        serialize_with = "crate::utils::ordered_map",
         rename = "pls",
         alias = "players"
     )]
