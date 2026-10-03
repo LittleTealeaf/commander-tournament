@@ -1,14 +1,14 @@
 use std::collections::HashMap;
 
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer};
 
 use crate::game::entry::GameEntry;
 use crate::player::PlayerId;
 use crate::player::info::PlayerInfo;
-use crate::serialization::tournament::v5::{
+use crate::tournament::compat::v5::{
     V5GameConfig, V5MatchmakerConfig, V5Tournament, V5TournamentConfig,
 };
-use crate::serialization::utils::DeserializableMap;
+use crate::utils::DeserializableMap;
 
 fn player_info_deserialize<'de, D>(deserializer: D) -> Result<HashMap<PlayerId, PlayerInfo>, D::Error>
 where
@@ -20,13 +20,13 @@ where
         .collect())
 }
 
-#[derive(Deserialize, Debug, Serialize)]
+#[derive(Deserialize, Debug)]
 pub struct V4Tournament {
     #[serde(rename = "cfg", alias = "config")]
     pub(super) config: V4TournamentConfig,
     #[serde(
         deserialize_with = "player_info_deserialize",
-        serialize_with = "crate::serialization::utils::ordered_map",
+        serialize_with = "crate::utils::ordered_map",
         rename = "pls",
         alias = "players"
     )]
@@ -35,7 +35,7 @@ pub struct V4Tournament {
     pub(super) games: Vec<GameEntry>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 pub(super) struct V4TournamentConfig {
     #[serde(default)]
     pub game: V5GameConfig,
@@ -43,7 +43,7 @@ pub(super) struct V4TournamentConfig {
     pub matchmaker: V4MatchmakerConfig,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(default)]
 pub(super) struct V4MatchmakerConfig {
     pub player_least_played: usize,

@@ -31,19 +31,14 @@ pub struct PlayerId(pub(crate) u32);
 /**
  * Represents a reference to a registered player.
  */
-#[derive(Clone, Copy, PartialEq, Debug, getset::CopyGetters, getset::Getters)]
-#[getset(get_copy = "pub")]
+#[derive(Clone, Copy, PartialEq, Debug, getset::CopyGetters, derive_more::Constructor)]
 pub struct RegisteredPlayer<'a> {
+    #[getset(get_copy = "pub")]
     id: PlayerId,
+    #[getset(get_copy = "pub")]
     info: &'a PlayerInfo,
+    #[getset(get_copy = "pub")]
     stats: &'a PlayerStats,
-}
-
-impl<'a> RegisteredPlayer<'a> {
-    #[must_use]
-    pub(crate) const fn new(id: PlayerId, info: &'a PlayerInfo, stats: &'a PlayerStats) -> Self {
-        Self { id, info, stats }
-    }
 }
 
 impl Display for RegisteredPlayer<'_> {

@@ -3,14 +3,14 @@ use std::collections::HashMap;
 use serde::Deserializer;
 
 use crate::{
-    config::matchmaker::MatchmakerConfig,
+    config::compat::{
+        v1::{V1TournamentConfig, V1TournamentGameConfig},
+        v2::V2TournamentMatchmakerConfig,
+    },
     game::entry::GameEntry,
     player::{PlayerId, info::PlayerInfo},
-    serialization::{
-        config::v1::{V1TournamentConfig, V1TournamentGameConfig},
-        tournament::v6::V6Tournament,
-        utils::DeserializableMap,
-    },
+    tournament::serialize::SerializedTournament,
+    utils::DeserializableMap,
 };
 
 fn player_info_deserialize<'de, D>(deserializer: D) -> Result<HashMap<PlayerId, PlayerInfo>, D::Error>
@@ -23,13 +23,13 @@ where
         .collect())
 }
 
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, serde::Deserialize)]
 pub struct V5Tournament {
     #[serde(rename = "cfg", alias = "config")]
     pub(super) config: V5TournamentConfig,
     #[serde(
         deserialize_with = "player_info_deserialize",
-        serialize_with = "super::super::utils::ordered_map",
+        serialize_with = "crate::utils::ordered_map",
         rename = "pls",
         alias = "players"
     )]
@@ -38,24 +38,24 @@ pub struct V5Tournament {
     pub(super) games: Vec<GameEntry>,
 }
 
-impl From<V5Tournament> for V6Tournament {
+impl From<V5Tournament> for SerializedTournament {
     fn from(value: V5Tournament) -> Self {
-        Self {
-            config: V1TournamentConfig::new(
+        Self::new(
+            V1TournamentConfig::new(
                 V1TournamentGameConfig::default(),
-                MatchmakerConfig::new(
+                V2TournamentMatchmakerConfig::new(
                     value.config.matchmaker.elo_range,
                     value.config.matchmaker.min_pool_size,
                 ),
             )
             .into(),
-            players: value.players,
-            games: value.games,
-        }
+            value.players,
+            value.games,
+        )
     }
 }
 
-#[derive(Debug, serde::Deserialize, serde::Serialize, derive_more::Constructor)]
+#[derive(Debug, serde::Deserialize, derive_more::Constructor)]
 pub(super) struct V5TournamentConfig {
     #[serde(default)]
     game: V5GameConfig,
@@ -63,7 +63,7 @@ pub(super) struct V5TournamentConfig {
     matchmaker: V5MatchmakerConfig,
 }
 
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, serde::Deserialize)]
 pub(super) struct V5GameConfig {
     starting_elo: f64,
     game_points: f64,
@@ -86,7 +86,7 @@ impl Default for V5GameConfig {
     }
 }
 
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, serde::Deserialize)]
 pub(super) struct V5MatchmakerConfig {
     elo_range: f64,
     min_pool_size: usize,

@@ -30,7 +30,7 @@ async fn saves_to_path() {
     settings.save().await.unwrap();
 
     let data = async_fs::read_to_string(path).await.unwrap();
-    assert!(!data.is_empty());
+    assert_ne!(data, "");
 }
 
 #[tokio::test]

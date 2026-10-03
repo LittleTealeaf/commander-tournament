@@ -1,14 +1,14 @@
-use crate::{
-    config::matchmaker::MatchmakerConfig,
-    serialization::config::{game::v1::V1GameConfig, v2::V2TournamentConfig},
+use crate::config::{
+    compat::v2::{V2TournamentConfig, V2TournamentMatchmakerConfig},
+    game::GameConfig,
 };
 
-#[derive(Debug, serde::Serialize, serde::Deserialize, derive_more::Constructor)]
+#[derive(Debug, serde::Deserialize, derive_more::Constructor)]
 pub struct V1TournamentConfig {
     #[serde(default)]
     pub(crate) game: V1TournamentGameConfig,
     #[serde(default)]
-    pub(crate) matchmaker: MatchmakerConfig,
+    pub(crate) matchmaker: V2TournamentMatchmakerConfig,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -36,14 +36,13 @@ impl Default for V1TournamentGameConfig {
 impl From<V1TournamentConfig> for V2TournamentConfig {
     fn from(value: V1TournamentConfig) -> Self {
         Self::new(
-            V1GameConfig::new(
+            GameConfig::new(
                 value.game.initial_elo,
                 value.game.logistic_scale,
                 value.game.initial_k,
                 value.game.base_k,
                 value.game.calibration_games,
-            )
-            .into(),
+            ),
             value.matchmaker,
         )
     }
