@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/LittleTealeaf/commander-tournament/compare/commander_tournament_core-v1.0.0...commander_tournament_core-v1.1.0) (2026-10-04)
+
+
+### Features
+
+* Code cleanup / changes ([#140](https://github.com/LittleTealeaf/commander-tournament/issues/140)) ([d4ce9f7](https://github.com/LittleTealeaf/commander-tournament/commit/d4ce9f78fe8ed77bd5e5b12fffca2f355eac4259))
+
 ## [1.0.0](https://github.com/LittleTealeaf/commander-tournament/compare/commander_tournament_core-v0.2.0...commander_tournament_core-v1.0.0) (2026-09-27)
 
 
