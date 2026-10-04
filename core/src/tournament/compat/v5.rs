@@ -1,24 +1,12 @@
 use std::collections::HashMap;
 
-use serde::Deserializer;
-
+use crate::tournament::serialize::player_info_deserialize;
 use crate::{
     config::{TournamentConfig, game::GameConfig, matchmaker::MatchmakerConfig},
     game::entry::GameEntry,
     player::{PlayerId, info::PlayerInfo},
     tournament::serialize::SerializedTournament,
-    utils::DeserializableMap,
 };
-
-fn player_info_deserialize<'de, D>(deserializer: D) -> Result<HashMap<PlayerId, PlayerInfo>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    Ok(DeserializableMap::<PlayerInfo>::deserialize_to_map(deserializer)?
-        .into_iter()
-        .map(|(id, info)| (PlayerId(id), info))
-        .collect())
-}
 
 #[derive(Debug, serde::Deserialize)]
 pub struct V5Tournament {
@@ -59,7 +47,7 @@ pub(super) struct V5TournamentConfig {
     matchmaker: V5MatchmakerConfig,
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize, Default)]
 pub(super) struct V5GameConfig {
     starting_elo: f64,
     game_points: f64,
@@ -67,19 +55,6 @@ pub(super) struct V5GameConfig {
     game_wr_pow_scale: f64,
     game_elo_weight: f64,
     game_wr_weight: f64,
-}
-
-impl Default for V5GameConfig {
-    fn default() -> Self {
-        Self {
-            starting_elo: 1500.0,
-            game_points: 25.0,
-            game_elo_pow_scale: 6.0,
-            game_wr_pow_scale: 1.0,
-            game_elo_weight: 65.0,
-            game_wr_weight: 35.0,
-        }
-    }
 }
 
 #[derive(Debug, serde::Deserialize)]

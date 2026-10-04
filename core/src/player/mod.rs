@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::player::{info::PlayerInfo, stats::PlayerStats};
 
+pub mod bracket;
 pub mod color;
 pub mod info;
 pub mod stats;
@@ -31,7 +32,7 @@ pub struct PlayerId(pub(crate) u32);
 /**
  * Represents a reference to a registered player.
  */
-#[derive(Clone, Copy, PartialEq, Debug, getset::CopyGetters, derive_more::Constructor)]
+#[derive(Clone, Copy, PartialEq, Debug, getset::CopyGetters)]
 pub struct RegisteredPlayer<'a> {
     #[getset(get_copy = "pub")]
     id: PlayerId,
@@ -39,6 +40,12 @@ pub struct RegisteredPlayer<'a> {
     info: &'a PlayerInfo,
     #[getset(get_copy = "pub")]
     stats: &'a PlayerStats,
+}
+
+impl<'a> RegisteredPlayer<'a> {
+    pub(crate) const fn new(id: PlayerId, info: &'a PlayerInfo, stats: &'a PlayerStats) -> Self {
+        Self { id, info, stats }
+    }
 }
 
 impl Display for RegisteredPlayer<'_> {

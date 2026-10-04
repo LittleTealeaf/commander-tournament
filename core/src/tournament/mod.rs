@@ -5,7 +5,7 @@ mod matches;
 mod matchmaker;
 mod next_game;
 mod players;
-pub(crate) mod serialize;
+mod serialize;
 mod stats;
 
 use std::collections::HashMap;

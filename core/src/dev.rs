@@ -75,7 +75,7 @@ impl Tournament {
     }
 
     pub fn register_debug_player(&mut self) -> Result<PlayerId, TournamentError> {
-        let max = self.players.keys().max().map_or(0, |id| id.0 + 1);
+        let max = self.players().keys().max().map_or(0, |id| id.0 + 1);
         self.register_player(format!("debug-{max}"))
     }
 
