@@ -22,8 +22,8 @@ use crate::config::{game::GameConfig, matchmaker::MatchmakerConfig};
     tag = "v",
     version = 3,
     versions(
-        1: V1TournamentConfig,
-        2: V2TournamentConfig,
+        1: V1TournamentConfig => 3,
+        2: V2TournamentConfig => 3,
     )
 )]
 pub struct TournamentConfig {

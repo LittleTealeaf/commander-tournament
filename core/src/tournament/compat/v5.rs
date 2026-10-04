@@ -3,10 +3,7 @@ use std::collections::HashMap;
 use serde::Deserializer;
 
 use crate::{
-    config::compat::{
-        v1::{V1TournamentConfig, V1TournamentGameConfig},
-        v2::V2TournamentMatchmakerConfig,
-    },
+    config::{TournamentConfig, game::GameConfig, matchmaker::MatchmakerConfig},
     game::entry::GameEntry,
     player::{PlayerId, info::PlayerInfo},
     tournament::serialize::SerializedTournament,
@@ -41,14 +38,13 @@ pub struct V5Tournament {
 impl From<V5Tournament> for SerializedTournament {
     fn from(value: V5Tournament) -> Self {
         Self::new(
-            V1TournamentConfig::new(
-                V1TournamentGameConfig::default(),
-                V2TournamentMatchmakerConfig::new(
+            TournamentConfig::new(
+                GameConfig::default(),
+                MatchmakerConfig::new(
                     value.config.matchmaker.elo_range,
                     value.config.matchmaker.min_pool_size,
                 ),
-            )
-            .into(),
+            ),
             value.players,
             value.games,
         )
