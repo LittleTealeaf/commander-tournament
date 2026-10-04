@@ -1,7 +1,7 @@
 use commander_tournament_core::{
-    game::{next_mode::NextPlayerMode, record::GameRecord},
+    game::record::GameRecord,
     player::PlayerId,
-    tournament::Tournament,
+    tournament::{NextPlayerMode, Tournament},
 };
 use iced::{
     Length,

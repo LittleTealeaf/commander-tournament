@@ -7,11 +7,10 @@ use itertools::Itertools;
 
 use crate::{
     analytics::aggregate::AggregateStats,
-    config::matchmaker::MatchmakerConfig,
     error::TournamentError,
     game::{POD_SIZE, matchup::Matchup},
     player::PlayerId,
-    tournament::Tournament,
+    tournament::{MatchmakerConfig, Tournament},
 };
 
 #[derive(Debug, Clone, getset::WithSetters)]

@@ -1,9 +1,8 @@
 use commander_tournament_core::{
-    config::{game::GameConfig, matchmaker::MatchmakerConfig},
     error::TournamentError,
     game::record::GameRecord,
     player::{PlayerId, info::PlayerInfo},
-    tournament::Tournament,
+    tournament::{GameConfig, MatchmakerConfig, Tournament},
 };
 
 use iced_tea::{HandleMessage, Signal};

@@ -1,4 +1,4 @@
-use crate::config::{TournamentConfig, game::GameConfig, matchmaker::MatchmakerConfig};
+use super::{TournamentConfig, game::GameConfig, matchmaker::MatchmakerConfig};
 
 #[derive(Debug, serde::Deserialize)]
 pub struct UnversionedGameConfig {

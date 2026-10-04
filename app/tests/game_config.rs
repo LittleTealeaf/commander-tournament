@@ -1,6 +1,6 @@
 mod update {
     use commander_tournament::views::game_config::{GameConfigMsg, GameConfigOut, GameConfigView};
-    use commander_tournament_core::{config::game::GameConfig, tournament::Tournament};
+    use commander_tournament_core::tournament::{GameConfig, Tournament};
     use iced_tea::{Model, Signal};
 
     #[test]

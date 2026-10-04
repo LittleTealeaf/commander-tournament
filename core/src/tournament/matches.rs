@@ -4,10 +4,18 @@ use crate::{
     error::TournamentError,
     game::{entry::GameEntry, match_player::MatchPlayer, matchup::Matchup, record::GameRecord},
     player::{PlayerId, stats::PlayerStats},
-    tournament::Tournament,
+    tournament::{NextPlayerMode, Tournament},
 };
 
 impl Tournament {
+    pub fn next_game(&self, mode: NextPlayerMode) -> Result<Matchup, TournamentError> {
+        let Some(player) = mode.select_player(self) else {
+            return Err(TournamentError::NotEnoughPlayers);
+        };
+
+        self.matchmaker().create_match(player)
+    }
+
     pub fn update_record(&self, record: GameRecord) -> Result<GameRecord, TournamentError> {
         if record.matchup().snapshot() == self.snapshot {
             return Ok(record);

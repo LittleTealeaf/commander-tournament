@@ -1,4 +1,4 @@
-use commander_tournament_core::{config::matchmaker::MatchmakerConfig, tournament::Tournament};
+use commander_tournament_core::tournament::{MatchmakerConfig, Tournament};
 use iced::widget::{button, column, row, text};
 use iced_aw::number_input;
 use iced_tea::{Component, Model, Signal};

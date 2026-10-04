@@ -2,11 +2,10 @@ use serde::Deserializer;
 use std::collections::HashMap;
 
 use crate::{
-    config::TournamentConfig,
     error::TournamentError,
     game::entry::GameEntry,
     player::{PlayerId, info::PlayerInfo},
-    tournament::Tournament,
+    tournament::{Tournament, TournamentConfig},
     utils::DeserializableMap,
 };
 

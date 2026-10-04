@@ -5,7 +5,6 @@ extern crate approx;
 mod dev;
 
 pub mod analytics;
-pub mod config;
 pub mod error;
 pub mod game;
 pub mod player;

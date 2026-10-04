@@ -1,12 +1,15 @@
 mod analytics;
 mod compat;
-mod config;
+pub mod config;
 mod matches;
 mod matchmaker;
-mod next_game;
+pub mod next_mode;
 mod players;
 mod serialize;
 mod stats;
+
+pub use config::{GameConfig, MatchmakerConfig, TournamentConfig};
+pub use next_mode::NextPlayerMode;
 
 use std::collections::HashMap;
 
@@ -17,7 +20,6 @@ use self::{
     serialize::SerializedTournament,
 };
 use crate::{
-    config::TournamentConfig,
     error::TournamentError,
     game::{entry::GameEntry, record::GameRecord},
     player::{PlayerId, info::PlayerInfo, stats::PlayerStats},

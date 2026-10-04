@@ -1,4 +1,8 @@
-use commander_tournament_core::{game::matchup::Matchup, player::PlayerId, tournament::Tournament};
+use commander_tournament_core::{
+    game::matchup::Matchup,
+    player::PlayerId,
+    tournament::{NextPlayerMode, Tournament},
+};
 pub use play_mode::*;
 pub use update::*;
 

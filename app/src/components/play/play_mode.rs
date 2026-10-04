@@ -1,7 +1,7 @@
 use commander_tournament_core::{
-    game::{POD_SIZE, matchup::Matchup, next_mode::NextPlayerMode},
+    game::{POD_SIZE, matchup::Matchup},
     player::PlayerId,
-    tournament::Tournament,
+    tournament::{NextPlayerMode, Tournament},
 };
 
 #[derive(Debug, Clone)]

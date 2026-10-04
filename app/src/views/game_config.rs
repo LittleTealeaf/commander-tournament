@@ -1,4 +1,4 @@
-use commander_tournament_core::{config::game::GameConfig, tournament::Tournament};
+use commander_tournament_core::tournament::{GameConfig, Tournament};
 
 use iced::widget::{button, column, row, text};
 use iced_aw::number_input;

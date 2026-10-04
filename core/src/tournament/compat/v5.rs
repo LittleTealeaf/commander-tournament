@@ -2,10 +2,12 @@ use std::collections::HashMap;
 
 use crate::tournament::serialize::player_info_deserialize;
 use crate::{
-    config::{TournamentConfig, game::GameConfig, matchmaker::MatchmakerConfig},
     game::entry::GameEntry,
     player::{PlayerId, info::PlayerInfo},
-    tournament::serialize::SerializedTournament,
+    tournament::{
+        config::{game::GameConfig, matchmaker::MatchmakerConfig, TournamentConfig},
+        serialize::SerializedTournament,
+    },
 };
 
 #[derive(Debug, serde::Deserialize)]
