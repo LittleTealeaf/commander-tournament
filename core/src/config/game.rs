@@ -1,3 +1,5 @@
+use backwards_compat::backwards_compat;
+
 #[derive(
     Debug,
     Clone,
@@ -9,7 +11,9 @@
     derive_more::Constructor,
 )]
 #[getset(set = "pub", set_with = "pub", get_copy = "pub", get_mut = "pub")]
+#[backwards_compat(tag = "v", version = 1)]
 pub struct GameConfig {
+    #[serde(alias = "starting_elo")]
     initial_elo: f64,
     logistic_scale: f64,
     initial_k: f64,
@@ -22,9 +26,9 @@ impl Default for GameConfig {
         Self {
             initial_elo: 1500.0,
             logistic_scale: 400.0,
-            initial_k: 48.0,
-            base_k: 24.0,
-            calibration_games: 12,
+            initial_k: 24.0,
+            base_k: 12.0,
+            calibration_games: 15,
         }
     }
 }
