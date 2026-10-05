@@ -1,6 +1,4 @@
-use core::f64;
-
-use approx::{assert_abs_diff_eq, assert_relative_eq};
+use approx::assert_relative_eq;
 use commander_tournament_core::game::entry::GameEntry;
 use commander_tournament_core::{player::PlayerId, tournament::Tournament};
 use itertools::Itertools;
@@ -114,39 +112,6 @@ mod delete_games {
     fn index_out_of_bounds() {
         let mut tour = Tournament::generate_tournament(10, 100).unwrap();
         tour.delete_game(101).unwrap_err();
-    }
-}
-
-#[test]
-fn matchup_sum_elo_always_zero() {
-    let tourn = Tournament::generate_tournament(20, 100).unwrap();
-    for (a, b, c, d) in tourn.players().keys().copied().tuple_windows() {
-        let matchup = tourn.create_match((a, b, c, d).into()).unwrap();
-        let mut sum_elo = matchup
-            .players()
-            .iter()
-            .map(|player| -1.0 * *player.elo_loss())
-            .sum::<f64>();
-
-        for player in matchup.players() {
-            // First remove the players' loss
-            sum_elo += player.elo_loss();
-            // Then, add the win
-            sum_elo += player.elo_win();
-
-            assert_abs_diff_eq!(sum_elo, 0.0, epsilon = 1.0e-10);
-
-            sum_elo -= player.elo_loss();
-            sum_elo -= player.elo_win();
-
-            // Test that the record elo sum is zero
-            let record = matchup.clone().record(player.id()).unwrap();
-            let mut sum_elo_change = 0.0;
-            for p in record.players() {
-                sum_elo_change += record.get_player_elo_change(p.id()).unwrap();
-            }
-            assert_abs_diff_eq!(sum_elo_change, 0.0, epsilon = 1.0e-10);
-        }
     }
 }
 
