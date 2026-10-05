@@ -60,18 +60,11 @@ impl Tournament {
             [1.0 / T as f64; T]
         };
 
-        let elo_loss: [f64; T] = array::from_fn(|i| expected[i] * k[i]);
-
-        let total_loss: f64 = elo_loss.iter().sum();
-
         array::from_fn(|i| {
-            MatchPlayer::new(
-                players[i],
-                stats[i].clone(),
-                expected[i],
-                total_loss - elo_loss[i],
-                elo_loss[i],
-            )
+            let k = k[i];
+            let elo_loss = k * expected[i];
+            let elo_gain = k - elo_loss;
+            MatchPlayer::new(players[i], stats[i].clone(), expected[i], elo_gain, elo_loss)
         })
     }
 
