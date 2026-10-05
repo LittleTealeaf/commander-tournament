@@ -1,0 +1,409 @@
+Tokens
++1/+1 Counters
+Combo
+Artifacts
+Aggro
+Spellslinger
+Reanimator
+Lifegain
+Control
+Aristocrats
+Burn
+Lands Matter
+Ramp
+Voltron
+Equipment
+Enchantress
+Midrange
+Mill
+Treasure
+Blink
+Sacrifice
+Discard
+Legends
+Graveyard
+Auras
+Clones
+Wheels
+Flying
+Card Draw
+Group Slug
+Historic
+Storm
+Landfall
+Stax
+Dragons
+Self-Mill
+Theft
+Extra Combats
+Infect
+Good Stuff
+Group Hug
+Big Mana
+Elves
+Forced Combat
+Zombies
+Chaos
+Commander Matters
+Planeswalkers
+X Spells
+Vehicles
+Toolbox
+Lifedrain
+Vampires
+Humans
+-1/-1 Counters
+Cascade
+Pillow Fort
+Birthing Pod
+Exile
+Tempo
+Hatebears
+Angels
+Goblins
+Eldrazi
+Dredge
+Extra Turns
+Stompy
+ETB
+Cantrips
+Populate
+Self-Damage
+Spell Copy
+Dinosaurs
+Proliferate
+Toughness Matters
+Topdeck
+Energy
+Attack Triggers
+Land Destruction
+Affinity
+Wizards
+Food
+Ninjutsu
+Sagas
+Defenders
+Monarch
+Demons
+Cycling
+Cats
+Pirates
+Morph
+Modified Creatures
+Anthems
+Clues
+Faeries
+Counterspells
+Activated Abilities
+Tap / Untap
+Merfolk
+Pingers
+Devotion
+Deathtouch
+Politics
+Slivers
+Phyrexians
+Knights
+Snow
+Unblockable
+Triggered Abilities
+Unnatural
+Dungeon
+Assassins
+Discover
+Zoo
+Rats
+Mutate
+Flashback
+Ad Nauseam
+Flash
+Birds
+Elementals
+Spirits
+Fight
+Hydras
+Ninjas
+Prowess
+Soldiers
+Donate
+Self-Discard
+Horrors
+Counters Matter
+Saprolings
+Aikido
+Eggs
+Warriors
+Shapeshifters
+Haste
+Sea Creatures
+Bounce
+Allies
+Prison
+Power
+Squirrels
+Rat Colony
+Insects
+Spiders
+Multicolor Matters
+Impulse Draw
+Frogs
+Rogues
+Dwarves
+Earthbending
+Coin Flip
+Scry
+Keywords
+Myr
+Party
+Dragon's Approach
+Mutants
+Modular
+Amass
+Guildgates
+Clerics
+Dogs
+Rabbits
+Rock
+Bears
+Foretell
+Werewolves
+Snakes
+Power Matters
+Curses
+Beasts
+Sunforger
+Die Roll
+Wolves
+Weenies
+Tron
+Gods
+Cheerios
+The Ring
+Land Animation
+Fling
+Wraiths
+Attractions
+Experience Counters
+Madness
+Firebending
+Convoke
+Heroes
+Persistent Petitioners
+Polymorph
+Surveil
+Treefolk
+Shadowborn Apostles
+Connive
+Artificers
+Devoid
+Otters
+Annihilator
+Shrines
+Sneak Attack
+Villains
+Glass Cannon
+Charge Counters
+Go Wide
+Crime
+Suspend
+Rad Counters
+Orcs
+Halflings
+Blood
+Explore
+Outlaws
+Oozes
+Fungi
+Thopters
+Primal Surge
+Myriad
+Adventures
+Deserts
+Time Counters
+Delver
+Giants
+Samurai
+Sphinxes
+Tyranids
+Constructs
+Hand Size
+Lizards
+Kaheera Companion
+Looting
+Bats
+Extra Upkeeps
+Enrage
+Lessons
+Golems
+Life Exchange
+Mice
+Apes
+Wurms
+Robots
+Airbending
+Slime Against Humanity
+Spacecraft
+Indestructible
+Relentless Rats
+Exalted
+Scarecrows
+Raccoons
+Hare Apparent
+Skeletons
+Rooms
+Evoke
+Waterbending
+Mana Dorks
+Freerunning
+Vanilla
+Turtles
+Minotaurs
+Necrons
+Monks
+Devils
+Transform
+Creatureless
+Lhurgoyfs
+Time Lords
+Speed
+Blue Moon
+Druids
+Landwalk
+Stoneblade
+Villainous Choice
+Voting
+LTB Effects
+Old School
+Keruga Companion
+Monkeys
+Jegantha Companion
+Delirium
+Turbo Fog
+Crabs
+Reach
+Obosh Companion
+Plants
+Offspring
+Illusions
+Saboteurs
+Color Hack
+Spore Counters
+Phoenixes
+Type Hack
+Mounts
+Horses
+Nightmares
+Day / Night
+Unicorns
+Warp
+Advisors
+Praetors
+Self-Destruct
+Umori Companion
+Archers
+Lure
+Heroic
+Avatars
+Kithkin
+Sneak
+Mayhem
+Stun
+Plot
+Rube Goldberg
+Lurrus Companion
+Paradox
+Turbo
+Detectives
+Hellbent
+Battles
+Banding
+Arcane
+Phasing
+Daleks
+Descend
+Rebels
+Web-slinging
+Towns
+All Spells
+Kicker
+Skulk
+Gorgons
+Improvise
+Drakes
+Mana Rocks
+Cybermen
+Astartes
+Gyruda Companion
+Gnomes
+Griffins
+Tempest Hawk
+Satyrs
+Bobbleheads
+Foxes
+Shamans
+Miracles
+Oil Counters
+Moonfolk
+Stickers
+Atogs
+Summons
+Incubate
+Whales
+Mercenaries
+Templar Knights
+Pegasi
+Menace
+Doomsday
+Goats
+Elders
+Elephants
+Bloodthirst
+Sharks
+Craft
+Clash
+Sunburst
+Berserkers
+Exploit
+Empower Jace
+Zirda Companion
+Barbarians
+Kor
+Specters
+Servos
+Caves
+Horsemanship
+Prepared
+Squad
+Cephalids
+Symbiotes
+Repartee
+Custom Cards
+Bards
+Minions
+Job Select
+Ogres
+Kavu
+Cid
+Paradigm
+Hippos
+Premodern
+Shades
+Level Up
+Retrace
+Nobles
+Toys
+Books
+Blight
+Increment
+Crocodiles
+Dash
+Planechase
+Value Vintage
+Opus
+Modal Spells
+Dandan
+European Highlander
+Dethrone
+Fractals
+Power-up
+Storied

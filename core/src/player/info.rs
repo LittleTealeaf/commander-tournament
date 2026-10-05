@@ -14,6 +14,7 @@ use crate::player::{
     Hash,
     getset::Getters,
     getset::CopyGetters,
+    getset::MutGetters,
     getset::Setters,
     getset::WithSetters,
 )]
@@ -53,6 +54,9 @@ pub struct PlayerInfo {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[getset(get_copy = "pub", set = "pub", set_with = "pub")]
     bracket: Option<Bracket>,
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    #[getset(get = "pub", get_mut = "pub", set = "pub", set_with = "pub")]
+    tags: Vec<String>,
 }
 
 #[allow(clippy::trivially_copy_pass_by_ref, reason = "Serialization reference")]
@@ -81,6 +85,7 @@ impl PlayerInfo {
             is_precon: false,
             is_archived: false,
             bracket: None,
+            tags: Vec::new(),
         }
     }
 
