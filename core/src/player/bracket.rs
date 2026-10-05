@@ -29,3 +29,15 @@ pub enum Bracket {
     #[display("Bracket 5")]
     Bracket5,
 }
+
+impl Bracket {
+    pub fn value(self) -> usize {
+        match self {
+            Bracket::Bracket1 => 1,
+            Bracket::Bracket2 => 2,
+            Bracket::Bracket3 => 3,
+            Bracket::Bracket4 => 4,
+            Bracket::Bracket5 => 5,
+        }
+    }
+}

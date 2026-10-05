@@ -106,6 +106,16 @@ impl Model for PlayerView {
                 self.confirm_popup = None;
                 Signal::done()
             }
+            PlayerDetailsMsg::SetBracket(bracket) => {
+                self.info.set_bracket(Some(bracket));
+                self.modified = true;
+                Signal::done()
+            }
+            PlayerDetailsMsg::ClearBracket => {
+                self.info.set_bracket(None);
+                self.modified = true;
+                Signal::done()
+            }
         }
     }
 }

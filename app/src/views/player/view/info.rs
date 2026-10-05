@@ -1,10 +1,11 @@
-use commander_tournament_core::player::color::MtgColor;
+use commander_tournament_core::player::{bracket::Bracket, color::MtgColor};
 use iced::{
     Length,
     alignment::Vertical,
-    widget::{button, checkbox, column, container, row, space, text, text_editor, text_input},
+    widget::{button, checkbox, column, container, pick_list, row, space, text, text_editor, text_input},
 };
 use nerd_font_symbols::md::MD_LINK_VARIANT;
+use strum::VariantArray;
 
 use crate::{
     icons::color_icon,
@@ -48,6 +49,25 @@ pub fn view_info_panel(state: &PlayerView) -> iced::widget::Container<'_, super:
 
     let text_identity = text(state.info.color_identity().to_string());
 
+    let bracket = {
+        let row = row![
+            text("Bracket"),
+            pick_list(
+                Bracket::VARIANTS,
+                state.info.bracket(),
+                PlayerDetailsMsg::SetBracket,
+            )
+        ]
+        .align_y(Vertical::Center)
+        .spacing(10);
+
+        if state.info.bracket().is_none() {
+            row.push(button("Clear").on_press(PlayerDetailsMsg::ClearBracket))
+        } else {
+            row
+        }
+    };
+
     container(
         column![
             row![edit_name, checkbox_archived]
@@ -64,6 +84,7 @@ pub fn view_info_panel(state: &PlayerView) -> iced::widget::Container<'_, super:
             ]
             .spacing(20)
             .align_y(Vertical::Center),
+            bracket,
             edit_description,
         ]
         .spacing(20),

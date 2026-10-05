@@ -1,7 +1,7 @@
 mod update;
 mod view;
 
-use commander_tournament_core::player::{PlayerId, RegisteredPlayer, color::MtgColor, info::PlayerInfo};
+use commander_tournament_core::player::{PlayerId, RegisteredPlayer, bracket::Bracket, color::MtgColor, info::PlayerInfo};
 use iced::widget::{button, text_editor};
 use nerd_font_symbols::md::{MD_CONTENT_SAVE, MD_DELETE, MD_SWORD};
 
@@ -42,6 +42,8 @@ pub enum PlayerDetailsMsg {
     SetStatsTab(StatsTab),
     SelectPlayerReference(PlayerId),
     OpenLink(String),
+    SetBracket(Bracket),
+    ClearBracket,
     SetArchived(bool),
     SetIsPrecon(bool),
     /// Opens the dialog to delete the player
