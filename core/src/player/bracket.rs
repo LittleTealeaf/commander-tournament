@@ -31,13 +31,14 @@ pub enum Bracket {
 }
 
 impl Bracket {
-    pub fn value(self) -> usize {
+    #[must_use]
+    pub const fn value(self) -> usize {
         match self {
-            Bracket::Bracket1 => 1,
-            Bracket::Bracket2 => 2,
-            Bracket::Bracket3 => 3,
-            Bracket::Bracket4 => 4,
-            Bracket::Bracket5 => 5,
+            Self::Bracket1 => 1,
+            Self::Bracket2 => 2,
+            Self::Bracket3 => 3,
+            Self::Bracket4 => 4,
+            Self::Bracket5 => 5,
         }
     }
 }
