@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/LittleTealeaf/commander-tournament/compare/commander_tournament_core-v1.1.0...commander_tournament_core-v1.2.0) (2026-10-16)
+
+
+### Features
+
+* No longer maintaining zero elo change ([#143](https://github.com/LittleTealeaf/commander-tournament/issues/143)) ([86d6b70](https://github.com/LittleTealeaf/commander-tournament/commit/86d6b703f5f24e831a821a1a1749efd282726d09))
+* Simpler Matchmaker ([#145](https://github.com/LittleTealeaf/commander-tournament/issues/145)) ([c74158c](https://github.com/LittleTealeaf/commander-tournament/commit/c74158c3c56aef1a034d6912ace5ff65e2883040))
+
 ## [1.1.0](https://github.com/LittleTealeaf/commander-tournament/compare/commander_tournament_core-v1.0.0...commander_tournament_core-v1.1.0) (2026-10-04)
 
 
