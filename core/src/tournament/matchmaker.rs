@@ -43,7 +43,8 @@ impl Matchmaker<'_> {
         let pool = self.create_player_pool(player);
         let analytics = self.tourn.analytics();
 
-        let mut aggregate_stats = AggregateStats::from(self.tourn.get_player_or_default_stats(player));
+        let stats = self.tourn.get_player_or_default_stats(player);
+        let mut aggregate_stats = AggregateStats::from(stats);
         log::debug!("Built Aggregate Stats: {aggregate_stats:?}");
         let mut performances = analytics.player_performance_all_others(player)?;
         performances.retain(|id, _| pool.contains(id));
@@ -51,8 +52,10 @@ impl Matchmaker<'_> {
         let mut players = Vec::with_capacity(POD_SIZE);
         players.push(player);
 
+        let mut uncalibrated_filled = stats.games() <= self.tourn.game_config().calibration_games();
+
         for i in 1..POD_SIZE {
-            let Some(id) = self.next_player(&aggregate_stats, &performances) else {
+            let Some(id) = self.next_player(&aggregate_stats, &performances, uncalibrated_filled) else {
                 return Err(TournamentError::NotEnoughPlayers);
             };
             log::debug!("Selected Player {id} for Slot {i}");
@@ -63,7 +66,12 @@ impl Matchmaker<'_> {
             for (pl, per) in analytics.player_performance(id).into_iter().flatten() {
                 performances.entry(pl).and_modify(|entry| entry.add_assign(per));
             }
-            aggregate_stats += self.tourn.get_player_or_default_stats(id);
+
+            let stats = self.tourn.get_player_or_default_stats(id);
+            if stats.games() <= self.tourn.game_config().calibration_games() {
+                uncalibrated_filled = true;
+            }
+            aggregate_stats += stats;
             log::debug!("Updated Stats: {aggregate_stats:?}");
         }
 
@@ -77,45 +85,47 @@ impl Matchmaker<'_> {
 
     fn next_player(
         &self,
-        stats: &AggregateStats,
+        agg_stats: &AggregateStats,
         performances: &HashMap<PlayerId, MatchPerformance>,
+        uncalibrated_last: bool,
     ) -> Option<PlayerId> {
-        let elo = stats
+        let avg_elo = agg_stats
             .avg_elo()
             .unwrap_or_else(|| self.tourn.default_stats().elo());
+
+        let deficit_step = self.tourn.game_config().calibration_games().max(1);
+        let divisor = (agg_stats.count() * deficit_step).max(1);
+
         Some(
-            *performances
+            performances
                 .iter()
-                .min_by(|(l_id, l_perf), (r_id, r_perf)| {
-                    {
-                        // First: Least played against
-                        l_perf.played().cmp(&r_perf.played())
-                    }
-                    .then_with(|| {
-                        // Avoid if game count is within calibration
-                        if let Ok(games) = u32::try_from(l_perf.played())
-                            && games <= self.tourn.game_config().calibration_games()
-                        {
-                            return Ordering::Equal;
-                        }
+                .map(|(&id, perf)| {
+                    let stats = self.tourn.get_player_or_default_stats(id);
+                    let is_uncalibrated = stats.games() <= self.tourn.game_config().calibration_games();
 
-                        // Second: Most even match
-                        even_match(l_perf).cmp(&even_match(r_perf))
-                    })
-                    .then_with(|| {
-                        // Third: Closest Elo
-                        let l_elo = self.tourn.get_player_or_default_stats(**l_id).elo();
-                        let r_elo = self.tourn.get_player_or_default_stats(**r_id).elo();
+                    let cand_scaled = stats.games() * agg_stats.count();
+                    let deficit_penalty = agg_stats.games().saturating_sub(cand_scaled) / divisor;
 
-                        let l_diff = (l_elo - elo).abs();
-                        let r_diff = (r_elo - elo).abs();
-                        l_diff.total_cmp(&r_diff)
-                    })
-                    .then_with(|| {
-                        // Last: ID
-                        l_id.cmp(r_id)
-                    })
-                })?
+                    let effective_played = perf.played() + usize::try_from(deficit_penalty).unwrap_or(0);
+
+                    let elo_diff = (avg_elo - stats.elo()).abs();
+
+                    (
+                        id,
+                        is_uncalibrated && uncalibrated_last,
+                        effective_played,
+                        elo_diff,
+                    )
+                })
+                .min_by(
+                    |&(id_a, quota_a, played_a, elo_a), &(id_b, quota_b, played_b, elo_b)| {
+                        quota_a
+                            .cmp(&quota_b)
+                            .then_with(|| played_a.cmp(&played_b))
+                            .then_with(|| elo_a.total_cmp(&elo_b))
+                            .then_with(|| id_a.cmp(&id_b))
+                    },
+                )?
                 .0,
         )
     }
