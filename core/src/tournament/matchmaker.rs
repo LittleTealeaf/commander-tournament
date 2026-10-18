@@ -101,7 +101,7 @@ impl Matchmaker<'_> {
                 .iter()
                 .map(|(&id, perf)| {
                     let stats = self.tourn.get_player_or_default_stats(id);
-                    let is_uncalibrated = stats.games() <= self.tourn.game_config().calibration_games();
+                    let is_uncalibrated = stats.games() < self.tourn.game_config().calibration_games();
 
                     let cand_scaled = stats.games() * agg_stats.count();
                     let deficit_penalty = agg_stats.games().saturating_sub(cand_scaled) / divisor;
