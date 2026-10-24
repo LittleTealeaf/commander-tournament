@@ -51,7 +51,7 @@ impl Default for UnversionedMatchmakerConfig {
 
 impl From<UnversionedMatchmakerConfig> for MatchmakerConfig {
     fn from(value: UnversionedMatchmakerConfig) -> Self {
-        Self::new(value.elo_range, value.min_pool_size)
+        Self::new(value.elo_range, value.min_pool_size, 1, 2)
     }
 }
 

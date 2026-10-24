@@ -723,7 +723,7 @@ dependencies = [
 
 [[package]]
 name = "commander_tournament_core"
-version = "1.1.0"
+version = "1.2.0"
 dependencies = [
  "anyhow",
  "approx",
@@ -741,6 +741,7 @@ dependencies = [
  "rand_chacha",
  "ron",
  "serde",
+ "serde-inline-default",
  "serde_json",
  "strum",
  "test-log",
@@ -3673,6 +3674,17 @@ checksum = "4148590afebada386688f18773da617792bf2ef03ffc1e4cbd2b1d45b023e0ba"
 dependencies = [
  "serde_core",
  "serde_derive",
+]
+
+[[package]]
+name = "serde-inline-default"
+version = "1.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8189189bb726d2735dbd8a872dfb6c5e6c67c07dc2ece1facb452ff995a270a0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 3.0.3",
 ]
 
 [[package]]
