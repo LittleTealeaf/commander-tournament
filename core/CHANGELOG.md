@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/LittleTealeaf/commander-tournament/compare/commander_tournament_core-v1.2.0...commander_tournament_core-v1.3.0) (2026-10-24)
+
+
+### Features
+
+* Add max precons ([#156](https://github.com/LittleTealeaf/commander-tournament/issues/156)) ([c38b594](https://github.com/LittleTealeaf/commander-tournament/commit/c38b59417be7276e595016b50deb38f3fa0b6a0a))
+
 ## [1.2.0](https://github.com/LittleTealeaf/commander-tournament/compare/commander_tournament_core-v1.1.0...commander_tournament_core-v1.2.0) (2026-10-18)
 
 
