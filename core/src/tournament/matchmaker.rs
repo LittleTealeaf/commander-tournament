@@ -13,6 +13,8 @@ use crate::{
     tournament::Tournament,
 };
 
+use super::super::player::info::PlayerInfo;
+
 #[derive(Debug, Clone, getset::WithSetters)]
 pub struct Matchmaker<'a> {
     tourn: &'a Tournament,
@@ -52,10 +54,20 @@ impl Matchmaker<'_> {
         let mut players = Vec::with_capacity(POD_SIZE);
         players.push(player);
 
-        let mut uncalibrated_filled = stats.games() < self.tourn.game_config().calibration_games();
+        let mut count_unranked = usize::from(stats.games() < self.tourn.game_config().calibration_games());
+        let mut count_precon = usize::from(
+            self.tourn
+                .get_player_info(&player)
+                .map_or_default(PlayerInfo::is_precon),
+        );
 
         for i in 1..POD_SIZE {
-            let Some(id) = self.next_player(&aggregate_stats, &performances, uncalibrated_filled) else {
+            let Some(id) = self.next_player(
+                &aggregate_stats,
+                &performances,
+                count_unranked >= self.config.max_unranked(),
+                count_precon >= self.config.max_precon(),
+            ) else {
                 return Err(TournamentError::NotEnoughPlayers);
             };
             log::debug!("Selected Player {id} for Slot {i}");
@@ -69,7 +81,14 @@ impl Matchmaker<'_> {
 
             let stats = self.tourn.get_player_or_default_stats(id);
             if stats.games() < self.tourn.game_config().calibration_games() {
-                uncalibrated_filled = true;
+                count_unranked += 1;
+            }
+            if self
+                .tourn
+                .get_player_info(&id)
+                .map_or_default(PlayerInfo::is_precon)
+            {
+                count_precon += 1;
             }
             aggregate_stats += stats;
             log::debug!("Updated Stats: {aggregate_stats:?}");
@@ -88,7 +107,8 @@ impl Matchmaker<'_> {
         &self,
         agg_stats: &AggregateStats,
         performances: &HashMap<PlayerId, MatchPerformance>,
-        has_uncalibrated: bool,
+        deprioritize_unranked: bool,
+        deprioritize_precon: bool,
     ) -> Option<PlayerId> {
         let avg_elo = agg_stats
             .avg_elo()
@@ -104,19 +124,27 @@ impl Matchmaker<'_> {
                 .iter()
                 .map(|(&id, perf)| {
                     let stats = self.tourn.get_player_or_default_stats(id);
+
+                    let precon = deprioritize_precon
+                        && self
+                            .tourn
+                            .get_player_info(&id)
+                            .map_or_default(PlayerInfo::is_precon);
+
                     let elo_diff = (avg_elo - stats.elo()).abs();
                     let penalty = perf.played() as f64 * repeat_penalty;
                     let score = elo_diff + penalty;
 
-                    let is_uncalibrated = stats.games() < self.tourn.game_config().calibration_games();
-                    let deprioritize = is_uncalibrated && has_uncalibrated;
+                    let uncalibrated =
+                        deprioritize_unranked && stats.games() < self.tourn.game_config().calibration_games();
 
-                    (id, deprioritize, score)
+                    (id, uncalibrated, precon, score)
                 })
                 .min_by(
-                    |(id_a, deprioritize_a, score_a), (id_b, deprioritize_b, score_b)| {
-                        deprioritize_a
-                            .cmp(deprioritize_b)
+                    |(id_a, unranked_a, precon_a, score_a), (id_b, unranked_b, precon_b, score_b)| {
+                        unranked_a
+                            .cmp(unranked_b)
+                            .then_with(|| precon_a.cmp(precon_b))
                             .then_with(|| score_a.total_cmp(score_b))
                             .then_with(|| id_a.cmp(id_b))
                     },

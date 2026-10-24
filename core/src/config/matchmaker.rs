@@ -1,7 +1,9 @@
 use backwards_compat::backwards_compat;
+use serde_inline_default::serde_inline_default;
 
 use crate::game::POD_SIZE;
 
+#[serde_inline_default]
 #[derive(
     Debug,
     Clone,
@@ -17,6 +19,10 @@ use crate::game::POD_SIZE;
 pub struct MatchmakerConfig {
     elo_range: f64,
     min_pool_size: usize,
+    #[serde_inline_default(1)]
+    max_unranked: usize,
+    #[serde_inline_default(2)]
+    max_precon: usize,
 }
 
 impl Default for MatchmakerConfig {
@@ -24,6 +30,8 @@ impl Default for MatchmakerConfig {
         Self {
             elo_range: 50.0,
             min_pool_size: (POD_SIZE - 1) * 3,
+            max_unranked: 1,
+            max_precon: 2,
         }
     }
 }
