@@ -36,12 +36,12 @@ impl GameRecord {
     }
 
     #[must_use]
-    pub fn players(&self) -> &[MatchPlayer; POD_SIZE] {
+    pub fn players(&self) -> &Vec<MatchPlayer> {
         self.matchup().players()
     }
 
     #[must_use]
-    pub fn ids(&self) -> [PlayerId; POD_SIZE] {
+    pub fn ids(&self) -> impl Iterator<Item = PlayerId> {
         self.matchup.ids()
     }
 

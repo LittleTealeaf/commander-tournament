@@ -1,10 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{
-    error::TournamentError,
-    game::{POD_SIZE, record::GameRecord},
-    player::PlayerId,
-};
+use crate::{error::TournamentError, game::record::GameRecord, player::PlayerId};
 
 /// Stores only the player IDs and the winner ID. Primarily used for serialization or conversions
 #[derive(
@@ -14,7 +10,6 @@ use crate::{
     serde::Deserialize,
     Default,
     PartialEq,
-    Copy,
     Eq,
     Hash,
     getset::Getters,
@@ -23,50 +18,57 @@ use crate::{
 pub struct GameEntry {
     #[serde(rename = "p", alias = "players")]
     #[getset(get = "pub")]
-    players: [PlayerId; POD_SIZE],
+    players: Vec<PlayerId>,
     #[serde(rename = "w", alias = "winner")]
     #[getset(get_copy = "pub")]
     winner: PlayerId,
 }
 
 impl GameEntry {
-    pub fn new(players: [PlayerId; POD_SIZE], winner: PlayerId) -> Result<Self, TournamentError> {
-        let [a, b, c, d] = players;
-        if a != winner && b != winner && c != winner && d != winner {
+    pub fn player_count(&self) -> usize {
+        self.players.len()
+    }
+
+    pub fn new(players: Vec<PlayerId>, winner: PlayerId) -> Result<Self, TournamentError> {
+        if !players.contains(&winner) {
             return Err(TournamentError::PlayerNotInMatch(winner));
         }
 
-        Ok(Self::new_unchecked([a, b, c, d], winner))
-    }
-
-    #[must_use]
-    const fn new_unchecked(players: [PlayerId; 4], winner: PlayerId) -> Self {
-        Self { players, winner }
+        Ok(Self { players, winner })
     }
 
     pub fn map_ids(&self, ids: &HashMap<PlayerId, PlayerId>) -> Result<Self, TournamentError> {
-        let [a, b, c, d] = self.players;
-        let a = ids.get(&a).ok_or(TournamentError::InvalidPlayerId(a))?;
-        let b = ids.get(&b).ok_or(TournamentError::InvalidPlayerId(b))?;
-        let c = ids.get(&c).ok_or(TournamentError::InvalidPlayerId(c))?;
-        let d = ids.get(&d).ok_or(TournamentError::InvalidPlayerId(d))?;
-        let winner = ids
-            .get(&self.winner)
-            .ok_or(TournamentError::InvalidPlayerId(self.winner))?;
+        Self::new(
+            self.players
+                .iter()
+                .map(|id| ids.get(id).copied().ok_or(TournamentError::InvalidPlayerId(*id)))
+                .collect::<Result<Vec<PlayerId>, TournamentError>>()?,
+            self.winner,
+        )
+    }
+}
 
-        Self::new([*a, *b, *c, *d], *winner)
+impl From<GameEntry> for (Vec<PlayerId>, PlayerId) {
+    fn from(value: GameEntry) -> Self {
+        (value.players, value.winner)
     }
 }
 
 impl From<GameRecord> for GameEntry {
     fn from(value: GameRecord) -> Self {
-        Self::new_unchecked(value.ids(), value.winner())
+        Self {
+            players: value.players().iter().map(|mp| mp.id()).collect(),
+            winner: value.winner(),
+        }
     }
 }
 
 impl From<&GameRecord> for GameEntry {
     fn from(value: &GameRecord) -> Self {
-        Self::new_unchecked(value.ids(), value.winner())
+        Self {
+            players: value.players().iter().map(|mp| mp.id()).collect(),
+            winner: value.winner(),
+        }
     }
 }
 
@@ -80,17 +82,37 @@ mod test {
 
     #[test]
     fn winner_must_be_player() {
-        GameEntry::new([PlayerId(0), PlayerId(1), PlayerId(2), PlayerId(3)], PlayerId(0)).unwrap();
-        GameEntry::new([PlayerId(0), PlayerId(1), PlayerId(2), PlayerId(3)], PlayerId(1)).unwrap();
-        GameEntry::new([PlayerId(0), PlayerId(1), PlayerId(2), PlayerId(3)], PlayerId(2)).unwrap();
-        GameEntry::new([PlayerId(0), PlayerId(1), PlayerId(2), PlayerId(3)], PlayerId(3)).unwrap();
-        GameEntry::new([PlayerId(0), PlayerId(1), PlayerId(2), PlayerId(3)], PlayerId(4)).unwrap_err();
+        GameEntry::new(
+            vec![PlayerId(0), PlayerId(1), PlayerId(2), PlayerId(3)],
+            PlayerId(0),
+        )
+        .unwrap();
+        GameEntry::new(
+            vec![PlayerId(0), PlayerId(1), PlayerId(2), PlayerId(3)],
+            PlayerId(1),
+        )
+        .unwrap();
+        GameEntry::new(
+            vec![PlayerId(0), PlayerId(1), PlayerId(2), PlayerId(3)],
+            PlayerId(2),
+        )
+        .unwrap();
+        GameEntry::new(
+            vec![PlayerId(0), PlayerId(1), PlayerId(2), PlayerId(3)],
+            PlayerId(3),
+        )
+        .unwrap();
+        GameEntry::new(
+            vec![PlayerId(0), PlayerId(1), PlayerId(2), PlayerId(3)],
+            PlayerId(4),
+        )
+        .unwrap_err();
     }
 
     #[test]
     fn maps_to_correct_ids() {
-        let starting = [1, 2, 3, 4].map(PlayerId);
-        let ending = [5, 6, 7, 8].map(PlayerId);
+        let starting = [1, 2, 3, 4].map(PlayerId).to_vec();
+        let ending = [5, 6, 7, 8].map(PlayerId).to_vec();
         let map = [(1, 5), (2, 6), (3, 7), (4, 8)]
             .into_iter()
             .map(|(a, b)| (PlayerId(a), PlayerId(b)))
@@ -104,7 +126,7 @@ mod test {
 
     #[test]
     fn map_fails_invalid_id() {
-        let entry = GameEntry::new([1, 2, 3, 4].map(PlayerId), PlayerId(1)).unwrap();
+        let entry = GameEntry::new([1, 2, 3, 4].map(PlayerId).to_vec(), PlayerId(1)).unwrap();
         entry.map_ids(&HashMap::new()).unwrap_err();
     }
 

@@ -1,5 +1,3 @@
-use core::array;
-
 use crate::{
     error::TournamentError,
     game::{entry::GameEntry, match_player::MatchPlayer, matchup::Matchup, record::GameRecord},
@@ -13,62 +11,91 @@ impl Tournament {
             return Ok(record);
         }
         let (matchup, winner) = record.decompose();
-        self.create_match(matchup.ids())?.record(winner)
+        self.create_match(matchup.ids().collect())?.record(winner)
     }
 
     pub fn update_match(&self, matchup: Matchup) -> Result<Matchup, TournamentError> {
         if matchup.snapshot() == self.snapshot {
             return Ok(matchup);
         }
-        self.create_match(matchup.ids())
+        self.create_match(matchup.ids().collect())
     }
 
     #[must_use]
-    #[allow(clippy::cast_precision_loss, reason = "Generic Type to f64")]
-    #[allow(clippy::indexing_slicing, reason = "Static T-constant range")]
-    pub(crate) fn create_match_players<const T: usize>(&self, players: [PlayerId; T]) -> [MatchPlayer; T] {
+    #[allow(clippy::cast_precision_loss, reason = "usize to f64")]
+    pub(crate) fn create_match_players(
+        &self,
+        players: impl IntoIterator<Item = PlayerId>,
+    ) -> Vec<MatchPlayer> {
+        struct Player<'a> {
+            id: PlayerId,
+            stats: &'a PlayerStats,
+            gamma: f64,
+            k: f64,
+        }
+
         let config = self.config.game();
 
-        let stats: [&PlayerStats; T] = array::from_fn(|i| self.get_player_or_default_stats(players[i]));
+        let mut max_elo = f64::MIN;
 
-        let k: [f64; T] = {
-            let calibration = config.calibration_games();
-            array::from_fn(|i| {
-                let games = stats[i].games();
-                if calibration == 0 || games >= calibration {
-                    return config.base_k();
+        let mut players = players
+            .into_iter()
+            .map(|id| {
+                let stats = self.get_player_or_default_stats(id);
+                if max_elo < stats.elo() {
+                    max_elo = stats.elo();
                 }
 
-                let progress = f64::from(games) / f64::from(calibration);
-                progress.mul_add(-(config.initial_k() - config.base_k()), config.initial_k())
+                let k = {
+                    if config.calibration_games() == 0 || stats.games() >= config.calibration_games() {
+                        config.base_k()
+                    } else {
+                        let progress = f64::from(stats.games()) / f64::from(config.calibration_games());
+                        progress.mul_add(-(config.initial_k() - config.base_k()), config.initial_k())
+                    }
+                };
+
+                Player {
+                    id,
+                    stats,
+                    gamma: 0.0,
+                    k,
+                }
             })
-        };
+            .collect::<Box<[Player<'_>]>>();
 
-        let max_elo = stats
-            .iter()
-            .map(|stats| stats.elo())
-            .fold(f64::NEG_INFINITY, f64::max);
+        let count = players.len();
 
-        let gamma: [f64; T] =
-            array::from_fn(|i| 10.0_f64.powf((stats[i].elo() - max_elo) / config.logistic_scale()));
+        let mut total_gamma = 0.0;
 
-        let total_gamma: f64 = gamma.iter().sum();
+        for player in &mut players {
+            player.gamma = 10.0_f64.powf((player.stats.elo() - max_elo) / config.logistic_scale());
+            total_gamma += player.gamma;
+        }
 
-        let expected: [f64; T] = if total_gamma > 0.0 {
-            array::from_fn(|i| gamma[i] / total_gamma)
-        } else {
-            [1.0 / T as f64; T]
-        };
+        players
+            .into_iter()
+            .map(|player| {
+                let expected = {
+                    if total_gamma > 0.0 {
+                        player.gamma / total_gamma
+                    } else {
+                        1.0 / (count as f64)
+                    }
+                };
 
-        array::from_fn(|i| {
-            let k = k[i];
-            let elo_loss = k * expected[i];
-            let elo_gain = k - elo_loss;
-            MatchPlayer::new(players[i], stats[i].clone(), expected[i], elo_gain, elo_loss)
-        })
+                let elo_loss = player.k * expected;
+                let elo_win = player.k - elo_loss;
+
+                MatchPlayer::new(player.id, player.stats.clone(), expected, elo_win, elo_loss)
+            })
+            .collect()
     }
 
-    pub fn create_match(&self, ids: [PlayerId; 4]) -> Result<Matchup, TournamentError> {
+    pub fn create_match(&self, ids: Vec<PlayerId>) -> Result<Matchup, TournamentError> {
+        if ids.len() < 2 {
+            return Err(TournamentError::NotEnoughPlayers);
+        }
         // First check registration
         for id in &ids {
             if !self.is_id_registered(id) {
@@ -80,8 +107,9 @@ impl Tournament {
     }
 
     pub fn record_entry(&mut self, entry: GameEntry) -> Result<(), TournamentError> {
-        let matchup = self.create_match(*entry.players())?;
-        let record = matchup.record(entry.winner())?;
+        let (players, winner) = entry.into();
+        let matchup = self.create_match(players)?;
+        let record = matchup.record(winner)?;
         self.insert_game_record(record);
         self.snapshot += 1;
         Ok(())
@@ -148,7 +176,7 @@ mod tests {
     #[test]
     fn expected_adds_up_to_1() {
         #[allow(clippy::needless_pass_by_value, reason = "testing")]
-        fn assert_sums_up_to_one<const T: usize>(players: [MatchPlayer; T]) {
+        fn assert_sums_up_to_one(players: Vec<MatchPlayer>) {
             assert_relative_eq!(1.0, players.iter().map(|p| { p.expected() }).sum::<f64>());
         }
         let mut t = Tournament::new();

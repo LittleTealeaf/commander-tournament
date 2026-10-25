@@ -1,6 +1,6 @@
 use crate::{
     error::TournamentError,
-    game::{POD_SIZE, match_player::MatchPlayer, record::GameRecord},
+    game::{match_player::MatchPlayer, record::GameRecord},
     player::PlayerId,
 };
 
@@ -9,13 +9,13 @@ use crate::{
 )]
 pub struct Matchup {
     #[get = "pub"]
-    players: [MatchPlayer; POD_SIZE],
+    players: Vec<MatchPlayer>,
     #[get_copy = "pub"]
     snapshot: usize,
 }
 
 impl Matchup {
-    pub(crate) const fn new(players: [MatchPlayer; POD_SIZE], snapshot: usize) -> Self {
+    pub(crate) const fn new(players: Vec<MatchPlayer>, snapshot: usize) -> Self {
         Self { players, snapshot }
     }
 
@@ -30,8 +30,8 @@ impl Matchup {
     }
 
     #[must_use]
-    pub fn ids(&self) -> [PlayerId; 4] {
-        self.players.clone().map(|p| p.id())
+    pub fn ids(&self) -> impl Iterator<Item = PlayerId> {
+        self.players.iter().map(|p| p.id())
     }
 
     pub fn record(self, winner: PlayerId) -> Result<GameRecord, TournamentError> {
