@@ -1,8 +1,11 @@
 use core::{cmp::Ordering, ops::AddAssign};
-use std::collections::{BinaryHeap, HashMap};
+use std::{
+    cmp::Reverse,
+    collections::{BinaryHeap, HashMap},
+};
 
 use itertools::Itertools;
-use ordered_float::NotNan;
+use ordered_float::{NotNan, OrderedFloat};
 
 use crate::{
     analytics::{aggregate::AggregateStats, winloss::MatchPerformance},
@@ -42,10 +45,16 @@ impl Tournament {
 impl Matchmaker<'_> {
     pub fn create_match(&self, player: PlayerId) -> Result<Matchup, TournamentError> {
         log::debug!("Creating Match for Player {player}");
+        let stats = self.tourn.get_player_or_default_stats(player);
+
+        if stats.games() < self.tourn.game_config().calibration_games() {
+            log::debug!("Calbiration: Closest Elo Only");
+            return self.calibrate_elo_match(player);
+        }
+
         let pool = self.create_player_pool(player);
         let analytics = self.tourn.analytics();
 
-        let stats = self.tourn.get_player_or_default_stats(player);
         let mut aggregate_stats = AggregateStats::from(stats);
         log::debug!("Built Aggregate Stats: {aggregate_stats:?}");
         let mut performances = analytics.player_performance_all_others(player)?;
@@ -100,6 +109,26 @@ impl Matchmaker<'_> {
             .ok_or(TournamentError::NotEnoughPlayers)?;
 
         self.tourn.create_match(game_players)
+    }
+
+    fn calibrate_elo_match(&self, player: PlayerId) -> Result<Matchup, TournamentError> {
+        let elo_target = self.tourn.get_player_or_default_stats(player).elo();
+
+        let mut players = BinaryHeap::from_iter(self.valid_players(player).map(|id| {
+            let elo = self.tourn.get_player_or_default_stats(id).elo();
+            let diff = (elo - elo_target).abs();
+            (Reverse(OrderedFloat(diff)), id)
+        }));
+
+        let pod_iter =
+            core::iter::once(player).chain(core::iter::from_fn(|| players.pop().map(|(_, id)| id)));
+        let pod = pod_iter
+            .take(POD_SIZE)
+            .collect::<Vec<_>>()
+            .try_into()
+            .map_err(|_| TournamentError::NotEnoughPlayers)?;
+
+        self.tourn.create_match(pod)
     }
 
     #[allow(clippy::cast_precision_loss, reason = "Doesn't need to be accurate")]
@@ -157,7 +186,7 @@ impl Matchmaker<'_> {
         let target_elo = self.tourn.get_player_or_default_stats(player).elo();
         let elo_range = self.config.elo_range();
 
-        let (mut pool, outliers): (Vec<_>, _) = self.players.iter().copied().partition(|id| {
+        let (mut pool, outliers): (Vec<_>, _) = self.valid_players(player).partition(|id| {
             (self.tourn.get_player_or_default_stats(*id).elo() - target_elo).abs() < elo_range
         });
 
@@ -187,6 +216,19 @@ impl Matchmaker<'_> {
         }
 
         pool.into_iter().collect()
+    }
+
+    fn valid_players(&self, id: PlayerId) -> impl Iterator<Item = PlayerId> + '_ {
+        self.players
+            .iter()
+            .filter(move |pid| {
+                *pid != &id
+                    && !self
+                        .tourn
+                        .get_player_info(pid)
+                        .map_or_default(PlayerInfo::is_archived)
+            })
+            .copied()
     }
 }
 

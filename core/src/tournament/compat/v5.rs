@@ -45,6 +45,7 @@ impl From<V5Tournament> for SerializedTournament {
                     value.config.matchmaker.min_pool_size,
                     1,
                     2,
+                    true,
                 ),
             ),
             value.players,

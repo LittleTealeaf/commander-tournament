@@ -23,6 +23,8 @@ pub struct MatchmakerConfig {
     max_unranked: usize,
     #[serde_inline_default(2)]
     max_precon: usize,
+    #[serde_inline_default(true)]
+    calibrate_with_elo: bool,
 }
 
 impl Default for MatchmakerConfig {
@@ -32,6 +34,7 @@ impl Default for MatchmakerConfig {
             min_pool_size: (POD_SIZE - 1) * 3,
             max_unranked: 1,
             max_precon: 2,
+            calibrate_with_elo: true,
         }
     }
 }
