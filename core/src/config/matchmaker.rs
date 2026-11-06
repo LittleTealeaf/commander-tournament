@@ -24,7 +24,7 @@ pub struct MatchmakerConfig {
     #[serde_inline_default(2)]
     max_precon: usize,
     #[serde_inline_default(true)]
-    #[serde(alias="calibrate_with_elo")]
+    #[serde(alias = "calibrate_with_elo")]
     strict_calibrate: bool,
 }
 
