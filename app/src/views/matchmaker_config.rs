@@ -1,5 +1,5 @@
 use commander_tournament_core::{config::matchmaker::MatchmakerConfig, tournament::Tournament};
-use iced::widget::{button, column, row, text};
+use iced::widget::{button, column, row, text, toggler};
 use iced_aw::number_input;
 use iced_tea::{Component, Model, Signal};
 use nerd_font_symbols::md::{MD_CONTENT_SAVE, MD_RESTORE, MD_UNDO};
@@ -26,6 +26,7 @@ pub enum MatchmakerConfigMsg {
     Reset,
     SetEloRange(f64),
     SetMinPoolSize(usize),
+    SetStrictCalibration(bool),
 }
 
 #[derive(Debug, Clone)]
@@ -59,6 +60,9 @@ impl Model for MatchmakerConfigView {
             }
             MatchmakerConfigMsg::SetDefault => self.config = MatchmakerConfig::default(),
             MatchmakerConfigMsg::Reset => self.config = context.matchmaker_config().clone(),
+            MatchmakerConfigMsg::SetStrictCalibration(val) => {
+                self.config.set_strict_calibrate(val);
+            }
         }
         Signal::done()
     }
@@ -112,6 +116,11 @@ impl Component for MatchmakerConfigView {
                 .step(5.0),
             ]
             .spacing(10),
+            row![
+                toggler(self.config.strict_calibrate())
+                    .on_toggle(MatchmakerConfigMsg::SetStrictCalibration)
+                    .label("Strict Calibration Matches")
+            ]
         ]
         .spacing(10)
         .into()

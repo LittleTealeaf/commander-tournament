@@ -1,11 +1,8 @@
-use core::{
-    cmp::{Ordering, Reverse},
-    ops::AddAssign,
-};
+use core::{cmp::Ordering, ops::AddAssign};
 use std::collections::{BinaryHeap, HashMap};
 
 use itertools::Itertools;
-use ordered_float::{NotNan, OrderedFloat};
+use ordered_float::NotNan;
 
 use crate::{
     analytics::{aggregate::AggregateStats, winloss::MatchPerformance},
@@ -43,14 +40,20 @@ impl Tournament {
 }
 
 impl Matchmaker<'_> {
+    #[allow(clippy::cast_precision_loss, reason = "Doesn't need to be accurate")]
     pub fn create_match(&self, player: PlayerId) -> Result<Matchup, TournamentError> {
         log::debug!("Creating Match for Player {player}");
         let stats = self.tourn.get_player_or_default_stats(player);
 
-        if stats.games() < self.tourn.game_config().calibration_games() {
-            log::debug!("Calbiration: Closest Elo Only");
-            return self.calibrate_elo_match(player);
-        }
+        let repeat_penalty = {
+            if stats.games() < self.tourn.game_config().calibration_games() && self.config.strict_calibrate()
+            {
+                0.0
+            } else {
+                const DIVISOR: f64 = (POD_SIZE - 1) as f64;
+                self.config.elo_range() / DIVISOR
+            }
+        };
 
         let pool = self.create_player_pool(player);
         let analytics = self.tourn.analytics();
@@ -76,6 +79,7 @@ impl Matchmaker<'_> {
                 &performances,
                 count_unranked >= self.config.max_unranked(),
                 count_precon >= self.config.max_precon(),
+                repeat_penalty,
             ) else {
                 return Err(TournamentError::NotEnoughPlayers);
             };
@@ -111,26 +115,6 @@ impl Matchmaker<'_> {
         self.tourn.create_match(game_players)
     }
 
-    fn calibrate_elo_match(&self, player: PlayerId) -> Result<Matchup, TournamentError> {
-        let elo_target = self.tourn.get_player_or_default_stats(player).elo();
-
-        let mut players = BinaryHeap::from_iter(self.valid_players(player).map(|id| {
-            let elo = self.tourn.get_player_or_default_stats(id).elo();
-            let diff = (elo - elo_target).abs();
-            (Reverse(OrderedFloat(diff)), id)
-        }));
-
-        let pod_iter =
-            core::iter::once(player).chain(core::iter::from_fn(|| players.pop().map(|(_, id)| id)));
-        let pod = pod_iter
-            .take(POD_SIZE)
-            .collect::<Vec<_>>()
-            .try_into()
-            .map_err(|_| TournamentError::NotEnoughPlayers)?;
-
-        self.tourn.create_match(pod)
-    }
-
     #[allow(clippy::cast_precision_loss, reason = "Doesn't need to be accurate")]
     fn next_player(
         &self,
@@ -138,15 +122,11 @@ impl Matchmaker<'_> {
         performances: &HashMap<PlayerId, MatchPerformance>,
         deprioritize_unranked: bool,
         deprioritize_precon: bool,
+        repeat_penalty: f64,
     ) -> Option<PlayerId> {
         let avg_elo = agg_stats
             .avg_elo()
             .unwrap_or_else(|| self.tourn.default_stats().elo());
-
-        let repeat_penalty = {
-            const DIVISOR: f64 = (POD_SIZE - 1) as f64;
-            self.config.elo_range() / DIVISOR
-        };
 
         Some(
             performances
