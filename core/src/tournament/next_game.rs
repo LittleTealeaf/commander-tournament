@@ -152,7 +152,7 @@ impl Streak<'_> {
         if self.broken {
             return false;
         }
-        let won_game = game.winner() == self.player.id();
+        let won_game = game.winner == self.player.id();
         match self.is_winning {
             Some(is_winning) => {
                 if won_game != is_winning {

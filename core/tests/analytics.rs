@@ -40,7 +40,7 @@ mod aggregated_identity {
         let mut tourn = Tournament::new();
         let [id_high, id_low] = tourn.register_debug_players().unwrap();
         for _ in 0..5 {
-            let matchup = tourn.create_match([id_high, id_low, id_low, id_low]).unwrap();
+            let matchup = tourn.create_match(vec![id_high, id_low, id_low, id_low]).unwrap();
             let record = matchup.record(id_high).unwrap();
             tourn.record_game(record).unwrap();
         }
@@ -117,7 +117,7 @@ mod aggregated_color {
         let mut tourn = Tournament::new();
         let [id_high, id_low] = tourn.register_debug_players().unwrap();
         for _ in 0..5 {
-            let matchup = tourn.create_match([id_high, id_low, id_low, id_low]).unwrap();
+            let matchup = tourn.create_match(vec![id_high, id_low, id_low, id_low]).unwrap();
             let record = matchup.record(id_high).unwrap();
             tourn.record_game(record).unwrap();
         }

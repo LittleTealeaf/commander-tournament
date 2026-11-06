@@ -78,7 +78,7 @@ pub fn stats_game_history(
                     || format!("({elo}) {}", player.id()),
                     |name| format!("({elo}) {name}"),
                 ))
-                .font_maybe((player.id() == game.winner()).then_some(FONT_BOLD)),
+                .font_maybe((player.id() == game.winner).then_some(FONT_BOLD)),
             )
             .padding(Padding::new(0.0))
             .style(button::text)

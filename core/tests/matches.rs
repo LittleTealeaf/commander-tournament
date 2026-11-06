@@ -9,8 +9,8 @@ mod update_match {
     #[test]
     fn same_snaphot() {
         let mut t = Tournament::new();
-        let players = t.register_debug_players().unwrap();
-        let matchup = t.create_match(players).unwrap();
+        let players: [_; 4] = t.register_debug_players().unwrap();
+        let matchup = t.create_match(players.to_vec()).unwrap();
         let updated = t.update_match(matchup.clone()).unwrap();
         assert!(matchup.eq(&updated));
     }
@@ -18,8 +18,8 @@ mod update_match {
     #[test]
     fn newer_snapshot() {
         let mut t = Tournament::new();
-        let players = t.register_debug_players().unwrap();
-        let matchup = t.create_match(players).unwrap();
+        let players: [_; 4] = t.register_debug_players().unwrap();
+        let matchup = t.create_match(players.to_vec()).unwrap();
         t.reload().unwrap();
         let updated = t.update_match(matchup.clone()).unwrap();
         assert!(!matchup.eq(&updated));
@@ -32,8 +32,8 @@ mod update_record {
     #[test]
     fn same_snapshot() {
         let mut t = Tournament::new();
-        let players = t.register_debug_players().unwrap();
-        let matchup = t.create_match(players).unwrap();
+        let players: [_; 4] = t.register_debug_players().unwrap();
+        let matchup = t.create_match(players.to_vec()).unwrap();
         let record = matchup.debug_record().unwrap();
         let updated = t.update_record(record.clone()).unwrap();
         assert!(record.eq(&updated));
@@ -42,8 +42,8 @@ mod update_record {
     #[test]
     fn newer_snapshot() {
         let mut t = Tournament::new();
-        let players = t.register_debug_players().unwrap();
-        let matchup = t.create_match(players).unwrap();
+        let players: [_; 4] = t.register_debug_players().unwrap();
+        let matchup = t.create_match(players.to_vec()).unwrap();
         let record = matchup.debug_record().unwrap();
         t.reload().unwrap();
         let updated = t.update_record(record.clone()).unwrap();
@@ -58,7 +58,7 @@ mod create_match {
     fn mirror_matchup_equal() {
         let mut tourn = Tournament::new();
         let id = tourn.register_player("A".to_owned()).unwrap();
-        let mu = tourn.create_match([id, id, id, id]).unwrap();
+        let mu = tourn.create_match(vec![id, id, id, id]).unwrap();
         for p in mu.players() {
             assert_relative_eq!(0.25, *p.expected());
         }
@@ -71,7 +71,7 @@ mod create_match {
         for id in &players {
             let mut t = tourn.clone();
             t.unregister_player(*id).unwrap();
-            t.create_match(players).unwrap_err();
+            t.create_match(players.to_vec()).unwrap_err();
         }
     }
 }
@@ -120,7 +120,7 @@ fn winner_gains_elo() {
     for i in 0..4 {
         let mut tourn = Tournament::generate_tournament(4, 0).unwrap();
         let ids: [PlayerId; 4] = tourn.players().keys().take(4).copied().collect_array().unwrap();
-        let matchup = tourn.create_match(ids).unwrap();
+        let matchup = tourn.create_match(ids.to_vec()).unwrap();
         let starting_elo = matchup.players().get(i).unwrap().stats().elo();
         let winner = ids.get(i).unwrap();
         let record = matchup.record(*winner).unwrap();
@@ -140,7 +140,7 @@ fn loser_loses_elo() -> anyhow::Result<()> {
         let tourn = Tournament::generate_tournament(4, 0)?;
         let ids: [PlayerId; 4] = tourn.players().keys().take(4).copied().collect_array().unwrap();
         let winner_id = &ids[winner_i];
-        let matchup = tourn.create_match(ids)?;
+        let matchup = tourn.create_match(ids.to_vec())?;
         for loser_i in 0..4 {
             let mut tourn = tourn.clone();
             let matchup = matchup.clone();
@@ -163,7 +163,7 @@ fn loser_loses_elo() -> anyhow::Result<()> {
 fn winner_only_counted_once() -> anyhow::Result<()> {
     let mut tourn = Tournament::new();
     let id = tourn.register_player(String::from("sample"))?;
-    let matchup = tourn.create_match([id, id, id, id])?;
+    let matchup = tourn.create_match(vec![id, id, id, id])?;
     let starting_elo = matchup.players()[0].stats().elo();
     tourn.record_game(matchup.record(id)?)?;
     let elo = tourn.get_player_or_default_stats(id).elo();
@@ -186,7 +186,7 @@ fn record_winner_must_be_player() {
     let player_e = ids.next().unwrap();
 
     let mu = tournament
-        .create_match([player_a, player_b, player_c, player_d])
+        .create_match(vec![player_a, player_b, player_c, player_d])
         .unwrap();
     mu.clone().record(player_a).unwrap();
     mu.clone().record(player_b).unwrap();

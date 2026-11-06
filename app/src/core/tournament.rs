@@ -111,8 +111,8 @@ mod tests {
     fn record_game() {
         let mut tournament = Tournament::generate_tournament(20, 50).unwrap();
         let game = tournament.random_game().unwrap();
-        let matchup = tournament.create_match(*game.players()).unwrap();
-        let record = matchup.record(game.winner()).unwrap();
+        let matchup = tournament.create_match(game.players.clone()).unwrap();
+        let record = matchup.record(game.winner).unwrap();
 
         TournamentAction::Record(Box::new(record))
             .apply(&mut tournament)

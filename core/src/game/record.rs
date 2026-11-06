@@ -2,18 +2,14 @@ use itertools::Itertools;
 
 use crate::{
     error::TournamentError,
-    game::{POD_SIZE, match_player::MatchPlayer, matchup::Matchup},
+    game::{match_player::MatchPlayer, matchup::Matchup},
     player::PlayerId,
 };
 
-#[derive(
-    Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, getset::Getters, getset::CopyGetters,
-)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq)]
 pub struct GameRecord {
-    #[get = "pub"]
-    matchup: Matchup,
-    #[get_copy = "pub"]
-    winner: PlayerId,
+    pub matchup: Matchup,
+    pub winner: PlayerId,
 }
 
 impl GameRecord {
@@ -32,25 +28,22 @@ impl GameRecord {
 
     #[must_use]
     pub fn get_player(&self, id: PlayerId) -> Option<&MatchPlayer> {
-        self.matchup().get_player(id)
+        self.matchup.get_player(id)
     }
 
     #[must_use]
     pub fn players(&self) -> &Vec<MatchPlayer> {
-        self.matchup().players()
+        self.matchup.players()
     }
 
-    #[must_use]
     pub fn ids(&self) -> impl Iterator<Item = PlayerId> {
         self.matchup.ids()
     }
 
     #[must_use]
-    pub fn losers(&self) -> [PlayerId; POD_SIZE - 1] {
+    pub fn losers(&self) -> Vec<PlayerId> {
         let mut found = false;
-
         self.ids()
-            .into_iter()
             .filter(|&id| {
                 if id == self.winner && !found {
                     found = true;
@@ -59,8 +52,7 @@ impl GameRecord {
                     true
                 }
             })
-            .collect_array()
-            .expect("Incorrect number of losers")
+            .collect()
     }
 
     pub fn get_player_elo_change(&self, id: PlayerId) -> Result<f64, TournamentError> {
@@ -81,16 +73,11 @@ impl GameRecord {
 
         Ok(score)
     }
-
-    #[must_use]
-    pub const fn decompose(self) -> (Matchup, PlayerId) {
-        (self.matchup, self.winner)
-    }
 }
 
 #[cfg(test)]
 mod tests {
-
+    use super::*;
     use crate::tournament::Tournament;
 
     #[test]
@@ -98,30 +85,63 @@ mod tests {
         let mut tournament = Tournament::new();
         let player_a = tournament.register_debug_player().unwrap();
 
-        let matchup = tournament.create_match([player_a; 4]).unwrap();
+        let matchup = tournament.create_match(vec![player_a; 4]).unwrap();
         let record = matchup.record(player_a).unwrap();
-        assert_eq!(record.winner(), player_a);
-        assert_eq!(record.losers(), [player_a; 3]);
+        assert_eq!(record.winner, player_a);
+        assert_eq!(record.losers(), vec![player_a; 3]);
 
         let player_b = tournament.register_debug_player().unwrap();
         let matchup = tournament
-            .create_match([player_a, player_a, player_b, player_b])
+            .create_match(vec![player_a, player_a, player_b, player_b])
             .unwrap();
         let record = matchup.record(player_a).unwrap();
-        assert_eq!(record.winner(), player_a);
-        assert_eq!(record.losers(), [player_a, player_b, player_b]);
+        assert_eq!(record.winner, player_a);
+        assert_eq!(record.losers(), vec![player_a, player_b, player_b]);
     }
 
     #[test]
-    fn decomposes_into_values() {
-        let t = Tournament::generate_tournament(10, 10).unwrap();
-        let entry = t.random_game().unwrap();
-        let matchup = t.create_match(*entry.players()).unwrap();
-        let record = matchup.clone().record(entry.winner()).unwrap();
+    fn losers_variable_player_counts() {
+        let mut tournament = Tournament::new();
+        let p1 = tournament.register_debug_player().unwrap();
+        let p2 = tournament.register_debug_player().unwrap();
+        let p3 = tournament.register_debug_player().unwrap();
+        let p4 = tournament.register_debug_player().unwrap();
 
-        let (decomp_matchup, decomp_winner) = record.decompose();
+        // 2 players: winner p1, loser p2
+        let m2 = tournament.create_match(vec![p1, p2]).unwrap();
+        let r2 = m2.record(p1).unwrap();
+        assert_eq!(r2.winner, p1);
+        assert_eq!(r2.losers(), vec![p2]);
 
-        assert_eq!(matchup, decomp_matchup);
-        assert_eq!(decomp_winner, entry.winner());
+        // 3 players: winner p2, losers p1, p3
+        let m3 = tournament.create_match(vec![p1, p2, p3]).unwrap();
+        let r3 = m3.record(p2).unwrap();
+        assert_eq!(r3.winner, p2);
+        assert_eq!(r3.losers(), vec![p1, p3]);
+
+        // 4 players: winner p4, losers p1, p2, p3
+        let m4 = tournament.create_match(vec![p1, p2, p3, p4]).unwrap();
+        let r4 = m4.record(p4).unwrap();
+        assert_eq!(r4.winner, p4);
+        assert_eq!(r4.losers(), vec![p1, p2, p3]);
+    }
+
+    #[test]
+    fn losers_direct_matchup() {
+        let p1 = PlayerId(10);
+        let p2 = PlayerId(20);
+        let p3 = PlayerId(30);
+        let make_mp =
+            |id| MatchPlayer::new(id, crate::player::stats::PlayerStats::new(1000.0), 0.0, 1.0, 1.0);
+
+        // 2 players
+        let m2 = Matchup::new(vec![make_mp(p1), make_mp(p2)], 0);
+        let r2 = m2.record(p2).unwrap();
+        assert_eq!(r2.losers(), vec![p1]);
+
+        // 3 players
+        let m3 = Matchup::new(vec![make_mp(p1), make_mp(p2), make_mp(p3)], 0);
+        let r3 = m3.record(p1).unwrap();
+        assert_eq!(r3.losers(), vec![p2, p3]);
     }
 }

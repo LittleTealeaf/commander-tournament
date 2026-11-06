@@ -30,7 +30,7 @@ impl Tournament {
     }
 
     pub fn generate_tournament(player_count: usize, games: usize) -> Result<Self, TournamentError> {
-        if games > 0 && player_count < 4 {
+        if games > 0 && player_count < 2 {
             return Err(TournamentError::NotEnoughPlayers);
         }
 
@@ -43,7 +43,8 @@ impl Tournament {
         let mut rng = ChaCha8Rng::seed_from_u64(hash_to_u64((player_count, games)));
 
         for _ in 0..games {
-            let players = ids.sample(&mut rng, 4).copied().next_array().unwrap();
+            let match_size = player_count.min(4);
+            let players = ids.sample(&mut rng, match_size).copied().collect::<Vec<_>>();
             let winner = *players.choose(&mut rng).unwrap();
             let entry = GameEntry::new(players, winner)?;
             tournament.record_entry(entry)?;
@@ -52,8 +53,12 @@ impl Tournament {
         Ok(tournament)
     }
 
-    pub fn debug_game(&mut self, players: [PlayerId; 4], winner: PlayerId) -> Result<(), TournamentError> {
-        let matchup = self.create_match(players)?;
+    pub fn debug_game<P: Into<Vec<PlayerId>>>(
+        &mut self,
+        players: P,
+        winner: PlayerId,
+    ) -> Result<(), TournamentError> {
+        let matchup = self.create_match(players.into())?;
         let record = matchup.record(winner)?;
         self.record_game(record)?;
         Ok(())
@@ -64,7 +69,11 @@ impl Tournament {
         let seed = hash_to_u64(hash);
         let mut rng = ChaCha8Rng::seed_from_u64(seed);
         let ids = self.players().keys().copied().collect_vec();
-        let players = ids.sample(&mut rng, 4).copied().next_array()?;
+        if ids.len() < 2 {
+            return None;
+        }
+        let match_size = ids.len().min(4);
+        let players = ids.sample(&mut rng, match_size).copied().collect::<Vec<_>>();
         let winner = *players.choose(&mut rng)?;
         GameEntry::new(players, winner).ok()
     }
@@ -92,7 +101,11 @@ impl Tournament {
 impl Matchup {
     #[must_use]
     pub fn debug_record(self) -> Option<GameRecord> {
-        let players = self.players().clone().map(|player| format!("{player:?}"));
+        let players = self
+            .players()
+            .iter()
+            .map(|player| format!("{player:?}"))
+            .collect::<Vec<_>>();
         let seed = hash_to_u64(players);
         let mut rng = ChaCha8Rng::seed_from_u64(seed);
         let winner = self.players().choose(&mut rng)?.id();
@@ -108,10 +121,11 @@ fn snapshot_returns() {
 
 #[test]
 fn generator_errors_when_few_players() {
-    for i in 0..3 {
+    for i in 0..2 {
         Tournament::generate_tournament(i, 0).unwrap();
         Tournament::generate_tournament(i, 1).unwrap_err();
     }
+    Tournament::generate_tournament(2, 1).unwrap();
 }
 
 #[test]
@@ -155,4 +169,71 @@ fn debug_players_are_all_different() {
             ids.insert(id);
         }
     }
+}
+
+#[test]
+fn generate_tournament_two_and_three_players() {
+    let t2 = Tournament::generate_tournament(2, 5).unwrap();
+    assert_eq!(t2.players().len(), 2);
+    assert_eq!(t2.games().len(), 5);
+    for game in t2.games() {
+        assert_eq!(game.players().len(), 2);
+    }
+
+    let t3 = Tournament::generate_tournament(3, 5).unwrap();
+    assert_eq!(t3.players().len(), 3);
+    assert_eq!(t3.games().len(), 5);
+    for game in t3.games() {
+        assert_eq!(game.players().len(), 3);
+    }
+}
+
+#[test]
+fn debug_game_variable_players() {
+    let mut t = Tournament::new();
+    let p1 = t.register_debug_player().unwrap();
+    let p2 = t.register_debug_player().unwrap();
+    let p3 = t.register_debug_player().unwrap();
+    let p4 = t.register_debug_player().unwrap();
+
+    // 2 players
+    t.debug_game([p1, p2], p1).unwrap();
+    assert_eq!(t.games().len(), 1);
+
+    // 3 players
+    t.debug_game([p1, p2, p3], p2).unwrap();
+    assert_eq!(t.games().len(), 2);
+
+    // 4 players
+    t.debug_game([p1, p2, p3, p4], p3).unwrap();
+    assert_eq!(t.games().len(), 3);
+
+    let mut games = t.games().iter();
+    assert_eq!(games.next().unwrap().players().len(), 2);
+    assert_eq!(games.next().unwrap().players().len(), 3);
+    assert_eq!(games.next().unwrap().players().len(), 4);
+}
+
+#[test]
+fn random_game_variable_players() {
+    let mut t = Tournament::new();
+    // 0 players
+    assert!(t.random_game().is_none());
+
+    // 1 player
+    let p1 = t.register_debug_player().unwrap();
+    assert!(t.random_game().is_none());
+
+    // 2 players
+    let p2 = t.register_debug_player().unwrap();
+    let entry2 = t.random_game().unwrap();
+    assert_eq!(entry2.players.len(), 2);
+    assert!(entry2.players.contains(&p1));
+    assert!(entry2.players.contains(&p2));
+
+    // 3 players
+    let p3 = t.register_debug_player().unwrap();
+    let entry3 = t.random_game().unwrap();
+    assert_eq!(entry3.players.len(), 3);
+    assert!(entry3.players.contains(&p3));
 }

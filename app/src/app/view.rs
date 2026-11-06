@@ -23,7 +23,13 @@ pub enum View {
     Play(PlayView),
     PlayConfig(MatchmakerConfigView),
     GameConfig(GameConfigView),
-    PlayerDetails(PlayerView),
+    PlayerDetails(Box<PlayerView>),
+}
+
+impl From<PlayerView> for View {
+    fn from(value: PlayerView) -> Self {
+        Box::new(value).into()
+    }
 }
 
 impl View {

@@ -7,10 +7,10 @@ use crate::{
 
 impl Tournament {
     pub fn update_record(&self, record: GameRecord) -> Result<GameRecord, TournamentError> {
-        if record.matchup().snapshot() == self.snapshot {
+        if record.matchup.snapshot() == self.snapshot {
             return Ok(record);
         }
-        let (matchup, winner) = record.decompose();
+        let GameRecord { matchup, winner } = record;
         self.create_match(matchup.ids().collect())?.record(winner)
     }
 
@@ -21,12 +21,26 @@ impl Tournament {
         self.create_match(matchup.ids().collect())
     }
 
+    pub fn create_match(&self, ids: Vec<PlayerId>) -> Result<Matchup, TournamentError> {
+        if ids.len() < 2 {
+            return Err(TournamentError::NotEnoughPlayers);
+        }
+        // First check registration
+        for id in &ids {
+            if !self.is_id_registered(id) {
+                return Err(TournamentError::InvalidPlayerId(*id));
+            }
+        }
+
+        Ok(Matchup::new(self.create_match_players(ids), self.snapshot))
+    }
+
     #[must_use]
     #[allow(clippy::cast_precision_loss, reason = "usize to f64")]
-    pub(crate) fn create_match_players(
-        &self,
-        players: impl IntoIterator<Item = PlayerId>,
-    ) -> Vec<MatchPlayer> {
+    pub(crate) fn create_match_players<I>(&self, players: I) -> Vec<MatchPlayer>
+    where
+        I: IntoIterator<Item = PlayerId>,
+    {
         struct Player<'a> {
             id: PlayerId,
             stats: &'a PlayerStats,
@@ -62,7 +76,7 @@ impl Tournament {
                     k,
                 }
             })
-            .collect::<Box<[Player<'_>]>>();
+            .collect::<Vec<_>>();
 
         let count = players.len();
 
@@ -92,22 +106,8 @@ impl Tournament {
             .collect()
     }
 
-    pub fn create_match(&self, ids: Vec<PlayerId>) -> Result<Matchup, TournamentError> {
-        if ids.len() < 2 {
-            return Err(TournamentError::NotEnoughPlayers);
-        }
-        // First check registration
-        for id in &ids {
-            if !self.is_id_registered(id) {
-                return Err(TournamentError::InvalidPlayerId(*id));
-            }
-        }
-
-        Ok(Matchup::new(self.create_match_players(ids), self.snapshot))
-    }
-
     pub fn record_entry(&mut self, entry: GameEntry) -> Result<(), TournamentError> {
-        let (players, winner) = entry.into();
+        let GameEntry { players, winner } = entry;
         let matchup = self.create_match(players)?;
         let record = matchup.record(winner)?;
         self.insert_game_record(record);
@@ -124,13 +124,13 @@ impl Tournament {
     pub(super) fn insert_game_record(&mut self, record: GameRecord) {
         let mut winner_tracked = false;
 
-        for player in record.matchup().players() {
+        for player in record.matchup.players() {
             let stats = self
                 .stats
                 .entry(player.id())
                 .or_insert_with(|| self.default_stats.clone());
 
-            if !winner_tracked && player.id() == record.winner() {
+            if !winner_tracked && player.id() == record.winner {
                 stats.add_win(*player.elo_win());
                 winner_tracked = true;
             } else {

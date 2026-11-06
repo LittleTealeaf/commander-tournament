@@ -37,7 +37,7 @@ fn get_player_or_default_returns_player() {
     tourn
         .record_game(
             tourn
-                .create_match([player_1, player_2, player_3, player_4])
+                .create_match(vec![player_1, player_2, player_3, player_4])
                 .unwrap()
                 .record(player_1)
                 .unwrap(),

@@ -15,7 +15,7 @@ fn unregister_removes_players_games() {
         tourn.unregister_player(*id).unwrap();
         for game in tourn.games() {
             assert!(!game.has_player(*id));
-            assert_ne!(game.winner(), *id);
+            assert_ne!(game.winner, *id);
         }
     }
 }
