@@ -1,8 +1,8 @@
-use core::{cmp::Ordering, ops::AddAssign};
-use std::{
-    cmp::Reverse,
-    collections::{BinaryHeap, HashMap},
+use core::{
+    cmp::{Ordering, Reverse},
+    ops::AddAssign,
 };
+use std::collections::{BinaryHeap, HashMap};
 
 use itertools::Itertools;
 use ordered_float::{NotNan, OrderedFloat};
