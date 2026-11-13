@@ -65,7 +65,7 @@ impl PlayerView {
     #[must_use]
     pub fn new(player: Option<RegisteredPlayer<'_>>) -> Self {
         let id = player.as_ref().map(RegisteredPlayer::id);
-        let info = player.map(|p| p.info().clone()).unwrap_or_default();
+        let info = player.map_or_default(|p| p.info().clone());
         let name = info.name().clone();
         let moxfield_id = info.moxfield_id().cloned().unwrap_or_default();
         let description = text_editor::Content::with_text(info.description());

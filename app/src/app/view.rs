@@ -194,6 +194,6 @@ impl ComTourApp {
         let view: View = view.into();
         let on_resume = view.on_resume();
         self.views.push(view);
-        on_resume.map(Signal::msg).unwrap_or_default()
+        on_resume.map_or_default(Signal::msg)
     }
 }

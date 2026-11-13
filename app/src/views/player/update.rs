@@ -68,8 +68,7 @@ impl Model for PlayerView {
             PlayerDetailsMsg::OpenLink(link) => Signal::out(PlayerDetailsOut::OpenLink(link)).ok(),
             PlayerDetailsMsg::ConfirmDelete => self
                 .id
-                .map(|id| Signal::out(PlayerDetailsOut::DeletePlayer(id)))
-                .unwrap_or_default()
+                .map_or_default(|id| Signal::out(PlayerDetailsOut::DeletePlayer(id)))
                 .ok(),
             PlayerDetailsMsg::RequestDelete => {
                 self.confirm_popup = Some(ConfirmPopup::new(
@@ -85,8 +84,7 @@ impl Model for PlayerView {
             }
             PlayerDetailsMsg::OpenNextPlayerMatch => self
                 .id
-                .map(|id| Signal::out(PlayerDetailsOut::OpenPlayerMatches(id)))
-                .unwrap_or_default()
+                .map_or_default(|id| Signal::out(PlayerDetailsOut::OpenPlayerMatches(id)))
                 .ok(),
             PlayerDetailsMsg::RequestClose => {
                 if self.modified {

@@ -1,7 +1,7 @@
-use core::{cmp::Ordering, ops::AddAssign};
+use core::ops::AddAssign;
 use std::collections::{BinaryHeap, HashMap};
 
-use itertools::Itertools;
+use itertools::{Either, Itertools};
 use ordered_float::NotNan;
 
 use crate::{
@@ -55,13 +55,19 @@ impl Matchmaker<'_> {
             }
         };
 
-        let pool = self.create_player_pool(player);
         let analytics = self.tourn.analytics();
 
         let mut aggregate_stats = AggregateStats::from(stats);
         log::debug!("Built Aggregate Stats: {aggregate_stats:?}");
         let mut performances = analytics.player_performance_all_others(player)?;
-        performances.retain(|id, _| pool.contains(id));
+
+        {
+            let pool = self
+                .create_player_pool(player)
+                .into_iter()
+                .collect::<im::HashSet<PlayerId>>();
+            performances.retain(|id, _| pool.contains(id));
+        }
 
         let mut players = Vec::with_capacity(POD_SIZE);
         players.push(player);
@@ -162,40 +168,30 @@ impl Matchmaker<'_> {
         )
     }
 
-    fn create_player_pool(&self, player: PlayerId) -> im::HashSet<PlayerId> {
+    fn create_player_pool(&self, player: PlayerId) -> Vec<PlayerId> {
         let target_elo = self.tourn.get_player_or_default_stats(player).elo();
         let elo_range = self.config.elo_range();
 
-        let (mut pool, outliers): (Vec<_>, _) = self.valid_players(player).partition(|id| {
-            (self.tourn.get_player_or_default_stats(*id).elo() - target_elo).abs() < elo_range
-        });
+        let (mut pool, mut outliers): (Vec<_>, BinaryHeap<_>) =
+            self.valid_players(player).partition_map(|id| {
+                let elo = self.tourn.get_player_or_default_stats(id).elo();
+                let diff = (elo - target_elo).abs();
+                if diff <= elo_range {
+                    Either::Left(id)
+                } else {
+                    Either::Right((NotNan::new(diff).unwrap_or_default(), id))
+                }
+            });
 
         pool.retain(|id| *id != player);
 
-        if pool.len() < self.config.min_pool_size() {
-            pool.reserve(self.config.min_pool_size() - pool.len());
-
-            let mut heap = outliers
-                .into_iter()
-                .filter_map(|id| {
-                    Some(HeapPlayer {
-                        id,
-                        diff: NotNan::new(
-                            (self.tourn.get_player_or_default_stats(id).elo() - target_elo).abs(),
-                        )
-                        .ok()?,
-                    })
-                })
-                .collect::<BinaryHeap<_>>();
-
-            while pool.len() < self.config.min_pool_size()
-                && let Some(entry) = heap.pop()
-            {
-                pool.push(entry.id);
-            }
+        while pool.len() < self.config.min_pool_size()
+            && let Some((_, id)) = outliers.pop()
+        {
+            pool.push(id);
         }
 
-        pool.into_iter().collect()
+        pool
     }
 
     fn valid_players(&self, id: PlayerId) -> impl Iterator<Item = PlayerId> + '_ {
@@ -209,33 +205,5 @@ impl Matchmaker<'_> {
                         .map_or_default(PlayerInfo::is_archived)
             })
             .copied()
-    }
-}
-
-struct HeapPlayer {
-    id: PlayerId,
-    diff: NotNan<f64>,
-}
-
-impl PartialEq for HeapPlayer {
-    fn eq(&self, other: &Self) -> bool {
-        self.diff == other.diff && self.id == other.id
-    }
-}
-
-impl Eq for HeapPlayer {}
-
-impl PartialOrd for HeapPlayer {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for HeapPlayer {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.diff
-            .cmp(&other.diff)
-            .reverse()
-            .then_with(|| self.id.cmp(&other.id))
     }
 }
