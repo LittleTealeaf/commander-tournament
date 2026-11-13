@@ -2,6 +2,8 @@
 name = "commander_tournament"
 version = "2.1.0"
 edition = "2024"
+authors.workspace = true
+repository.workspace = true
 
 [[bin]]
 name = "commander-tournament"
@@ -17,7 +19,6 @@ serde_toml = ["dep:toml"]
 
 [dependencies]
 anyhow = "1.0.100"
-appconfig = "0.2.1"
 async-fs = "2.2.0"
 iced = { version = "0.14.0", features = ["tokio", "svg"] }
 iced-tea = { git = "https://github.com/LittleTealeaf/iced-tea", tag = "v2.0.1" }

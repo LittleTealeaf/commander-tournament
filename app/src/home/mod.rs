@@ -109,7 +109,7 @@ impl Model for Home {
                     Signal::out(HomeOut::RecordGame(game_record)).ok()
                 }
             }),
-            HomeMsg::Analytics(msg) => self.stats.map_update(msg, context, |_| Signal::done()),
+            HomeMsg::Analytics(msg) => self.stats.map_update(msg, context, |()| Signal::done()),
         }
     }
 }

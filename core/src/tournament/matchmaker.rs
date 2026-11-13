@@ -1,4 +1,4 @@
-use core::{cmp::Ordering, ops::AddAssign};
+use core::ops::AddAssign;
 use std::collections::{BinaryHeap, HashMap};
 
 use itertools::{Either, Itertools};

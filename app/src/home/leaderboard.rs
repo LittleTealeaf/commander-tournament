@@ -203,8 +203,7 @@ impl Component for Leaderboard {
                     text(
                         p.stats()
                             .wr()
-                            .map(|wr| format!("{:.1}%", wr * 100.0))
-                            .unwrap_or_default(),
+                            .map_or_default(|wr| format!("{:.1}%", wr * 100.0)),
                     )
                     .size(12)
                 }),

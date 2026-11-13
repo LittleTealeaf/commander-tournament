@@ -24,12 +24,9 @@ pub enum AnalyticsMsg {
     SetIncludePrecons(bool),
 }
 
-#[derive(Clone, Debug)]
-pub enum AnalyticsOut {}
-
 impl Model for AnalyticsView {
     type Message = AnalyticsMsg;
-    type OutMessage = AnalyticsOut;
+    type OutMessage = ();
     type Context<'a> = &'a Tournament;
 
     fn update<'a>(
