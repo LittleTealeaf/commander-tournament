@@ -200,12 +200,7 @@ impl Component for Leaderboard {
                     text(p.stats().wins()).size(12)
                 }),
                 table::column(col_header("WR", Column::WinRate), |p: RegisteredPlayer<'_>| {
-                    text(
-                        p.stats()
-                            .wr()
-                            .map_or_default(|wr| format!("{:.1}%", wr * 100.0)),
-                    )
-                    .size(12)
+                    text(p.stats().wr().map_or_default(|wr| format!("{:.1}%", wr * 100.0))).size(12)
                 }),
                 table::column(
                     button("+").on_press(LeaderboardMsg::NewPlayer),

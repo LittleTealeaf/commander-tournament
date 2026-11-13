@@ -55,9 +55,7 @@ impl Model for ComTourApp {
                 self.state
                     .as_ref()
                     .and_then(|state| state.last_opened().as_ref())
-                    .map_or_default(|last_opened| {
-                        Signal::msg(FileAction::OpenFile(last_opened.clone()))
-                    })
+                    .map_or_default(|last_opened| Signal::msg(FileAction::OpenFile(last_opened.clone())))
                     .ok()
             }
             Message::Tournament(action) => self.handle_message(action, ()),
