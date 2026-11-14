@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use crate::{
     error::TournamentError,
     game::{matchup::Matchup, next_mode::NextPlayerMode, record::GameRecord},
@@ -9,86 +7,11 @@ use crate::{
 
 impl Tournament {
     pub fn next_game(&self, mode: NextPlayerMode) -> Result<Matchup, TournamentError> {
-        let Some(player) = self.next_game_player(mode) else {
+        let Some(player) = mode.next_player(self) else {
             return Err(TournamentError::NotEnoughPlayers);
         };
 
         self.matchmaker().create_match(player)
-    }
-
-    fn next_game_player(&self, mode: NextPlayerMode) -> Option<PlayerId> {
-        let players = self
-            .registered_players()
-            .filter(|player| (!player.info().is_archived()) && (!player.info().is_precon()));
-
-        match mode {
-            NextPlayerMode::Default => {
-                let pool = players.collect::<Vec<_>>();
-                // First: Check if anyone is still low ranked.
-                {
-                    let min_games = pool
-                        .iter()
-                        .map(|player| (player.stats().games(), player.id()))
-                        .min();
-
-                    if let Some((games, player)) = min_games
-                        && games < self.config.game().calibration_games()
-                    {
-                        return Some(player);
-                    }
-                }
-                // Then fall back to longest break
-                {
-                    let mut pool = pool.into_iter().map(|p| p.id()).collect::<HashSet<_>>();
-
-                    if pool.len() <= 1 {
-                        return pool.into_iter().next();
-                    }
-
-                    let games = self.games().iter().rev();
-
-                    for game in games {
-                        for player in game.players() {
-                            pool.remove(&player.id());
-                            if pool.len() <= 1 {
-                                return pool.into_iter().next();
-                            }
-                        }
-                    }
-
-                    pool.into_iter().min()
-                }
-            }
-            NextPlayerMode::LongestBreak => {
-                let mut pool = players.map(|player| player.id()).collect::<HashSet<_>>();
-
-                if pool.len() <= 1 {
-                    return pool.into_iter().next();
-                }
-
-                let games = self.games().iter().rev();
-
-                for game in games {
-                    for player in game.players() {
-                        pool.remove(&player.id());
-                        if pool.len() <= 1 {
-                            return pool.into_iter().next();
-                        }
-                    }
-                }
-
-                pool.into_iter().min()
-            }
-            NextPlayerMode::LeastPlayed => Some(
-                players
-                    .min_by_key(|player| (player.stats().games(), player.id()))?
-                    .id(),
-            ),
-
-            NextPlayerMode::WinStreak => calculate_streak(players, self.games(), Some(true)),
-            NextPlayerMode::GameStreak => calculate_streak(players, self.games(), None),
-            NextPlayerMode::LossStreak => calculate_streak(players, self.games(), Some(false)),
-        }
     }
 }
 
