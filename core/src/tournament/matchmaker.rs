@@ -55,19 +55,13 @@ impl Matchmaker<'_> {
             }
         };
 
-        let analytics = self.tourn.analytics();
-
+        let pool = self
+            .create_player_pool(player)
+            .into_iter()
+            .collect::<im::HashSet<PlayerId>>();
+        let analytics = self.tourn.analytics().with_pool(|id| pool.contains(&id));
         let mut aggregate_stats = AggregateStats::from(stats);
-        log::debug!("Built Aggregate Stats: {aggregate_stats:?}");
         let mut performances = analytics.player_performance_all_others(player)?;
-
-        {
-            let pool = self
-                .create_player_pool(player)
-                .into_iter()
-                .collect::<im::HashSet<PlayerId>>();
-            performances.retain(|id, _| pool.contains(id));
-        }
 
         let mut players = Vec::with_capacity(POD_SIZE);
         players.push(player);
@@ -94,14 +88,18 @@ impl Matchmaker<'_> {
             players.push(id);
             performances.remove(&id);
 
-            for (pl, per) in analytics.player_performance(id).into_iter().flatten() {
-                performances.entry(pl).and_modify(|entry| entry.add_assign(per));
+            if let Ok(perfs) = analytics.player_performance(id) {
+                for (pl, per) in perfs {
+                    performances.entry(pl).and_modify(|entry| entry.add_assign(per));
+                }
             }
 
             let stats = self.tourn.get_player_or_default_stats(id);
+
             if stats.games() < self.tourn.game_config().calibration_games() {
                 count_unranked += 1;
             }
+
             if self
                 .tourn
                 .get_player_info(&id)
@@ -109,7 +107,9 @@ impl Matchmaker<'_> {
             {
                 count_precon += 1;
             }
+
             aggregate_stats += stats;
+
             log::debug!("Updated Stats: {aggregate_stats:?}");
         }
 
@@ -140,18 +140,18 @@ impl Matchmaker<'_> {
                 .iter()
                 .min_by_key(|(id, perf)| {
                     let stats = self.tourn.get_player_or_default_stats(**id);
-                    let info = self.tourn.get_player_info(id)?;
+                    let info = self.tourn.get_player_info(id);
 
                     let elo_diff = (stats.elo() - avg_elo).abs();
                     let penalty = perf.played() as f64 * repeat_penalty;
                     let score = elo_diff + penalty;
 
-                    Some((
+                    (
                         deprioritize_unranked && (stats.games() < calibrate_games),
-                        deprioritize_precon && info.is_precon(),
+                        deprioritize_precon && info.map_or_default(PlayerInfo::is_precon),
                         NotNan::new(score).ok(),
                         **id,
-                    ))
+                    )
                 })?
                 .0,
         )
@@ -168,7 +168,7 @@ impl Matchmaker<'_> {
                 if diff <= elo_range {
                     Either::Left(id)
                 } else {
-                    Either::Right(Reverse((NotNan::new(diff).unwrap_or_default(), id)))
+                    Either::Right(Reverse((NotNan::new(diff).ok(), id)))
                 }
             });
 
@@ -194,5 +194,66 @@ impl Matchmaker<'_> {
                         .map_or_default(PlayerInfo::is_archived)
             })
             .copied()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn archived_not_valid() {
+        let mut tourn = Tournament::new();
+        let [id_a, id_b] = tourn.register_debug_players().unwrap();
+        let id_archived = tourn
+            .register_debug_player_info(|info| info.with_is_archived(true))
+            .unwrap();
+
+        let matchmaker = tourn.matchmaker();
+        let players = matchmaker.valid_players(id_a).collect::<Vec<_>>();
+        assert!(players.contains(&id_b));
+        assert!(!players.contains(&id_archived));
+    }
+
+    #[test]
+    fn player_pool_within_range() {
+        let mut tourn = Tournament::new();
+        tourn
+            .config
+            .set_game(tourn.game_config().clone().with_calibration_games(0));
+        tourn.set_matchmaker_config(tourn.matchmaker_config().clone().with_elo_range(75.0));
+        tourn.reload().unwrap();
+
+        let id_target = tourn.register_debug_player().unwrap();
+
+        let base = tourn.config.game().initial_elo();
+
+        let mut in_range = Vec::new();
+        let mut out_of_range = Vec::new();
+
+        for diff in [0.0, 50.0, -50.0, 100.0, -100.0] {
+            let ids: [_; 10] = tourn.register_debug_players().unwrap();
+            let target_elo = diff + base;
+            for i in ids {
+                tourn.debug_set_target_elo(i, target_elo).unwrap();
+            }
+            if diff.abs() <= 75.0 {
+                in_range.extend(ids);
+            } else {
+                out_of_range.extend(ids);
+            }
+        }
+
+        let matchmaker = tourn.matchmaker();
+        let pool = matchmaker.create_player_pool(id_target);
+
+        assert_eq!(pool.len(), in_range.len());
+        assert!(!pool.contains(&id_target));
+        for id in in_range {
+            assert!(pool.contains(&id));
+        }
+        for id in out_of_range {
+            assert!(!pool.contains(&id));
+        }
     }
 }

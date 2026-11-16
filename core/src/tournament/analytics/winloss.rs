@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use itertools::{Itertools, chain};
+use itertools::Itertools;
 
 use crate::{
     analytics::winloss::MatchPerformance,
@@ -13,38 +13,29 @@ use crate::{
     tournament::analytics::Analytics,
 };
 
-impl<'a> Analytics<'a> {
+impl<'a, F> Analytics<'a, F>
+where
+    F: Fn(PlayerId) -> bool,
+{
     pub(crate) fn player_performance(
-        self,
+        &self,
         id: PlayerId,
     ) -> Result<HashMap<PlayerId, MatchPerformance>, TournamentError> {
         self.tourn.require_id_registered(id)?;
 
-        let mut map = self
-            .tourn
-            .get_player_games(id)?
-            .flat_map(|game| game_match_perfs(game, |i| i == id))
-            .into_grouping_map()
-            .sum();
-
-        if !self.include_precons {
-            map.retain(|id, _| {
-                self.tourn
-                    .get_player_info(id)
-                    .is_none_or(|info| !info.is_precon())
-            });
-        }
-
-        Ok(map)
+        let games = self.tourn.get_player_games(id)?;
+        let performances = games.flat_map(|game| match_performances(game, |i| i == id));
+        let filtered_performances = performances.filter(|(id, _)| (self.pool)(*id));
+        Ok(filtered_performances.into_grouping_map().sum())
     }
 
     pub(crate) fn player_performance_all(
-        self,
+        &self,
         id: PlayerId,
     ) -> Result<HashMap<PlayerId, MatchPerformance>, TournamentError> {
         let mut map = self.player_performance(id)?;
-        for (id, info) in self.tourn.players() {
-            if self.include_precons || !info.is_precon() {
+        for id in self.tourn.players().keys() {
+            if (self.pool)(*id) {
                 map.entry(*id).or_default();
             }
         }
@@ -52,7 +43,7 @@ impl<'a> Analytics<'a> {
     }
 
     pub(crate) fn player_performance_all_others(
-        self,
+        &self,
         id: PlayerId,
     ) -> Result<HashMap<PlayerId, MatchPerformance>, TournamentError> {
         let mut map = self.player_performance_all(id)?;
@@ -61,7 +52,7 @@ impl<'a> Analytics<'a> {
     }
 
     pub(crate) fn player_vs_player_all_performances(
-        self,
+        &self,
         id: PlayerId,
     ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)> + 'a, TournamentError> {
         Ok(self
@@ -71,7 +62,7 @@ impl<'a> Analytics<'a> {
     }
 
     pub fn player_vs_player_performance(
-        self,
+        &self,
         id: PlayerId,
     ) -> Result<impl Iterator<Item = (RegisteredPlayer<'a>, MatchPerformance)> + 'a, TournamentError> {
         let players = self.player_vs_player_all_performances(id)?;
@@ -80,7 +71,7 @@ impl<'a> Analytics<'a> {
     }
 
     pub fn player_vs_identity_performance(
-        self,
+        &self,
         id: PlayerId,
     ) -> Result<HashMap<ColorIdentity, MatchPerformance>, TournamentError> {
         Ok(self
@@ -91,7 +82,7 @@ impl<'a> Analytics<'a> {
     }
 
     pub fn player_vs_color_performance(
-        self,
+        &self,
         id: PlayerId,
     ) -> Result<HashMap<MtgColor, MatchPerformance>, TournamentError> {
         Ok(self
@@ -108,26 +99,30 @@ impl<'a> Analytics<'a> {
     }
 }
 
-impl Analytics<'_> {
+impl<F> Analytics<'_, F>
+where
+    F: Fn(PlayerId) -> bool,
+{
     #[must_use]
     pub fn identity_vs_identity_performance(
-        self,
+        &self,
         identity: ColorIdentity,
     ) -> HashMap<ColorIdentity, MatchPerformance> {
+        let players = self
+            .tourn
+            .players()
+            .iter()
+            .filter(|(id, info)| info.color_identity() == identity && (self.pool)(**id))
+            .map(|(id, _)| *id)
+            .collect::<im::HashSet<PlayerId>>();
+
         self.tourn
             .games()
             .iter()
-            .flat_map(|game| {
-                game_match_perfs(game, |id| {
-                    let Some(info) = self.tourn.get_player_info(&id) else {
-                        return false;
-                    };
-                    (self.include_precons || !info.is_precon()) && info.color_identity() == identity
-                })
-            })
+            .flat_map(|game| match_performances(game, |id| players.contains(&id)))
             .filter_map(|(id, perf)| {
                 let info = self.tourn.get_player_info(&id)?;
-                (self.include_precons || !info.is_precon()).then_some((info.color_identity(), perf))
+                (self.pool)(id).then_some((info.color_identity(), perf))
             })
             .into_grouping_map()
             .sum()
@@ -135,7 +130,7 @@ impl Analytics<'_> {
 
     #[must_use]
     pub fn identity_vs_color_performance(
-        self,
+        &self,
         identity: ColorIdentity,
     ) -> HashMap<MtgColor, MatchPerformance> {
         self.identity_vs_identity_performance(identity)
@@ -146,23 +141,27 @@ impl Analytics<'_> {
     }
 }
 
-impl Analytics<'_> {
+impl<F> Analytics<'_, F>
+where
+    F: Fn(PlayerId) -> bool,
+{
     #[must_use]
-    pub fn color_vs_color_performance(self, color: MtgColor) -> HashMap<MtgColor, MatchPerformance> {
+    pub fn color_vs_color_performance(&self, color: MtgColor) -> HashMap<MtgColor, MatchPerformance> {
+        let players = self
+            .tourn
+            .players()
+            .iter()
+            .filter(|(id, info)| (self.pool)(**id) && info.color_identity().has_color(color))
+            .map(|(id, _)| *id)
+            .collect::<im::HashSet<PlayerId>>();
+
         self.tourn
             .games()
             .iter()
-            .flat_map(|game| {
-                game_match_perfs(game, |id| {
-                    let Some(info) = self.tourn.get_player_info(&id) else {
-                        return false;
-                    };
-                    (self.include_precons || !info.is_precon()) && info.color_identity().has_color(color)
-                })
-            })
+            .flat_map(|game| match_performances(game, |id| players.contains(&id)))
             .filter_map(|(id, perf)| {
                 let info = self.tourn.get_player_info(&id)?;
-                (self.include_precons || !info.is_precon()).then_some((info.color_identity(), perf))
+                (self.pool)(id).then_some((info.color_identity(), perf))
             })
             .flat_map(|(identity, perf)| identity.colors().map(move |color| (color, perf)))
             .into_grouping_map()
@@ -170,34 +169,39 @@ impl Analytics<'_> {
     }
 }
 
-fn game_match_perfs<F>(game: &GameRecord, check: F) -> impl Iterator<Item = (PlayerId, MatchPerformance)>
+fn match_performances<F>(
+    game: &GameRecord,
+    predicate: F,
+) -> impl Iterator<Item = (PlayerId, MatchPerformance)>
 where
     F: Fn(PlayerId) -> bool,
 {
+    let players = game.ids();
     let winner = game.winner();
-    let [loser_a, loser_b, loser_c] = game.losers();
 
-    chain!(
-        check(winner).then_some([
-            (loser_a, MatchPerformance::WIN),
-            (loser_b, MatchPerformance::WIN),
-            (loser_c, MatchPerformance::WIN),
-        ]),
-        check(loser_a).then_some([
-            (winner, MatchPerformance::LOSS),
-            (loser_b, MatchPerformance::DRAW),
-            (loser_c, MatchPerformance::DRAW),
-        ]),
-        check(loser_b).then_some([
-            (winner, MatchPerformance::LOSS),
-            (loser_a, MatchPerformance::DRAW),
-            (loser_c, MatchPerformance::DRAW),
-        ]),
-        check(loser_c).then_some([
-            (winner, MatchPerformance::LOSS),
-            (loser_a, MatchPerformance::DRAW),
-            (loser_b, MatchPerformance::DRAW),
-        ]),
-    )
-    .flatten()
+    let index_winner = players
+        .iter()
+        .find_position(|i| *i == &winner)
+        .map(|(i, _)| i)
+        .unwrap_or_default();
+
+    players
+        .into_iter()
+        .enumerate()
+        .filter(move |(_, id)| predicate(*id))
+        .flat_map(move |(i, _)| {
+            game.ids()
+                .into_iter()
+                .enumerate()
+                .filter(move |(j, _)| &i != j)
+                .map(move |(j, id)| {
+                    if i == index_winner {
+                        (id, MatchPerformance::WIN)
+                    } else if j == index_winner {
+                        (id, MatchPerformance::LOSS)
+                    } else {
+                        (id, MatchPerformance::DRAW)
+                    }
+                })
+        })
 }
