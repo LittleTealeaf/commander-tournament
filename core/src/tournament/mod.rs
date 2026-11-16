@@ -3,7 +3,6 @@ mod compat;
 mod config;
 mod matches;
 mod matchmaker;
-mod next_game;
 mod players;
 pub(crate) mod serialize;
 mod stats;
