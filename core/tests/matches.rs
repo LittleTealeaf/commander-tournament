@@ -3,7 +3,6 @@ use commander_tournament_core::game::entry::GameEntry;
 use commander_tournament_core::{player::PlayerId, tournament::Tournament};
 use itertools::Itertools;
 
-
 mod create_match {
     use super::*;
 

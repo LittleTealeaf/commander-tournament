@@ -84,5 +84,4 @@ mod tests {
         let de_tourn: Tournament = ron::from_str(&serialized).unwrap();
         assert!((starting_elo - de_tourn.default_stats().elo()) <= 1e-9);
     }
-
 }
