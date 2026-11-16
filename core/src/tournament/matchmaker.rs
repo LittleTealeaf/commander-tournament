@@ -1,4 +1,4 @@
-use core::ops::AddAssign;
+use core::{cmp::Reverse, ops::AddAssign};
 use std::collections::{BinaryHeap, HashMap};
 
 use itertools::{Either, Itertools};
@@ -124,46 +124,35 @@ impl Matchmaker<'_> {
     #[allow(clippy::cast_precision_loss, reason = "Doesn't need to be accurate")]
     fn next_player(
         &self,
-        agg_stats: &AggregateStats,
+        aggregate_stats: &AggregateStats,
         performances: &HashMap<PlayerId, MatchPerformance>,
         deprioritize_unranked: bool,
         deprioritize_precon: bool,
         repeat_penalty: f64,
     ) -> Option<PlayerId> {
-        let avg_elo = agg_stats
+        let avg_elo = aggregate_stats
             .avg_elo()
             .unwrap_or_else(|| self.tourn.default_stats().elo());
+        let calibrate_games = self.tourn.game_config().calibration_games();
 
         Some(
-            performances
+            *performances
                 .iter()
-                .map(|(&id, perf)| {
-                    let stats = self.tourn.get_player_or_default_stats(id);
+                .min_by_key(|(id, perf)| {
+                    let stats = self.tourn.get_player_or_default_stats(**id);
+                    let info = self.tourn.get_player_info(id)?;
 
-                    let precon = deprioritize_precon
-                        && self
-                            .tourn
-                            .get_player_info(&id)
-                            .map_or_default(PlayerInfo::is_precon);
-
-                    let elo_diff = (avg_elo - stats.elo()).abs();
+                    let elo_diff = (stats.elo() - avg_elo).abs();
                     let penalty = perf.played() as f64 * repeat_penalty;
                     let score = elo_diff + penalty;
 
-                    let uncalibrated =
-                        deprioritize_unranked && stats.games() < self.tourn.game_config().calibration_games();
-
-                    (id, uncalibrated, precon, score)
-                })
-                .min_by(
-                    |(id_a, unranked_a, precon_a, score_a), (id_b, unranked_b, precon_b, score_b)| {
-                        unranked_a
-                            .cmp(unranked_b)
-                            .then_with(|| precon_a.cmp(precon_b))
-                            .then_with(|| score_a.total_cmp(score_b))
-                            .then_with(|| id_a.cmp(id_b))
-                    },
-                )?
+                    Some((
+                        deprioritize_unranked && (stats.games() < calibrate_games),
+                        deprioritize_precon && info.is_precon(),
+                        NotNan::new(score).ok(),
+                        **id,
+                    ))
+                })?
                 .0,
         )
     }
@@ -179,14 +168,14 @@ impl Matchmaker<'_> {
                 if diff <= elo_range {
                     Either::Left(id)
                 } else {
-                    Either::Right((NotNan::new(diff).unwrap_or_default(), id))
+                    Either::Right(Reverse((NotNan::new(diff).unwrap_or_default(), id)))
                 }
             });
 
         pool.retain(|id| *id != player);
 
         while pool.len() < self.config.min_pool_size()
-            && let Some((_, id)) = outliers.pop()
+            && let Some(Reverse((_, id))) = outliers.pop()
         {
             pool.push(id);
         }

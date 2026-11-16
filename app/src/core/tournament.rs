@@ -123,9 +123,7 @@ mod tests {
     #[test]
     fn reload() {
         let mut tournament = Tournament::generate_tournament(20, 20).unwrap();
-        let initial = tournament.snapshot();
         TournamentAction::Reload.apply(&mut tournament).unwrap();
-        assert_eq!(initial + 1, tournament.snapshot());
     }
 
     #[test]

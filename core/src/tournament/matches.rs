@@ -9,17 +9,11 @@ use crate::{
 
 impl Tournament {
     pub fn update_record(&self, record: GameRecord) -> Result<GameRecord, TournamentError> {
-        if record.matchup().snapshot() == self.snapshot {
-            return Ok(record);
-        }
         let (matchup, winner) = record.decompose();
         self.create_match(matchup.ids())?.record(winner)
     }
 
-    pub fn update_match(&self, matchup: Matchup) -> Result<Matchup, TournamentError> {
-        if matchup.snapshot() == self.snapshot {
-            return Ok(matchup);
-        }
+    pub fn update_match(&self, matchup: &Matchup) -> Result<Matchup, TournamentError> {
         self.create_match(matchup.ids())
     }
 
@@ -63,8 +57,8 @@ impl Tournament {
         array::from_fn(|i| {
             let k = k[i];
             let elo_loss = k * expected[i];
-            let elo_gain = k - elo_loss;
-            MatchPlayer::new(players[i], stats[i].clone(), expected[i], elo_gain, elo_loss)
+            let elo_win = k - elo_loss;
+            MatchPlayer::new(players[i], stats[i].clone(), expected[i], elo_win, elo_loss)
         })
     }
 
@@ -76,20 +70,18 @@ impl Tournament {
             }
         }
 
-        Ok(Matchup::new(self.create_match_players(ids), self.snapshot))
+        Ok(Matchup::new(self.create_match_players(ids)))
     }
 
     pub fn record_entry(&mut self, entry: GameEntry) -> Result<(), TournamentError> {
         let matchup = self.create_match(*entry.players())?;
         let record = matchup.record(entry.winner())?;
         self.insert_game_record(record);
-        self.snapshot += 1;
         Ok(())
     }
 
     pub fn record_game(&mut self, record: GameRecord) -> Result<(), TournamentError> {
         self.insert_game_record(self.update_record(record)?);
-        self.snapshot += 1;
         Ok(())
     }
 

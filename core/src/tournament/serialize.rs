@@ -58,8 +58,6 @@ impl TryFrom<SerializedTournament> for Tournament {
             tournament.record_entry(game)?;
         }
 
-        tournament.snapshot = 0;
-
         Ok(tournament)
     }
 }

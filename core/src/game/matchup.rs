@@ -10,13 +10,11 @@ use crate::{
 pub struct Matchup {
     #[get = "pub"]
     players: [MatchPlayer; POD_SIZE],
-    #[get_copy = "pub"]
-    snapshot: usize,
 }
 
 impl Matchup {
-    pub(crate) const fn new(players: [MatchPlayer; POD_SIZE], snapshot: usize) -> Self {
-        Self { players, snapshot }
+    pub(crate) const fn new(players: [MatchPlayer; POD_SIZE]) -> Self {
+        Self { players }
     }
 
     #[must_use]

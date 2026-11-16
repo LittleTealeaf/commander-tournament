@@ -3,7 +3,6 @@ mod compat;
 mod config;
 mod matches;
 mod matchmaker;
-mod next_game;
 mod players;
 pub(crate) mod serialize;
 mod stats;
@@ -40,9 +39,8 @@ pub struct Tournament {
     pub(crate) stats: HashMap<PlayerId, PlayerStats>,
     pub(crate) default_stats: PlayerStats,
     pub(crate) players: HashMap<PlayerId, PlayerInfo>,
-    pub(crate) player_names: HashMap<String, PlayerId>,
+    pub(crate) player_names: im::HashMap<String, PlayerId>,
     pub(crate) games: Vec<GameRecord>,
-    pub(crate) snapshot: usize,
 }
 
 impl Default for Tournament {
@@ -59,9 +57,8 @@ impl Tournament {
             stats: HashMap::default(),
             default_stats: PlayerStats::new(config.game().initial_elo()),
             players: HashMap::default(),
-            player_names: HashMap::default(),
+            player_names: im::HashMap::default(),
             games: Vec::new(),
-            snapshot: 0,
             config,
         }
     }
@@ -79,13 +76,10 @@ impl Tournament {
 
     pub fn merge(&mut self, other: &Self) -> Result<(), TournamentError> {
         let id_map = self.merge_players_from_tournament(other)?;
-        let snapshot = self.snapshot;
 
         for game in &other.games {
             self.record_entry(GameEntry::from(game).map_ids(&id_map)?)?;
         }
-
-        self.snapshot = snapshot + 1;
 
         Ok(())
     }
@@ -94,28 +88,9 @@ impl Tournament {
         let mut tourn = Self {
             config: self.config.clone(),
             default_stats: self.default_stats.clone(),
-            snapshot: 0,
             ..Self::new()
         };
         tourn.merge(self)?;
-        tourn.snapshot = 0;
         Ok(tourn)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn new_tournament_snapshot_is_0() {
-        let tourn = Tournament::new();
-        assert_eq!(0, tourn.snapshot);
-    }
-    #[test]
-    fn into_fresh_resets_snapshot() {
-        let mut game = Tournament::new();
-        game.snapshot = 5;
-        let new_game = game.into_fresh().unwrap();
-        assert_eq!(0, new_game.snapshot);
     }
 }

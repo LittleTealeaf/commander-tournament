@@ -3,54 +3,6 @@ use commander_tournament_core::game::entry::GameEntry;
 use commander_tournament_core::{player::PlayerId, tournament::Tournament};
 use itertools::Itertools;
 
-mod update_match {
-    use super::*;
-
-    #[test]
-    fn same_snaphot() {
-        let mut t = Tournament::new();
-        let players = t.register_debug_players().unwrap();
-        let matchup = t.create_match(players).unwrap();
-        let updated = t.update_match(matchup.clone()).unwrap();
-        assert!(matchup.eq(&updated));
-    }
-
-    #[test]
-    fn newer_snapshot() {
-        let mut t = Tournament::new();
-        let players = t.register_debug_players().unwrap();
-        let matchup = t.create_match(players).unwrap();
-        t.reload().unwrap();
-        let updated = t.update_match(matchup.clone()).unwrap();
-        assert!(!matchup.eq(&updated));
-    }
-}
-
-mod update_record {
-    use super::*;
-
-    #[test]
-    fn same_snapshot() {
-        let mut t = Tournament::new();
-        let players = t.register_debug_players().unwrap();
-        let matchup = t.create_match(players).unwrap();
-        let record = matchup.debug_record().unwrap();
-        let updated = t.update_record(record.clone()).unwrap();
-        assert!(record.eq(&updated));
-    }
-
-    #[test]
-    fn newer_snapshot() {
-        let mut t = Tournament::new();
-        let players = t.register_debug_players().unwrap();
-        let matchup = t.create_match(players).unwrap();
-        let record = matchup.debug_record().unwrap();
-        t.reload().unwrap();
-        let updated = t.update_record(record.clone()).unwrap();
-        assert!(!record.eq(&updated));
-    }
-}
-
 mod create_match {
     use super::*;
 
