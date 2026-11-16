@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.3.0](https://github.com/LittleTealeaf/commander-tournament/compare/commander_tournament_core-v1.2.0...commander_tournament_core-v1.3.0) (2026-11-16)
+
+
+### Features
+
+* Add max precons ([#156](https://github.com/LittleTealeaf/commander-tournament/issues/156)) ([c38b594](https://github.com/LittleTealeaf/commander-tournament/commit/c38b59417be7276e595016b50deb38f3fa0b6a0a))
+* Calibration uses only elo neighbors ([#161](https://github.com/LittleTealeaf/commander-tournament/issues/161)) ([6affa66](https://github.com/LittleTealeaf/commander-tournament/commit/6affa6694d6b90e15c2864570c3d6f64ab692fe5))
+* matchmaking now uses same logic ([#196](https://github.com/LittleTealeaf/commander-tournament/issues/196)) ([407bba0](https://github.com/LittleTealeaf/commander-tournament/commit/407bba0e0f1927ffdd8a383c59583cff14458edd))
+* Updated game creaetion ([#203](https://github.com/LittleTealeaf/commander-tournament/issues/203)) ([860f4b5](https://github.com/LittleTealeaf/commander-tournament/commit/860f4b5de182acaf45220e881c2713743742b3d1))
+
 ## [1.2.0](https://github.com/LittleTealeaf/commander-tournament/compare/commander_tournament_core-v1.1.0...commander_tournament_core-v1.2.0) (2026-10-18)
 
 

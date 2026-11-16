@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.2.0](https://github.com/LittleTealeaf/commander-tournament/compare/commander_tournament-v2.1.0...commander_tournament-v2.2.0) (2026-11-16)
+
+
+### Features
+
+* matchmaking now uses same logic ([#196](https://github.com/LittleTealeaf/commander-tournament/issues/196)) ([407bba0](https://github.com/LittleTealeaf/commander-tournament/commit/407bba0e0f1927ffdd8a383c59583cff14458edd))
+* Updated game creaetion ([#203](https://github.com/LittleTealeaf/commander-tournament/issues/203)) ([860f4b5](https://github.com/LittleTealeaf/commander-tournament/commit/860f4b5de182acaf45220e881c2713743742b3d1))
+
 ## [2.1.0](https://github.com/LittleTealeaf/commander-tournament/compare/commander_tournament-v2.0.0...commander_tournament-v2.1.0) (2026-10-04)
 
 
