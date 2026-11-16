@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::{
     error::TournamentError,
     player::{PlayerId, stats::PlayerStats},
@@ -6,16 +8,24 @@ use crate::{
 
 impl Tournament {
     pub fn recalculate_stats(&mut self) -> Result<(), TournamentError> {
-        let version = self.snapshot;
         self.default_stats = PlayerStats::new(self.game_config().initial_elo());
-        self.stats.clear();
+
+        let mut stats = HashMap::new();
         let mut games = Vec::new();
+
+        core::mem::swap(&mut self.stats, &mut stats);
         core::mem::swap(&mut self.games, &mut games);
-        for record in games {
-            self.record_entry(record.into())?;
-        }
-        self.snapshot = version + 1;
-        Ok(())
+
+        (|| {
+            for record in &games {
+                self.record_entry(record.into())?;
+            }
+            Ok(())
+        })()
+        .inspect_err(|_| {
+            core::mem::swap(&mut self.games, &mut games);
+            core::mem::swap(&mut self.stats, &mut stats);
+        })
     }
 
     #[must_use]

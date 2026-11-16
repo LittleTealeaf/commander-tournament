@@ -24,11 +24,6 @@ where
 }
 
 impl Tournament {
-    #[must_use]
-    pub const fn snapshot(&self) -> usize {
-        self.snapshot
-    }
-
     pub fn generate_tournament(player_count: usize, games: usize) -> Result<Self, TournamentError> {
         if games > 0 && player_count < 4 {
             return Err(TournamentError::NotEnoughPlayers);
@@ -98,12 +93,6 @@ impl Matchup {
         let winner = self.players().choose(&mut rng)?.id();
         self.record(winner).ok()
     }
-}
-
-#[test]
-fn snapshot_returns() {
-    let t = Tournament::generate_tournament(50, 100).unwrap();
-    assert_eq!(t.snapshot(), t.snapshot);
 }
 
 #[test]

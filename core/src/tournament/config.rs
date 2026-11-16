@@ -48,27 +48,6 @@ mod tests {
     }
 
     #[test]
-    fn updating_config_updates_version() {
-        let mut tournament = Tournament::generate_tournament(4, 1).unwrap();
-        let mut config = tournament.game_config().clone();
-        *config.initial_elo_mut() += 1500.0;
-
-        let version = tournament.snapshot;
-        tournament.set_game_config(config).unwrap();
-        let new_version = tournament.snapshot;
-        assert_eq!(version + 1, new_version);
-    }
-
-    #[test]
-    fn with_game_config_updates_version() {
-        let tournament = Tournament::new();
-        let ver = tournament.snapshot;
-        let tournament = tournament.with_game_config(GameConfig::default()).unwrap();
-        let new_ver = tournament.snapshot;
-        assert_eq!(ver + 1, new_ver);
-    }
-
-    #[test]
     fn set_matchmaker_config() {
         let mut tournament = Tournament::new();
         let mut matchmaker = tournament.matchmaker_config().clone();

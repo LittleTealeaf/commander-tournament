@@ -85,13 +85,4 @@ mod tests {
         assert!((starting_elo - de_tourn.default_stats().elo()) <= 1e-9);
     }
 
-    #[test]
-    fn deserialize_resets_snapshot() {
-        let mut t_source = Tournament::sample_game();
-        t_source.snapshot = 2;
-
-        let ser = ron::to_string(&t_source).unwrap();
-        let t_deserialized: Tournament = ron::from_str(&ser).unwrap();
-        assert_eq!(0, t_deserialized.snapshot);
-    }
 }
