@@ -1,4 +1,4 @@
-use core::ops::AddAssign;
+use core::{cmp::Reverse, ops::AddAssign};
 use std::collections::{BinaryHeap, HashMap};
 
 use itertools::{Either, Itertools};
@@ -179,14 +179,14 @@ impl Matchmaker<'_> {
                 if diff <= elo_range {
                     Either::Left(id)
                 } else {
-                    Either::Right((NotNan::new(diff).unwrap_or_default(), id))
+                    Either::Right(Reverse((NotNan::new(diff).unwrap_or_default(), id)))
                 }
             });
 
         pool.retain(|id| *id != player);
 
         while pool.len() < self.config.min_pool_size()
-            && let Some((_, id)) = outliers.pop()
+            && let Some(Reverse((_, id))) = outliers.pop()
         {
             pool.push(id);
         }
