@@ -34,10 +34,8 @@ where
         id: PlayerId,
     ) -> Result<HashMap<PlayerId, MatchPerformance>, TournamentError> {
         let mut map = self.player_performance(id)?;
-        for id in self.tourn.players().keys() {
-            if (self.pool)(*id) {
-                map.entry(*id).or_default();
-            }
+        for id in self.validated_pool() {
+            map.entry(id).or_default();
         }
         Ok(map)
     }

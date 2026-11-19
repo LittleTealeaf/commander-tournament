@@ -59,10 +59,7 @@ where
             }
         };
 
-        Analytics {
-            tourn: self.tourn,
-            pool: move |id| (self.pool)(id) && !precons.contains(&id),
-        }
+        self.filter_pool(move |id| !precons.contains(&id))
     }
 
     pub fn validated_pool(&self) -> impl Iterator<Item = PlayerId> {
