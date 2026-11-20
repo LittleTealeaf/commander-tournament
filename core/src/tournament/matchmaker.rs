@@ -64,13 +64,6 @@ where
             .map_or_else(|| self.tourn.matchmaker_config(), |config| config)
     }
 
-    fn valid_players(&self) -> impl Iterator<Item = PlayerId> {
-        self.tourn
-            .players()
-            .iter()
-            .filter_map(|(id, info)| (self.player_filter)(*id, info).then_some(*id))
-    }
-
     pub fn create_match(&self, player: PlayerId) -> Result<Matchup, TournamentError> {
         // Get player info
         let info = self.tourn.require_player_info(player)?;
@@ -199,5 +192,91 @@ where
         }
 
         pool
+    }
+
+    fn valid_players(&self) -> impl Iterator<Item = PlayerId> {
+        self.tourn
+            .players()
+            .iter()
+            .filter_map(|(id, info)| (self.player_filter)(*id, info).then_some(*id))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::config::game::GameConfig;
+
+    use super::*;
+
+    #[test]
+    fn config_overrides() {
+        let mut tourn = Tournament::new();
+        let config = MatchmakerConfig::default().with_max_precon(3);
+        tourn.set_matchmaker_config(config);
+
+        let matchmaker = tourn.matchmaker();
+        assert_eq!(3, matchmaker.config().max_precon());
+
+        let config = MatchmakerConfig::default().with_max_precon(10);
+        let matchmaker = matchmaker.with_config(config);
+        assert_eq!(10, matchmaker.config().max_precon());
+    }
+
+    #[test]
+    fn valid_players_uses_filter() {
+        let mut tourn = Tournament::new();
+        let [id_a, id_b, id_c, id_d] = tourn.register_debug_players().unwrap();
+        tourn
+            .update_player_info(&id_a, |info| info.with_is_precon(true))
+            .unwrap();
+        tourn
+            .update_player_info(&id_c, |info| info.with_is_archived(true))
+            .unwrap();
+
+        let matchmaker = tourn.matchmaker();
+
+        assert!(
+            !matchmaker.valid_players().contains(&id_c),
+            "Included archived player"
+        );
+
+        let matchmaker = matchmaker.with_filter(|id, info| !info.is_precon() && id != id_b);
+        let valid_players = matchmaker.valid_players().collect::<Vec<_>>();
+
+        assert!(!valid_players.contains(&id_a), "Info filter failed");
+        assert!(!valid_players.contains(&id_b), "Id filter failed");
+        assert!(!valid_players.contains(&id_c), "Included Archived");
+        assert!(valid_players.contains(&id_d), "Failed to include valid player");
+    }
+
+    #[test]
+    fn pool_minimum_from_nearby() {
+        let mut tourn = Tournament::new();
+        tourn.set_matchmaker_config(
+            MatchmakerConfig::default()
+                .with_elo_range(1.0)
+                .with_min_pool_size(3),
+        );
+        tourn
+            .set_game_config(
+                GameConfig::default()
+                    .with_calibration_games(0)
+                    .with_base_k(1.0)
+                    .with_initial_elo(1500.0),
+            )
+            .unwrap();
+
+        let [id_a, id_b, id_c, id_d, id_e] = tourn.register_debug_players().unwrap();
+        tourn.debug_set_target_elo(id_a, 1500.0).unwrap();
+        tourn.debug_set_target_elo(id_b, 1490.0).unwrap();
+        tourn.debug_set_target_elo(id_c, 1520.0).unwrap();
+        tourn.debug_set_target_elo(id_d, 1530.0).unwrap();
+        tourn.debug_set_target_elo(id_e, 1540.0).unwrap();
+
+        let matchmaker = tourn.matchmaker().create_pool(id_a);
+        assert!(matchmaker.contains(&id_b));
+        assert!(matchmaker.contains(&id_c));
+        assert!(matchmaker.contains(&id_d));
+        assert!(!matchmaker.contains(&id_e));
     }
 }
