@@ -20,6 +20,7 @@ use crate::{
     error::TournamentError,
     game::{entry::GameEntry, record::GameRecord},
     player::{PlayerId, info::PlayerInfo, stats::PlayerStats},
+    tournament::compat::v6::V6Tournament,
 };
 
 #[derive(
@@ -27,21 +28,22 @@ use crate::{
 )]
 #[backwards_compat(
     tag = "version",
-    version = 6,
+    version = 7,
     error = TournamentError,
     versions(
         3: V3Tournament => 5,
-        4: V4Tournament,
-        5: V5Tournament,
-        #[fallible] 6: SerializedTournament,
+        4: V4Tournament => 5,
+        5: V5Tournament => 6,
+        6: V6Tournament => 7,
+        #[fallible] 7: SerializedTournament,
     )
 )]
 pub struct Tournament {
-    pub(crate) stats: HashMap<PlayerId, PlayerStats>,
-    pub(crate) default_stats: PlayerStats,
-    pub(crate) players: HashMap<PlayerId, PlayerInfo>,
-    pub(crate) player_names: im::HashMap<String, PlayerId>,
-    pub(crate) games: Vec<GameRecord>,
+    stats: HashMap<PlayerId, PlayerStats>,
+    default_stats: PlayerStats,
+    players: HashMap<PlayerId, PlayerInfo>,
+    player_names: im::HashMap<String, PlayerId>,
+    games: Vec<GameRecord>,
     #[getset(get = "pub")]
     game_config: GameConfig,
     #[getset(get = "pub", set = "pub", set_with = "pub", get_mut = "pub")]

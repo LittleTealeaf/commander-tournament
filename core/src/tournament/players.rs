@@ -1,7 +1,8 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, convert::Into};
 
 use crate::{
     error::TournamentError,
+    game::entry::GameEntry,
     player::{PlayerId, RegisteredPlayer, info::PlayerInfo},
     tournament::Tournament,
 };
@@ -178,5 +179,28 @@ impl Tournament {
     #[must_use]
     pub fn get_player_display_name(&self, id: &PlayerId) -> Option<String> {
         self.get_player_info(id).map(PlayerInfo::display_name)
+    }
+
+    pub fn merge_player(&mut self, target: PlayerId, other: PlayerId) -> Result<(), TournamentError> {
+        let mut records = Vec::new();
+        let mut stats = HashMap::new();
+
+        core::mem::swap(&mut records, &mut self.games);
+        core::mem::swap(&mut stats, &mut self.stats);
+
+        let map: HashMap<PlayerId, PlayerId> = HashMap::from_iter([(other, target)]);
+
+        (|| {
+            for record in &records {
+                let entry: GameEntry = record.into();
+                let mapped = entry.map_ids(&map)?;
+                self.record_entry(mapped)?;
+            }
+            Ok(())
+        })()
+        .inspect_err(|_| {
+            core::mem::swap(&mut records, &mut self.games);
+            core::mem::swap(&mut stats, &mut self.stats);
+        })
     }
 }

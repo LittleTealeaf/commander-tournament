@@ -251,14 +251,13 @@ mod tests {
 
     #[test]
     fn pool_minimum_from_nearby() {
-        let mut tourn = Tournament::new();
-        tourn.set_matchmaker_config(
-            MatchmakerConfig::default()
-                .with_elo_range(1.0)
-                .with_min_pool_size(3),
-        );
-        tourn
-            .set_game_config(
+        let mut tourn = Tournament::new()
+            .with_matchmaker_config(
+                MatchmakerConfig::default()
+                    .with_elo_range(1.0)
+                    .with_min_pool_size(3),
+            )
+            .with_game_config(
                 GameConfig::default()
                     .with_calibration_games(0)
                     .with_base_k(1.0)

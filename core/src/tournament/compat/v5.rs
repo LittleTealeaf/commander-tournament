@@ -1,24 +1,14 @@
 use std::collections::HashMap;
 
-use serde::Deserializer;
-
 use crate::{
     config::{game::GameConfig, matchmaker::MatchmakerConfig},
     game::entry::GameEntry,
     player::{PlayerId, info::PlayerInfo},
-    tournament::{compat::config::TournamentConfig, serialize::SerializedTournament},
-    utils::DeserializableMap,
+    tournament::{
+        compat::{config::TournamentConfig, v6::V6Tournament},
+        serialize::player_info_deserialize,
+    },
 };
-
-fn player_info_deserialize<'de, D>(deserializer: D) -> Result<HashMap<PlayerId, PlayerInfo>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    Ok(DeserializableMap::<PlayerInfo>::deserialize_to_map(deserializer)?
-        .into_iter()
-        .map(|(id, info)| (PlayerId(id), info))
-        .collect())
-}
 
 #[derive(Debug, serde::Deserialize)]
 pub struct V5Tournament {
@@ -35,7 +25,7 @@ pub struct V5Tournament {
     pub(super) games: Vec<GameEntry>,
 }
 
-impl From<V5Tournament> for SerializedTournament {
+impl From<V5Tournament> for V6Tournament {
     fn from(value: V5Tournament) -> Self {
         Self::new(
             TournamentConfig::new(
