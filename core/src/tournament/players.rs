@@ -1,4 +1,5 @@
-use std::{collections::HashMap, convert::Into};
+use core::convert::Into;
+use std::collections::HashMap;
 
 use crate::{
     error::TournamentError,
