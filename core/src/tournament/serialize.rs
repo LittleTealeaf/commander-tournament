@@ -2,11 +2,10 @@ use serde::Deserializer;
 use std::collections::HashMap;
 
 use crate::{
-    config::TournamentConfig,
     error::TournamentError,
     game::entry::GameEntry,
     player::{PlayerId, info::PlayerInfo},
-    tournament::Tournament,
+    tournament::{Tournament, compat::config::TournamentConfig},
     utils::DeserializableMap,
 };
 
@@ -38,7 +37,7 @@ pub struct SerializedTournament {
 impl From<Tournament> for SerializedTournament {
     fn from(value: Tournament) -> Self {
         Self {
-            config: value.config,
+            config: TournamentConfig::new(value.game_config, value.matchmaker_config),
             players: value.players,
             games: value.games.into_iter().map(GameEntry::from).collect(),
         }
@@ -49,7 +48,8 @@ impl TryFrom<SerializedTournament> for Tournament {
     type Error = TournamentError;
     fn try_from(value: SerializedTournament) -> Result<Self, Self::Error> {
         let mut tournament = Self {
-            config: value.config,
+            game_config: value.config.game,
+            matchmaker_config: value.config.matchmaker,
             players: value.players,
             ..Self::default()
         };

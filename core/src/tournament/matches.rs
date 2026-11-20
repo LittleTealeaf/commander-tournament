@@ -21,7 +21,7 @@ impl Tournament {
     #[allow(clippy::cast_precision_loss, reason = "Generic Type to f64")]
     #[allow(clippy::indexing_slicing, reason = "Static T-constant range")]
     pub(crate) fn create_match_players<const T: usize>(&self, players: [PlayerId; T]) -> [MatchPlayer; T] {
-        let config = self.config.game();
+        let config = self.game_config();
 
         let stats: [&PlayerStats; T] = array::from_fn(|i| self.get_player_or_default_stats(players[i]));
 

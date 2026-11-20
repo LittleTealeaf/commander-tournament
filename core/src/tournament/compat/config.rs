@@ -1,7 +1,8 @@
-use crate::config::{TournamentConfig, game::GameConfig, matchmaker::MatchmakerConfig};
+use crate::config::{game::GameConfig, matchmaker::MatchmakerConfig};
+use backwards_compat::backwards_compat;
 
 #[derive(Debug, serde::Deserialize)]
-pub struct UnversionedGameConfig {
+struct UnversionedGameConfig {
     #[serde(alias = "starting_elo")]
     initial_elo: f64,
     logistic_scale: f64,
@@ -35,7 +36,7 @@ impl From<UnversionedGameConfig> for GameConfig {
 }
 
 #[derive(Debug, serde::Deserialize)]
-pub struct UnversionedMatchmakerConfig {
+struct UnversionedMatchmakerConfig {
     elo_range: f64,
     min_pool_size: usize,
 }
@@ -56,7 +57,7 @@ impl From<UnversionedMatchmakerConfig> for MatchmakerConfig {
 }
 
 #[derive(Debug, serde::Deserialize)]
-pub struct V1TournamentConfig {
+struct V1TournamentConfig {
     #[serde(default)]
     game: UnversionedGameConfig,
     #[serde(default)]
@@ -70,7 +71,7 @@ impl From<V1TournamentConfig> for TournamentConfig {
 }
 
 #[derive(Debug, serde::Deserialize)]
-pub struct V2TournamentConfig {
+struct V2TournamentConfig {
     #[serde(default)]
     game: GameConfig,
     #[serde(default)]
@@ -81,4 +82,18 @@ impl From<V2TournamentConfig> for TournamentConfig {
     fn from(value: V2TournamentConfig) -> Self {
         Self::new(value.game, value.matchmaker.into())
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Default, derive_more::Constructor)]
+#[backwards_compat(
+    tag = "v",
+    version = 3,
+    versions(
+        1: V1TournamentConfig => 3,
+        2: V2TournamentConfig => 3,
+    )
+)]
+pub struct TournamentConfig {
+    pub game: GameConfig,
+    pub matchmaker: MatchmakerConfig,
 }

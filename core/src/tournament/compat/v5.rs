@@ -3,10 +3,10 @@ use std::collections::HashMap;
 use serde::Deserializer;
 
 use crate::{
-    config::{TournamentConfig, game::GameConfig, matchmaker::MatchmakerConfig},
+    config::{game::GameConfig, matchmaker::MatchmakerConfig},
     game::entry::GameEntry,
     player::{PlayerId, info::PlayerInfo},
-    tournament::serialize::SerializedTournament,
+    tournament::{compat::config::TournamentConfig, serialize::SerializedTournament},
     utils::DeserializableMap,
 };
 
