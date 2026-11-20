@@ -154,6 +154,11 @@ impl Tournament {
         self.players().get(id)
     }
 
+    pub fn require_player_info(&self, id: PlayerId) -> Result<&PlayerInfo, TournamentError> {
+        self.get_player_info(&id)
+            .ok_or(TournamentError::InvalidPlayerId(id))
+    }
+
     pub fn update_player_info<F>(&mut self, id: &PlayerId, modifier: F) -> Result<(), TournamentError>
     where
         F: FnOnce(PlayerInfo) -> PlayerInfo,

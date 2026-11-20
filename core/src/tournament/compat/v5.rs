@@ -43,9 +43,10 @@ impl From<V5Tournament> for SerializedTournament {
                 MatchmakerConfig::new(
                     value.config.matchmaker.elo_range,
                     value.config.matchmaker.min_pool_size,
+                    10f64,
+                    true,
                     1,
                     2,
-                    true,
                 ),
             ),
             value.players,
