@@ -1,6 +1,6 @@
+use backwards_compat::backwards_compat;
 use iced::Task;
 use iced_tea::{Model, Signal};
-use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 use crate::services::system::{load_from_file_async, project_dir, save_file_async};
@@ -30,7 +30,14 @@ pub struct AppState {
     data: AppStatePayload,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[backwards_compat(
+    tag="ver",
+    versions(
+        _: Self,
+        1: Self,
+    )
+)]
 struct AppStatePayload {
     last_opened: Option<PathBuf>,
 }

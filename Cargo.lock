@@ -669,6 +669,7 @@ dependencies = [
  "anyhow",
  "approx",
  "async-fs",
+ "backwards-compat",
  "commander_tournament",
  "commander_tournament_core",
  "derive_more",
