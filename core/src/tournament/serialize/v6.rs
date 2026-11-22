@@ -3,10 +3,7 @@ use std::collections::HashMap;
 use crate::{
     game::entry::GameEntry,
     player::{PlayerId, info::PlayerInfo},
-    tournament::{
-        compat::config::TournamentConfig,
-        serialize::{SerializedTournament, player_info_deserialize},
-    },
+    tournament::serialize::{config::TournamentConfig, player_info_deserialize, v7::V7Tournament},
 };
 
 #[derive(Debug, serde::Deserialize, derive_more::Constructor)]
@@ -23,7 +20,7 @@ pub struct V6Tournament {
     games: Vec<GameEntry>,
 }
 
-impl From<V6Tournament> for SerializedTournament {
+impl From<V6Tournament> for V7Tournament {
     fn from(value: V6Tournament) -> Self {
         Self::new(
             value.players,

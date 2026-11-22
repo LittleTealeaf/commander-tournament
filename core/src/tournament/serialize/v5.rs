@@ -4,10 +4,7 @@ use crate::{
     config::{game::GameConfig, matchmaker::MatchmakerConfig},
     game::entry::GameEntry,
     player::{PlayerId, info::PlayerInfo},
-    tournament::{
-        compat::{config::TournamentConfig, v6::V6Tournament},
-        serialize::player_info_deserialize,
-    },
+    tournament::serialize::{config::TournamentConfig, player_info_deserialize, v6::V6Tournament},
 };
 
 #[derive(Debug, serde::Deserialize)]

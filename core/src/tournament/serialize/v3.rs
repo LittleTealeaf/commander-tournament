@@ -5,8 +5,8 @@ use serde::{Deserialize, Deserializer};
 use crate::game::entry::GameEntry;
 use crate::player::PlayerId;
 use crate::player::info::PlayerInfo;
-use crate::tournament::compat::V5Tournament;
-use crate::tournament::compat::v5::{V5GameConfig, V5MatchmakerConfig, V5TournamentConfig};
+use crate::tournament::serialize::V5Tournament;
+use crate::tournament::serialize::v5::{V5GameConfig, V5MatchmakerConfig, V5TournamentConfig};
 use crate::utils::DeserializableMap;
 
 fn player_info_deserialize<'de, D>(deserializer: D) -> Result<HashMap<PlayerId, PlayerInfo>, D::Error>

@@ -61,7 +61,7 @@ where
     T: Serialize,
 {
     Ok(match extension {
-        "ron" => ron::to_string(data)?,
+        "ron" => ron::ser::to_string_pretty(data, ron::ser::PrettyConfig::new())?,
         #[cfg(feature = "serde_json")]
         "json" => serde_json::to_string(data)?,
         #[cfg(feature = "serde_toml")]
