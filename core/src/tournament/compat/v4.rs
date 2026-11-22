@@ -79,15 +79,3 @@ impl From<V4Tournament> for V5Tournament {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-
-    use crate::tournament::Tournament;
-
-    #[test]
-    fn deserialize() {
-        let data = include_str!("../../../../res/tests/compats/sample-v4.ron");
-        let _: Tournament = ron::from_str(data).unwrap();
-    }
-}

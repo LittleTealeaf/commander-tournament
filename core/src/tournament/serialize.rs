@@ -70,11 +70,16 @@ impl TryFrom<SerializedTournament> for Tournament {
 
 #[cfg(test)]
 mod tests {
-    use crate::tournament::Tournament;
+    use super::Tournament;
+    use rstest::rstest;
 
-    #[test]
-    fn deserialize() {
-        let data = include_str!("../../../res/tests/compats/sample-v6.ron");
+    #[rstest]
+    fn deserialize(
+        #[base_dir = "tests/fixtures/saves"]
+        #[files("*.ron")]
+        #[mode=str]
+        data: &str,
+    ) {
         let _: Tournament = ron::from_str(data).unwrap();
     }
 }

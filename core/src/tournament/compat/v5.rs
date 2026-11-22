@@ -90,14 +90,3 @@ impl Default for V5MatchmakerConfig {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use crate::tournament::Tournament;
-
-    #[test]
-    fn deserialize() {
-        let data = include_str!("../../../../res/tests/compats/sample-v5.ron");
-        let _: Tournament = ron::from_str(data).unwrap();
-    }
-}
