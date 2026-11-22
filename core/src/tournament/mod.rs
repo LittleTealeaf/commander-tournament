@@ -28,14 +28,15 @@ use crate::{
 )]
 #[backwards_compat(
     tag = "version",
-    version = 7,
     error = TournamentError,
     versions(
-        3: V3Tournament => 5,
-        4: V4Tournament => 5,
-        5: V5Tournament => 6,
-        6: V6Tournament => 7,
-        #[fallible] 7: SerializedTournament,
+        "3": V3Tournament => "5",
+        "4": V4Tournament => "5",
+        "5": V5Tournament => "6",
+        "6": V6Tournament => 7,
+        #[fallible]
+        #[serialize]
+        7 | "7": SerializedTournament
     )
 )]
 pub struct Tournament {

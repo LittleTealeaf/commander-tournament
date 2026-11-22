@@ -1,6 +1,33 @@
 use backwards_compat::backwards_compat;
 use serde_inline_default::serde_inline_default;
 
+#[derive(Debug, serde::Deserialize)]
+struct UnversionedMatchmakerConfig {
+    elo_range: f64,
+    min_pool_size: usize,
+}
+
+impl Default for UnversionedMatchmakerConfig {
+    fn default() -> Self {
+        Self {
+            elo_range: 120.0,
+            min_pool_size: 5,
+        }
+    }
+}
+
+impl From<UnversionedMatchmakerConfig> for MatchmakerConfigV1 {
+    fn from(value: UnversionedMatchmakerConfig) -> Self {
+        Self {
+            elo_range: value.elo_range,
+            min_pool_size: value.min_pool_size,
+            max_unranked: 1,
+            max_precon: 2,
+            strict_calibrate: true,
+        }
+    }
+}
+
 #[serde_inline_default]
 #[derive(serde::Deserialize)]
 struct MatchmakerConfigV1 {
@@ -40,9 +67,14 @@ impl From<MatchmakerConfigV1> for MatchmakerConfig {
     derive_more::Constructor,
 )]
 #[getset(set = "pub", set_with = "pub", get_copy = "pub", get_mut = "pub")]
-#[backwards_compat(tag = "v", version = 2, versions(
-        1: MatchmakerConfigV1 => 2
-))]
+#[backwards_compat(
+    tag = "v",
+    versions(
+        _: UnversionedMatchmakerConfig => "1",
+        "1": MatchmakerConfigV1 => 2
+        2 | "2": Self
+    )
+)]
 pub struct MatchmakerConfig {
     elo_range: f64,
     min_pool_size: usize,

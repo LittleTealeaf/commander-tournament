@@ -1,5 +1,39 @@
 use backwards_compat::backwards_compat;
 
+#[derive(Debug, serde::Deserialize)]
+struct UnversionedGameConfig {
+    #[serde(alias = "starting_elo")]
+    initial_elo: f64,
+    logistic_scale: f64,
+    initial_k: f64,
+    base_k: f64,
+    calibration_games: u32,
+}
+
+impl Default for UnversionedGameConfig {
+    fn default() -> Self {
+        Self {
+            initial_elo: 1500.0,
+            logistic_scale: 400.0,
+            initial_k: 24.0,
+            base_k: 12.0,
+            calibration_games: 12,
+        }
+    }
+}
+
+impl From<UnversionedGameConfig> for GameConfig {
+    fn from(value: UnversionedGameConfig) -> Self {
+        Self::new(
+            value.initial_elo,
+            value.logistic_scale,
+            value.initial_k,
+            value.base_k,
+            value.calibration_games,
+        )
+    }
+}
+
 #[derive(
     Debug,
     Clone,
@@ -11,7 +45,13 @@ use backwards_compat::backwards_compat;
     derive_more::Constructor,
 )]
 #[getset(set = "pub", set_with = "pub", get_copy = "pub", get_mut = "pub")]
-#[backwards_compat(tag = "v", version = 1)]
+#[backwards_compat(
+    tag = "v",
+    versions(
+        _: UnversionedGameConfig => Self,
+        1 | "1": Self
+    )
+)]
 pub struct GameConfig {
     #[serde(alias = "starting_elo")]
     initial_elo: f64,
