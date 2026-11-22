@@ -180,8 +180,7 @@ where
     let index_winner = players
         .iter()
         .find_position(|i| *i == &winner)
-        .map(|(i, _)| i)
-        .unwrap_or_default();
+        .map_or_default(|(i, _)| i);
 
     players
         .into_iter()
