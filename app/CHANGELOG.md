@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.0.0](https://github.com/LittleTealeaf/commander-tournament/compare/commander_tournament-v2.2.0...commander_tournament-v3.0.0) (2026-11-23)
+
+
+### ⚠ BREAKING CHANGES
+
+* Back-end Refactoring ([#208](https://github.com/LittleTealeaf/commander-tournament/issues/208))
+
+### Features
+
+* Back-end Refactoring ([#208](https://github.com/LittleTealeaf/commander-tournament/issues/208)) ([6465f2e](https://github.com/LittleTealeaf/commander-tournament/commit/6465f2eb8394e9448631f26b3c81a06fdecdf8b1))
+
 ## [2.2.0](https://github.com/LittleTealeaf/commander-tournament/compare/commander_tournament-v2.1.0...commander_tournament-v2.2.0) (2026-11-16)
 
 
