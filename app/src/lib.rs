@@ -1,12 +1,9 @@
 pub mod app;
-pub mod components;
 pub mod core;
 pub mod fonts;
-pub mod home;
 pub mod icons;
-pub mod popup;
+pub mod models;
 pub mod services;
-pub mod views;
 
 use std::path::PathBuf;
 
@@ -15,7 +12,7 @@ use iced::{Program, Subscription, Task, event, window};
 pub use iced_tea::{App as IcedTeaApp, Component, HandleMessage, Model, Signal};
 
 use crate::{
-    app::{Message, View},
+    app::Message,
     core::{file::FileAction, state::AppState},
     fonts::{FONT_BYTES, FONT_NORMAL},
 };
@@ -25,10 +22,7 @@ pub struct ComTourApp {
     tournament: Tournament,
     modified: bool,
     is_saving: bool,
-    menu: app::Menu,
-    home: home::Home,
     file: Option<PathBuf>,
-    views: Vec<View>,
     state: Option<AppState>,
     close_requested: bool,
     // If Some, then show a confirmation dialog
@@ -38,16 +32,6 @@ pub struct ComTourApp {
 }
 
 impl ComTourApp {
-    #[must_use]
-    pub fn boot() -> (Self, Option<Task<Message>>) {
-        (
-            Self::default(),
-            Some(Task::future(async {
-                Message::AppStateLoaded(AppState::load().await.ok())
-            })),
-        )
-    }
-
     #[must_use]
     pub const fn tournament(&self) -> &Tournament {
         &self.tournament
@@ -72,8 +56,14 @@ impl iced_tea::App for ComTourApp {
     type Message = Message;
 
     fn boot() -> (Self, Option<Task<Self::Message>>) {
-        Self::boot()
+        (
+            Self::default(),
+            Some(Task::future(async {
+                Message::AppStateLoaded(AppState::load().await.ok())
+            })),
+        )
     }
+
     fn config<P>(
         app: iced::Application<P>,
     ) -> iced::Application<impl Program<State = Self, Message = Self::Message, Theme = iced::Theme>>
@@ -98,7 +88,7 @@ impl iced_tea::App for ComTourApp {
     }
 
     fn view(&self) -> iced::Element<'_, Self::Message> {
-        self.handle_view()
+        todo!()
     }
 
     fn update(&mut self, message: Self::Message) -> anyhow::Result<Signal<Self::Message, ()>> {

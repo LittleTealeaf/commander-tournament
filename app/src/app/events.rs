@@ -1,12 +1,8 @@
 // use iced::keyboard::{Event, Key, key::Named};
 
-use iced::{
-    Event,
-    keyboard::{self, Key, key::Named},
-    window,
-};
+use iced::{Event, keyboard, window};
 
-use crate::{app::Message, core::file::FileAction};
+use crate::{app::update::Message, core::file::FileAction};
 
 impl Message {
     #[must_use]
@@ -22,29 +18,7 @@ impl Message {
         let keyboard::Event::KeyPressed { key, modifiers, .. } = event else {
             return None;
         };
-
-        match key {
-            Key::Named(named) => match named {
-                Named::Save => Some(Self::TournFile(FileAction::Save)),
-                Named::Open => Some(Self::TournFile(FileAction::Open)),
-                Named::New => Some(Self::TournFile(FileAction::RequestNew)),
-                Named::Escape => Some(Self::CloseView),
-                _ => None,
-            },
-            Key::Character(c) => {
-                if modifiers.command() {
-                    match c.as_ref() {
-                        "s" if modifiers.shift() => Some(Self::TournFile(FileAction::SaveAs)),
-                        "s" => Some(Self::TournFile(FileAction::Save)),
-                        "o" => Some(Self::TournFile(FileAction::Open)),
-                        _ => None,
-                    }
-                } else {
-                    None
-                }
-            }
-            Key::Unidentified => None,
-        }
+        None
     }
 
     fn from_window_event(event: window::Event) -> Option<Self> {
