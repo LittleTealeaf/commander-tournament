@@ -15,19 +15,12 @@ use crate::{
     game::{entry::GameEntry, record::GameRecord},
     player::{PlayerId, info::PlayerInfo, stats::PlayerStats},
 };
+use backwards_compat::backwards_compat_via;
 
 #[derive(
-    Debug,
-    Clone,
-    PartialEq,
-    serde::Serialize,
-    serde::Deserialize,
-    getset::Getters,
-    getset::MutGetters,
-    getset::Setters,
-    getset::WithSetters,
+    Debug, Clone, PartialEq, getset::Getters, getset::MutGetters, getset::Setters, getset::WithSetters,
 )]
-#[serde(into = "SerializedTournament", try_from = "SerializedTournament")]
+#[backwards_compat_via(SerializedTournament, try_from)]
 pub struct Tournament {
     stats: HashMap<PlayerId, PlayerStats>,
     default_stats: PlayerStats,

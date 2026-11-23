@@ -1,9 +1,7 @@
 mod compat;
 mod players;
 
-use backwards_compat::{
-    BackwardsCompat, BackwardsCompatDeserialize, Migrated, VersionKey, backwards_compat,
-};
+use backwards_compat::backwards_compat;
 
 use self::{
     compat::{V3Tournament, V4Tournament, V5Tournament, V6Tournament, V7Tournament},
@@ -28,7 +26,7 @@ use crate::{
         8: Self
     )
 )]
-pub(super) struct SerializedTournament {
+pub struct SerializedTournament {
     #[serde(rename = "pls", alias = "players")]
     players: SerializedPlayerInfo,
     #[serde(rename = "gms", alias = "games")]
@@ -65,27 +63,6 @@ impl TryFrom<SerializedTournament> for Tournament {
         }
 
         Ok(tournament)
-    }
-}
-
-impl BackwardsCompat for Tournament {
-    type Version = VersionKey;
-    const CURRENT_VERSION: Self::Version = SerializedTournament::CURRENT_VERSION;
-    const SERIALIZE_VERSION: Self::Version = SerializedTournament::SERIALIZE_VERSION;
-    const SUPPORTED_VERSIONS: &'static [Self::Version] = SerializedTournament::SUPPORTED_VERSIONS;
-    const ACCEPTS_UNTAGGED: bool = SerializedTournament::ACCEPTS_UNTAGGED;
-}
-
-impl<'de> BackwardsCompatDeserialize<'de> for Tournament {
-    fn deserialize_migrated<D>(deserializer: D) -> Result<Migrated<Self>, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        let migrated = SerializedTournament::deserialize_migrated(deserializer)?;
-        Ok(Migrated {
-            value: Self::try_from(migrated.value).map_err(serde::de::Error::custom)?,
-            source_version: migrated.source_version,
-        })
     }
 }
 
