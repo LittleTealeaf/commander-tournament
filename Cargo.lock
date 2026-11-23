@@ -342,7 +342,16 @@ name = "backwards-compat"
 version = "2.0.0"
 source = "git+https://github.com/LittleTealeaf/backwards-compat?tag=v2.0.0#47e3ba366c25f87db8a3332662ec6c7f3e8b7e2f"
 dependencies = [
- "backwards-compat-derive",
+ "backwards-compat-derive 2.0.0",
+ "serde",
+]
+
+[[package]]
+name = "backwards-compat"
+version = "2.0.1"
+source = "git+https://github.com/LittleTealeaf/backwards-compat?tag=v2.0.1#2870c864e661aaeb9df88481655f22f174342f33"
+dependencies = [
+ "backwards-compat-derive 2.0.1",
  "serde",
 ]
 
@@ -350,6 +359,16 @@ dependencies = [
 name = "backwards-compat-derive"
 version = "2.0.0"
 source = "git+https://github.com/LittleTealeaf/backwards-compat?tag=v2.0.0#47e3ba366c25f87db8a3332662ec6c7f3e8b7e2f"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 3.0.10",
+]
+
+[[package]]
+name = "backwards-compat-derive"
+version = "2.0.1"
+source = "git+https://github.com/LittleTealeaf/backwards-compat?tag=v2.0.1#2870c864e661aaeb9df88481655f22f174342f33"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -669,7 +688,7 @@ dependencies = [
  "anyhow",
  "approx",
  "async-fs",
- "backwards-compat",
+ "backwards-compat 2.0.0",
  "commander_tournament",
  "commander_tournament_core",
  "derive_more",
@@ -703,7 +722,7 @@ version = "1.3.0"
 dependencies = [
  "anyhow",
  "approx",
- "backwards-compat",
+ "backwards-compat 2.0.1",
  "commander_tournament_core",
  "derive_more",
  "getset",
