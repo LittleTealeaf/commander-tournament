@@ -1,22 +1,25 @@
 use std::collections::HashMap;
 
 use crate::{
+    config::{game::GameConfig, matchmaker::MatchmakerConfig},
     game::entry::GameEntry,
     player::{PlayerId, info::PlayerInfo},
-    tournament::serialize::{config::TournamentConfig, player_info_deserialize, v7::V7Tournament},
+    tournament::serialize::compat::v7::{V7Tournament, player_info_deserialize},
 };
+
+#[derive(Debug, Clone, PartialEq, Default, derive_more::Constructor, serde::Deserialize)]
+pub struct TournamentConfig {
+    game: GameConfig,
+    matchmaker: MatchmakerConfig,
+}
 
 #[derive(Debug, serde::Deserialize, derive_more::Constructor)]
 pub struct V6Tournament {
-    #[serde(rename = "cfg", alias = "config")]
+    #[serde(alias = "cfg")]
     config: TournamentConfig,
-    #[serde(
-        deserialize_with = "player_info_deserialize",
-        rename = "pls",
-        alias = "players"
-    )]
+    #[serde(deserialize_with = "player_info_deserialize", alias = "pls")]
     players: HashMap<PlayerId, PlayerInfo>,
-    #[serde(rename = "gms", alias = "games")]
+    #[serde(alias = "gms")]
     games: Vec<GameEntry>,
 }
 

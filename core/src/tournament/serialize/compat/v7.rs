@@ -1,19 +1,30 @@
 use std::collections::HashMap;
 
+use serde::Deserializer;
+
 use crate::{
     config::{game::GameConfig, matchmaker::MatchmakerConfig},
     game::entry::GameEntry,
     player::{PlayerId, info::PlayerInfo},
-    tournament::serialize::{SerializedTournament, player_info_deserialize},
+    tournament::serialize::SerializedTournament,
+    utils::DeserializableMap,
 };
+
+pub(super) fn player_info_deserialize<'de, D>(
+    deserializer: D,
+) -> Result<HashMap<PlayerId, PlayerInfo>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    Ok(DeserializableMap::<PlayerInfo>::deserialize_to_map(deserializer)?
+        .into_iter()
+        .map(|(id, info)| (PlayerId(id), info))
+        .collect())
+}
 
 #[derive(Debug, serde::Deserialize, derive_more::Constructor)]
 pub struct V7Tournament {
-    #[serde(
-        deserialize_with = "player_info_deserialize",
-        serialize_with = "crate::utils::ordered_map",
-        alias = "pls"
-    )]
+    #[serde(deserialize_with = "player_info_deserialize", alias = "pls")]
     players: HashMap<PlayerId, PlayerInfo>,
     #[serde(alias = "gms")]
     games: Vec<GameEntry>,

@@ -5,8 +5,9 @@ use serde::{Deserialize, Deserializer};
 use crate::game::entry::GameEntry;
 use crate::player::PlayerId;
 use crate::player::info::PlayerInfo;
-use crate::tournament::serialize::V5Tournament;
-use crate::tournament::serialize::v5::{V5GameConfig, V5MatchmakerConfig, V5TournamentConfig};
+use crate::tournament::serialize::compat::v5::{
+    V5GameConfig, V5MatchmakerConfig, V5Tournament, V5TournamentConfig,
+};
 use crate::utils::DeserializableMap;
 
 fn player_info_deserialize<'de, D>(deserializer: D) -> Result<HashMap<PlayerId, PlayerInfo>, D::Error>
@@ -52,25 +53,20 @@ pub struct V3TournamentConfig {
 
 #[derive(Deserialize, Debug)]
 pub struct V3Tournament {
-    #[serde(rename = "cfg", alias = "config")]
-    pub(super) config: V3TournamentConfig,
-    #[serde(
-        deserialize_with = "player_info_deserialize",
-        serialize_with = "crate::utils::ordered_map",
-        rename = "pls",
-        alias = "players"
-    )]
-    pub(super) players: HashMap<PlayerId, PlayerInfo>,
-    #[serde(rename = "gms", alias = "games")]
-    pub(super) games: Vec<GameEntry>,
+    #[serde(alias = "cfg")]
+    config: V3TournamentConfig,
+    #[serde(deserialize_with = "player_info_deserialize", alias = "pls")]
+    players: HashMap<PlayerId, PlayerInfo>,
+    #[serde(alias = "gms")]
+    games: Vec<GameEntry>,
 }
 
 impl From<V3Tournament> for V5Tournament {
     fn from(value: V3Tournament) -> Self {
-        Self {
-            config: V5TournamentConfig::new(value.config.game, V5MatchmakerConfig::default()),
-            players: value.players,
-            games: value.games,
-        }
+        Self::new(
+            V5TournamentConfig::new(value.config.game, V5MatchmakerConfig::default()),
+            value.players,
+            value.games,
+        )
     }
 }

@@ -10,13 +10,16 @@ use std::collections::HashMap;
 
 use backwards_compat::backwards_compat;
 
-use self::serialize::{SerializedTournament, V3Tournament, V4Tournament, V5Tournament};
+use self::serialize::{
+    SerializedTournament,
+    compat::{v3::V3Tournament, v4::V4Tournament, v5::V5Tournament},
+};
 use crate::{
     config::{game::GameConfig, matchmaker::MatchmakerConfig},
     error::TournamentError,
     game::{entry::GameEntry, record::GameRecord},
     player::{PlayerId, info::PlayerInfo, stats::PlayerStats},
-    tournament::serialize::{v6::V6Tournament, v7::V7Tournament},
+    tournament::serialize::compat::{v6::V6Tournament, v7::V7Tournament},
 };
 
 #[derive(
@@ -28,7 +31,7 @@ use crate::{
     versions(
         "3": V3Tournament => "5",
         "4": V4Tournament,
-        "5": V5Tournament,
+        "5": V5Tournament => 7,
         "6": V6Tournament,
         7 | "7": V7Tournament,
         #[fallible]

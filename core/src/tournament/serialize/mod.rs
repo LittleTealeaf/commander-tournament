@@ -1,38 +1,13 @@
-pub mod config;
+pub mod compat;
+
 pub mod players;
-pub mod v3;
-pub mod v4;
-pub mod v5;
-pub mod v6;
-pub mod v7;
-
-use std::collections::HashMap;
-
-use serde::Deserializer;
-pub use v3::V3Tournament;
-pub use v4::V4Tournament;
-pub use v5::V5Tournament;
 
 use crate::{
     config::{game::GameConfig, matchmaker::MatchmakerConfig},
     error::TournamentError,
     game::entry::GameEntry,
-    player::{PlayerId, info::PlayerInfo},
     tournament::{Tournament, serialize::players::SerializedPlayerInfo},
-    utils::DeserializableMap,
 };
-
-pub(super) fn player_info_deserialize<'de, D>(
-    deserializer: D,
-) -> Result<HashMap<PlayerId, PlayerInfo>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    Ok(DeserializableMap::<PlayerInfo>::deserialize_to_map(deserializer)?
-        .into_iter()
-        .map(|(id, info)| (PlayerId(id), info))
-        .collect())
-}
 
 #[derive(Debug, serde::Deserialize, serde::Serialize, derive_more::Constructor)]
 pub struct SerializedTournament {

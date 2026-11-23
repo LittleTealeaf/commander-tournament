@@ -5,7 +5,9 @@ use serde::{Deserialize, Deserializer};
 use crate::game::entry::GameEntry;
 use crate::player::PlayerId;
 use crate::player::info::PlayerInfo;
-use crate::tournament::serialize::v5::{V5GameConfig, V5MatchmakerConfig, V5Tournament, V5TournamentConfig};
+use crate::tournament::serialize::compat::v5::{
+    V5GameConfig, V5MatchmakerConfig, V5Tournament, V5TournamentConfig,
+};
 use crate::utils::DeserializableMap;
 
 fn player_info_deserialize<'de, D>(deserializer: D) -> Result<HashMap<PlayerId, PlayerInfo>, D::Error>
@@ -20,39 +22,34 @@ where
 
 #[derive(Deserialize, Debug)]
 pub struct V4Tournament {
-    #[serde(rename = "cfg", alias = "config")]
-    pub(super) config: V4TournamentConfig,
-    #[serde(
-        deserialize_with = "player_info_deserialize",
-        serialize_with = "crate::utils::ordered_map",
-        rename = "pls",
-        alias = "players"
-    )]
-    pub(super) players: HashMap<PlayerId, PlayerInfo>,
-    #[serde(rename = "gms", alias = "games")]
-    pub(super) games: Vec<GameEntry>,
+    #[serde(alias = "cfg")]
+    config: V4TournamentConfig,
+    #[serde(deserialize_with = "player_info_deserialize", alias = "pls")]
+    players: HashMap<PlayerId, PlayerInfo>,
+    #[serde(alias = "gms")]
+    games: Vec<GameEntry>,
 }
 
 #[derive(Debug, Deserialize)]
 pub(super) struct V4TournamentConfig {
     #[serde(default)]
-    pub game: V5GameConfig,
+    game: V5GameConfig,
     #[serde(default)]
-    pub matchmaker: V4MatchmakerConfig,
+    matchmaker: V4MatchmakerConfig,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(default)]
 pub(super) struct V4MatchmakerConfig {
-    pub player_least_played: usize,
-    pub player_lost_with: usize,
-    pub player_nemesis: usize,
-    pub elo_neighbor: usize,
-    pub wr_neighbor: usize,
-    pub expected_neighbor: usize,
+    player_least_played: usize,
+    player_lost_with: usize,
+    player_nemesis: usize,
+    elo_neighbor: usize,
+    wr_neighbor: usize,
+    expected_neighbor: usize,
     #[serde(alias = "exclude_precons")]
-    pub include_precons: bool,
-    pub outlier_include_extremes: bool,
+    include_precons: bool,
+    outlier_include_extremes: bool,
 }
 
 impl Default for V4MatchmakerConfig {
@@ -72,10 +69,10 @@ impl Default for V4MatchmakerConfig {
 
 impl From<V4Tournament> for V5Tournament {
     fn from(value: V4Tournament) -> Self {
-        Self {
-            config: V5TournamentConfig::new(value.config.game, V5MatchmakerConfig::default()),
-            players: value.players,
-            games: value.games,
-        }
+        Self::new(
+            V5TournamentConfig::new(value.config.game, V5MatchmakerConfig::default()),
+            value.players,
+            value.games,
+        )
     }
 }

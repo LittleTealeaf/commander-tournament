@@ -4,40 +4,33 @@ use crate::{
     config::{game::GameConfig, matchmaker::MatchmakerConfig},
     game::entry::GameEntry,
     player::{PlayerId, info::PlayerInfo},
-    tournament::serialize::{config::TournamentConfig, player_info_deserialize, v6::V6Tournament},
+    tournament::serialize::compat::v7::{V7Tournament, player_info_deserialize},
 };
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize, derive_more::Constructor)]
 pub struct V5Tournament {
-    #[serde(rename = "cfg", alias = "config")]
-    pub(super) config: V5TournamentConfig,
-    #[serde(
-        deserialize_with = "player_info_deserialize",
-        serialize_with = "crate::utils::ordered_map",
-        rename = "pls",
-        alias = "players"
-    )]
-    pub(super) players: HashMap<PlayerId, PlayerInfo>,
-    #[serde(rename = "gms", alias = "games")]
-    pub(super) games: Vec<GameEntry>,
+    #[serde(alias = "cfg")]
+    config: V5TournamentConfig,
+    #[serde(deserialize_with = "player_info_deserialize", alias = "pls")]
+    players: HashMap<PlayerId, PlayerInfo>,
+    #[serde(alias = "gms")]
+    games: Vec<GameEntry>,
 }
 
-impl From<V5Tournament> for V6Tournament {
+impl From<V5Tournament> for V7Tournament {
     fn from(value: V5Tournament) -> Self {
         Self::new(
-            TournamentConfig::new(
-                GameConfig::default(),
-                MatchmakerConfig::new(
-                    value.config.matchmaker.elo_range,
-                    value.config.matchmaker.min_pool_size,
-                    10f64,
-                    true,
-                    1,
-                    2,
-                ),
-            ),
             value.players,
             value.games,
+            GameConfig::default(),
+            MatchmakerConfig::new(
+                value.config.matchmaker.elo_range,
+                value.config.matchmaker.min_pool_size,
+                10f64,
+                true,
+                1,
+                2,
+            ),
         )
     }
 }
