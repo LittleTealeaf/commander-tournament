@@ -24,13 +24,13 @@ impl Default for UnversionedGameConfig {
 
 impl From<UnversionedGameConfig> for GameConfig {
     fn from(value: UnversionedGameConfig) -> Self {
-        Self::new(
-            value.initial_elo,
-            value.logistic_scale,
-            value.initial_k,
-            value.base_k,
-            value.calibration_games,
-        )
+        Self {
+            initial_elo: value.initial_elo,
+            logistic_scale: value.logistic_scale,
+            initial_k: value.initial_k,
+            base_k: value.base_k,
+            calibration_games: value.calibration_games,
+        }
     }
 }
 
@@ -46,10 +46,10 @@ impl From<UnversionedGameConfig> for GameConfig {
 )]
 #[getset(set = "pub", set_with = "pub", get_copy = "pub", get_mut = "pub")]
 #[backwards_compat(
-    tag = "v",
+    tag = "version",
     versions(
         _: UnversionedGameConfig => Self,
-        1 | "1": Self
+        2: Self
     )
 )]
 pub struct GameConfig {

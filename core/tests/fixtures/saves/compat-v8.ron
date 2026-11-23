@@ -606,7 +606,7 @@
         ),
     ],
     "gc": {
-        "v": 1,
+        "version": 2,
         "initial_elo": 1500.0,
         "logistic_scale": 400.0,
         "initial_k": 24.0,
@@ -614,7 +614,7 @@
         "calibration_games": 15,
     },
     "mc": {
-        "v": 2,
+        "version": 2,
         "elo_range": 75.0,
         "min_pool_size": 5,
         "repeat_penalty": 15.0,
