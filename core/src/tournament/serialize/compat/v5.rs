@@ -8,7 +8,7 @@ use crate::{
 };
 
 #[derive(Debug, serde::Deserialize, derive_more::Constructor)]
-pub struct V5Tournament {
+pub(in crate::tournament::serialize) struct V5Tournament {
     #[serde(alias = "cfg")]
     config: V5TournamentConfig,
     #[serde(deserialize_with = "player_info_deserialize", alias = "pls")]

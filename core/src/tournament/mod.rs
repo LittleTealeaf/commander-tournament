@@ -8,37 +8,26 @@ mod stats;
 
 use std::collections::HashMap;
 
-use backwards_compat::backwards_compat;
-
-use self::serialize::{
-    SerializedTournament,
-    compat::{v3::V3Tournament, v4::V4Tournament, v5::V5Tournament},
-};
+use self::serialize::SerializedTournament;
 use crate::{
     config::{game::GameConfig, matchmaker::MatchmakerConfig},
     error::TournamentError,
     game::{entry::GameEntry, record::GameRecord},
     player::{PlayerId, info::PlayerInfo, stats::PlayerStats},
-    tournament::serialize::compat::{v6::V6Tournament, v7::V7Tournament},
 };
 
 #[derive(
-    Debug, Clone, PartialEq, getset::Getters, getset::MutGetters, getset::Setters, getset::WithSetters,
+    Debug,
+    Clone,
+    PartialEq,
+    serde::Serialize,
+    serde::Deserialize,
+    getset::Getters,
+    getset::MutGetters,
+    getset::Setters,
+    getset::WithSetters,
 )]
-#[backwards_compat(
-    tag = "version",
-    error = TournamentError,
-    versions(
-        "3": V3Tournament => "5",
-        "4": V4Tournament,
-        "5": V5Tournament => 7,
-        "6": V6Tournament,
-        7 | "7": V7Tournament,
-        #[fallible]
-        #[serialize]
-        8: SerializedTournament
-    )
-)]
+#[serde(into = "SerializedTournament", try_from = "SerializedTournament")]
 pub struct Tournament {
     stats: HashMap<PlayerId, PlayerStats>,
     default_stats: PlayerStats,

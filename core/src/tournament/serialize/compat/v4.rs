@@ -21,7 +21,7 @@ where
 }
 
 #[derive(Deserialize, Debug)]
-pub struct V4Tournament {
+pub(in crate::tournament::serialize) struct V4Tournament {
     #[serde(alias = "cfg")]
     config: V4TournamentConfig,
     #[serde(deserialize_with = "player_info_deserialize", alias = "pls")]
@@ -31,7 +31,7 @@ pub struct V4Tournament {
 }
 
 #[derive(Debug, Deserialize)]
-pub(super) struct V4TournamentConfig {
+struct V4TournamentConfig {
     #[serde(default)]
     game: V5GameConfig,
     #[serde(default)]
@@ -40,7 +40,7 @@ pub(super) struct V4TournamentConfig {
 
 #[derive(Debug, Deserialize)]
 #[serde(default)]
-pub(super) struct V4MatchmakerConfig {
+struct V4MatchmakerConfig {
     player_least_played: usize,
     player_lost_with: usize,
     player_nemesis: usize,

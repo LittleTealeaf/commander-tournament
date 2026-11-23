@@ -21,13 +21,13 @@ where
 }
 
 #[derive(Debug, Clone, serde::Deserialize, PartialEq, Eq)]
-pub struct V3RankingConfig {
-    pub least_played: usize,
-    pub nemesis: usize,
-    pub lost_with: usize,
-    pub elo_neighbor: usize,
-    pub wr_neighbor: usize,
-    pub expected_neighbor: usize,
+struct V3RankingConfig {
+    least_played: usize,
+    nemesis: usize,
+    lost_with: usize,
+    elo_neighbor: usize,
+    wr_neighbor: usize,
+    expected_neighbor: usize,
 }
 
 impl Default for V3RankingConfig {
@@ -44,7 +44,7 @@ impl Default for V3RankingConfig {
 }
 
 #[derive(Debug, serde::Deserialize)]
-pub struct V3TournamentConfig {
+struct V3TournamentConfig {
     #[serde(default)]
     game: V5GameConfig,
     #[serde(default)]
@@ -52,7 +52,7 @@ pub struct V3TournamentConfig {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct V3Tournament {
+pub(in crate::tournament::serialize) struct V3Tournament {
     #[serde(alias = "cfg")]
     config: V3TournamentConfig,
     #[serde(deserialize_with = "player_info_deserialize", alias = "pls")]

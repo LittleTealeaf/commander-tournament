@@ -23,7 +23,7 @@ where
 }
 
 #[derive(Debug, serde::Deserialize, derive_more::Constructor)]
-pub struct V7Tournament {
+pub(in crate::tournament::serialize) struct V7Tournament {
     #[serde(deserialize_with = "player_info_deserialize", alias = "pls")]
     players: HashMap<PlayerId, PlayerInfo>,
     #[serde(alias = "gms")]

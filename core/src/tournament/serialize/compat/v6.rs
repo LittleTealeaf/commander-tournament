@@ -8,13 +8,13 @@ use crate::{
 };
 
 #[derive(Debug, Clone, PartialEq, Default, derive_more::Constructor, serde::Deserialize)]
-pub struct TournamentConfig {
+struct TournamentConfig {
     game: GameConfig,
     matchmaker: MatchmakerConfig,
 }
 
 #[derive(Debug, serde::Deserialize, derive_more::Constructor)]
-pub struct V6Tournament {
+pub(in crate::tournament::serialize) struct V6Tournament {
     #[serde(alias = "cfg")]
     config: TournamentConfig,
     #[serde(deserialize_with = "player_info_deserialize", alias = "pls")]

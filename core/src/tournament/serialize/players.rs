@@ -13,7 +13,7 @@ use crate::player::{PlayerId, info::PlayerInfo};
         1: Self
     )
 )]
-pub struct SerializedPlayerInfo(Vec<(PlayerId, PlayerInfo)>);
+pub(super) struct SerializedPlayerInfo(Vec<(PlayerId, PlayerInfo)>);
 
 impl FromIterator<(PlayerId, PlayerInfo)> for SerializedPlayerInfo {
     fn from_iter<T: IntoIterator<Item = (PlayerId, PlayerInfo)>>(iter: T) -> Self {
@@ -22,7 +22,7 @@ impl FromIterator<(PlayerId, PlayerInfo)> for SerializedPlayerInfo {
 }
 
 impl SerializedPlayerInfo {
-    pub fn value(self) -> HashMap<PlayerId, PlayerInfo> {
+    pub(super) fn value(self) -> HashMap<PlayerId, PlayerInfo> {
         HashMap::from_iter(self.0)
     }
 }
