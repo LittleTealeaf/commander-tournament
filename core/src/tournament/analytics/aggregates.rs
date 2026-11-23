@@ -5,13 +5,16 @@ use itertools::Itertools;
 use crate::{
     analytics::aggregate::AggregateStats,
     player::{
-        RegisteredPlayer,
+        PlayerId, RegisteredPlayer,
         color::{ColorIdentity, MtgColor},
     },
     tournament::analytics::Analytics,
 };
 
-impl<'a> Analytics<'a> {
+impl<'a, F> Analytics<'a, F>
+where
+    F: Fn(PlayerId) -> bool,
+{
     #[must_use]
     pub fn aggregated_identity_stats(self) -> HashMap<ColorIdentity, AggregateStats> {
         self.aggregated_player_stats()
@@ -37,7 +40,7 @@ impl<'a> Analytics<'a> {
     fn aggregated_player_stats(self) -> impl Iterator<Item = (RegisteredPlayer<'a>, AggregateStats)> {
         self.tourn
             .registered_players()
-            .filter(move |player| self.include_precons || !player.info().is_precon())
+            .filter(move |player| (self.pool)(player.id()))
             .map(|player| (player, player.stats().into()))
     }
 }

@@ -1,17 +1,8 @@
-use crate::{
-    config::{game::GameConfig, matchmaker::MatchmakerConfig},
-    error::TournamentError,
-    tournament::Tournament,
-};
+use crate::{config::game::GameConfig, error::TournamentError, tournament::Tournament};
 
 impl Tournament {
-    #[must_use]
-    pub fn game_config(&self) -> &GameConfig {
-        self.config.game()
-    }
-
     pub fn set_game_config(&mut self, config: GameConfig) -> Result<(), TournamentError> {
-        self.config.set_game(config);
+        self.game_config = config;
         self.reload()?;
         Ok(())
     }
@@ -19,15 +10,6 @@ impl Tournament {
     pub fn with_game_config(mut self, config: GameConfig) -> Result<Self, TournamentError> {
         self.set_game_config(config)?;
         Ok(self)
-    }
-
-    #[must_use]
-    pub fn matchmaker_config(&self) -> &MatchmakerConfig {
-        self.config.matchmaker()
-    }
-
-    pub fn set_matchmaker_config(&mut self, config: MatchmakerConfig) {
-        self.config.set_matchmaker(config);
     }
 }
 

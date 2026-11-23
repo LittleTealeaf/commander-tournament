@@ -1,14 +1,86 @@
-pub mod v3;
-pub mod v4;
-pub mod v5;
+mod compat;
+mod players;
 
-pub use v3::V3Tournament;
-pub use v4::V4Tournament;
-pub use v5::V5Tournament;
+use backwards_compat::backwards_compat;
+
+use self::{
+    compat::{V3Tournament, V4Tournament, V5Tournament, V6Tournament, V7Tournament},
+    players::SerializedPlayerInfo,
+};
+use crate::{
+    config::{game::GameConfig, matchmaker::MatchmakerConfig},
+    error::TournamentError,
+    game::entry::GameEntry,
+    tournament::Tournament,
+};
+
+#[derive(Debug, derive_more::Constructor)]
+#[backwards_compat(
+    tag = "version",
+    versions(
+        "3": V3Tournament => "5",
+        "4": V4Tournament,
+        "5": V5Tournament => 7,
+        "6": V6Tournament,
+        7 | "7": V7Tournament,
+        8: Self
+    )
+)]
+pub struct SerializedTournament {
+    #[serde(rename = "pls", alias = "players")]
+    players: SerializedPlayerInfo,
+    #[serde(rename = "gms", alias = "games")]
+    games: Vec<GameEntry>,
+    #[serde(rename = "gc")]
+    game_config: GameConfig,
+    #[serde(rename = "mc")]
+    matchmaker_config: MatchmakerConfig,
+}
+
+impl From<Tournament> for SerializedTournament {
+    fn from(value: Tournament) -> Self {
+        Self {
+            game_config: value.game_config,
+            matchmaker_config: value.matchmaker_config,
+            players: FromIterator::from_iter(value.players),
+            games: value.games.into_iter().map(GameEntry::from).collect(),
+        }
+    }
+}
+
+impl TryFrom<SerializedTournament> for Tournament {
+    type Error = TournamentError;
+    fn try_from(value: SerializedTournament) -> Result<Self, Self::Error> {
+        let mut tournament = Self {
+            game_config: value.game_config,
+            matchmaker_config: value.matchmaker_config,
+            players: value.players.value(),
+            ..Self::default()
+        };
+        tournament.reload()?;
+        for game in value.games {
+            tournament.record_entry(game)?;
+        }
+
+        Ok(tournament)
+    }
+}
 
 #[cfg(test)]
 mod tests {
     use crate::tournament::Tournament;
+
+    use rstest::rstest;
+
+    #[rstest]
+    fn deserialize(
+        #[base_dir = "tests/fixtures/saves"]
+        #[files("*.ron")]
+        #[mode=str]
+        data: &str,
+    ) {
+        let _: Tournament = ron::from_str(data).unwrap();
+    }
 
     #[test]
     fn ron_serialize_loop() {

@@ -1,3 +1,4 @@
+use core::iter::Sum;
 use core::ops::{Add, AddAssign};
 
 use crate::player::stats::PlayerStats;
@@ -81,6 +82,12 @@ impl Add for AggregateStats {
             games: self.games + rhs.games,
             wins: self.wins + rhs.wins,
         }
+    }
+}
+
+impl Sum for AggregateStats {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        iter.fold(Self::default(), |a, b| a + b)
     }
 }
 

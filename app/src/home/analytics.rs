@@ -47,7 +47,7 @@ impl Component for AnalyticsView {
     fn render<'a>(&'a self, context: Self::Context<'a>) -> iced::Element<'a, Self::Message> {
         let aggregated = context
             .analytics()
-            .with_precons(self.include_precons)
+            .filter_precons(self.include_precons)
             .aggregated_identity_stats();
         let missing = ColorIdentity::IDENTITIES
             .into_iter()

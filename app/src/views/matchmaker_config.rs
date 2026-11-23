@@ -1,4 +1,6 @@
-use commander_tournament_core::{config::matchmaker::MatchmakerConfig, tournament::Tournament};
+use commander_tournament_core::{
+    config::matchmaker::MatchmakerConfig, game::POD_SIZE, tournament::Tournament,
+};
 use iced::widget::{button, column, row, text, toggler};
 use iced_aw::number_input;
 use iced_tea::{Component, Model, Signal};
@@ -26,7 +28,10 @@ pub enum MatchmakerConfigMsg {
     Reset,
     SetEloRange(f64),
     SetMinPoolSize(usize),
+    SetRepeatPenalty(f64),
     SetStrictCalibration(bool),
+    SetMaxPrecons(usize),
+    SetMaxUnranked(usize),
 }
 
 #[derive(Debug, Clone)]
@@ -62,6 +67,15 @@ impl Model for MatchmakerConfigView {
             MatchmakerConfigMsg::Reset => self.config = context.matchmaker_config().clone(),
             MatchmakerConfigMsg::SetStrictCalibration(val) => {
                 self.config.set_strict_calibrate(val);
+            }
+            MatchmakerConfigMsg::SetRepeatPenalty(value) => {
+                self.config.set_repeat_penalty(value);
+            }
+            MatchmakerConfigMsg::SetMaxUnranked(value) => {
+                self.config.set_max_unranked(value);
+            }
+            MatchmakerConfigMsg::SetMaxPrecons(value) => {
+                self.config.set_max_precon(value);
             }
         }
         Signal::done()
@@ -117,10 +131,41 @@ impl Component for MatchmakerConfigView {
             ]
             .spacing(10),
             row![
+                text("Repeat Penalty"),
+                number_input(
+                    &self.config.repeat_penalty(),
+                    0.0..1000.0,
+                    MatchmakerConfigMsg::SetRepeatPenalty,
+                )
+                .ignore_buttons(true)
+                .step(5.0),
+            ]
+            .spacing(10),
+            row![
                 toggler(self.config.strict_calibrate())
                     .on_toggle(MatchmakerConfigMsg::SetStrictCalibration)
                     .label("Strict Calibration Matches")
+            ],
+            row![
+                text("Max Precons"),
+                number_input(
+                    &self.config.max_precon(),
+                    0..=POD_SIZE,
+                    MatchmakerConfigMsg::SetMaxPrecons
+                )
+                .ignore_buttons(true)
             ]
+            .spacing(10),
+            row![
+                text("Max Unranked"),
+                number_input(
+                    &self.config.max_unranked(),
+                    0..=POD_SIZE,
+                    MatchmakerConfigMsg::SetMaxUnranked,
+                )
+                .ignore_buttons(true)
+            ]
+            .spacing(10),
         ]
         .spacing(10)
         .into()
