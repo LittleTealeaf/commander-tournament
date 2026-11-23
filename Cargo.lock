@@ -339,36 +339,17 @@ checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
 
 [[package]]
 name = "backwards-compat"
-version = "2.0.0"
-source = "git+https://github.com/LittleTealeaf/backwards-compat?tag=v2.0.0#47e3ba366c25f87db8a3332662ec6c7f3e8b7e2f"
+version = "2.2.0"
+source = "git+https://github.com/LittleTealeaf/backwards-compat?tag=v2.2.0#580e63171fe19130cd6ca3cc329496af283fc0fd"
 dependencies = [
- "backwards-compat-derive 2.0.0",
- "serde",
-]
-
-[[package]]
-name = "backwards-compat"
-version = "2.1.0"
-source = "git+https://github.com/LittleTealeaf/backwards-compat?tag=v2.1.0#f548c221374db21f2f7a4bf95917a408e1aa52e7"
-dependencies = [
- "backwards-compat-derive 2.1.0",
+ "backwards-compat-derive",
  "serde",
 ]
 
 [[package]]
 name = "backwards-compat-derive"
-version = "2.0.0"
-source = "git+https://github.com/LittleTealeaf/backwards-compat?tag=v2.0.0#47e3ba366c25f87db8a3332662ec6c7f3e8b7e2f"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 3.0.10",
-]
-
-[[package]]
-name = "backwards-compat-derive"
-version = "2.1.0"
-source = "git+https://github.com/LittleTealeaf/backwards-compat?tag=v2.1.0#f548c221374db21f2f7a4bf95917a408e1aa52e7"
+version = "2.2.0"
+source = "git+https://github.com/LittleTealeaf/backwards-compat?tag=v2.2.0#580e63171fe19130cd6ca3cc329496af283fc0fd"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -688,7 +669,7 @@ dependencies = [
  "anyhow",
  "approx",
  "async-fs",
- "backwards-compat 2.0.0",
+ "backwards-compat",
  "commander_tournament",
  "commander_tournament_core",
  "derive_more",
@@ -722,7 +703,7 @@ version = "1.3.0"
 dependencies = [
  "anyhow",
  "approx",
- "backwards-compat 2.1.0",
+ "backwards-compat",
  "commander_tournament_core",
  "derive_more",
  "getset",
