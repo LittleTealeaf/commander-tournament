@@ -392,3 +392,59 @@ fn get_player_display_name() {
     t.unregister_player(id).unwrap();
     assert!(t.get_player_display_name(&id).is_none());
 }
+
+mod merge_player {
+    use commander_tournament_core::{
+        error::TournamentError, game::entry::GameEntry, player::PlayerId, tournament::Tournament,
+    };
+
+    #[test]
+    fn merges_games_and_removes_other() {
+        let mut t = Tournament::new();
+        let [target, other, c, d, e]: [PlayerId; 5] = t.register_debug_players().unwrap();
+
+        t.record_entry(GameEntry::new([other, c, d, e], other).unwrap())
+            .unwrap();
+        t.record_entry(GameEntry::new([target, c, d, e], c).unwrap())
+            .unwrap();
+
+        t.merge_player(target, other).unwrap();
+
+        assert!(t.is_id_registered(&target));
+        assert!(!t.is_id_registered(&other));
+        assert_eq!(t.games().len(), 2);
+        assert_eq!(t.games().first().unwrap().winner(), target);
+        assert_eq!(t.get_player_or_default_stats(target).games(), 2);
+        assert_eq!(t.get_player_or_default_stats(target).wins(), 1);
+    }
+
+    #[test]
+    fn rejects_unregistered_players() {
+        let mut t = Tournament::new();
+        let [a, b]: [PlayerId; 2] = t.register_debug_players().unwrap();
+        t.unregister_player(b).unwrap();
+
+        assert!(matches!(
+            t.merge_player(a, b),
+            Err(TournamentError::InvalidPlayerId(id)) if id == b
+        ));
+        assert!(matches!(
+            t.merge_player(b, a),
+            Err(TournamentError::InvalidPlayerId(id)) if id == b
+        ));
+    }
+
+    #[test]
+    fn merging_same_player_is_noop() {
+        let mut tournament = Tournament::new();
+        let [a, b, c, d]: [PlayerId; 4] = tournament.register_debug_players().unwrap();
+        tournament
+            .record_entry(GameEntry::new([a, b, c, d], a).unwrap())
+            .unwrap();
+
+        tournament.merge_player(a, a).unwrap();
+
+        assert!(tournament.is_id_registered(&a));
+        assert_eq!(tournament.games().len(), 1);
+    }
+}

@@ -19,6 +19,7 @@ pub enum Message {
     View(AppViewMsg),
     #[from(ignore)]
     Error(String),
+    DismissError,
     Quit,
 }
 
@@ -67,7 +68,16 @@ impl Model for ComTourApp {
                     AppViewOut::ReloadRatings => Signal::msg(TournamentMessage::Reload),
                 })
             }),
-            Message::Nothing | Message::Error(_) => Signal::done(),
+            Message::Nothing => Signal::done(),
+            Message::Error(err) => {
+                log::error!("Error raised: {err}");
+                self.error_dialog = Some(err);
+                Signal::done()
+            }
+            Message::DismissError => {
+                self.error_dialog = None;
+                Signal::done()
+            }
             Message::AppState(msg) => self
                 .state
                 .as_mut()

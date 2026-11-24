@@ -183,13 +183,21 @@ impl Tournament {
     }
 
     pub fn merge_player(&mut self, target: PlayerId, other: PlayerId) -> Result<(), TournamentError> {
+        self.require_id_registered(target)?;
+        self.require_id_registered(other)?;
+
+        if target == other {
+            return Ok(());
+        }
+
+        let mut map: HashMap<PlayerId, PlayerId> = self.players.keys().map(|&id| (id, id)).collect();
+        map.insert(other, target);
+
         let mut records = Vec::new();
         let mut stats = HashMap::new();
 
         core::mem::swap(&mut records, &mut self.games);
         core::mem::swap(&mut stats, &mut self.stats);
-
-        let map: HashMap<PlayerId, PlayerId> = HashMap::from_iter([(other, target)]);
 
         (|| {
             for record in &records {
@@ -202,6 +210,12 @@ impl Tournament {
         .inspect_err(|_| {
             core::mem::swap(&mut records, &mut self.games);
             core::mem::swap(&mut stats, &mut self.stats);
-        })
+        })?;
+
+        if let Some(removed) = self.players.remove(&other) {
+            self.player_names.remove(removed.name());
+        }
+
+        Ok(())
     }
 }

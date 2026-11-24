@@ -254,20 +254,50 @@ fn render_confirmation_footer<'a>(
         confirm_next_btn = confirm_next_btn.on_press(PlayMsg::ConfirmResult { generate_next: true });
     }
 
-    container(
-        row![
-            status_text,
-            space::horizontal(),
+    let goldfish_count = matchup
+        .ids()
+        .into_iter()
+        .filter(|id| {
+            tournament
+                .get_player_info(id)
+                .and_then(PlayerInfo::moxfield_goldfish_link)
+                .is_some()
+        })
+        .count();
+
+    let mut actions = row![].spacing(8).align_y(Vertical::Center);
+
+    if goldfish_count > 0 {
+        actions = actions.push(
+            button(
+                row![
+                    text(md::MD_OPEN_IN_NEW).size(14),
+                    text(format!("Open All Goldfish ({goldfish_count})")).size(13),
+                ]
+                .spacing(6)
+                .align_y(Vertical::Center),
+            )
+            .padding([8, 12])
+            .style(style::secondary_button)
+            .on_press(PlayMsg::OpenAllGoldfish),
+        );
+    }
+
+    actions = actions
+        .push(
             button(text("Clear Pod").size(13))
                 .padding([8, 12])
                 .style(style::secondary_button)
                 .on_press(PlayMsg::ClearPod),
-            confirm_btn,
-            confirm_next_btn,
-        ]
-        .spacing(8)
-        .align_y(Vertical::Center)
-        .width(Length::Fill),
+        )
+        .push(confirm_btn)
+        .push(confirm_next_btn);
+
+    container(
+        row![status_text, space::horizontal(), actions]
+            .spacing(8)
+            .align_y(Vertical::Center)
+            .width(Length::Fill),
     )
     .width(Length::Fill)
     .padding([12, 16])

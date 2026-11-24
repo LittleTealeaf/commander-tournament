@@ -2,7 +2,7 @@ mod pod;
 
 use commander_tournament_core::{
     game::{matchup::Matchup, next_mode::NextPlayerMode, record::GameRecord},
-    player::PlayerId,
+    player::{PlayerId, info::PlayerInfo},
     tournament::Tournament,
 };
 use iced::{
@@ -71,6 +71,7 @@ pub enum PlayMsg {
     ConfirmResult { generate_next: bool },
     ClearPod,
     OpenMoxfield(String),
+    OpenAllGoldfish,
     InspectDeck(PlayerId),
 }
 
@@ -224,6 +225,23 @@ impl Model for PlayState {
                     log::warn!("Failed to open Moxfield goldfish link {url}: {err}");
                 }
                 Signal::done()
+            }
+            PlayMsg::OpenAllGoldfish => {
+                let (Some(tournament), Some(matchup)) = (context.tournament(), &self.current_matchup) else {
+                    return Signal::done();
+                };
+                let signals: Vec<Signal<PlayMsg, PlayOut>> = matchup
+                    .ids()
+                    .into_iter()
+                    .filter_map(|id| {
+                        tournament
+                            .get_player_info(&id)
+                            .and_then(PlayerInfo::moxfield_goldfish_link)
+                    })
+                    .map(|url| Signal::msg(PlayMsg::OpenMoxfield(url)))
+                    .collect();
+
+                Ok(Signal::sequence(signals))
             }
             PlayMsg::InspectDeck(id) => Signal::out(PlayOut::InspectDeck(id)).ok(),
         }
