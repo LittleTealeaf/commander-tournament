@@ -72,7 +72,8 @@ impl TournamentMessage {
     pub const SAVE: Self = Self::File(FileModelMsg::Save);
     pub const SAVE_AS: Self = Self::File(FileModelMsg::SaveAs);
 
-    pub fn open(path: PathBuf) -> Self {
+    #[must_use]
+    pub const fn open(path: PathBuf) -> Self {
         Self::File(FileModelMsg::OpenFile(path))
     }
 }

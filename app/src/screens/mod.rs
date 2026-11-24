@@ -1,3 +1,9 @@
+pub mod decks;
+pub mod history;
+pub mod overview;
+pub mod play;
+pub mod settings;
+
 use nerd_font_symbols::md;
 
 #[derive(

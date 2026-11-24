@@ -19,7 +19,6 @@ pub enum Message {
     View(AppViewMsg),
     #[from(ignore)]
     Error(String),
-    RequestQuit,
     Quit,
 }
 
@@ -44,10 +43,26 @@ impl Model for ComTourApp {
                     AppViewOut::NewFile => Signal::msg(TournamentMessage::New),
                     AppViewOut::OpenFile => Signal::msg(TournamentMessage::Open),
                     AppViewOut::SaveFile => Signal::msg(TournamentMessage::SAVE),
+                    AppViewOut::SaveFileAs => Signal::msg(TournamentMessage::SAVE_AS),
                     AppViewOut::OpenImport => Signal::Done,
+                    AppViewOut::RecordGame(record) => Signal::msg(TournamentMessage::Record(record)),
+                    AppViewOut::RegisterDeck(info) => Signal::msg(TournamentMessage::RegisterPlayer(info)),
+                    AppViewOut::UpdateDeck(id, info) => {
+                        Signal::msg(TournamentMessage::SetPlayerInfo(id, info))
+                    }
+                    AppViewOut::DeleteDeck(id) => Signal::msg(TournamentMessage::DeletePlayer(id)),
+                    AppViewOut::MergeDecks { target, other } => {
+                        Signal::msg(TournamentMessage::MergePlayer(target, other))
+                    }
+                    AppViewOut::DeleteGame(gid) => Signal::msg(TournamentMessage::DeleteGame(gid)),
+                    AppViewOut::SaveGameConfig(cfg) => Signal::msg(TournamentMessage::SetGameConfig(cfg)),
+                    AppViewOut::SaveMatchmakerConfig(cfg) => {
+                        Signal::msg(TournamentMessage::SetMatchmakerConfig(cfg))
+                    }
+                    AppViewOut::ReloadRatings => Signal::msg(TournamentMessage::Reload),
                 })
             }),
-            Message::Nothing => Signal::done(),
+            Message::Nothing | Message::Error(_) => Signal::done(),
             Message::AppState(msg) => self
                 .state
                 .as_mut()
@@ -70,17 +85,27 @@ impl Model for ComTourApp {
                     FileModelOut::Closed => Signal::msg(AppStateMsg::ClearOpenedFile),
                 })
             }),
-            Message::Error(_) => Signal::done(),
-            Message::RequestQuit => {
-                Ok(Signal::msg(Message::Tourn(TournamentMessage::Close))
-                    .chain(Signal::delayed(Message::Quit)))
-            }
             Message::Quit => {
-                if self.tourn.tournament().is_none() {
-                    std::process::exit(0);
-                }
-                Signal::done()
+                let modified = self.tourn.modified();
+                Ok(Signal::future(async move {
+                    if !modified || close_unsaved_dialog().await {
+                        std::process::exit(0)
+                    }
+                    Message::Nothing
+                }))
             }
         }
     }
+}
+
+async fn close_unsaved_dialog() -> bool {
+    let result = rfd::AsyncMessageDialog::new()
+        .set_level(rfd::MessageLevel::Warning)
+        .set_title("Quit?")
+        .set_description("Are you sure you want to lose any unsaved changes?")
+        .set_buttons(rfd::MessageButtons::YesNo)
+        .show()
+        .await;
+
+    result == rfd::MessageDialogResult::Yes
 }

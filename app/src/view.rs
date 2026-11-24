@@ -1,3 +1,8 @@
+use commander_tournament_core::{
+    config::{game::GameConfig, matchmaker::MatchmakerConfig},
+    game::record::GameRecord,
+    player::{PlayerId, info::PlayerInfo},
+};
 use iced::{
     Length,
     alignment::{Horizontal, Vertical},
@@ -7,24 +12,46 @@ use iced_tea::{Component, Model, Signal};
 use nerd_font_symbols::md;
 use strum::VariantArray;
 
-use crate::{fonts::FONT_BOLD, models::tournament::TournamentModel, screens::ScreenKind, style};
-
-const COLORS: catppuccin::FlavorColors = catppuccin::PALETTE.mocha.colors;
+use crate::{
+    components::pill,
+    fonts::FONT_BOLD,
+    models::tournament::TournamentModel,
+    screens::{
+        ScreenKind,
+        decks::{DecksMsg, DecksOut, DecksState},
+        history::{MatchHistoryMsg, MatchHistoryOut, MatchHistoryState},
+        overview::{OverviewMsg, OverviewOut, OverviewState},
+        play::{PlayMsg, PlayOut, PlayState},
+        settings::{SettingsMsg, SettingsOut, SettingsState},
+    },
+    style::{self, COLORS},
+};
 
 #[derive(Debug, Default)]
 pub struct AppView {
     sidebar_collapsed: bool,
     screen: ScreenKind,
+    overview: OverviewState,
+    play: PlayState,
+    decks: DecksState,
+    history: MatchHistoryState,
+    settings: SettingsState,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, derive_more::From)]
 pub enum AppViewMsg {
     SetScreen(ScreenKind),
     ToggleSidebar,
     NewFile,
     OpenFile,
     SaveFile,
+    SaveFileAs,
     OpenImport,
+    Overview(OverviewMsg),
+    Play(PlayMsg),
+    Decks(DecksMsg),
+    History(MatchHistoryMsg),
+    Settings(SettingsMsg),
 }
 
 #[derive(Debug, Clone)]
@@ -32,7 +59,17 @@ pub enum AppViewOut {
     NewFile,
     OpenFile,
     SaveFile,
+    SaveFileAs,
     OpenImport,
+    RecordGame(Box<GameRecord>),
+    RegisterDeck(PlayerInfo),
+    UpdateDeck(PlayerId, PlayerInfo),
+    DeleteDeck(PlayerId),
+    MergeDecks { target: PlayerId, other: PlayerId },
+    DeleteGame(usize),
+    SaveGameConfig(GameConfig),
+    SaveMatchmakerConfig(MatchmakerConfig),
+    ReloadRatings,
 }
 
 impl Model for AppView {
@@ -48,7 +85,7 @@ impl Model for AppView {
     fn update<'a>(
         &'a mut self,
         message: Self::Message,
-        _context: Self::Context<'a>,
+        context: Self::Context<'a>,
     ) -> anyhow::Result<iced_tea::Signal<Self::Message, Self::OutMessage>> {
         match message {
             AppViewMsg::ToggleSidebar => {
@@ -62,26 +99,68 @@ impl Model for AppView {
             AppViewMsg::NewFile => Signal::out(AppViewOut::NewFile).ok(),
             AppViewMsg::OpenFile => Signal::out(AppViewOut::OpenFile).ok(),
             AppViewMsg::SaveFile => Signal::out(AppViewOut::SaveFile).ok(),
+            AppViewMsg::SaveFileAs => Signal::out(AppViewOut::SaveFileAs).ok(),
             AppViewMsg::OpenImport => Signal::out(AppViewOut::OpenImport).ok(),
+            AppViewMsg::Overview(msg) => self.overview.map_update(msg, context, |out| {
+                Ok(match out {
+                    OverviewOut::InspectDeck(id) => Signal::msg(AppViewMsg::SetScreen(ScreenKind::Decks))
+                        .chain(Signal::msg(AppViewMsg::Decks(DecksMsg::OpenDetail(id)))),
+                    OverviewOut::GoToPlay => Signal::msg(AppViewMsg::SetScreen(ScreenKind::Play)),
+                })
+            }),
+            AppViewMsg::Play(msg) => self.play.map_update(msg, context, |out| {
+                Ok(match out {
+                    PlayOut::RecordGame(record) => Signal::out(AppViewOut::RecordGame(record)),
+                    PlayOut::InspectDeck(id) => Signal::msg(AppViewMsg::SetScreen(ScreenKind::Decks))
+                        .chain(Signal::msg(AppViewMsg::Decks(DecksMsg::OpenDetail(id)))),
+                })
+            }),
+            AppViewMsg::Decks(msg) => self.decks.map_update(msg, context, |out| {
+                Ok(match out {
+                    DecksOut::RegisterDeck(info) => Signal::out(AppViewOut::RegisterDeck(info)),
+                    DecksOut::UpdateDeck(id, info) => Signal::out(AppViewOut::UpdateDeck(id, info)),
+                    DecksOut::DeleteDeck(id) => Signal::out(AppViewOut::DeleteDeck(id)),
+                    DecksOut::MergeDecks { target, other } => {
+                        Signal::out(AppViewOut::MergeDecks { target, other })
+                    }
+                    DecksOut::PracticeDeck(id) => Signal::msg(AppViewMsg::SetScreen(ScreenKind::Play))
+                        .chain(Signal::msg(AppViewMsg::Play(PlayMsg::PracticeDeck(id)))),
+                })
+            }),
+            AppViewMsg::History(msg) => self.history.map_update(msg, context, |out| {
+                Ok(match out {
+                    MatchHistoryOut::DeleteGame(gid) => Signal::out(AppViewOut::DeleteGame(gid)),
+                    MatchHistoryOut::OpenImport => Signal::out(AppViewOut::OpenImport),
+                })
+            }),
+            AppViewMsg::Settings(msg) => self.settings.map_update(msg, context, |out| {
+                Ok(match out {
+                    SettingsOut::SaveGameConfig(cfg) => Signal::out(AppViewOut::SaveGameConfig(cfg)),
+                    SettingsOut::SaveMatchmakerConfig(cfg) => {
+                        Signal::out(AppViewOut::SaveMatchmakerConfig(cfg))
+                    }
+                    SettingsOut::ReloadRatings => Signal::out(AppViewOut::ReloadRatings),
+                })
+            }),
         }
     }
 }
 
 impl Component for AppView {
     fn render<'a>(&'a self, context: Self::Context<'a>) -> iced::Element<'a, Self::Message> {
+        let screen_view: iced::Element<'a, AppViewMsg> = match self.screen {
+            ScreenKind::Overview => self.overview.view_into(context),
+            ScreenKind::Play => self.play.view_into(context),
+            ScreenKind::Decks => self.decks.view_into(context),
+            ScreenKind::MatchHistory => self.history.view_into(context),
+            ScreenKind::Settings => self.settings.view_into(context),
+        };
+
         let main_column = column![
             topbar(self.screen, context),
-            scrollable(
-                container(
-                    text(format!("{} view coming soon...", self.screen))
-                        .size(14)
-                        .color(COLORS.subtext1),
-                )
+            scrollable(container(screen_view).width(Length::Fill).padding(20))
                 .width(Length::Fill)
-                .padding(20),
-            )
-            .width(Length::Fill)
-            .height(Length::Fill),
+                .height(Length::Fill),
         ]
         .width(Length::Fill)
         .height(Length::Fill);
@@ -160,13 +239,25 @@ fn topbar(active: ScreenKind, context: &TournamentModel) -> iced::Element<'stati
         ("Saved", COLORS.green)
     };
 
-    let status_badge = container(text(status_label).size(11))
-        .padding([3, 10])
-        .style(style::pill_badge(status_accent));
+    let status_badge = pill(status_label, status_accent);
 
     let left = row![text(active.to_string()).font(FONT_BOLD).size(22), status_badge,]
         .spacing(12)
         .align_y(Vertical::Center);
+
+    let has_file = context.tournament().is_some();
+
+    let mut save_btn = button(text("Save").size(13))
+        .padding([8, 14])
+        .style(style::secondary_button);
+    let mut save_as_btn = button(text("Save As").size(13))
+        .padding([8, 14])
+        .style(style::secondary_button);
+
+    if has_file {
+        save_btn = save_btn.on_press(AppViewMsg::SaveFile);
+        save_as_btn = save_as_btn.on_press(AppViewMsg::SaveFileAs);
+    }
 
     let right = row![
         button(text("New").size(13))
@@ -177,10 +268,8 @@ fn topbar(active: ScreenKind, context: &TournamentModel) -> iced::Element<'stati
             .padding([8, 14])
             .style(style::secondary_button)
             .on_press(AppViewMsg::OpenFile),
-        button(text("Save").size(13))
-            .padding([8, 14])
-            .style(style::secondary_button)
-            .on_press(AppViewMsg::SaveFile),
+        save_btn,
+        save_as_btn,
         button(text("Import Games").font(FONT_BOLD).size(13))
             .padding([8, 14])
             .style(style::primary_button)

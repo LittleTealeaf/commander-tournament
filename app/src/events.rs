@@ -25,7 +25,7 @@ impl Message {
 
     fn from_window_event(event: window::Event) -> Option<Self> {
         match event {
-            window::Event::CloseRequested => Some(Self::RequestQuit),
+            window::Event::CloseRequested => Some(Self::Quit),
             window::Event::FileDropped(path_buf) => {
                 Some(Self::Tourn(TournamentMessage::RequestOpen(path_buf)))
             }

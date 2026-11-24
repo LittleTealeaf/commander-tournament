@@ -1,7 +1,30 @@
+use commander_tournament_core::player::{bracket::Bracket, color::MtgColor};
 use iced::widget::{button, container, text_input};
 use iced::{Background, Border, Color, Theme, theme};
 
-const COLORS: catppuccin::FlavorColors = catppuccin::PALETTE.mocha.colors;
+pub const COLORS: catppuccin::FlavorColors = catppuccin::PALETTE.mocha.colors;
+
+#[must_use]
+pub const fn bracket_accent(bracket: Bracket) -> catppuccin::Color {
+    match bracket {
+        Bracket::Exhibition => COLORS.green,
+        Bracket::Core => COLORS.sapphire,
+        Bracket::Upgraded => COLORS.mauve,
+        Bracket::Optimized => COLORS.peach,
+        Bracket::Cedh => COLORS.pink,
+    }
+}
+
+#[must_use]
+pub const fn color_accent(color: MtgColor) -> catppuccin::Color {
+    match color {
+        MtgColor::White => COLORS.yellow,
+        MtgColor::Blue => COLORS.blue,
+        MtgColor::Black => COLORS.mauve,
+        MtgColor::Red => COLORS.red,
+        MtgColor::Green => COLORS.green,
+    }
+}
 
 pub fn app_style<S>(_state: &S, _theme: &Theme) -> theme::Style {
     theme::Style {
@@ -156,7 +179,7 @@ pub fn primary_button(_theme: &Theme, status: button::Status) -> button::Style {
         button::Status::Hovered => COLORS.lavender.into(),
         button::Status::Pressed => COLORS.sapphire.into(),
         button::Status::Disabled => COLORS.surface1.into(),
-        _ => COLORS.blue.into(),
+        button::Status::Active => COLORS.blue.into(),
     };
 
     let text_color: Color = match status {
@@ -256,6 +279,7 @@ pub fn segment_button(selected: bool) -> impl Fn(&Theme, button::Status) -> butt
     }
 }
 
+#[must_use]
 pub fn icon_button(_theme: &Theme, status: button::Status) -> button::Style {
     let bg: Option<Background> = match status {
         button::Status::Hovered => Some(COLORS.surface0.into()),
