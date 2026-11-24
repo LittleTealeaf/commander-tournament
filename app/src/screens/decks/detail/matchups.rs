@@ -26,8 +26,7 @@ pub(super) fn render_vs_decks_tab<'a>(
     let mut matchups: Vec<(RegisteredPlayer<'a>, MatchPerformance)> = tournament
         .analytics()
         .player_vs_player_performance(id)
-        .map(Iterator::collect)
-        .unwrap_or_default();
+        .map_or_default(Iterator::collect);
 
     matchups.sort_by(|(pa, perfa), (pb, perfb)| {
         perfb

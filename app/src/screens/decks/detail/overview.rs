@@ -226,8 +226,7 @@ fn render_notable_opponents<'a>(tournament: &'a Tournament, id: PlayerId) -> Ele
     let mut matchups: Vec<(RegisteredPlayer<'a>, MatchPerformance)> = tournament
         .analytics()
         .player_vs_player_performance(id)
-        .map(Iterator::collect)
-        .unwrap_or_default();
+        .map_or_default(Iterator::collect);
 
     let mut col = column![
         text("Notable Opponent Matchups")
