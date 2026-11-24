@@ -55,7 +55,7 @@ jobs:
       - name: Run tests
         run: cargo test --all --verbose
       - name: Build release
-        run: cargo build --release
+        run: cargo build --release --verbose
       - name: Upload release binary
         uses: actions/upload-artifact@v4
         with:
