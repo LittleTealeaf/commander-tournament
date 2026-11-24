@@ -112,7 +112,7 @@ where
                 if !self.is_saving() {
                     *self = Self::Closed;
                 }
-                Signal::done()
+                Ok(Signal::Out(FileModelOut::Closed))
             }
             FileModelMsg::OpenFile(path_buf) => Ok(Signal::perform(
                 load_from_file_async(path_buf.clone()),
@@ -125,11 +125,11 @@ where
                 if !self.is_saving() {
                     *self = Self::Opened {
                         data: *data,
-                        path: Some(path),
+                        path: Some(path.clone()),
                         is_saving: false,
                     };
                 }
-                Signal::done()
+                Ok(Signal::out(FileModelOut::Opened(path)))
             }
             FileModelMsg::SaveFile(path_buf) => {
                 let Self::Opened { data, is_saving, .. } = self else {
@@ -157,8 +157,8 @@ where
                 };
 
                 *is_saving = false;
-                *path = Some(path_buf);
-                Signal::done()
+                *path = Some(path_buf.clone());
+                Ok(Signal::out(FileModelOut::Saved(path_buf)))
             }
             FileModelMsg::Save => Ok(self.save_path().map_or_else(
                 || Signal::msg(FileModelMsg::SaveAs),

@@ -1,24 +1,28 @@
-pub mod app;
-pub mod core;
+pub mod events;
 pub mod fonts;
 pub mod icons;
 pub mod models;
+pub mod screens;
 pub mod services;
+pub mod style;
+pub mod update;
+pub mod view;
 
 use iced::{Program, Subscription, Task, event, window};
 pub use iced_tea::{App as IcedTeaApp, Component, HandleMessage, Model, Signal};
 
 use crate::{
-    app::Message,
-    core::state::AppState,
     fonts::{FONT_BYTES, FONT_NORMAL},
-    models::tournament::TournamentModel,
+    models::{state::AppState, tournament::TournamentModel},
+    update::Message,
+    view::AppView,
 };
 
 #[derive(Debug, Default)]
 pub struct ComTourApp {
     state: Option<AppState>,
     tourn: TournamentModel,
+    view: AppView,
 }
 
 impl ComTourApp {
@@ -60,7 +64,7 @@ impl iced_tea::App for ComTourApp {
             .title("Commander Tournament")
             .window(settings)
             .subscription(Self::subscription)
-            .theme(iced::theme::Theme::CatppuccinMocha);
+            .style(style::app_style);
 
         FONT_BYTES
             .into_iter()
@@ -69,7 +73,7 @@ impl iced_tea::App for ComTourApp {
     }
 
     fn view(&self) -> iced::Element<'_, Self::Message> {
-        todo!()
+        self.view.view_into(&self.tourn)
     }
 
     fn update(&mut self, message: Self::Message) -> anyhow::Result<Signal<Self::Message, ()>> {
@@ -77,7 +81,7 @@ impl iced_tea::App for ComTourApp {
     }
 
     fn on_error(&mut self, error: &anyhow::Error) {
-        let _ = rfd::AsyncMessageDialog::new()
+        rfd::MessageDialog::new()
             .set_level(rfd::MessageLevel::Error)
             .set_title("Error Raised")
             .set_description(error.to_string())

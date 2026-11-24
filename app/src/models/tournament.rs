@@ -71,6 +71,10 @@ pub enum TournamentMessage {
 impl TournamentMessage {
     pub const SAVE: Self = Self::File(FileModelMsg::Save);
     pub const SAVE_AS: Self = Self::File(FileModelMsg::SaveAs);
+
+    pub fn open(path: PathBuf) -> Self {
+        Self::File(FileModelMsg::OpenFile(path))
+    }
 }
 
 impl From<FileModelMsg<Tournament>> for TournamentMessage {
@@ -85,7 +89,7 @@ impl iced_tea::Model for TournamentModel {
     where
         Self: 'a;
     type Message = TournamentMessage;
-    type OutMessage = ();
+    type OutMessage = FileModelOut;
 
     fn update(
         &mut self,
@@ -171,13 +175,10 @@ impl iced_tea::Model for TournamentModel {
                     TournamentMessage::Nothing
                 }
             })),
-            TournamentMessage::File(file_model_msg) => self.file.update(file_model_msg, ())?.map(|out| {
-                Ok(match out {
-                    FileModelOut::Opened(_) | FileModelOut::Saved(_) | FileModelOut::Closed => {
-                        Signal::msg(TournamentMessage::ClearModifiedStatus)
-                    }
-                })
-            }),
+            TournamentMessage::File(file_model_msg) => self
+                .file
+                .update(file_model_msg, ())?
+                .map(|out| Ok(Signal::msg(TournamentMessage::ClearModifiedStatus).merge(Signal::out(out)))),
             TournamentMessage::ClearModifiedStatus => {
                 self.modified = false;
                 Signal::done()

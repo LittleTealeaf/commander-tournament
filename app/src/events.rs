@@ -2,7 +2,7 @@
 
 use iced::{Event, keyboard, window};
 
-use crate::{app::update::Message, models::tournament::TournamentMessage};
+use crate::{models::tournament::TournamentMessage, update::Message};
 
 impl Message {
     #[must_use]
@@ -18,6 +18,8 @@ impl Message {
         let keyboard::Event::KeyPressed { key, modifiers, .. } = event else {
             return None;
         };
+        let _ = key;
+        let _ = modifiers;
         None
     }
 
