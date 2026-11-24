@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.1.0](https://github.com/LittleTealeaf/commander-tournament/compare/commander_tournament-v3.0.0...commander_tournament-v3.1.0) (2026-11-24)
+
+
+### Features
+
+* **ui:** Implement Catppuccin Mocha UI screens, components, and bracket system ([#210](https://github.com/LittleTealeaf/commander-tournament/issues/210)) ([f11bcae](https://github.com/LittleTealeaf/commander-tournament/commit/f11bcaed4c12548d593372227cb6aaff0bad8d93))
+
+
+### Bug Fixes
+
+* in-app error modal, player merge remap, and open all goldfish button ([#212](https://github.com/LittleTealeaf/commander-tournament/issues/212)) ([ab208c5](https://github.com/LittleTealeaf/commander-tournament/commit/ab208c591f5076d10a8793c793a86776d8ac0205))
+
 ## [3.0.0](https://github.com/LittleTealeaf/commander-tournament/compare/commander_tournament-v2.2.0...commander_tournament-v3.0.0) (2026-11-23)
 
 
