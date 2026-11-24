@@ -62,6 +62,34 @@ jobs:
           name: commander-tournament-${{ matrix.os }}
           path: ${{ matrix.os == 'windows-latest' && 'target/release/commander-tournament.exe' || 'target/release/commander-tournament' }}
           if-no-files-found: error
+  binary-size:
+    name: Binary Size Summary
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download release binaries
+        uses: actions/download-artifact@v4
+        with:
+          pattern: commander-tournament-*
+          path: artifacts
+      - name: Write size summary
+        run: |
+          {
+            echo "## Release Binary Sizes"
+            echo ""
+            echo "| OS | Binary | Size |"
+            echo "| :--- | :--- | ---: |"
+            for dir in artifacts/commander-tournament-*; do
+              os="${dir#artifacts/commander-tournament-}"
+              for bin in "$dir"/*; do
+                [ -f "$bin" ] || continue
+                name="$(basename "$bin")"
+                bytes="$(stat -c%s "$bin")"
+                mb="$(awk -v b="$bytes" 'BEGIN { printf "%.2f MB", b / 1048576 }')"
+                echo "| \`$os\` | \`$name\` | **$mb** ($bytes bytes) |"
+              done
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
   test-coverage:
     name: Test Coverage
     strategy:
