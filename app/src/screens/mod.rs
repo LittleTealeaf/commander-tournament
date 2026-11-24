@@ -1,5 +1,6 @@
 pub mod decks;
 pub mod history;
+pub mod import;
 pub mod overview;
 pub mod play;
 pub mod settings;

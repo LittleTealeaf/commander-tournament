@@ -17,7 +17,8 @@ use nerd_font_symbols::md;
 use strum::VariantArray;
 
 use crate::{
-    fonts::FONT_BOLD,
+    components::{DeckPicker, DeckPickerMsg},
+    fonts::{FONT_BOLD, FONT_SEMIBOLD},
     icons::color_icon,
     style::{self, COLORS},
 };
@@ -31,6 +32,11 @@ pub enum DeckEditorMsg {
     MoxfieldChanged(String),
     TogglePrecon(bool),
     ToggleArchived(bool),
+    MergePicker(DeckPickerMsg),
+    ConfirmMerge,
+    RequestDelete,
+    CancelDelete,
+    ConfirmDelete,
     Submit,
     Close,
 }
@@ -41,10 +47,15 @@ pub enum DeckEditorOut {
         editing_id: Option<PlayerId>,
         info: PlayerInfo,
     },
+    Merge {
+        target: PlayerId,
+        other: PlayerId,
+    },
+    Delete(PlayerId),
     Close,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct DeckEditor {
     editing_id: Option<PlayerId>,
     name: String,
@@ -54,12 +65,14 @@ pub struct DeckEditor {
     moxfield_input: String,
     is_precon: bool,
     is_archived: bool,
+    merge_picker: DeckPicker,
+    confirm_delete: bool,
     error: Option<String>,
 }
 
 impl DeckEditor {
     #[must_use]
-    pub const fn new_deck() -> Self {
+    pub fn new_deck() -> Self {
         Self {
             editing_id: None,
             name: String::new(),
@@ -69,12 +82,16 @@ impl DeckEditor {
             moxfield_input: String::new(),
             is_precon: false,
             is_archived: false,
+            merge_picker: DeckPicker::all_decks("Search deck to absorb into this deck..."),
+            confirm_delete: false,
             error: None,
         }
     }
 
     #[must_use]
-    pub fn from_existing(id: PlayerId, info: &PlayerInfo) -> Self {
+    pub fn from_existing(id: PlayerId, info: &PlayerInfo, tournament: &Tournament) -> Self {
+        let mut merge_picker = DeckPicker::all_decks("Search deck to absorb into this deck...");
+        merge_picker.sync(tournament);
         Self {
             editing_id: Some(id),
             name: info.name().clone(),
@@ -84,6 +101,8 @@ impl DeckEditor {
             moxfield_input: info.moxfield_id().cloned().unwrap_or_default(),
             is_precon: info.is_precon(),
             is_archived: info.is_archived(),
+            merge_picker,
+            confirm_delete: false,
             error: None,
         }
     }
@@ -159,6 +178,34 @@ impl Model for DeckEditor {
                 self.is_archived = is_archived;
                 Signal::done()
             }
+            DeckEditorMsg::MergePicker(msg) => {
+                let _ = self.merge_picker.update(msg, context)?;
+                Signal::done()
+            }
+            DeckEditorMsg::ConfirmMerge => {
+                if let (Some(target), Some(other)) = (self.editing_id, self.merge_picker.selected())
+                    && target != other
+                {
+                    self.merge_picker.clear();
+                    return Signal::out(DeckEditorOut::Merge { target, other }).ok();
+                }
+                Signal::done()
+            }
+            DeckEditorMsg::RequestDelete => {
+                self.confirm_delete = true;
+                Signal::done()
+            }
+            DeckEditorMsg::CancelDelete => {
+                self.confirm_delete = false;
+                Signal::done()
+            }
+            DeckEditorMsg::ConfirmDelete => {
+                self.confirm_delete = false;
+                if let Some(id) = self.editing_id {
+                    return Signal::out(DeckEditorOut::Delete(id)).ok();
+                }
+                Signal::done()
+            }
             DeckEditorMsg::Close => Signal::out(DeckEditorOut::Close).ok(),
             DeckEditorMsg::Submit => {
                 let trimmed_name = self.name.trim().to_owned();
@@ -185,7 +232,7 @@ impl Model for DeckEditor {
 }
 
 impl Component for DeckEditor {
-    fn render<'a>(&'a self, _context: Self::Context<'a>) -> Element<'a, Self::Message> {
+    fn render<'a>(&'a self, context: Self::Context<'a>) -> Element<'a, Self::Message> {
         let heading = if self.editing_id.is_some() {
             "Edit Deck"
         } else {
@@ -297,7 +344,7 @@ impl Component for DeckEditor {
         .spacing(16)
         .align_y(Vertical::Center);
 
-        let mut content = column![
+        let mut form = column![
             header,
             rule::horizontal(1),
             row![name_field, moxfield_field].spacing(12).width(Length::Fill),
@@ -312,7 +359,69 @@ impl Component for DeckEditor {
         .width(Length::Fill);
 
         if let Some(err) = &self.error {
-            content = content.push(text(err).size(12).color(COLORS.red));
+            form = form.push(text(err).size(12).color(COLORS.red));
+        }
+
+        if let Some(editing_id) = self.editing_id {
+            let merge_source = self.merge_picker.selected();
+            let can_merge = merge_source.is_some_and(|other| other != editing_id);
+
+            let mut merge_btn = button(
+                row![
+                    text(md::MD_CALL_MERGE).size(14),
+                    text("Merge Into This Deck").font(FONT_BOLD).size(12),
+                ]
+                .spacing(6)
+                .align_y(Vertical::Center),
+            )
+            .padding([8, 12])
+            .style(style::danger_button);
+
+            if can_merge {
+                merge_btn = merge_btn.on_press(DeckEditorMsg::ConfirmMerge);
+            }
+
+            let merge_hint: Element<'a, DeckEditorMsg> = match merge_source {
+                Some(other) if other == editing_id => text("Choose a different deck to merge.")
+                    .size(11)
+                    .color(COLORS.yellow)
+                    .into(),
+                Some(other) => {
+                    let other_name = context
+                        .get_player_display_name(&other)
+                        .unwrap_or_else(|| format!("Deck {other:?}"));
+                    text(format!(
+                        "Reassigns all matches from \"{other_name}\" into this deck and replays Elo chronologically."
+                    ))
+                    .size(11)
+                    .color(COLORS.subtext1)
+                    .into()
+                }
+                None => text("Absorb a duplicate or retired deck's match history into this deck.")
+                    .size(11)
+                    .color(COLORS.subtext0)
+                    .into(),
+            };
+
+            let merge_section = column![
+                rule::horizontal(1),
+                text("Merge Another Deck Into This One")
+                    .font(FONT_SEMIBOLD)
+                    .size(13)
+                    .color(COLORS.subtext1),
+                row![
+                    self.merge_picker.view(context).map(DeckEditorMsg::MergePicker),
+                    merge_btn,
+                ]
+                .spacing(8)
+                .align_y(Vertical::Center)
+                .width(Length::Fill),
+                merge_hint,
+            ]
+            .spacing(6)
+            .width(Length::Fill);
+
+            form = form.push(merge_section);
         }
 
         let save_label = if self.editing_id.is_some() {
@@ -321,21 +430,57 @@ impl Component for DeckEditor {
             "Add Deck"
         };
 
-        let footer = row![
-            space::horizontal(),
-            button(text("Cancel").size(13))
-                .padding([8, 14])
-                .style(style::secondary_button)
-                .on_press(DeckEditorMsg::Close),
-            button(text(save_label).font(FONT_BOLD).size(13))
-                .padding([8, 14])
-                .style(style::primary_button)
-                .on_press(DeckEditorMsg::Submit),
-        ]
-        .spacing(8)
-        .align_y(Vertical::Center);
+        let mut footer = row![].spacing(8).align_y(Vertical::Center);
 
-        container(content.push(footer))
+        if self.editing_id.is_some() {
+            if self.confirm_delete {
+                footer = footer
+                    .push(text("Delete deck & its games?").size(12).color(COLORS.red))
+                    .push(
+                        button(text("Keep").size(12))
+                            .padding([6, 10])
+                            .style(style::secondary_button)
+                            .on_press(DeckEditorMsg::CancelDelete),
+                    )
+                    .push(
+                        button(text("Confirm Delete").font(FONT_BOLD).size(12))
+                            .padding([6, 12])
+                            .style(style::danger_button)
+                            .on_press(DeckEditorMsg::ConfirmDelete),
+                    );
+            } else {
+                footer = footer.push(
+                    button(
+                        row![
+                            text(md::MD_TRASH_CAN_OUTLINE).size(14),
+                            text("Delete Deck").size(13),
+                        ]
+                        .spacing(6)
+                        .align_y(Vertical::Center),
+                    )
+                    .padding([8, 12])
+                    .style(style::danger_button)
+                    .on_press(DeckEditorMsg::RequestDelete),
+                );
+            }
+        }
+
+        let footer = footer
+            .push(space::horizontal())
+            .push(
+                button(text("Cancel").size(13))
+                    .padding([8, 14])
+                    .style(style::secondary_button)
+                    .on_press(DeckEditorMsg::Close),
+            )
+            .push(
+                button(text(save_label).font(FONT_BOLD).size(13))
+                    .padding([8, 14])
+                    .style(style::primary_button)
+                    .on_press(DeckEditorMsg::Submit),
+            );
+
+        container(form.push(footer))
             .width(Length::Fill)
             .padding(16)
             .style(style::card)

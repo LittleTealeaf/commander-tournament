@@ -52,7 +52,10 @@ pub enum TournamentMessage {
     SetGameConfig(GameConfig),
     SetMatchmakerConfig(MatchmakerConfig),
     Record(Box<GameRecord>),
-    MergeTournament(Box<Tournament>),
+    MergeTournament {
+        other: Box<Tournament>,
+        prepend: bool,
+    },
     MergePlayer(PlayerId, PlayerId),
 
     // Tournament File
@@ -138,8 +141,18 @@ impl iced_tea::Model for TournamentModel {
                 self.modified = true;
                 Ok(Signal::Done)
             }
-            TournamentMessage::MergeTournament(tournament) => {
-                self.mut_tournament()?.merge(&tournament)?;
+            TournamentMessage::MergeTournament { other, prepend } => {
+                if prepend {
+                    let current = self.mut_tournament()?;
+                    let mut combined = Tournament::new();
+                    combined.set_game_config(current.game_config().clone())?;
+                    combined.set_matchmaker_config(current.matchmaker_config().clone());
+                    combined.merge(&other)?;
+                    combined.merge(current)?;
+                    *current = combined;
+                } else {
+                    self.mut_tournament()?.merge(&other)?;
+                }
                 self.modified = true;
                 Ok(Signal::Done)
             }

@@ -42,10 +42,6 @@ pub(super) fn render_decks_list<'a>(
         layout = layout.push(editor.view_into(tournament));
     }
 
-    if let Some(merge) = &state.merge {
-        layout = layout.push(merge.view_into(tournament));
-    }
-
     let body: iced::Element<'a, DecksMsg> = if total_decks == 0 {
         empty_card(
             md::MD_CARDS_OUTLINE,
@@ -89,8 +85,7 @@ pub(super) fn render_decks_list<'a>(
             .take(take)
             .fold(column![].spacing(8), |col, player| {
                 let is_editing = state.editor.as_ref().and_then(DeckEditor::editing_id) == Some(player.id());
-                let is_confirming_delete = state.confirm_delete == Some(player.id());
-                col.push(render_deck_row(player, is_editing, is_confirming_delete))
+                col.push(render_deck_row(player, is_editing))
             })
             .width(Length::Fill);
 
@@ -212,15 +207,6 @@ fn render_toolbar(state: &DecksState, shown_count: usize, total_count: usize) ->
         .style(style::secondary_button)
         .on_press(DecksMsg::ToggleSortDirection);
 
-    let merge_btn = button(
-        row![text(md::MD_CALL_MERGE).size(14), text("Merge Decks").size(13),]
-            .spacing(6)
-            .align_y(Vertical::Center),
-    )
-    .padding([8, 14])
-    .style(style::secondary_button)
-    .on_press(DecksMsg::OpenMerge);
-
     let add_btn = button(
         row![
             text(md::MD_PLUS).size(14),
@@ -239,7 +225,6 @@ fn render_toolbar(state: &DecksState, shown_count: usize, total_count: usize) ->
         sort_picker,
         sort_dir_btn,
         space::horizontal(),
-        merge_btn,
         add_btn,
     ]
     .spacing(8)
@@ -311,11 +296,7 @@ fn render_toolbar(state: &DecksState, shown_count: usize, total_count: usize) ->
         .into()
 }
 
-fn render_deck_row<'a>(
-    player: RegisteredPlayer<'a>,
-    is_editing: bool,
-    confirming_delete: bool,
-) -> iced::Element<'a, DecksMsg> {
+fn render_deck_row(player: RegisteredPlayer<'_>, is_editing: bool) -> iced::Element<'_, DecksMsg> {
     let id = player.id();
     let info = player.info();
     let stats = player.stats();
@@ -386,54 +367,30 @@ fn render_deck_row<'a>(
     .spacing(12)
     .align_y(Vertical::Center);
 
-    let actions: iced::Element<'a, DecksMsg> = if confirming_delete {
-        row![
-            button(text("Cancel").size(12))
-                .padding([6, 10])
-                .style(style::secondary_button)
-                .on_press(DecksMsg::CancelDelete),
-            button(text("Delete").font(FONT_BOLD).size(12))
-                .padding([6, 10])
-                .style(style::danger_button)
-                .on_press(DecksMsg::ConfirmDelete(id)),
-        ]
-        .spacing(6)
-        .align_y(Vertical::Center)
-        .into()
-    } else {
-        let mut action_row = row![].spacing(4).align_y(Vertical::Center);
+    let mut action_row = row![].spacing(4).align_y(Vertical::Center);
 
-        if let Some(link) = info.moxfield_link() {
-            action_row = action_row.push(
-                button(text(md::MD_OPEN_IN_NEW).size(15))
-                    .padding([6, 8])
-                    .style(style::icon_button)
-                    .on_press(DecksMsg::OpenMoxfield(link)),
-            );
-        }
+    if let Some(link) = info.moxfield_link() {
+        action_row = action_row.push(
+            button(text(md::MD_OPEN_IN_NEW).size(15))
+                .padding([6, 8])
+                .style(style::icon_button)
+                .on_press(DecksMsg::OpenMoxfield(link)),
+        );
+    }
 
-        action_row = action_row
-            .push(
-                button(text(md::MD_CHART_BAR).size(15))
-                    .padding([6, 8])
-                    .style(style::icon_button)
-                    .on_press(DecksMsg::OpenDetail(id)),
-            )
-            .push(
-                button(text(md::MD_PENCIL_OUTLINE).size(15))
-                    .padding([6, 8])
-                    .style(style::icon_button)
-                    .on_press(DecksMsg::OpenEditDeck(id)),
-            )
-            .push(
-                button(text(md::MD_TRASH_CAN_OUTLINE).size(15))
-                    .padding([6, 8])
-                    .style(style::icon_button)
-                    .on_press(DecksMsg::RequestDelete(id)),
-            );
-
-        action_row.into()
-    };
+    let actions = action_row
+        .push(
+            button(text(md::MD_CHART_BAR).size(15))
+                .padding([6, 8])
+                .style(style::icon_button)
+                .on_press(DecksMsg::OpenDetail(id)),
+        )
+        .push(
+            button(text(md::MD_PENCIL_OUTLINE).size(15))
+                .padding([6, 8])
+                .style(style::icon_button)
+                .on_press(DecksMsg::OpenEditDeck(id)),
+        );
 
     container(
         row![info_col, stats_row, actions]
@@ -443,6 +400,6 @@ fn render_deck_row<'a>(
     )
     .width(Length::Fill)
     .padding([12, 16])
-    .style(style::table_row(is_editing || confirming_delete))
+    .style(style::table_row(is_editing))
     .into()
 }

@@ -1,7 +1,6 @@
 mod detail;
 mod editor;
 mod list;
-mod merge;
 
 use commander_tournament_core::player::{
     PlayerId,
@@ -18,10 +17,7 @@ use crate::{
     models::tournament::TournamentModel,
 };
 
-use self::{
-    editor::{DeckEditor, DeckEditorMsg, DeckEditorOut},
-    merge::{MergeDecks, MergeDecksMsg, MergeDecksOut},
-};
+use self::editor::{DeckEditor, DeckEditorMsg, DeckEditorOut};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 enum ColorFilterMode {
@@ -43,8 +39,6 @@ pub struct DecksState {
     sort_asc: bool,
     paginator: Paginator,
     editor: Option<DeckEditor>,
-    merge: Option<MergeDecks>,
-    confirm_delete: Option<PlayerId>,
     selected_deck: Option<PlayerId>,
     detail_tab: DetailTab,
     detail_paginator: Paginator,
@@ -63,8 +57,6 @@ impl Default for DecksState {
             sort_asc: false,
             paginator: Paginator::default(),
             editor: None,
-            merge: None,
-            confirm_delete: None,
             selected_deck: None,
             detail_tab: DetailTab::Overview,
             detail_paginator: Paginator::compact(),
@@ -154,11 +146,6 @@ pub enum DecksMsg {
     // Quick row actions
     #[from(ignore)]
     OpenMoxfield(String),
-    #[from(ignore)]
-    RequestDelete(PlayerId),
-    CancelDelete,
-    #[from(ignore)]
-    ConfirmDelete(PlayerId),
 
     // Child components
     OpenAddDeck,
@@ -166,9 +153,6 @@ pub enum DecksMsg {
     OpenEditDeck(PlayerId),
     CloseEditor,
     Editor(DeckEditorMsg),
-    OpenMerge,
-    CloseMerge,
-    Merge(MergeDecksMsg),
 }
 
 #[derive(Debug, Clone)]
@@ -197,7 +181,6 @@ impl Model for DecksState {
             DecksMsg::SearchChanged(query) => {
                 self.search = query;
                 self.paginator.reset();
-                self.confirm_delete = None;
                 Signal::done()
             }
             DecksMsg::ToggleColorFilter(color) => {
@@ -268,17 +251,12 @@ impl Model for DecksState {
                 self.paginator.reset();
                 Signal::done()
             }
-            DecksMsg::Paginator(msg) => {
-                self.confirm_delete = None;
-                self.paginator.empty_update(msg, 0)
-            }
+            DecksMsg::Paginator(msg) => self.paginator.empty_update(msg, 0),
             DecksMsg::OpenDetail(id) => {
                 self.selected_deck = Some(id);
                 self.detail_tab = DetailTab::Overview;
                 self.detail_paginator.reset();
                 self.editor = None;
-                self.merge = None;
-                self.confirm_delete = None;
                 Signal::done()
             }
             DecksMsg::CloseDetail => {
@@ -302,35 +280,15 @@ impl Model for DecksState {
                 }
                 Signal::done()
             }
-            DecksMsg::RequestDelete(id) => {
-                self.confirm_delete = Some(id);
-                Signal::done()
-            }
-            DecksMsg::CancelDelete => {
-                self.confirm_delete = None;
-                Signal::done()
-            }
-            DecksMsg::ConfirmDelete(id) => {
-                self.confirm_delete = None;
-                if self.editor.as_ref().and_then(DeckEditor::editing_id) == Some(id) {
-                    self.editor = None;
-                }
-                if self.selected_deck == Some(id) {
-                    self.selected_deck = None;
-                }
-                Signal::out(DecksOut::DeleteDeck(id)).ok()
-            }
             DecksMsg::OpenAddDeck => {
-                self.merge = None;
-                self.confirm_delete = None;
                 self.editor = Some(DeckEditor::new_deck());
                 Signal::done()
             }
             DecksMsg::OpenEditDeck(id) => {
-                if let Some(info) = context.tournament().and_then(|t| t.get_player_info(&id)) {
-                    self.merge = None;
-                    self.confirm_delete = None;
-                    self.editor = Some(DeckEditor::from_existing(id, info));
+                if let Some(tournament) = context.tournament()
+                    && let Some(info) = tournament.get_player_info(&id)
+                {
+                    self.editor = Some(DeckEditor::from_existing(id, info, tournament));
                 }
                 Signal::done()
             }
@@ -345,38 +303,19 @@ impl Model for DecksState {
                 editor.map_update(msg, tournament, |out| {
                     Ok(match out {
                         DeckEditorOut::Close => Signal::msg(DecksMsg::CloseEditor),
+                        DeckEditorOut::Delete(id) => {
+                            Signal::out(DecksOut::DeleteDeck(id)).chain(Signal::msg(DecksMsg::CloseDetail))
+                        }
+                        DeckEditorOut::Merge { target, other } => {
+                            Signal::out(DecksOut::MergeDecks { target, other })
+                                .chain(Signal::msg(DecksMsg::CloseEditor))
+                        }
                         DeckEditorOut::Save { editing_id, info } => {
                             let save = match editing_id {
                                 Some(id) => Signal::out(DecksOut::UpdateDeck(id, info)),
                                 None => Signal::out(DecksOut::RegisterDeck(info)),
                             };
                             save.chain(Signal::msg(DecksMsg::CloseEditor))
-                        }
-                    })
-                })
-            }
-            DecksMsg::OpenMerge => {
-                self.editor = None;
-                self.confirm_delete = None;
-                if let Some(tournament) = context.tournament() {
-                    self.merge = Some(MergeDecks::synced(tournament));
-                }
-                Signal::done()
-            }
-            DecksMsg::CloseMerge => {
-                self.merge = None;
-                Signal::done()
-            }
-            DecksMsg::Merge(msg) => {
-                let (Some(merge), Some(tournament)) = (&mut self.merge, context.tournament()) else {
-                    return Signal::done();
-                };
-                merge.map_update(msg, tournament, |out| {
-                    Ok(match out {
-                        MergeDecksOut::Close => Signal::msg(DecksMsg::CloseMerge),
-                        MergeDecksOut::Confirm { target, other } => {
-                            Signal::out(DecksOut::MergeDecks { target, other })
-                                .chain(Signal::msg(DecksMsg::CloseMerge))
                         }
                     })
                 })

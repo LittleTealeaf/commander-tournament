@@ -160,14 +160,9 @@ pub(super) fn render_vs_identities_tab(tournament: &Tournament, id: PlayerId) ->
     let rows = matchups
         .into_iter()
         .fold(column![].spacing(6), |col, (identity, perf)| {
-            let ratio = if perf.played() > 0 {
-                #[allow(clippy::cast_precision_loss, reason = "Match counts fit comfortably in f64")]
-                {
-                    perf.wins() as f64 / perf.played() as f64
-                }
-            } else {
-                0.0
-            };
+            let wr = perf.winrate();
+            let ratio = wr.unwrap_or(0.0);
+            let pct_label = wr.map_or_else(|| "—".to_owned(), |v| format!("{:.1}%", v * 100.0));
 
             col.push(
                 container(
@@ -179,7 +174,7 @@ pub(super) fn render_vs_identities_tab(tournament: &Tournament, id: PlayerId) ->
                             .width(Length::Fixed(100.0)),
                         container(mana_pips(identity)).width(Length::Fixed(96.0)),
                         progress_bar(ratio, COLORS.blue),
-                        text(format!("{:.1}%", ratio * 100.0))
+                        text(pct_label)
                             .font(FONT_SEMIBOLD)
                             .size(12)
                             .color(COLORS.text)

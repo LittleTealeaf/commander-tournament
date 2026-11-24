@@ -44,7 +44,12 @@ impl Model for ComTourApp {
                     AppViewOut::OpenFile => Signal::msg(TournamentMessage::Open),
                     AppViewOut::SaveFile => Signal::msg(TournamentMessage::SAVE),
                     AppViewOut::SaveFileAs => Signal::msg(TournamentMessage::SAVE_AS),
-                    AppViewOut::OpenImport => Signal::Done,
+                    AppViewOut::ImportGames { source, prepend } => {
+                        Signal::msg(TournamentMessage::MergeTournament {
+                            other: source,
+                            prepend,
+                        })
+                    }
                     AppViewOut::RecordGame(record) => Signal::msg(TournamentMessage::Record(record)),
                     AppViewOut::RegisterDeck(info) => Signal::msg(TournamentMessage::RegisterPlayer(info)),
                     AppViewOut::UpdateDeck(id, info) => {

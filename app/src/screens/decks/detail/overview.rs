@@ -186,19 +186,9 @@ fn render_color_matchups<'a>(tournament: &Tournament, id: PlayerId) -> Element<'
 
     for color in MtgColor::COLORS {
         let perf = color_perf.get(&color).copied().unwrap_or_default();
-        let ratio = if perf.played() > 0 {
-            #[allow(clippy::cast_precision_loss, reason = "Match counts fit comfortably in f64")]
-            {
-                perf.wins() as f64 / perf.played() as f64
-            }
-        } else {
-            0.0
-        };
-        let pct_label = if perf.played() > 0 {
-            format!("{:.1}%", ratio * 100.0)
-        } else {
-            "—".to_owned()
-        };
+        let wr = perf.winrate();
+        let ratio = wr.unwrap_or(0.0);
+        let pct_label = wr.map_or_else(|| "—".to_owned(), |v| format!("{:.1}%", v * 100.0));
 
         col = col.push(
             row![

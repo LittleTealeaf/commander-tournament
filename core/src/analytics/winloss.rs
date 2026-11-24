@@ -108,6 +108,12 @@ impl MatchPerformance {
         self.played - (self.won + self.lost)
     }
 
+    #[must_use]
+    #[allow(clippy::cast_precision_loss, reason = "Match counts fit comfortably in f64")]
+    pub fn winrate(&self) -> Option<f64> {
+        (self.played > 0).then(|| self.won as f64 / self.played as f64)
+    }
+
     pub(crate) const fn add_draw(&mut self) {
         self.played += 1;
     }
@@ -229,5 +235,13 @@ mod tests {
         let p_eq2 = MatchPerformance::new(4, 2, 1);
         assert_eq!(p_eq1, p_eq2);
         assert_eq!(p_eq1.cmp(&p_eq2), Ordering::Equal);
+    }
+
+    #[test]
+    fn test_winrate() {
+        assert_eq!(MatchPerformance::default().winrate(), None);
+        assert_eq!(MatchPerformance::WIN.winrate(), Some(1.0));
+        assert_eq!(MatchPerformance::LOSS.winrate(), Some(0.0));
+        assert_eq!(MatchPerformance::new(4, 1, 2).winrate(), Some(0.25));
     }
 }

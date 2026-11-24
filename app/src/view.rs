@@ -2,6 +2,7 @@ use commander_tournament_core::{
     config::{game::GameConfig, matchmaker::MatchmakerConfig},
     game::record::GameRecord,
     player::{PlayerId, info::PlayerInfo},
+    tournament::Tournament,
 };
 use iced::{
     Length,
@@ -20,6 +21,7 @@ use crate::{
         ScreenKind,
         decks::{DecksMsg, DecksOut, DecksState},
         history::{MatchHistoryMsg, MatchHistoryOut, MatchHistoryState},
+        import::{ImportMsg, ImportOut, ImportState},
         overview::{OverviewMsg, OverviewOut, OverviewState},
         play::{PlayMsg, PlayOut, PlayState},
         settings::{SettingsMsg, SettingsOut, SettingsState},
@@ -31,11 +33,13 @@ use crate::{
 pub struct AppView {
     sidebar_collapsed: bool,
     screen: ScreenKind,
+    import_open: bool,
     overview: OverviewState,
     play: PlayState,
     decks: DecksState,
     history: MatchHistoryState,
     settings: SettingsState,
+    import: ImportState,
 }
 
 #[derive(Debug, Clone, derive_more::From)]
@@ -47,11 +51,13 @@ pub enum AppViewMsg {
     SaveFile,
     SaveFileAs,
     OpenImport,
+    CloseImport,
     Overview(OverviewMsg),
     Play(PlayMsg),
     Decks(DecksMsg),
     History(MatchHistoryMsg),
     Settings(SettingsMsg),
+    Import(ImportMsg),
 }
 
 #[derive(Debug, Clone)]
@@ -60,7 +66,7 @@ pub enum AppViewOut {
     OpenFile,
     SaveFile,
     SaveFileAs,
-    OpenImport,
+    ImportGames { source: Box<Tournament>, prepend: bool },
     RecordGame(Box<GameRecord>),
     RegisterDeck(PlayerInfo),
     UpdateDeck(PlayerId, PlayerInfo),
@@ -94,13 +100,21 @@ impl Model for AppView {
             }
             AppViewMsg::SetScreen(screen_kind) => {
                 self.screen = screen_kind;
+                self.import_open = false;
                 Signal::done()
             }
             AppViewMsg::NewFile => Signal::out(AppViewOut::NewFile).ok(),
             AppViewMsg::OpenFile => Signal::out(AppViewOut::OpenFile).ok(),
             AppViewMsg::SaveFile => Signal::out(AppViewOut::SaveFile).ok(),
             AppViewMsg::SaveFileAs => Signal::out(AppViewOut::SaveFileAs).ok(),
-            AppViewMsg::OpenImport => Signal::out(AppViewOut::OpenImport).ok(),
+            AppViewMsg::OpenImport => {
+                self.import_open = true;
+                Signal::done()
+            }
+            AppViewMsg::CloseImport => {
+                self.import_open = false;
+                Signal::done()
+            }
             AppViewMsg::Overview(msg) => self.overview.map_update(msg, context, |out| {
                 Ok(match out {
                     OverviewOut::InspectDeck(id) => Signal::msg(AppViewMsg::SetScreen(ScreenKind::Decks))
@@ -130,7 +144,7 @@ impl Model for AppView {
             AppViewMsg::History(msg) => self.history.map_update(msg, context, |out| {
                 Ok(match out {
                     MatchHistoryOut::DeleteGame(gid) => Signal::out(AppViewOut::DeleteGame(gid)),
-                    MatchHistoryOut::OpenImport => Signal::out(AppViewOut::OpenImport),
+                    MatchHistoryOut::OpenImport => Signal::msg(AppViewMsg::OpenImport),
                 })
             }),
             AppViewMsg::Settings(msg) => self.settings.map_update(msg, context, |out| {
@@ -142,22 +156,35 @@ impl Model for AppView {
                     SettingsOut::ReloadRatings => Signal::out(AppViewOut::ReloadRatings),
                 })
             }),
+            AppViewMsg::Import(msg) => self.import.map_update(msg, context, |out| {
+                Ok(match out {
+                    ImportOut::Close => Signal::msg(AppViewMsg::CloseImport),
+                    ImportOut::Apply { source, prepend } => {
+                        Signal::out(AppViewOut::ImportGames { source, prepend })
+                            .chain(Signal::msg(AppViewMsg::SetScreen(ScreenKind::MatchHistory)))
+                    }
+                })
+            }),
         }
     }
 }
 
 impl Component for AppView {
     fn render<'a>(&'a self, context: Self::Context<'a>) -> iced::Element<'a, Self::Message> {
-        let screen_view: iced::Element<'a, AppViewMsg> = match self.screen {
-            ScreenKind::Overview => self.overview.view_into(context),
-            ScreenKind::Play => self.play.view_into(context),
-            ScreenKind::Decks => self.decks.view_into(context),
-            ScreenKind::MatchHistory => self.history.view_into(context),
-            ScreenKind::Settings => self.settings.view_into(context),
+        let screen_view: iced::Element<'a, AppViewMsg> = if self.import_open {
+            self.import.view_into(context)
+        } else {
+            match self.screen {
+                ScreenKind::Overview => self.overview.view_into(context),
+                ScreenKind::Play => self.play.view_into(context),
+                ScreenKind::Decks => self.decks.view_into(context),
+                ScreenKind::MatchHistory => self.history.view_into(context),
+                ScreenKind::Settings => self.settings.view_into(context),
+            }
         };
 
         let main_column = column![
-            topbar(self.screen, context),
+            topbar(self.screen, self.import_open, context),
             scrollable(container(screen_view).width(Length::Fill).padding(20))
                 .width(Length::Fill)
                 .height(Length::Fill),
@@ -230,7 +257,11 @@ fn sidebar(active: ScreenKind, collapsed: bool) -> iced::Element<'static, AppVie
         .into()
 }
 
-fn topbar(active: ScreenKind, context: &TournamentModel) -> iced::Element<'static, AppViewMsg> {
+fn topbar(
+    active: ScreenKind,
+    import_open: bool,
+    context: &TournamentModel,
+) -> iced::Element<'static, AppViewMsg> {
     let (status_label, status_accent) = if context.tournament().is_none() {
         ("No File", COLORS.overlay1)
     } else if context.modified() {
@@ -240,8 +271,13 @@ fn topbar(active: ScreenKind, context: &TournamentModel) -> iced::Element<'stati
     };
 
     let status_badge = pill(status_label, status_accent);
+    let title = if import_open {
+        "Import Games".to_owned()
+    } else {
+        active.to_string()
+    };
 
-    let left = row![text(active.to_string()).font(FONT_BOLD).size(22), status_badge,]
+    let left = row![text(title).font(FONT_BOLD).size(22), status_badge]
         .spacing(12)
         .align_y(Vertical::Center);
 
