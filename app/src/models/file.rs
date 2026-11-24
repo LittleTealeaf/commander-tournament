@@ -75,6 +75,7 @@ where
     FileSaved(PathBuf),
     Save,
     SaveAs,
+    OpenNew(Box<T>),
     Open,
     OpenFile(PathBuf),
     Error(String),
@@ -202,6 +203,14 @@ where
             })),
             FileModelMsg::Error(error) => Err(anyhow::anyhow!("File Error: {error}")),
             FileModelMsg::Cancelled => Signal::done(),
+            FileModelMsg::OpenNew(value) => {
+                *self = Self::Opened {
+                    data: *value,
+                    path: None,
+                    is_saving: false,
+                };
+                Signal::done()
+            }
         }
     }
 }

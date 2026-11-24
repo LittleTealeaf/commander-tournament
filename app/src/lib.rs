@@ -5,46 +5,27 @@ pub mod icons;
 pub mod models;
 pub mod services;
 
-use std::path::PathBuf;
-
-use commander_tournament_core::tournament::Tournament;
 use iced::{Program, Subscription, Task, event, window};
 pub use iced_tea::{App as IcedTeaApp, Component, HandleMessage, Model, Signal};
 
 use crate::{
     app::Message,
-    core::{file::FileAction, state::AppState},
+    core::state::AppState,
     fonts::{FONT_BYTES, FONT_NORMAL},
+    models::tournament::TournamentModel,
 };
 
 #[derive(Debug, Default)]
 pub struct ComTourApp {
-    tournament: Tournament,
-    modified: bool,
-    is_saving: bool,
-    file: Option<PathBuf>,
     state: Option<AppState>,
-    close_requested: bool,
-    // If Some, then show a confirmation dialog
-    // that performs the given action on confirmation
-    overwrite_requested: Option<FileAction>,
-    error: Option<String>,
+    tourn: TournamentModel,
 }
 
 impl ComTourApp {
     #[must_use]
-    pub const fn tournament(&self) -> &Tournament {
-        &self.tournament
-    }
-
-    #[must_use]
     pub fn title(&self) -> String {
         const APP_TITLE: &str = "Commander Tournament";
-        if self.modified {
-            format!("* {APP_TITLE}")
-        } else {
-            APP_TITLE.to_owned()
-        }
+        APP_TITLE.to_owned()
     }
 
     pub fn subscription(&self) -> Subscription<Message> {
@@ -96,7 +77,11 @@ impl iced_tea::App for ComTourApp {
     }
 
     fn on_error(&mut self, error: &anyhow::Error) {
-        log::error!("Application Error: {error:#}");
-        self.error = Some(error.to_string());
+        let _ = rfd::AsyncMessageDialog::new()
+            .set_level(rfd::MessageLevel::Error)
+            .set_title("Error Raised")
+            .set_description(error.to_string())
+            .set_buttons(rfd::MessageButtons::Ok)
+            .show();
     }
 }

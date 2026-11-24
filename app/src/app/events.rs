@@ -2,7 +2,7 @@
 
 use iced::{Event, keyboard, window};
 
-use crate::{app::update::Message, core::file::FileAction};
+use crate::{app::update::Message, models::tournament::TournamentMessage};
 
 impl Message {
     #[must_use]
@@ -23,9 +23,9 @@ impl Message {
 
     fn from_window_event(event: window::Event) -> Option<Self> {
         match event {
-            window::Event::CloseRequested => Some(Self::QuitRequested),
+            window::Event::CloseRequested => Some(Self::Quit),
             window::Event::FileDropped(path_buf) => {
-                Some(Self::TournFile(FileAction::RequestOpenFile(path_buf)))
+                Some(Self::Tourn(TournamentMessage::RequestOpen(path_buf)))
             }
             _ => None,
         }
