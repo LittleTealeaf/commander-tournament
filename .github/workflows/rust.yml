@@ -37,23 +37,59 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Run Clippy
         uses: LittleTealeaf/github-actions/cargo-clippy@18ab758355cd975760e8a19c4b519a1743aa5b75 # v1.0.0
-  test:
-    name: Test
+  build:
+    name: Build & Test
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-    runs-on: ${{matrix.os}}
+    runs-on: ${{ matrix.os }}
     env:
       RUSTFLAGS: "-A warnings"
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v7
-    - name: Setup Rust
-      uses: actions-rust-lang/setup-rust-toolchain@v2
-      with:
-        toolchain: stable
-    - name: Run tests
-      run: cargo test --all --verbose
+      - name: Checkout Repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
+        with:
+          toolchain: stable
+      - name: Run tests
+        run: cargo test --all --verbose
+      - name: Build release
+        run: cargo build --release --verbose
+      - name: Upload release binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: commander-tournament-${{ matrix.os }}
+          path: ${{ matrix.os == 'windows-latest' && 'target/release/commander-tournament.exe' || 'target/release/commander-tournament' }}
+          if-no-files-found: error
+  binary-size:
+    name: Binary Size Summary
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download release binaries
+        uses: actions/download-artifact@v4
+        with:
+          pattern: commander-tournament-*
+          path: artifacts
+      - name: Write size summary
+        run: |
+          {
+            echo "## Release Binary Sizes"
+            echo ""
+            echo "| OS | Binary | Size |"
+            echo "| :--- | :--- | ---: |"
+            for dir in artifacts/commander-tournament-*; do
+              os="${dir#artifacts/commander-tournament-}"
+              for bin in "$dir"/*; do
+                [ -f "$bin" ] || continue
+                name="$(basename "$bin")"
+                bytes="$(stat -c%s "$bin")"
+                mb="$(awk -v b="$bytes" 'BEGIN { printf "%.2f MB", b / 1048576 }')"
+                echo "| \`$os\` | \`$name\` | **$mb** ($bytes bytes) |"
+              done
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
   test-coverage:
     name: Test Coverage
     strategy:

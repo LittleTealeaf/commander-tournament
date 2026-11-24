@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::player::{info::PlayerInfo, stats::PlayerStats};
 
+pub mod bracket;
 pub mod color;
 pub mod info;
 pub mod stats;

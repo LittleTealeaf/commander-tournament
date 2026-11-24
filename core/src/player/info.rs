@@ -1,4 +1,7 @@
-use crate::player::color::{ColorIdentity, MtgColor};
+use crate::player::{
+    bracket::Bracket,
+    color::{ColorIdentity, MtgColor},
+};
 
 #[derive(
     Debug,
@@ -47,6 +50,14 @@ pub struct PlayerInfo {
     #[serde(skip_serializing_if = "is_false", default, rename = "ar", alias = "archived")]
     #[getset(get_copy = "pub", set = "pub", set_with = "pub")]
     is_archived: bool,
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        default,
+        rename = "b",
+        alias = "bracket"
+    )]
+    #[getset(get_copy = "pub", set = "pub", set_with = "pub")]
+    bracket: Option<Bracket>,
 }
 
 #[allow(clippy::trivially_copy_pass_by_ref, reason = "Serialization reference")]
@@ -74,6 +85,7 @@ impl PlayerInfo {
             moxfield_id: None,
             is_precon: false,
             is_archived: false,
+            bracket: None,
         }
     }
 

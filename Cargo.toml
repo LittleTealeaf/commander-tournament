@@ -50,3 +50,8 @@ needless_collect = { level = "allow", priority = 1 }
 missing_errors_doc = "allow"
 missing_panics_doc = "allow"
 allow_attributes_without_reason = "warn"
+
+[profile.release]
+strip = true
+lto = "thin"
+codegen-units = 1
