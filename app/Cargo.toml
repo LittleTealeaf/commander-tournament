@@ -43,7 +43,7 @@ im = "15.1.0"
 strum = { version = "0.28.0", features = ["derive"] }
 env_logger = "0.11.11"
 log = "0.4.34"
-backwards-compat = { git = "https://github.com/LittleTealeaf/backwards-compat", tag = "v2.2.0" }
+backwards-compat = { git = "https://github.com/LittleTealeaf/backwards-compat", tag = "v3.0.0" }
 catppuccin = { version = "2.9.1", features = ["iced"] }
 
 [dev-dependencies]
