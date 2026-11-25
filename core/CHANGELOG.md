@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.1](https://github.com/LittleTealeaf/commander-tournament/compare/commander_tournament_core-v2.1.0...commander_tournament_core-v2.1.1) (2026-11-25)
+
+
+### Bug Fixes
+
+* update matchmaker logic ([#214](https://github.com/LittleTealeaf/commander-tournament/issues/214)) ([a2d0813](https://github.com/LittleTealeaf/commander-tournament/commit/a2d0813f8ebc22198e95f3a886edfed7228fd1c9))
+
 ## [2.1.0](https://github.com/LittleTealeaf/commander-tournament/compare/commander_tournament_core-v2.0.0...commander_tournament_core-v2.1.0) (2026-11-24)
 
 
