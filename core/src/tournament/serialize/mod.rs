@@ -1,17 +1,18 @@
 mod compat;
 mod players;
 
-use backwards_compat::backwards_compat;
+use std::collections::HashMap;
 
-use self::{
-    compat::{V3Tournament, V4Tournament, V5Tournament, V6Tournament, V7Tournament},
-    players::SerializedPlayerInfo,
-};
+use backwards_compat::backwards_compat;
+use itertools::Itertools;
+
+use self::compat::{V3Tournament, V4Tournament, V5Tournament, V6Tournament, V7Tournament};
 use crate::{
     config::{game::GameConfig, matchmaker::MatchmakerConfig},
     error::TournamentError,
     game::entry::GameEntry,
-    tournament::Tournament,
+    player::{PlayerId, info::PlayerInfo},
+    tournament::{Tournament, serialize::compat::V8Tournament},
 };
 
 #[derive(Debug, derive_more::Constructor)]
@@ -22,14 +23,17 @@ use crate::{
         "4": V4Tournament,
         "5": V5Tournament => 7,
         "6": V6Tournament,
-        7 | "7": V7Tournament,
-        8: Self
+        7 | "7": V7Tournament => Self,
+        8: V8Tournament,
+        9: Self
     )
 )]
 pub struct SerializedTournament {
     #[serde(rename = "pls", alias = "players")]
-    players: SerializedPlayerInfo,
+    #[backwards_compat(tag="v", content="p", versions(_: Self, 1: Self))]
+    players: Vec<(PlayerId, PlayerInfo)>,
     #[serde(rename = "gms", alias = "games")]
+    #[backwards_compat(versions(_: Self, 1: Self))]
     games: Vec<GameEntry>,
     #[serde(rename = "gc")]
     game_config: GameConfig,
@@ -42,7 +46,7 @@ impl From<Tournament> for SerializedTournament {
         Self {
             game_config: value.game_config,
             matchmaker_config: value.matchmaker_config,
-            players: FromIterator::from_iter(value.players),
+            players: value.players.into_iter().sorted_by_key(|(id, _)| *id).collect(),
             games: value.games.into_iter().map(GameEntry::from).collect(),
         }
     }
@@ -54,7 +58,7 @@ impl TryFrom<SerializedTournament> for Tournament {
         let mut tournament = Self {
             game_config: value.game_config,
             matchmaker_config: value.matchmaker_config,
-            players: value.players.value(),
+            players: HashMap::from_iter(value.players),
             ..Self::default()
         };
         tournament.reload()?;
