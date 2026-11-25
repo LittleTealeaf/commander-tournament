@@ -1,8 +1,8 @@
 (
     version: 9,
     pls: (
-        v: 1,
-        p: [
+        version: 1,
+        data: [
             (0, (
                 n: "0-Colorless",
                 m: Some("EoWfmyQpRkqeHHs_t52xIw"),

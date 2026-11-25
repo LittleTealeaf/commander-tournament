@@ -30,7 +30,7 @@ use crate::{
 )]
 pub struct SerializedTournament {
     #[serde(rename = "pls", alias = "players")]
-    #[backwards_compat(tag="v", content="p", versions(_: Self, 1: Self))]
+    #[backwards_compat(versions(_: Self, 1: Self))]
     players: Vec<(PlayerId, PlayerInfo)>,
     #[serde(rename = "gms", alias = "games")]
     #[backwards_compat(versions(_: Self, 1: Self))]
