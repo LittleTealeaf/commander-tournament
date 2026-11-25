@@ -38,7 +38,21 @@ pub(super) fn render_decks_list<'a>(
 
     let mut layout = column![toolbar].spacing(16).width(Length::Fill);
 
-    if let Some(editor) = &state.editor {
+    let total_filtered = players.len();
+    let (skip, take) = state.paginator.slice_bounds(total_filtered);
+
+    let editing_id = state.editor.as_ref().and_then(DeckEditor::editing_id);
+    let editor_rendered_inline = editing_id.is_some_and(|id| {
+        players
+            .iter()
+            .skip(skip)
+            .take(take)
+            .any(|player| player.id() == id)
+    });
+
+    if let Some(editor) = &state.editor
+        && !editor_rendered_inline
+    {
         layout = layout.push(editor.view_into(tournament));
     }
 
@@ -76,15 +90,15 @@ pub(super) fn render_decks_list<'a>(
             ),
         )
     } else {
-        let total_filtered = players.len();
-        let (skip, take) = state.paginator.slice_bounds(total_filtered);
-
         let rows = players
             .into_iter()
             .skip(skip)
             .take(take)
-            .fold(column![].spacing(8), |col, player| {
-                let is_editing = state.editor.as_ref().and_then(DeckEditor::editing_id) == Some(player.id());
+            .fold(column![].spacing(8), |mut col, player| {
+                let is_editing = editing_id == Some(player.id());
+                if is_editing && let Some(editor) = &state.editor {
+                    col = col.push(editor.view_into(tournament));
+                }
                 col.push(render_deck_row(player, is_editing))
             })
             .width(Length::Fill);
