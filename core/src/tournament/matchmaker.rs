@@ -81,14 +81,12 @@ where
         let mut players = Vec::with_capacity(POD_SIZE);
         players.push(player);
 
-        let mut count_unranked = usize::from(stats.games() < self.tourn.game_config().calibration_games());
+        let is_unranked = stats.games() < self.tourn.game_config().calibration_games();
+
+        let mut count_unranked = usize::from(is_unranked);
         let mut count_precon = usize::from(info.is_precon());
 
-        let max_unranked = if count_unranked > 0 && config.strict_calibrate() {
-            0
-        } else {
-            config.max_unranked()
-        };
+        let max_unranked = usize::from(!(is_unranked && config.strict_calibrate())) * config.max_unranked();
 
         for _ in 1..POD_SIZE {
             let id = self.next_player(
@@ -110,12 +108,10 @@ where
 
             let stats = self.tourn.get_player_or_default_stats(id);
 
-            if stats.games() < game_config.calibration_games() {
-                count_unranked += 1;
-            }
-
             if info.is_precon() {
                 count_precon += 1;
+            } else if stats.games() < game_config.calibration_games() {
+                count_unranked += 1;
             }
 
             aggregate_stats += stats;
@@ -147,25 +143,28 @@ where
         let calibrate_games = self.tourn.game_config().calibration_games();
         let config = self.config();
 
-        Ok(*performances
+        Ok(performances
             .into_iter()
-            .min_by_key(|(id, perf)| {
-                let stats = self.tourn.get_player_or_default_stats(**id);
-                let info = self.tourn.get_player_info(id);
+            .filter_map(|(id, perf)| {
+                let stats = self.tourn.get_player_or_default_stats(*id);
+                let info = self.tourn.get_player_info(id)?;
 
                 let elo_diff = (stats.elo() - avg_elo).abs();
                 let penalty = perf.played() as f64 * config.repeat_penalty();
                 let score = elo_diff + penalty;
 
-                (
-                    deprioritize_unranked && (stats.games() < calibrate_games),
-                    deprioritize_precon && info.map_or_default(PlayerInfo::is_precon),
-                    NotNan::new(score).ok(),
-                    **id,
-                )
+                let is_unranked = stats.games() < calibrate_games;
+
+                Some((
+                    deprioritize_unranked && is_unranked,
+                    deprioritize_precon && info.is_precon(),
+                    NotNan::new(score).ok()?,
+                    *id,
+                ))
             })
+            .min()
             .ok_or(TournamentError::NotEnoughPlayers)?
-            .0)
+            .3)
     }
 
     fn create_pool(&self, player: PlayerId) -> Vec<PlayerId> {
