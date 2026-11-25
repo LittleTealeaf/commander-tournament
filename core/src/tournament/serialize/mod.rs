@@ -1,5 +1,4 @@
 mod compat;
-mod players;
 
 use std::collections::HashMap;
 
