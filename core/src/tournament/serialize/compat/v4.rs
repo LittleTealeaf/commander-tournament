@@ -1,24 +1,14 @@
 use std::collections::HashMap;
 
-use serde::{Deserialize, Deserializer};
+use serde::Deserialize;
 
 use crate::game::entry::GameEntry;
 use crate::player::PlayerId;
 use crate::player::info::PlayerInfo;
-use crate::tournament::serialize::compat::v5::{
-    V5GameConfig, V5MatchmakerConfig, V5Tournament, V5TournamentConfig,
+use crate::tournament::serialize::compat::{
+    v5::{V5GameConfig, V5MatchmakerConfig, V5Tournament, V5TournamentConfig},
+    v7::player_info_deserialize,
 };
-use crate::utils::DeserializableMap;
-
-fn player_info_deserialize<'de, D>(deserializer: D) -> Result<HashMap<PlayerId, PlayerInfo>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    Ok(DeserializableMap::<PlayerInfo>::deserialize_to_map(deserializer)?
-        .into_iter()
-        .map(|(id, info)| (PlayerId(id), info))
-        .collect())
-}
 
 #[derive(Deserialize, Debug)]
 pub(in crate::tournament::serialize) struct V4Tournament {

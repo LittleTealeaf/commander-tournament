@@ -68,7 +68,6 @@ impl From<MatchmakerConfigV1> for MatchmakerConfig {
 )]
 #[getset(set = "pub", set_with = "pub", get_copy = "pub", get_mut = "pub")]
 #[backwards_compat(
-    tag = "version",
     versions(
         _: UnversionedMatchmakerConfig => "1",
         "1": MatchmakerConfigV1 => 2
