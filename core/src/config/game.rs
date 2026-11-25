@@ -46,7 +46,6 @@ impl From<UnversionedGameConfig> for GameConfig {
 )]
 #[getset(set = "pub", set_with = "pub", get_copy = "pub", get_mut = "pub")]
 #[backwards_compat(
-    tag = "version",
     versions(
         _: UnversionedGameConfig => Self,
         2: Self

@@ -16,7 +16,6 @@ use crate::{
 
 #[derive(Debug, derive_more::Constructor)]
 #[backwards_compat(
-    tag = "version",
     versions(
         "3": V3Tournament => "5",
         "4": V4Tournament,
