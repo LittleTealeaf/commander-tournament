@@ -9,7 +9,7 @@ use self::compat::{V3Tournament, V4Tournament, V5Tournament, V6Tournament, V7Tou
 use crate::{
     config::{game::GameConfig, matchmaker::MatchmakerConfig},
     error::TournamentError,
-    game::entry::GameEntry,
+    game::{POD_SIZE, entry::GameEntry},
     player::{PlayerId, info::PlayerInfo},
     tournament::{Tournament, serialize::compat::V8Tournament},
 };
@@ -31,7 +31,15 @@ pub struct SerializedTournament {
     #[backwards_compat(versions(1: Self))]
     players: Vec<(PlayerId, PlayerInfo)>,
     #[serde(rename = "gms", alias = "games")]
-    #[backwards_compat(versions(1: Self))]
+    #[backwards_compat(
+        versions(
+            1: Self => Self,
+            #[serialize(with=serialize_game_entries)]
+            #[with(parse_serialized_game_entries)]
+            #[fallible]
+            2: Vec<PlayerId>,
+        )
+    )]
     games: Vec<GameEntry>,
     #[serde(rename = "gc")]
     game_config: GameConfig,
@@ -66,6 +74,32 @@ impl TryFrom<SerializedTournament> for Tournament {
 
         Ok(tournament)
     }
+}
+
+fn serialize_game_entries(entries: &[GameEntry]) -> Vec<PlayerId> {
+    entries
+        .iter()
+        .flat_map(|entry| {
+            entry
+                .players()
+                .iter()
+                .copied()
+                .chain(core::iter::once(entry.winner()))
+        })
+        .collect()
+}
+
+fn parse_serialized_game_entries(entries: Vec<PlayerId>) -> Result<Vec<GameEntry>, TournamentError> {
+    if !entries.len().is_multiple_of(POD_SIZE + 1) {
+        return Err(TournamentError::InvalidFormat);
+    }
+    let mut iter = entries.into_iter();
+    let mut games = Vec::new();
+    while let Some(ids) = iter.next_array::<5>() {
+        let [players @ .., winner] = ids;
+        games.push(GameEntry::new(players, winner)?);
+    }
+    Ok(games)
 }
 
 #[cfg(test)]
