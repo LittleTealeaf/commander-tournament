@@ -20,6 +20,8 @@ pub enum TournamentError {
     InvalidPlayerName(String),
     #[error("Record has no elo data")]
     RecordNoEloData,
+    #[error("Invalid Format")]
+    InvalidFormat,
 }
 
 pub type TournResult<T> = Result<T, TournamentError>;
