@@ -6,9 +6,11 @@ use crate::{
     config::{game::GameConfig, matchmaker::MatchmakerConfig},
     game::entry::GameEntry,
     player::{PlayerId, info::PlayerInfo},
-    tournament::serialize::SerializedTournament,
+    tournament::serialize::{SerializedTournament, V3Tournament, V4Tournament, V5Tournament, V6Tournament},
     utils::DeserializableMap,
 };
+
+use backwards_compat::backwards_compat;
 
 pub(super) fn player_info_deserialize<'de, D>(
     deserializer: D,
@@ -22,7 +24,17 @@ where
         .collect())
 }
 
-#[derive(Debug, serde::Deserialize, derive_more::Constructor)]
+#[derive(Debug, derive_more::Constructor)]
+#[backwards_compat(
+    versions(
+        _: Self,
+        "3": V3Tournament => "5",
+        "4": V4Tournament,
+        "5": V5Tournament => Self,
+        "6": V6Tournament,
+        "7": Self
+    )
+)]
 pub(in crate::tournament::serialize) struct V7Tournament {
     #[serde(deserialize_with = "player_info_deserialize", alias = "pls")]
     players: HashMap<PlayerId, PlayerInfo>,

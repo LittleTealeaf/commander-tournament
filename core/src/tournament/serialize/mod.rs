@@ -17,11 +17,7 @@ use crate::{
 #[derive(Debug, derive_more::Constructor)]
 #[backwards_compat(
     versions(
-        "3": V3Tournament => "5",
-        "4": V4Tournament,
-        "5": V5Tournament => 7,
-        "6": V6Tournament,
-        7 | "7": V7Tournament => Self,
+        _ | 7: V7Tournament => Self,
         8: V8Tournament,
         9: Self
     )

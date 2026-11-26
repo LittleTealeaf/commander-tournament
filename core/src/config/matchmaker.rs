@@ -28,6 +28,12 @@ impl From<UnversionedMatchmakerConfig> for MatchmakerConfigV1 {
     }
 }
 
+impl From<UnversionedMatchmakerConfig> for MatchmakerConfig {
+    fn from(value: UnversionedMatchmakerConfig) -> Self {
+        MatchmakerConfigV1::from(value).into()
+    }
+}
+
 #[serde_inline_default]
 #[derive(serde::Deserialize)]
 struct MatchmakerConfigV1 {
@@ -69,9 +75,9 @@ impl From<MatchmakerConfigV1> for MatchmakerConfig {
 #[getset(set = "pub", set_with = "pub", get_copy = "pub", get_mut = "pub")]
 #[backwards_compat(
     versions(
-        _: UnversionedMatchmakerConfig => "1",
-        "1": MatchmakerConfigV1 => 2
-        2 | "2": Self
+        _: MatchmakerConfigV1 => 2,
+        _: UnversionedMatchmakerConfig => 2,
+        2: Self
     )
 )]
 pub struct MatchmakerConfig {
