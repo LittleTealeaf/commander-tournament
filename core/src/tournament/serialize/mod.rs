@@ -31,8 +31,7 @@ pub struct SerializedTournament {
         versions(
             1: Self => Self,
             #[serialize(with=serialize_game_entries)]
-            #[with(parse_serialized_game_entries)]
-            #[fallible]
+            #[migrate(try_with=parse_serialized_game_entries)]
             2: Vec<PlayerId>,
         )
     )]
