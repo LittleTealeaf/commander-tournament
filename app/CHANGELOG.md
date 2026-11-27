@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.2.0](https://github.com/LittleTealeaf/commander-tournament/compare/commander_tournament-v3.1.0...commander_tournament-v3.2.0) (2026-11-27)
+
+
+### Features
+
+* **app:** render deck editor inline above edited deck ([#216](https://github.com/LittleTealeaf/commander-tournament/issues/216)) ([a85dc41](https://github.com/LittleTealeaf/commander-tournament/commit/a85dc4180e9e52dcd7cd34e46f958d5661a6e490))
+* Dense game serialization ([#231](https://github.com/LittleTealeaf/commander-tournament/issues/231)) ([b6e66a5](https://github.com/LittleTealeaf/commander-tournament/commit/b6e66a5b134f674a9e01c9a7918f7f6c4bf0206c))
+
 ## [3.1.0](https://github.com/LittleTealeaf/commander-tournament/compare/commander_tournament-v3.0.0...commander_tournament-v3.1.0) (2026-11-24)
 
 

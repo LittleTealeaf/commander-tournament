@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.0](https://github.com/LittleTealeaf/commander-tournament/compare/commander_tournament_core-v2.1.1...commander_tournament_core-v2.2.0) (2026-11-27)
+
+
+### Features
+
+* Dense game serialization ([#231](https://github.com/LittleTealeaf/commander-tournament/issues/231)) ([b6e66a5](https://github.com/LittleTealeaf/commander-tournament/commit/b6e66a5b134f674a9e01c9a7918f7f6c4bf0206c))
+
 ## [2.1.1](https://github.com/LittleTealeaf/commander-tournament/compare/commander_tournament_core-v2.1.0...commander_tournament_core-v2.1.1) (2026-11-25)
 
 
