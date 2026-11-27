@@ -43,13 +43,18 @@ pub struct SerializedTournament {
     matchmaker_config: MatchmakerConfig,
 }
 
-impl From<Tournament> for SerializedTournament {
-    fn from(value: Tournament) -> Self {
+impl From<&Tournament> for SerializedTournament {
+    fn from(value: &Tournament) -> Self {
         Self {
-            game_config: value.game_config,
-            matchmaker_config: value.matchmaker_config,
-            players: value.players.into_iter().sorted_by_key(|(id, _)| *id).collect(),
-            games: value.games.into_iter().map(GameEntry::from).collect(),
+            game_config: value.game_config.clone(),
+            matchmaker_config: value.matchmaker_config.clone(),
+            players: value
+                .players
+                .iter()
+                .sorted_by_key(|(id, _)| *id)
+                .map(|(a, b)| (*a, b.clone()))
+                .collect(),
+            games: value.games.iter().map(GameEntry::from).collect(),
         }
     }
 }
