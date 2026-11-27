@@ -26,6 +26,7 @@ where
 
 #[derive(Debug, derive_more::Constructor)]
 #[backwards_compat(
+    serialize=false,
     versions(
         _: Self,
         "3": V3Tournament => "5",
