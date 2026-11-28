@@ -155,13 +155,13 @@ impl MatchmakerConfigDraft {
             .parse::<usize>()
             .map_err(|_| "Max Unranked must be a non-negative integer.".to_owned())?;
 
-        Ok(MatchmakerConfig::new(
+        Ok(MatchmakerConfig {
             elo_range,
             min_pool_size,
             repeat_penalty,
-            self.strict_calibrate,
+            strict_calibrate: self.strict_calibrate,
             max_precon,
             max_unranked,
-        ))
+        })
     }
 }
