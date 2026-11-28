@@ -7,6 +7,10 @@ pub(super) struct GameConfigDraft {
     pub(super) initial_k: String,
     pub(super) base_k: String,
     pub(super) calibration_games: String,
+    pub(super) momentum_alpha: String,
+    pub(super) momentum_k: String,
+    pub(super) momentum_win_streak: String,
+    pub(super) momentum_loss_streak: String,
 }
 
 impl From<&GameConfig> for GameConfigDraft {
@@ -17,6 +21,10 @@ impl From<&GameConfig> for GameConfigDraft {
             initial_k: cfg.initial_k().to_string(),
             base_k: cfg.base_k().to_string(),
             calibration_games: cfg.calibration_games().to_string(),
+            momentum_alpha: cfg.momentum_alpha().to_string(),
+            momentum_k: cfg.momentum_k().to_string(),
+            momentum_win_streak: cfg.momentum_win_streak().to_string(),
+            momentum_loss_streak: cfg.momentum_loss_streak().to_string(),
         }
     }
 }
@@ -48,12 +56,38 @@ impl GameConfigDraft {
             .trim()
             .parse::<u32>()
             .map_err(|_| "Calibration Games must be a non-negative integer.".to_owned())?;
+        let momentum_alpha = self
+            .momentum_alpha
+            .trim()
+            .parse::<f64>()
+            .map_err(|_| "Momentum Alpha must be a valid number.".to_owned())?;
+        let momentum_k = self
+            .momentum_k
+            .trim()
+            .parse::<f64>()
+            .map_err(|_| "Momentum K must be a valid number.".to_owned())?;
+        let momentum_win_streak = self
+            .momentum_win_streak
+            .trim()
+            .parse::<i32>()
+            .map_err(|_| "Momentum Win Streak must be a non-negative integer.".to_owned())?;
+        let momentum_loss_streak = self
+            .momentum_loss_streak
+            .trim()
+            .parse::<i32>()
+            .map_err(|_| "Momentum Loss Streak must be a non-negative integer.".to_owned())?;
 
         if logistic_scale <= 0.0 {
             return Err("Logistic Scale must be greater than 0.".to_owned());
         }
-        if initial_k <= 0.0 || base_k <= 0.0 {
+        if initial_k <= 0.0 || base_k <= 0.0 || momentum_k <= 0.0 {
             return Err("K-factors must be greater than 0.".to_owned());
+        }
+        if !(0.0..=1.0).contains(&momentum_alpha) {
+            return Err("Momentum Alpha must be between 0 and 1.".to_owned());
+        }
+        if momentum_win_streak < 0 || momentum_loss_streak < 0 {
+            return Err("Momentum streaks must be non-negative integers.".to_owned());
         }
 
         Ok(GameConfig::new(
@@ -62,6 +96,10 @@ impl GameConfigDraft {
             initial_k,
             base_k,
             calibration_games,
+            momentum_alpha,
+            momentum_k,
+            momentum_win_streak,
+            momentum_loss_streak,
         ))
     }
 }

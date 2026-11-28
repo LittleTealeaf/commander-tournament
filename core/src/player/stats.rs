@@ -7,6 +7,7 @@ pub struct PlayerStats {
     games: u32,
     wins: u32,
     elo_peak: f64,
+    momentum: f64,
 }
 
 impl PlayerStats {
@@ -17,6 +18,7 @@ impl PlayerStats {
             games: 0,
             wins: 0,
             elo_peak: elo,
+            momentum: 0.0,
         }
     }
 
@@ -30,7 +32,8 @@ impl PlayerStats {
         self.wr().unwrap_or(0.0)
     }
 
-    pub fn add_win(&mut self, elo_change: f64) {
+    pub(crate) fn add_win(&mut self, elo_change: f64, momentum_change: f64) {
+        self.momentum = (self.momentum + momentum_change).clamp(-1.0, 1.0);
         self.games += 1;
         self.wins += 1;
         self.elo += elo_change.abs();
@@ -39,7 +42,8 @@ impl PlayerStats {
         }
     }
 
-    pub fn add_loss(&mut self, elo_change: f64) {
+    pub(crate) fn add_loss(&mut self, elo_change: f64, momentum_change: f64) {
+        self.momentum = (self.momentum + momentum_change).clamp(-1.0, 1.0);
         self.games += 1;
         self.elo -= elo_change.abs();
         if self.elo < MINIMUM_ELO {
@@ -60,21 +64,21 @@ mod tests {
     fn elo_has_minimum() {
         assert_relative_eq!(MINIMUM_ELO, PlayerStats::new(0.0).elo());
         let mut stats = PlayerStats::new(1500.0);
-        stats.add_loss(1600.0);
+        stats.add_loss(1600.0, 0.0);
         assert_relative_eq!(MINIMUM_ELO, stats.elo());
     }
 
     #[test]
     fn loss_with_negative_elo() {
         let mut stats = PlayerStats::new(1500.0);
-        stats.add_loss(-500.0);
+        stats.add_loss(-500.0, 0.0);
         assert_relative_eq!(1000.0, stats.elo());
     }
 
     #[test]
     fn win_with_negative_elo() {
         let mut stats = PlayerStats::new(1500.0);
-        stats.add_win(-500.0);
+        stats.add_win(-500.0, 0.0);
         assert_relative_eq!(2000.0, stats.elo());
     }
 
@@ -82,16 +86,16 @@ mod tests {
     fn wr_only_when_games() {
         let mut stats = PlayerStats::new(1500.0);
         assert!(stats.wr().is_none());
-        stats.add_loss(100.0);
+        stats.add_loss(100.0, 0.0);
         assert!(stats.wr().is_some());
-        stats.add_win(100.0);
+        stats.add_win(100.0, 0.0);
         assert!(stats.wr().is_some());
     }
 
     #[test]
     fn add_win_increases_counts() {
         let mut stats = PlayerStats::new(1500.0);
-        stats.add_win(500.0);
+        stats.add_win(500.0, 0.0);
         assert_eq!(1, stats.games());
         assert_eq!(1, stats.wins());
     }
@@ -99,7 +103,7 @@ mod tests {
     #[test]
     fn add_loss_increases_counts() {
         let mut stats = PlayerStats::new(1500.0);
-        stats.add_loss(500.0);
+        stats.add_loss(500.0, 0.0);
         assert_eq!(1, stats.games());
         assert_eq!(0, stats.wins());
     }
@@ -108,7 +112,7 @@ mod tests {
     fn add_win_increases_elo() {
         let elo = 2000.0;
         let mut stats = PlayerStats::new(elo);
-        stats.add_win(100.0);
+        stats.add_win(100.0, 0.0);
         assert_relative_eq!(2100.0, stats.elo());
     }
 
@@ -116,7 +120,7 @@ mod tests {
     fn add_loss_decreases_elo() {
         let elo = 2000.0;
         let mut stats = PlayerStats::new(elo);
-        stats.add_loss(100.0);
+        stats.add_loss(100.0, 0.0);
         assert_relative_eq!(1900.0, stats.elo());
     }
 
@@ -130,31 +134,31 @@ mod tests {
     #[test]
     fn peak_elo_increases_with_win() {
         let mut stats = PlayerStats::new(1500.0);
-        stats.add_win(500.0);
+        stats.add_win(500.0, 0.0);
         assert_relative_eq!(2000.0, stats.elo_peak());
     }
 
     #[test]
     fn peak_elo_drops_with_loss_before_first_win() {
         let mut stats = PlayerStats::new(1500.0);
-        stats.add_loss(400.0);
+        stats.add_loss(400.0, 0.0);
         assert_relative_eq!(1100.0, stats.elo_peak());
     }
 
     #[test]
     fn peak_elo_remains_with_loss_after_first_win() {
         let mut stats = PlayerStats::new(1500.0);
-        stats.add_win(100.0);
-        stats.add_loss(400.0);
+        stats.add_win(100.0, 0.0);
+        stats.add_loss(400.0, 0.0);
         assert_relative_eq!(1600.0, stats.elo_peak());
     }
 
     #[test]
     fn peak_elo_remains_when_winning_below() {
         let mut stats = PlayerStats::new(1500.0);
-        stats.add_win(500.0); // establishes peak at 2000
-        stats.add_loss(500.0);
-        stats.add_win(400.0);
+        stats.add_win(500.0, 0.0); // establishes peak at 2000
+        stats.add_loss(500.0, 0.0);
+        stats.add_win(400.0, 0.0);
         assert_relative_eq!(1900.0, stats.elo());
         assert_relative_eq!(2000.0, stats.elo_peak());
     }
@@ -168,8 +172,54 @@ mod tests {
     #[test]
     fn wr_unwraps_to_wr() {
         let mut stats = PlayerStats::new(1500.0);
-        stats.add_win(25.0);
-        stats.add_loss(25.0);
+        stats.add_win(25.0, 0.0);
+        stats.add_loss(25.0, 0.0);
         assert_relative_eq!(stats.wr_unwrap(), 0.5);
+    }
+
+    #[test]
+    fn momentum_starts_at_zero() {
+        let stats = PlayerStats::new(1500.0);
+        assert_relative_eq!(0.0, stats.momentum());
+    }
+
+    #[test]
+    fn add_win_updates_momentum() {
+        let mut stats = PlayerStats::new(1500.0);
+        stats.add_win(25.0, 0.35);
+        assert_relative_eq!(0.35, stats.momentum());
+        stats.add_win(25.0, -0.10);
+        assert_relative_eq!(0.25, stats.momentum());
+    }
+
+    #[test]
+    fn add_loss_updates_momentum() {
+        let mut stats = PlayerStats::new(1500.0);
+        stats.add_loss(25.0, -0.20);
+        assert_relative_eq!(-0.20, stats.momentum());
+        stats.add_loss(25.0, 0.05);
+        assert_relative_eq!(-0.15, stats.momentum());
+    }
+
+    #[test]
+    fn momentum_clamps_to_upper_bound() {
+        let mut stats = PlayerStats::new(1500.0);
+        stats.add_win(25.0, 1.5);
+        assert_relative_eq!(1.0, stats.momentum());
+
+        let mut stats = PlayerStats::new(1500.0);
+        stats.add_loss(25.0, 1.5);
+        assert_relative_eq!(1.0, stats.momentum());
+    }
+
+    #[test]
+    fn momentum_clamps_to_lower_bound() {
+        let mut stats = PlayerStats::new(1500.0);
+        stats.add_loss(25.0, -1.5);
+        assert_relative_eq!(-1.0, stats.momentum());
+
+        let mut stats = PlayerStats::new(1500.0);
+        stats.add_win(25.0, -1.5);
+        assert_relative_eq!(-1.0, stats.momentum());
     }
 }
