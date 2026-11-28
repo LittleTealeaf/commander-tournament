@@ -117,12 +117,12 @@ pub(super) struct MatchmakerConfigDraft {
 impl From<&MatchmakerConfig> for MatchmakerConfigDraft {
     fn from(cfg: &MatchmakerConfig) -> Self {
         Self {
-            elo_range: cfg.elo_range().to_string(),
-            min_pool_size: cfg.min_pool_size().to_string(),
-            repeat_penalty: cfg.repeat_penalty().to_string(),
-            strict_calibrate: cfg.strict_calibrate(),
-            max_precon: cfg.max_precon().to_string(),
-            max_unranked: cfg.max_unranked().to_string(),
+            elo_range: cfg.elo_range.to_string(),
+            min_pool_size: cfg.min_pool_size.to_string(),
+            repeat_penalty: cfg.repeat_penalty.to_string(),
+            strict_calibrate: cfg.strict_calibrate,
+            max_precon: cfg.max_precon.to_string(),
+            max_unranked: cfg.max_unranked.to_string(),
         }
     }
 }

@@ -23,14 +23,11 @@ impl From<V5Tournament> for V7Tournament {
             value.players,
             value.games,
             GameConfig::default(),
-            MatchmakerConfig::new(
-                value.config.matchmaker.elo_range,
-                value.config.matchmaker.min_pool_size,
-                10f64,
-                true,
-                1,
-                2,
-            ),
+            MatchmakerConfig {
+                elo_range: value.config.matchmaker.elo_range,
+                min_pool_size: value.config.matchmaker.min_pool_size,
+                ..Default::default()
+            },
         )
     }
 }
