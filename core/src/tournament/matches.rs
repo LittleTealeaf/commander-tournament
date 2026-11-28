@@ -28,8 +28,8 @@ impl Tournament {
         let k: [f64; T] = {
             let m_ref_loss = (1.0 - 1.0 / T as f64)
                 * (1.0 - (1.0 - config.momentum_alpha).powi(config.momentum_win_streak));
-            let m_ref_win = (1.0 / T as f64)
-                * (1.0 - (1.0 - config.momentum_alpha).powi(config.momentum_loss_streak));
+            let m_ref_win =
+                (1.0 / T as f64) * (1.0 - (1.0 - config.momentum_alpha).powi(config.momentum_loss_streak));
             let calibration = config.calibration_games;
 
             array::from_fn(|i| {
