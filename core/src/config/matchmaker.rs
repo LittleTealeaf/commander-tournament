@@ -1,6 +1,41 @@
 use backwards_compat::backwards_compat;
 use serde_inline_default::serde_inline_default;
 
+const DEFAULT: MatchmakerConfig = MatchmakerConfig {
+    elo_range: 75f64,
+    min_pool_size: 5,
+    repeat_penalty: 15f64,
+    strict_calibrate: true,
+    max_precon: 2,
+    max_unranked: 1,
+};
+
+#[serde_inline_default]
+#[derive(Debug, Clone, PartialEq)]
+#[backwards_compat(
+    versions(
+        _: MatchmakerConfigV1 => 2,
+        _: UnversionedMatchmakerConfig => 2,
+        2: Self
+    )
+)]
+pub struct MatchmakerConfig {
+    pub elo_range: f64,
+    pub min_pool_size: usize,
+    pub repeat_penalty: f64,
+    /// All calibration is done with absolute nearest neighbors
+    pub strict_calibrate: bool,
+    pub max_precon: usize,
+    /// Only effective when `strict_calibrate` is false
+    pub max_unranked: usize,
+}
+
+impl Default for MatchmakerConfig {
+    fn default() -> Self {
+        DEFAULT
+    }
+}
+
 #[derive(Debug, serde::Deserialize)]
 struct UnversionedMatchmakerConfig {
     elo_range: f64,
@@ -57,49 +92,6 @@ impl From<MatchmakerConfigV1> for MatchmakerConfig {
             strict_calibrate: value.strict_calibrate,
             max_precon: value.max_precon,
             max_unranked: value.max_unranked,
-        }
-    }
-}
-
-#[serde_inline_default]
-#[derive(
-    Debug,
-    Clone,
-    PartialEq,
-    getset::CopyGetters,
-    getset::Setters,
-    getset::WithSetters,
-    getset::MutGetters,
-    derive_more::Constructor,
-)]
-#[getset(set = "pub", set_with = "pub", get_copy = "pub", get_mut = "pub")]
-#[backwards_compat(
-    versions(
-        _: MatchmakerConfigV1 => 2,
-        _: UnversionedMatchmakerConfig => 2,
-        2: Self
-    )
-)]
-pub struct MatchmakerConfig {
-    elo_range: f64,
-    min_pool_size: usize,
-    repeat_penalty: f64,
-    /// All calibration is done with absolute nearest neighbors
-    strict_calibrate: bool,
-    max_precon: usize,
-    /// Only effective when `strict_calibrate` is false
-    max_unranked: usize,
-}
-
-impl Default for MatchmakerConfig {
-    fn default() -> Self {
-        Self {
-            elo_range: 75f64,
-            min_pool_size: 5,
-            repeat_penalty: 15f64,
-            strict_calibrate: true,
-            max_precon: 2,
-            max_unranked: 1,
         }
     }
 }

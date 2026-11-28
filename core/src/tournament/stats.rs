@@ -8,7 +8,7 @@ use crate::{
 
 impl Tournament {
     pub fn recalculate_stats(&mut self) -> Result<(), TournamentError> {
-        self.default_stats = PlayerStats::new(self.game_config().initial_elo());
+        self.default_stats = PlayerStats::new(self.game_config().initial_elo);
 
         let mut stats = HashMap::new();
         let mut games = Vec::new();

@@ -81,19 +81,19 @@ where
         let mut players = Vec::with_capacity(POD_SIZE);
         players.push(player);
 
-        let is_unranked = stats.games() < self.tourn.game_config().calibration_games();
+        let is_unranked = stats.games() < self.tourn.game_config().calibration_games;
 
         let mut count_unranked = usize::from(is_unranked);
         let mut count_precon = usize::from(info.is_precon());
 
-        let max_unranked = usize::from(!(is_unranked && config.strict_calibrate())) * config.max_unranked();
+        let max_unranked = usize::from(!(is_unranked && config.strict_calibrate)) * config.max_unranked;
 
         for _ in 1..POD_SIZE {
             let id = self.next_player(
                 &aggregate_stats,
                 &performances,
                 count_unranked >= max_unranked,
-                count_precon >= config.max_precon(),
+                count_precon >= config.max_precon,
             )?;
             let info = self.tourn.require_player_info(id)?;
 
@@ -110,7 +110,7 @@ where
 
             if info.is_precon() {
                 count_precon += 1;
-            } else if stats.games() < game_config.calibration_games() {
+            } else if stats.games() < game_config.calibration_games {
                 count_unranked += 1;
             }
 
@@ -140,7 +140,7 @@ where
             .avg_elo()
             .unwrap_or_else(|| self.tourn.default_stats().elo());
 
-        let calibrate_games = self.tourn.game_config().calibration_games();
+        let calibrate_games = self.tourn.game_config().calibration_games;
         let config = self.config();
 
         Ok(performances
@@ -150,7 +150,7 @@ where
                 let info = self.tourn.get_player_info(id)?;
 
                 let elo_diff = (stats.elo() - avg_elo).abs();
-                let penalty = perf.played() as f64 * config.repeat_penalty();
+                let penalty = perf.played() as f64 * config.repeat_penalty;
                 let score = elo_diff + penalty;
 
                 let is_unranked = stats.games() < calibrate_games;
@@ -170,7 +170,7 @@ where
     fn create_pool(&self, player: PlayerId) -> Vec<PlayerId> {
         let config = self.config();
         let target_elo = self.tourn.get_player_or_default_stats(player).elo();
-        let range = config.elo_range();
+        let range = config.elo_range;
 
         let (mut pool, mut outliers): (Vec<_>, BinaryHeap<_>) = self.valid_players().partition_map(|id| {
             let elo = self.tourn.get_player_or_default_stats(id).elo();
@@ -184,7 +184,7 @@ where
 
         pool.retain(|id| *id != player);
 
-        while pool.len() < config.min_pool_size()
+        while pool.len() < config.min_pool_size
             && let Some(Reverse((_, id))) = outliers.pop()
         {
             pool.push(id);
@@ -210,15 +210,22 @@ mod tests {
     #[test]
     fn config_overrides() {
         let mut tourn = Tournament::new();
-        let config = MatchmakerConfig::default().with_max_precon(3);
+        // let config = MatchmakerConfig::default().with_max_precon(3);
+        let config = MatchmakerConfig {
+            max_precon: 3,
+            ..Default::default()
+        };
         tourn.set_matchmaker_config(config);
 
         let matchmaker = tourn.matchmaker();
-        assert_eq!(3, matchmaker.config().max_precon());
+        assert_eq!(3, matchmaker.config().max_precon);
 
-        let config = MatchmakerConfig::default().with_max_precon(10);
+        let config = MatchmakerConfig {
+            max_precon: 10,
+            ..Default::default()
+        };
         let matchmaker = matchmaker.with_config(config);
-        assert_eq!(10, matchmaker.config().max_precon());
+        assert_eq!(10, matchmaker.config().max_precon);
     }
 
     #[test]
@@ -251,17 +258,19 @@ mod tests {
     #[test]
     fn pool_minimum_from_nearby() {
         let mut tourn = Tournament::new()
-            .with_matchmaker_config(
-                MatchmakerConfig::default()
-                    .with_elo_range(1.0)
-                    .with_min_pool_size(3),
-            )
-            .with_game_config(
-                GameConfig::default()
-                    .with_calibration_games(0)
-                    .with_base_k(1.0)
-                    .with_initial_elo(1500.0),
-            )
+            .with_matchmaker_config(MatchmakerConfig {
+                elo_range: 1.0,
+                min_pool_size: 3,
+                ..Default::default()
+            })
+            .with_game_config(GameConfig {
+                calibration_games: 0,
+                base_k: 1.0,
+                initial_elo: 1500.0,
+                momentum_k: 0.0,
+                momentum_alpha: 0.0,
+                ..Default::default()
+            })
             .unwrap();
 
         let [id_a, id_b, id_c, id_d, id_e] = tourn.register_debug_players().unwrap();

@@ -32,6 +32,10 @@ pub enum SettingsMsg {
     InitialKChanged(String),
     BaseKChanged(String),
     CalibrationGamesChanged(String),
+    MomentumAlphaChanged(String),
+    MomentumKChanged(String),
+    MomentumWinStreakChanged(String),
+    MomentumLossStreakChanged(String),
     ResetGameDefaults,
     SaveGameConfig,
 
@@ -111,6 +115,26 @@ impl Model for SettingsState {
             }
             SettingsMsg::CalibrationGamesChanged(v) => {
                 self.ensure_game_draft(context).calibration_games = v;
+                self.status_message = None;
+                Signal::done()
+            }
+            SettingsMsg::MomentumAlphaChanged(v) => {
+                self.ensure_game_draft(context).momentum_alpha = v;
+                self.status_message = None;
+                Signal::done()
+            }
+            SettingsMsg::MomentumKChanged(v) => {
+                self.ensure_game_draft(context).momentum_k = v;
+                self.status_message = None;
+                Signal::done()
+            }
+            SettingsMsg::MomentumWinStreakChanged(v) => {
+                self.ensure_game_draft(context).momentum_win_streak = v;
+                self.status_message = None;
+                Signal::done()
+            }
+            SettingsMsg::MomentumLossStreakChanged(v) => {
+                self.ensure_game_draft(context).momentum_loss_streak = v;
                 self.status_message = None;
                 Signal::done()
             }
@@ -279,6 +303,34 @@ fn render_game_config_card<'a>(draft: &GameConfigDraft) -> Element<'a, SettingsM
                     "Calibration Games",
                     &draft.calibration_games,
                     SettingsMsg::CalibrationGamesChanged,
+                ),
+            ]
+            .spacing(12)
+            .width(Length::Fill),
+            row![
+                labeled_input(
+                    "Momentum Alpha",
+                    &draft.momentum_alpha,
+                    SettingsMsg::MomentumAlphaChanged,
+                ),
+                labeled_input(
+                    "Momentum K-Factor",
+                    &draft.momentum_k,
+                    SettingsMsg::MomentumKChanged,
+                ),
+            ]
+            .spacing(12)
+            .width(Length::Fill),
+            row![
+                labeled_input(
+                    "Momentum Win Streak",
+                    &draft.momentum_win_streak,
+                    SettingsMsg::MomentumWinStreakChanged,
+                ),
+                labeled_input(
+                    "Momentum Loss Streak",
+                    &draft.momentum_loss_streak,
+                    SettingsMsg::MomentumLossStreakChanged,
                 ),
             ]
             .spacing(12)

@@ -122,7 +122,7 @@ impl Tournament {
     ) -> Result<f64, TournamentError> {
         self.require_id_registered(target)?;
 
-        let scale = self.game_config().logistic_scale();
+        let scale = self.game_config().logistic_scale;
         let drift_window = scale * 0.5;
         let max_steps = 500;
         let mut steps = 0;
@@ -130,7 +130,7 @@ impl Tournament {
         loop {
             let curr_elo = self.get_player_or_default_stats(target).elo();
             let curr_diff = target_elo - curr_elo;
-            if curr_diff.abs() < self.game_config().base_k() || steps >= max_steps {
+            if curr_diff.abs() < self.game_config().base_k || steps >= max_steps {
                 break;
             }
 
@@ -206,14 +206,14 @@ fn select_sparring_pool(
 
     let baseline = {
         if target_elo > current_elo {
-            tourn.game_config().initial_elo()
+            tourn.game_config().initial_elo
         } else {
-            -tourn.game_config().initial_elo()
+            -tourn.game_config().initial_elo
         }
     };
 
     if candidates.peek().is_none_or(|(val, _)| {
-        let scale = tourn.game_config().logistic_scale();
+        let scale = tourn.game_config().logistic_scale;
         let drift_window = scale * 0.25;
         val.into_inner() + drift_window < baseline
     }) {
@@ -299,14 +299,14 @@ fn set_elo_below() {
     let target = tourn.register_debug_player().unwrap();
     let target_elo = tourn
         .game_config()
-        .logistic_scale()
-        .mul_add(-0.75, tourn.game_config().initial_elo());
+        .logistic_scale
+        .mul_add(-0.75, tourn.game_config().initial_elo);
     tourn.debug_set_target_elo(target, target_elo).unwrap();
 
     let elo = tourn.get_player_or_default_stats(target).elo();
 
     assert!(
-        (elo - target_elo).abs() < tourn.game_config().logistic_scale() * 0.1,
+        (elo - target_elo).abs() < tourn.game_config().logistic_scale * 0.1,
         "Expected to be near {target_elo}, found {elo}"
     );
 }
@@ -317,14 +317,14 @@ fn set_elo_low() {
     let target = tourn.register_debug_player().unwrap();
     let target_elo = tourn
         .game_config()
-        .logistic_scale()
-        .mul_add(-1.5, tourn.game_config().initial_elo());
+        .logistic_scale
+        .mul_add(-1.5, tourn.game_config().initial_elo);
     tourn.debug_set_target_elo(target, target_elo).unwrap();
 
     let elo = tourn.get_player_or_default_stats(target).elo();
 
     assert!(
-        (elo - target_elo).abs() < tourn.game_config().logistic_scale() * 0.1,
+        (elo - target_elo).abs() < tourn.game_config().logistic_scale * 0.1,
         "Expected to be near {target_elo}, found {elo}"
     );
 }
@@ -335,14 +335,14 @@ fn set_elo_above() {
     let target = tourn.register_debug_player().unwrap();
     let target_elo = tourn
         .game_config()
-        .logistic_scale()
-        .mul_add(0.75, tourn.game_config().initial_elo());
+        .logistic_scale
+        .mul_add(0.75, tourn.game_config().initial_elo);
     tourn.debug_set_target_elo(target, target_elo).unwrap();
 
     let elo = tourn.get_player_or_default_stats(target).elo();
 
     assert!(
-        (elo - target_elo).abs() < tourn.game_config().logistic_scale() * 0.1,
+        (elo - target_elo).abs() < tourn.game_config().logistic_scale * 0.1,
         "Expected to be near {target_elo}, found {elo}"
     );
 }
@@ -353,14 +353,14 @@ fn set_elo_high() {
     let target = tourn.register_debug_player().unwrap();
     let target_elo = tourn
         .game_config()
-        .logistic_scale()
-        .mul_add(1.5, tourn.game_config().initial_elo());
+        .logistic_scale
+        .mul_add(1.5, tourn.game_config().initial_elo);
     tourn.debug_set_target_elo(target, target_elo).unwrap();
 
     let elo = tourn.get_player_or_default_stats(target).elo();
 
     assert!(
-        (elo - target_elo).abs() < tourn.game_config().logistic_scale() * 0.1,
+        (elo - target_elo).abs() < tourn.game_config().logistic_scale * 0.1,
         "Expected to be near {target_elo}, found {elo}"
     );
 }
