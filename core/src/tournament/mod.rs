@@ -45,7 +45,7 @@ impl Tournament {
         let game_config = GameConfig::default();
         Self {
             stats: HashMap::default(),
-            default_stats: PlayerStats::new(game_config.initial_elo()),
+            default_stats: PlayerStats::new(game_config.initial_elo),
             players: HashMap::default(),
             player_names: im::HashMap::default(),
             games: Vec::new(),

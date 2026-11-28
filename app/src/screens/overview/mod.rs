@@ -212,7 +212,7 @@ fn render_kpi_strip<'a>(tournament: &Tournament) -> iced::Element<'a, OverviewMs
         |p| (format!("{:.1}", p.stats().elo()), p.info().display_name()),
     );
 
-    let calibration = tournament.game_config().calibration_games();
+    let calibration = tournament.game_config().calibration_games;
     let calibrated = tournament
         .registered_players()
         .filter(|p| !p.info().is_archived() && p.stats().games() >= calibration)

@@ -27,18 +27,18 @@ impl Tournament {
 
         let k: [f64; T] = {
             let m_ref_loss = (1.0 - 1.0 / T as f64)
-                * (1.0 - (1.0 - config.momentum_alpha()).powi(config.momentum_win_streak()));
+                * (1.0 - (1.0 - config.momentum_alpha).powi(config.momentum_win_streak));
             let m_ref_win = (1.0 / T as f64)
-                * (1.0 - (1.0 - config.momentum_alpha()).powi(config.momentum_loss_streak()));
-            let calibration = config.calibration_games();
+                * (1.0 - (1.0 - config.momentum_alpha).powi(config.momentum_loss_streak));
+            let calibration = config.calibration_games;
 
             array::from_fn(|i| {
                 let games = stats[i].games();
                 let calibration_k = if calibration == 0 || games >= calibration {
-                    config.base_k()
+                    config.base_k
                 } else {
                     let progress = f64::from(games) / f64::from(calibration);
-                    progress.mul_add(-(config.initial_k() - config.base_k()), config.initial_k())
+                    progress.mul_add(-(config.initial_k - config.base_k), config.initial_k)
                 };
 
                 let m = stats[i].momentum();
@@ -49,7 +49,7 @@ impl Tournament {
                     0.0
                 };
                 let t = x * x;
-                let momentum_k = t.mul_add(config.momentum_k() - config.base_k(), config.base_k());
+                let momentum_k = t.mul_add(config.momentum_k - config.base_k, config.base_k);
 
                 calibration_k.max(momentum_k)
             })
@@ -61,7 +61,7 @@ impl Tournament {
             .fold(f64::NEG_INFINITY, f64::max);
 
         let gamma: [f64; T] =
-            array::from_fn(|i| 10.0_f64.powf((stats[i].elo() - max_elo) / config.logistic_scale()));
+            array::from_fn(|i| 10.0_f64.powf((stats[i].elo() - max_elo) / config.logistic_scale));
 
         let total_gamma: f64 = gamma.iter().sum();
 
@@ -104,7 +104,7 @@ impl Tournament {
 
     pub(super) fn insert_game_record(&mut self, record: GameRecord) {
         let mut winner_tracked = false;
-        let mom_alpha = self.game_config().momentum_alpha();
+        let mom_alpha = self.game_config().momentum_alpha;
 
         for player in record.matchup().players() {
             let stats = self

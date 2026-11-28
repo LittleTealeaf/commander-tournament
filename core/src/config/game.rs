@@ -1,17 +1,7 @@
 use backwards_compat::backwards_compat;
 use serde_inline_default::serde_inline_default;
 
-#[derive(
-    Debug,
-    Clone,
-    PartialEq,
-    getset::CopyGetters,
-    getset::Setters,
-    getset::WithSetters,
-    getset::MutGetters,
-    derive_more::Constructor,
-)]
-#[getset(set = "pub", set_with = "pub", get_copy = "pub", get_mut = "pub")]
+#[derive(Debug, Clone, PartialEq)]
 #[serde_inline_default]
 #[backwards_compat(
     versions(
@@ -21,23 +11,23 @@ use serde_inline_default::serde_inline_default;
 )]
 pub struct GameConfig {
     #[serde(alias = "starting_elo")]
-    initial_elo: f64,
-    logistic_scale: f64,
-    initial_k: f64,
-    base_k: f64,
-    calibration_games: u32,
+    pub initial_elo: f64,
+    pub logistic_scale: f64,
+    pub initial_k: f64,
+    pub base_k: f64,
+    pub calibration_games: u32,
     #[serde_inline_default(0.25)]
     #[serde(rename = "mom_alpha", alias = "momentum_alpha")]
-    momentum_alpha: f64,
+    pub momentum_alpha: f64,
     #[serde_inline_default(18.0)]
     #[serde(rename = "mom_k", alias = "momentum_k")]
-    momentum_k: f64,
+    pub momentum_k: f64,
     #[serde_inline_default(4)]
     #[serde(rename = "mom_w", alias = "momentum_win_streak")]
-    momentum_win_streak: i32,
+    pub momentum_win_streak: i32,
     #[serde_inline_default(7)]
     #[serde(rename = "mom_l", alias = "momentum_loss_streak")]
-    momentum_loss_streak: i32,
+    pub momentum_loss_streak: i32,
 }
 
 impl Default for GameConfig {

@@ -16,15 +16,15 @@ pub(super) struct GameConfigDraft {
 impl From<&GameConfig> for GameConfigDraft {
     fn from(cfg: &GameConfig) -> Self {
         Self {
-            initial_elo: cfg.initial_elo().to_string(),
-            logistic_scale: cfg.logistic_scale().to_string(),
-            initial_k: cfg.initial_k().to_string(),
-            base_k: cfg.base_k().to_string(),
-            calibration_games: cfg.calibration_games().to_string(),
-            momentum_alpha: cfg.momentum_alpha().to_string(),
-            momentum_k: cfg.momentum_k().to_string(),
-            momentum_win_streak: cfg.momentum_win_streak().to_string(),
-            momentum_loss_streak: cfg.momentum_loss_streak().to_string(),
+            initial_elo: cfg.initial_elo.to_string(),
+            logistic_scale: cfg.logistic_scale.to_string(),
+            initial_k: cfg.initial_k.to_string(),
+            base_k: cfg.base_k.to_string(),
+            calibration_games: cfg.calibration_games.to_string(),
+            momentum_alpha: cfg.momentum_alpha.to_string(),
+            momentum_k: cfg.momentum_k.to_string(),
+            momentum_win_streak: cfg.momentum_win_streak.to_string(),
+            momentum_loss_streak: cfg.momentum_loss_streak.to_string(),
         }
     }
 }
@@ -90,7 +90,7 @@ impl GameConfigDraft {
             return Err("Momentum streaks must be non-negative integers.".to_owned());
         }
 
-        Ok(GameConfig::new(
+        Ok(GameConfig {
             initial_elo,
             logistic_scale,
             initial_k,
@@ -100,7 +100,7 @@ impl GameConfigDraft {
             momentum_k,
             momentum_win_streak,
             momentum_loss_streak,
-        ))
+        })
     }
 }
 

@@ -81,7 +81,7 @@ where
         let mut players = Vec::with_capacity(POD_SIZE);
         players.push(player);
 
-        let is_unranked = stats.games() < self.tourn.game_config().calibration_games();
+        let is_unranked = stats.games() < self.tourn.game_config().calibration_games;
 
         let mut count_unranked = usize::from(is_unranked);
         let mut count_precon = usize::from(info.is_precon());
@@ -110,7 +110,7 @@ where
 
             if info.is_precon() {
                 count_precon += 1;
-            } else if stats.games() < game_config.calibration_games() {
+            } else if stats.games() < game_config.calibration_games {
                 count_unranked += 1;
             }
 
@@ -140,7 +140,7 @@ where
             .avg_elo()
             .unwrap_or_else(|| self.tourn.default_stats().elo());
 
-        let calibrate_games = self.tourn.game_config().calibration_games();
+        let calibrate_games = self.tourn.game_config().calibration_games;
         let config = self.config();
 
         Ok(performances
@@ -256,12 +256,14 @@ mod tests {
                     .with_elo_range(1.0)
                     .with_min_pool_size(3),
             )
-            .with_game_config(
-                GameConfig::default()
-                    .with_calibration_games(0)
-                    .with_base_k(1.0)
-                    .with_initial_elo(1500.0),
-            )
+            .with_game_config(GameConfig {
+                calibration_games: 0,
+                base_k: 1.0,
+                initial_elo: 1500.0,
+                momentum_k: 0.0,
+                momentum_alpha: 0.0,
+                ..Default::default()
+            })
             .unwrap();
 
         let [id_a, id_b, id_c, id_d, id_e] = tourn.register_debug_players().unwrap();

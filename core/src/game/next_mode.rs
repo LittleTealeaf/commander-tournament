@@ -31,7 +31,7 @@ impl NextPlayerMode {
                     if let Some(player) = pool
                         .iter()
                         .min_by_key(|player| (player.stats().games(), player.id()))
-                        && player.stats().games() < tourn.game_config().calibration_games()
+                        && player.stats().games() < tourn.game_config().calibration_games
                     {
                         return Some(player.id());
                     }

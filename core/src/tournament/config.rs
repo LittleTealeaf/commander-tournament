@@ -23,7 +23,7 @@ mod tests {
         let id = *tournament.players.keys().next().unwrap();
         let elo_start = tournament.get_player_stats(id).unwrap().elo();
         let mut config = tournament.game_config().clone();
-        *config.initial_elo_mut() += 1500.0;
+        config.initial_elo += 1500.0;
         tournament.set_game_config(config).unwrap();
         let elo_end = tournament.get_player_stats(id).unwrap().elo();
         assert!(elo_start.total_cmp(&elo_end).is_ne());
