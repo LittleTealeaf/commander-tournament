@@ -1,6 +1,18 @@
 use backwards_compat::backwards_compat;
 use serde_inline_default::serde_inline_default;
 
+const DEFAULT: GameConfig = GameConfig {
+    initial_elo: 1500.0,
+    logistic_scale: 400.0,
+    initial_k: 24.0,
+    base_k: 12.0,
+    calibration_games: 15,
+    momentum_alpha: 0.25,
+    momentum_k: 18.0,
+    momentum_win_streak: 4,
+    momentum_loss_streak: 7,
+};
+
 #[derive(Debug, Clone, PartialEq)]
 #[serde_inline_default]
 #[backwards_compat(
@@ -16,33 +28,23 @@ pub struct GameConfig {
     pub initial_k: f64,
     pub base_k: f64,
     pub calibration_games: u32,
-    #[serde_inline_default(0.25)]
+    #[serde_inline_default(DEFAULT.initial_elo)]
     #[serde(rename = "mom_alpha", alias = "momentum_alpha")]
     pub momentum_alpha: f64,
-    #[serde_inline_default(18.0)]
+    #[serde_inline_default(DEFAULT.momentum_k)]
     #[serde(rename = "mom_k", alias = "momentum_k")]
     pub momentum_k: f64,
-    #[serde_inline_default(4)]
+    #[serde_inline_default(DEFAULT.momentum_win_streak)]
     #[serde(rename = "mom_w", alias = "momentum_win_streak")]
     pub momentum_win_streak: i32,
-    #[serde_inline_default(7)]
+    #[serde_inline_default(DEFAULT.momentum_loss_streak)]
     #[serde(rename = "mom_l", alias = "momentum_loss_streak")]
     pub momentum_loss_streak: i32,
 }
 
 impl Default for GameConfig {
     fn default() -> Self {
-        Self {
-            initial_elo: 1500.0,
-            logistic_scale: 400.0,
-            initial_k: 24.0,
-            base_k: 12.0,
-            calibration_games: 15,
-            momentum_alpha: 0.25,
-            momentum_k: 18.0,
-            momentum_win_streak: 4,
-            momentum_loss_streak: 7,
-        }
+        DEFAULT
     }
 }
 
